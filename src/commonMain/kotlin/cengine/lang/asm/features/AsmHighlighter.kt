@@ -4,8 +4,8 @@ import cengine.editor.highlighting.HLInfo
 import cengine.editor.highlighting.HighlightProvider
 import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.AsmSpec
-import cengine.lang.asm.ast.gas.GASDirType
-import cengine.lang.asm.ast.gas.GASNode
+import cengine.lang.asm.ast.impl.ASDirType
+import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.lexer.AsmTokenType
 import cengine.psi.core.Interval
 import cengine.psi.core.PsiElement
@@ -16,47 +16,47 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
     private val lexer = asmSpec.createLexer("")
 
     override fun getHighlights(element: PsiElement): List<HLInfo> {
-        if (element !is GASNode) return emptyList()
+        if (element !is ASNode) return emptyList()
         return cache.getOrPut(element){
             when (element) {
-                is GASNode.ArgDef.Named -> listOf(HL(element, CodeStyle.argument))
-                is GASNode.Argument.Basic -> listOf(HL(element, CodeStyle.argument))
-                is GASNode.Argument.DefaultValue -> listOf(HL(element, CodeStyle.argument))
-                is GASNode.Label -> listOf(HL(element, CodeStyle.label))
-                is GASNode.NumericExpr.Operand.Char -> listOf(HL(element, CodeStyle.char))
-                is GASNode.NumericExpr.Operand.Number -> listOf(HL(element, CodeStyle.integer))
-                is GASNode.StringExpr.Operand.StringLiteral -> listOf(HL(element, CodeStyle.string))
-                is GASNode.Directive -> {
+                is ASNode.ArgDef.Named -> listOf(HL(element, CodeStyle.argument))
+                is ASNode.Argument.Basic -> listOf(HL(element, CodeStyle.argument))
+                is ASNode.Argument.DefaultValue -> listOf(HL(element, CodeStyle.argument))
+                is ASNode.Label -> listOf(HL(element, CodeStyle.label))
+                is ASNode.NumericExpr.Operand.Char -> listOf(HL(element, CodeStyle.char))
+                is ASNode.NumericExpr.Operand.Number -> listOf(HL(element, CodeStyle.integer))
+                is ASNode.StringExpr.Operand.StringLiteral -> listOf(HL(element, CodeStyle.string))
+                is ASNode.Directive -> {
                     when (element.type) {
-                        GASDirType.MACRO -> {
+                        ASDirType.MACRO -> {
                             val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
                             identifier?.let {
                                 listOf(HL(identifier, CodeStyle.symbol))
                             } ?: emptyList()
                         }
 
-                        GASDirType.SET_ALT -> {
+                        ASDirType.SET_ALT -> {
                             val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
                             identifier?.let {
                                 listOf(HL(identifier, CodeStyle.symbol))
                             } ?: emptyList()
                         }
 
-                        GASDirType.SET -> {
+                        ASDirType.SET -> {
                             val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
                             identifier?.let {
                                 listOf(HL(identifier, CodeStyle.symbol))
                             } ?: emptyList()
                         }
 
-                        GASDirType.EQU -> {
+                        ASDirType.EQU -> {
                             val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
                             identifier?.let {
                                 listOf(HL(identifier, CodeStyle.symbol))
                             } ?: emptyList()
                         }
 
-                        GASDirType.EQV -> {
+                        ASDirType.EQV -> {
                             val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
                             identifier?.let {
                                 listOf(HL(identifier, CodeStyle.symbol))
@@ -67,7 +67,7 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
                     }
                 }
 
-                is GASNode.Comment -> listOf(HL(element, CodeStyle.comment))
+                is ASNode.Comment -> listOf(HL(element, CodeStyle.comment))
                 else -> {
                     emptyList()
                 }

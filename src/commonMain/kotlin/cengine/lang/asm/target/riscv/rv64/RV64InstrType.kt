@@ -2,7 +2,7 @@ package cengine.lang.asm.target.riscv.rv64
 
 
 import cengine.lang.asm.ast.InstrTypeInterface
-import cengine.lang.asm.parser.Rule
+import cengine.lang.asm.ast.Rule
 
 enum class RV64InstrType(val id: String, override val isPseudo: Boolean, val paramType: RV64ParamType, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV64ParamType.RD_I20),

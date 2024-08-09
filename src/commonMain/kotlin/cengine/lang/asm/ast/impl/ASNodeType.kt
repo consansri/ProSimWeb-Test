@@ -1,8 +1,8 @@
-package cengine.lang.asm.ast.gas
+package cengine.lang.asm.ast.impl
 
 import emulator.kit.assembler.syntax.Rule
 
-enum class GASNodeType(val rule: Rule? = null) {
+enum class ASNodeType(val rule: Rule? = null) {
     INT_EXPR,
     STRING_EXPR,
     ANY_EXPR,

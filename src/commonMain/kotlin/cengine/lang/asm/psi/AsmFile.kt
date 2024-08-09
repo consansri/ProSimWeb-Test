@@ -4,13 +4,13 @@ import cengine.editor.annotation.Notation
 import cengine.editor.text.TextModel
 import cengine.editor.widgets.Widget
 import cengine.lang.asm.AsmLang
-import cengine.lang.asm.ast.gas.GASNode
+import cengine.lang.asm.ast.impl.ASNode
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 import cengine.vfs.VirtualFile
 
-class AsmFile(override val file: VirtualFile, override val lang: AsmLang, private var program: GASNode.Program) : PsiFile {
+class AsmFile(override val file: VirtualFile, override val lang: AsmLang, private var program: ASNode.Program) : PsiFile {
     override var textModel: TextModel? = null
     override val notations: List<Notation>
         get() = program.notations
@@ -25,7 +25,7 @@ class AsmFile(override val file: VirtualFile, override val lang: AsmLang, privat
 
     override val parent: PsiElement?
         get() = program.parent
-    override val children: List<GASNode> get() = program.children
+    override val children: List<ASNode> get() = program.children
 
     override var range: IntRange = program.range
         set(value) {

@@ -1,8 +1,7 @@
 package cengine.lang.asm.ast
 
-import cengine.lang.asm.ast.gas.GASNode
+import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.lexer.AsmLexer
-import cengine.lang.asm.parser.Rule
 
 interface DirTypeInterface {
 
@@ -13,6 +12,6 @@ interface DirTypeInterface {
     val isSection: Boolean
     val rule: Rule?
     val typeName: String
-    fun buildDirectiveContent(lexer: AsmLexer, asmSpec: AsmSpec): GASNode.Directive?
+    fun buildDirectiveContent(lexer: AsmLexer, asmSpec: AsmSpec): ASNode.Directive?
 
 }

@@ -1,9 +1,9 @@
 package cengine.lang.asm.target.risc2
 
-import cengine.lang.asm.ast.gas.GASNodeType
+import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.lexer.AsmTokenType
-import cengine.lang.asm.parser.Component
-import cengine.lang.asm.parser.Rule
+import cengine.lang.asm.ast.Component
+import cengine.lang.asm.ast.Rule
 
 enum class IKRR2ParamType(val rule: Rule, val exampleString: String) {
     I_TYPE(Rule {
@@ -14,7 +14,7 @@ enum class IKRR2ParamType(val rule: Rule, val exampleString: String) {
             Component.InSpecific(AsmTokenType.REGISTER),
             Component.Specific(","),
             Component.Specific("#"),
-            Component.SpecNode(GASNodeType.INT_EXPR)
+            Component.SpecNode(ASNodeType.INT_EXPR)
         )
     }, "rc := rb,#imm16"),
     R2_TYPE(Rule {
@@ -43,7 +43,7 @@ enum class IKRR2ParamType(val rule: Rule, val exampleString: String) {
             Component.Specific("("),
             Component.InSpecific(AsmTokenType.REGISTER),
             Component.Specific(","),
-            Component.SpecNode(GASNodeType.INT_EXPR),
+            Component.SpecNode(ASNodeType.INT_EXPR),
             Component.Specific(")")
         )
     }, "rc := (rb,disp16)"),
@@ -64,7 +64,7 @@ enum class IKRR2ParamType(val rule: Rule, val exampleString: String) {
             Component.Specific("("),
             Component.InSpecific(AsmTokenType.REGISTER),
             Component.Specific(","),
-            Component.SpecNode(GASNodeType.INT_EXPR),
+            Component.SpecNode(ASNodeType.INT_EXPR),
             Component.Specific(")"),
             Component.Specific(":"),
             Component.Specific("="),
@@ -87,12 +87,12 @@ enum class IKRR2ParamType(val rule: Rule, val exampleString: String) {
         Component.Seq(
             Component.InSpecific(AsmTokenType.REGISTER),
             Component.Specific(","),
-            Component.SpecNode(GASNodeType.INT_EXPR)
+            Component.SpecNode(ASNodeType.INT_EXPR)
         )
     }, "rc,disp18"),
     B_DISP26_TYPE(Rule {
         Component.Seq(
-            Component.SpecNode(GASNodeType.INT_EXPR)
+            Component.SpecNode(ASNodeType.INT_EXPR)
         )
     }, "disp26"),
     B_REG_TYPE(Rule {

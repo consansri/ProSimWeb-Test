@@ -4,7 +4,7 @@ import cengine.editor.folding.CodeFoldingProvider
 import cengine.editor.folding.FoldRegion
 import cengine.editor.folding.FoldRegionImpl
 import cengine.editor.text.Informational
-import cengine.lang.asm.ast.gas.GASNode
+import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.lexer.AsmTokenType
 import cengine.lang.asm.psi.AsmFile
 import cengine.psi.core.PsiElement
@@ -33,7 +33,7 @@ class AsmFolder : CodeFoldingProvider {
 
         override fun visitElement(element: PsiElement) {
             when (element) {
-                is GASNode.Comment -> {
+                is ASNode.Comment -> {
                     if (element.token.type == AsmTokenType.COMMENT_ML) {
                         val firstLine = informational.getLineAndColumn(element.range.first).first
                         val lastLine = informational.getLineAndColumn(element.range.last).first
@@ -41,7 +41,7 @@ class AsmFolder : CodeFoldingProvider {
                     }
                 }
 
-                is GASNode.Program -> {
+                is ASNode.Program -> {
                     element.children.forEach {
                         it.accept(this)
                     }

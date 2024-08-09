@@ -1,9 +1,7 @@
-package cengine.lang.asm.parser
+package cengine.lang.asm.ast
 
-import cengine.lang.asm.ast.AsmSpec
-import cengine.lang.asm.ast.RegTypeInterface
-import cengine.lang.asm.ast.gas.GASNode
-import cengine.lang.asm.ast.gas.GASNodeType
+import cengine.lang.asm.ast.impl.ASNode
+import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.lexer.AsmLexer
 import cengine.lang.asm.lexer.AsmToken
 import cengine.lang.asm.lexer.AsmTokenType
@@ -51,7 +49,7 @@ sealed class Component {
         private val comp = comp()
         override fun matchStart(lexer: AsmLexer, asmSpec: AsmSpec): Rule.MatchResult {
             val matchingTokens = mutableListOf<AsmToken>()
-            val matchingNodes = mutableListOf<GASNode>()
+            val matchingNodes = mutableListOf<ASNode>()
 
             var iteration = 0
             while (true) {
@@ -77,7 +75,7 @@ sealed class Component {
     class Seq(vararg val comps: Component, val print: Boolean = false) : Component() {
         override fun matchStart(lexer: AsmLexer, asmSpec: AsmSpec): Rule.MatchResult {
             val initialPosition = lexer.position
-            val matchingNodes = mutableListOf<GASNode>()
+            val matchingNodes = mutableListOf<ASNode>()
             val matchingTokens = mutableListOf<AsmToken>()
 
             for (comp in comps) {
@@ -204,11 +202,11 @@ sealed class Component {
         override fun print(prefix: String): String = "$prefix${type.name}"
     }
 
-    class SpecNode(private val type: GASNodeType) : Component() {
+    class SpecNode(private val type: ASNodeType) : Component() {
         override fun matchStart(lexer: AsmLexer, asmSpec: AsmSpec): Rule.MatchResult {
             val initialPosition = lexer.position
 
-            val node = GASNode.buildNode(type, lexer, asmSpec)
+            val node = ASNode.buildNode(type, lexer, asmSpec)
             if (node == null) {
                 if (DebugTools.KIT_showRuleChecks) nativeLog("Mismatch: SpecNode ${type.name}")
                 lexer.position = initialPosition

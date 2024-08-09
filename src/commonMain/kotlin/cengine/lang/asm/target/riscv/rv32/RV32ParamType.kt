@@ -1,8 +1,8 @@
 package cengine.lang.asm.target.riscv.rv32
 
-import cengine.lang.asm.ast.gas.GASNodeType
-import cengine.lang.asm.parser.Component.*
-import cengine.lang.asm.parser.Rule
+import cengine.lang.asm.ast.impl.ASNodeType
+import cengine.lang.asm.ast.Component.*
+import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.target.riscv.RVBaseRegs
 
 enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rule: Rule?) {
@@ -13,7 +13,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
+                SpecNode(ASNodeType.INT_EXPR)
             )
         }
     ) , // rd, imm
@@ -23,7 +23,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR),
+                SpecNode(ASNodeType.INT_EXPR),
                 Specific("("),
                 Reg(RVBaseRegs.entries),
                 Specific(")")
@@ -35,7 +35,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR),
+                SpecNode(ASNodeType.INT_EXPR),
                 Specific("("),
                 Reg(RVBaseRegs.entries),
                 Specific(")")
@@ -52,7 +52,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
                 Specific(","),
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
+                SpecNode(ASNodeType.INT_EXPR)
             )
         }
     ) , // rd, rs, imm
@@ -64,7 +64,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
                 Specific(","),
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
+                SpecNode(ASNodeType.INT_EXPR)
             )
         }
     ) , // rd, rs, shamt
@@ -76,7 +76,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
                 Specific(","),
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
+                SpecNode(ASNodeType.INT_EXPR)
             )
         }
     ) , // rs1, rs2, imm
@@ -99,7 +99,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
                 Specific(","),
                 Reg(isNotContainedBy = RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
+                SpecNode(ASNodeType.INT_EXPR)
             )
         }) ,
 
@@ -111,7 +111,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
                 Specific(","),
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
+                SpecNode(ASNodeType.INT_EXPR)
             )
         }
     ),
@@ -120,7 +120,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
+                SpecNode(ASNodeType.INT_EXPR)
             )
         }
     ), // rd, imm
@@ -129,7 +129,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
+                SpecNode(ASNodeType.INT_EXPR)
             )
         }
     ), // rs, label
@@ -138,11 +138,11 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                SpecNode(GASNodeType.INT_EXPR)
+                SpecNode(ASNodeType.INT_EXPR)
             )
         }
     ), // rd, label
-    PS_JLBL(true, "jlabel", Rule { Seq(SpecNode(GASNodeType.INT_EXPR)) }),  // label
+    PS_JLBL(true, "jlabel", Rule { Seq(SpecNode(ASNodeType.INT_EXPR)) }),  // label
     PS_RD_RS1(
         true, "rd, rs", Rule {
             Seq(

@@ -1,7 +1,7 @@
 package cengine.lang.asm.target.risc2
 
 import cengine.lang.asm.ast.InstrTypeInterface
-import cengine.lang.asm.parser.Rule
+import cengine.lang.asm.ast.Rule
 
 
 enum class IKRR2InstrType(val id: String, val paramType: IKRR2ParamType, val descr: String = "", override val isPseudo: Boolean = true, override val bytesNeeded: Int? = 4) : InstrTypeInterface {

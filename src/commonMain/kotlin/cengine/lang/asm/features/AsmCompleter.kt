@@ -5,8 +5,8 @@ import cengine.editor.completion.CompletionItemKind
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.completion.CompletionProvider.Companion.asCompletions
 import cengine.lang.asm.ast.AsmSpec
-import cengine.lang.asm.ast.gas.GASDirType
-import cengine.lang.asm.ast.gas.GASNode
+import cengine.lang.asm.ast.impl.ASDirType
+import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.lexer.AsmTokenType
 import cengine.lang.asm.psi.AsmFile
 import cengine.psi.core.PsiElement
@@ -14,7 +14,7 @@ import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 
 class AsmCompleter(asmSpec: AsmSpec) : CompletionProvider {
-    val directives: Set<String> = (GASDirType.entries + asmSpec.customDirs).map { "." + it.getDetectionString().lowercase() }.filter { it.isNotEmpty() }.toSet()
+    val directives: Set<String> = (ASDirType.entries + asmSpec.customDirs).map { "." + it.getDetectionString().lowercase() }.filter { it.isNotEmpty() }.toSet()
     val instructions: Set<String> = asmSpec.allInstrs.map { it.getDetectionName() }.toSet()
     val cachedCompletions: MutableMap<PsiFile, CompletionSet> = mutableMapOf()
 
@@ -61,34 +61,34 @@ class AsmCompleter(asmSpec: AsmSpec) : CompletionProvider {
         }
 
         override fun visitElement(element: PsiElement) {
-            if (element !is GASNode) return
+            if (element !is ASNode) return
             when (element) {
-                is GASNode.Label -> {
+                is ASNode.Label -> {
                     if (!labels.contains(element.identifier)) {
                         labels.add(element.identifier)
                     }
                 }
 
-                is GASNode.Program -> {
+                is ASNode.Program -> {
                     element.children.forEach {
                         it.accept(this)
                     }
                 }
 
-                is GASNode.Statement -> {
+                is ASNode.Statement -> {
                     element.children.forEach {
                         if (element.label != null) {
                             element.label.accept(this)
                         }
-                        if (element is GASNode.Statement.Dir) {
+                        if (element is ASNode.Statement.Dir) {
                             element.dir.accept(this)
                         }
                     }
                 }
 
-                is GASNode.Directive -> {
+                is ASNode.Directive -> {
                     when (element.type) {
-                        GASDirType.MACRO -> {
+                        ASDirType.MACRO -> {
                             val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
                             if (identifier != null) {
                                 if (!macros.contains(identifier.value)) {
@@ -97,7 +97,7 @@ class AsmCompleter(asmSpec: AsmSpec) : CompletionProvider {
                             }
                         }
 
-                        GASDirType.SET, GASDirType.SET_ALT, GASDirType.EQU -> {
+                        ASDirType.SET, ASDirType.SET_ALT, ASDirType.EQU -> {
                             val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
                             if (identifier != null) {
                                 symbols.add(identifier.value)

@@ -1,4 +1,4 @@
-package cengine.lang.asm.ast.gas
+package cengine.lang.asm.ast.impl
 
 import cengine.editor.annotation.Notation
 import cengine.editor.widgets.Widget
@@ -6,12 +6,12 @@ import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
-import cengine.lang.asm.ast.gas.GASNode.*
+import cengine.lang.asm.ast.impl.ASNode.*
 import cengine.lang.asm.lexer.AsmLexer
 import cengine.lang.asm.lexer.AsmToken
 import cengine.lang.asm.lexer.AsmTokenType
-import cengine.lang.asm.parser.Component.*
-import cengine.lang.asm.parser.Rule
+import cengine.lang.asm.ast.Component.*
+import cengine.lang.asm.ast.Rule
 import cengine.psi.core.*
 import cengine.psi.lexer.core.Token
 import debug.DebugTools
@@ -34,10 +34,10 @@ import emulator.kit.nativeLog
  *   - [Statement.Unresolved] Unresolved Content
  * --------------------
  */
-sealed class GASNode(override var range: IntRange, vararg children: GASNode) : PsiElement, PsiFormatter {
+sealed class ASNode(override var range: IntRange, vararg children: ASNode) : PsiElement, PsiFormatter {
     override var parent: PsiElement? = null
 
-    final override val children: MutableList<GASNode> = mutableListOf(*children)
+    final override val children: MutableList<ASNode> = mutableListOf(*children)
     final override val notations: MutableList<Notation> = mutableListOf()
     override val inlayWidgets: MutableList<Widget> = mutableListOf()
     override val interlineWidgets: MutableList<Widget> = mutableListOf()
@@ -56,7 +56,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         visitor.visitElement(this)
     }
 
-    class Comment(val token: AsmToken) : GASNode(token.range) {
+    class Comment(val token: AsmToken) : ASNode(token.range) {
         override val pathName: String
             get() = PATHNAME
 
@@ -67,7 +67,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         override fun getFormatted(identSize: Int): String = token.value
     }
 
-    class Error(val message: String, vararg val tokens: AsmToken) : GASNode(tokens.first().range.first..tokens.last().range.last) {
+    class Error(val message: String, vararg val tokens: AsmToken) : ASNode(tokens.first().range.first..tokens.last().range.last) {
         override val pathName: String
             get() = PATHNAME
 
@@ -86,16 +86,16 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         /**
          * Severities will be set by the Lowest Node, which is actually checking the token.
          */
-        fun buildNode(gasNodeType: GASNodeType, lexer: AsmLexer, asmSpec: AsmSpec): GASNode? {
+        fun buildNode(gasNodeType: ASNodeType, lexer: AsmLexer, asmSpec: AsmSpec): ASNode? {
             val initialPos = lexer.position
 
             when (gasNodeType) {
-                GASNodeType.PROGRAM -> {
+                ASNodeType.PROGRAM -> {
                     val statements = mutableListOf<Statement>()
                     val annotations = mutableListOf<Notation>()
 
                     while (lexer.hasMoreTokens()) {
-                        val node = buildNode(GASNodeType.STATEMENT, lexer, asmSpec)
+                        val node = buildNode(ASNodeType.STATEMENT, lexer, asmSpec)
 
                         if (node == null) {
                             val token = lexer.consume(true)
@@ -109,7 +109,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                         }
 
                         if (node !is Statement) {
-                            throw PsiParser.NodeException(node, "Didn't get a statement node for GASNode.buildNode(${GASNodeType.STATEMENT})!")
+                            throw PsiParser.NodeException(node, "Didn't get a statement node for GASNode.buildNode(${ASNodeType.STATEMENT})!")
                         }
 
                         statements.add(node)
@@ -120,10 +120,10 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     return node
                 }
 
-                GASNodeType.STATEMENT -> {
-                    val label = buildNode(GASNodeType.LABEL, lexer, asmSpec) as? Label
+                ASNodeType.STATEMENT -> {
+                    val label = buildNode(ASNodeType.LABEL, lexer, asmSpec) as? Label
 
-                    val directive = buildNode(GASNodeType.DIRECTIVE, lexer, asmSpec)
+                    val directive = buildNode(ASNodeType.DIRECTIVE, lexer, asmSpec)
                     if (directive != null && directive is Directive) {
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
@@ -135,7 +135,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                         return Statement.Dir(label, directive, lineBreak)
                     }
 
-                    val instruction = buildNode(GASNodeType.INSTRUCTION, lexer, asmSpec)
+                    val instruction = buildNode(ASNodeType.INSTRUCTION, lexer, asmSpec)
                     if (instruction != null && instruction is Instruction) {
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
@@ -175,8 +175,8 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     return Statement.Empty(label, lineBreak)
                 }
 
-                GASNodeType.DIRECTIVE -> {
-                    (asmSpec.customDirs + GASDirType.entries).forEach {
+                ASNodeType.DIRECTIVE -> {
+                    (asmSpec.customDirs + ASDirType.entries).forEach {
                         val node = it.buildDirectiveContent(lexer, asmSpec)
                         if (node != null) {
                             //nativeLog("Found directive ${it.getDetectionString()} ${node::class.simpleName}")
@@ -187,7 +187,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     return null
                 }
 
-                GASNodeType.INSTRUCTION -> {
+                ASNodeType.INSTRUCTION -> {
                     val first = lexer.consume(true)
                     if (first.type != AsmTokenType.INSTRNAME) {
                         lexer.position = initialPos
@@ -212,11 +212,11 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     return node
                 }
 
-                GASNodeType.INT_EXPR -> {
+                ASNodeType.INT_EXPR -> {
                     return NumericExpr.parse(lexer)
                 }
 
-                GASNodeType.ANY_EXPR -> {
+                ASNodeType.ANY_EXPR -> {
                     val stringExpr = StringExpr.parse(lexer)
                     if (stringExpr != null) return stringExpr
 
@@ -224,11 +224,11 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     return numericExpr
                 }
 
-                GASNodeType.STRING_EXPR -> {
+                ASNodeType.STRING_EXPR -> {
                     return StringExpr.parse(lexer)
                 }
 
-                GASNodeType.LABEL -> {
+                ASNodeType.LABEL -> {
                     val first = lexer.consume(true)
                     if (first.type != AsmTokenType.SYMBOL && first.type != AsmTokenType.INT_DEC) {
                         lexer.position = initialPos
@@ -243,7 +243,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     return Label(first, second)
                 }
 
-                GASNodeType.ARG -> {
+                ASNodeType.ARG -> {
                     val first = lexer.consume(true)
                     if (first.type != AsmTokenType.SYMBOL) {
                         lexer.position = initialPos
@@ -256,7 +256,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                         return Argument.Basic(first)
                     }
 
-                    val third = buildNode(GASNodeType.ANY_EXPR, lexer, asmSpec)
+                    val third = buildNode(ASNodeType.ANY_EXPR, lexer, asmSpec)
                     if (third != null) {
                         return Argument.DefaultValue(first, second, third)
                     }
@@ -265,7 +265,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
                     return Argument.DefaultValue(first, second, TokenExpr(thirdNotExpr))
                 }
 
-                GASNodeType.ARG_DEF -> {
+                ASNodeType.ARG_DEF -> {
                     val named = ArgDef.Named.rule.matchStart(lexer, asmSpec)
                     if (named.matches) {
                         return ArgDef.Named(named.matchingTokens[0], named.matchingTokens[1], named.matchingTokens.drop(2))
@@ -287,7 +287,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
      * [Program]
      * A RootNode only contains several [Statement]s.
      */
-    class Program(statements: List<Statement>, comments: List<Comment>) : GASNode(
+    class Program(statements: List<Statement>, comments: List<Comment>) : ASNode(
         (statements.minByOrNull { it.range.start }?.range?.start ?: 0)..(statements.maxByOrNull { it.range.last }?.range?.last ?: 0),
         *(statements + comments).sortedBy { it.range.start }.toTypedArray()
     ) {
@@ -318,7 +318,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
      *  - [Statement.Instr] Content determined by [Instruction]
      *  - [Statement.Unresolved] Unresolved Content
      */
-    sealed class Statement(val label: Label?, val lineBreak: AsmToken, range: IntRange? = null, vararg childs: GASNode) : GASNode(
+    sealed class Statement(val label: Label?, val lineBreak: AsmToken, range: IntRange? = null, vararg childs: ASNode) : ASNode(
         range ?: (label?.range?.start ?: childs.firstOrNull()?.range?.start ?: lineBreak.start)..<lineBreak.end
     ) {
         override val pathName: String get() = PATHNAME
@@ -388,7 +388,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         }
     }
 
-    class Label(val nameToken: AsmToken, val colon: AsmToken) : GASNode(nameToken.start..<colon.end) {
+    class Label(val nameToken: AsmToken, val colon: AsmToken) : ASNode(nameToken.start..<colon.end) {
         override val pathName get() = nameToken.value + colon.value
         val type = if (nameToken.type == AsmTokenType.INT_DEC) Type.LOCAL else Type.GLOBAL
         val identifier = nameToken.value
@@ -406,7 +406,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
     /**
      * Directive
      */
-    class Directive(val type: DirTypeInterface, val optionalIdentificationToken: AsmToken?, val allTokens: List<AsmToken> = listOf(), val additionalNodes: List<GASNode> = listOf()) : GASNode(
+    class Directive(val type: DirTypeInterface, val optionalIdentificationToken: AsmToken?, val allTokens: List<AsmToken> = listOf(), val additionalNodes: List<ASNode> = listOf()) : ASNode(
         (optionalIdentificationToken?.range?.start ?: allTokens.first().range.first)..maxOf(allTokens.lastOrNull()?.range?.start ?: 0, additionalNodes.lastOrNull()?.range?.last ?: 0),
         *additionalNodes.toTypedArray()
     ) {
@@ -419,14 +419,14 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
 
         override fun getFormatted(identSize: Int): String = (optionalIdentificationToken?.value ?: "") + sortedContent.joinToString("", " ") {
             when (it) {
-                is GASNode -> it.getFormatted(identSize)
+                is ASNode -> it.getFormatted(identSize)
                 is Token -> it.value
                 else -> ""
             }
         }
     }
 
-    sealed class Argument(val argName: AsmToken, range: IntRange) : GASNode(range) {
+    sealed class Argument(val argName: AsmToken, range: IntRange) : ASNode(range) {
         override val pathName: String
             get() = argName.value
 
@@ -443,7 +443,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
             override fun getFormatted(identSize: Int): String = argName.value
         }
 
-        class DefaultValue(argName: AsmToken, val assignment: AsmToken, private val expression: GASNode? = null) : Argument(argName, argName.range.first..(expression?.range?.last ?: assignment.range.last)) {
+        class DefaultValue(argName: AsmToken, val assignment: AsmToken, private val expression: ASNode? = null) : Argument(argName, argName.range.first..(expression?.range?.last ?: assignment.range.last)) {
             init {
                 expression?.let {
                     children.add(expression)
@@ -464,7 +464,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         }
     }
 
-    sealed class ArgDef(val content: List<AsmToken>, range: IntRange) : GASNode(range) {
+    sealed class ArgDef(val content: List<AsmToken>, range: IntRange) : ASNode(range) {
 
         class Positional(content: List<AsmToken>) : ArgDef(content, content.first().range.first..content.last().range.last) {
             override val pathName: String
@@ -512,7 +512,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         }
     }
 
-    class Instruction(val type: InstrTypeInterface, val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<GASNode>) : GASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
+    class Instruction(val type: InstrTypeInterface, val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
         var addr: Value? = null
         override val pathName: String
             get() = instrName.value
@@ -521,7 +521,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
             (tokens + nodes).sortedBy { it.range.first }.joinToString("") {
                 when (it) {
                     is AsmToken -> it.value
-                    is GASNode -> it.getFormatted(identSize)
+                    is ASNode -> it.getFormatted(identSize)
                     else -> ""
                 }
             }
@@ -548,7 +548,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         }
     }
 
-    class TokenExpr(val token: AsmToken) : GASNode(token.range) {
+    class TokenExpr(val token: AsmToken) : ASNode(token.range) {
         companion object {
             const val PATHNAME = "Token"
         }
@@ -559,7 +559,7 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
         override fun getFormatted(identSize: Int): String = token.value
     }
 
-    sealed class StringExpr(range: IntRange, vararg operands: StringExpr) : GASNode(range, *operands) {
+    sealed class StringExpr(range: IntRange, vararg operands: StringExpr) : ASNode(range, *operands) {
 
         abstract fun evaluate(printErrors: Boolean): String
 
@@ -660,12 +660,12 @@ sealed class GASNode(override var range: IntRange, vararg children: GASNode) : P
      * [NumericExpr]
      *
      */
-    sealed class NumericExpr(val brackets: List<AsmToken>, range: IntRange, vararg operands: NumericExpr) : GASNode(range, *operands) {
+    sealed class NumericExpr(val brackets: List<AsmToken>, range: IntRange, vararg operands: NumericExpr) : ASNode(range, *operands) {
         abstract fun evaluate(throwErrors: Boolean): Value.Dec
         abstract fun isDefined(): Boolean
 
         companion object {
-            fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): GASNode? {
+            fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): ASNode? {
                 val initialPos = lexer.position
                 val relevantTokens = mutableListOf<AsmToken>()
 

@@ -2,12 +2,12 @@ package cengine.lang.asm.target.riscv
 
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
-import cengine.lang.asm.ast.gas.GASNode
-import cengine.lang.asm.ast.gas.GASNodeType
+import cengine.lang.asm.ast.impl.ASNode
+import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.lexer.AsmLexer
 import cengine.lang.asm.lexer.AsmTokenType
-import cengine.lang.asm.parser.Component
-import cengine.lang.asm.parser.Rule
+import cengine.lang.asm.ast.Component
+import cengine.lang.asm.ast.Rule
 
 enum class RVDirType(override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ATTRIBUTE(rule = Rule {
@@ -16,13 +16,13 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             Component.InSpecific(AsmTokenType.SYMBOL),
             Component.Except(Component.Specific(",")),
             Component.Specific(","),
-            Component.SpecNode(GASNodeType.ANY_EXPR)
+            Component.SpecNode(ASNodeType.ANY_EXPR)
         )
     }),
     ALIGN(rule = Rule {
         Component.Seq(
             Component.Specific(".align", ignoreCase = true),
-            Component.SpecNode(GASNodeType.INT_EXPR),
+            Component.SpecNode(ASNodeType.INT_EXPR),
         )
     }),
     DTPRELWORD(rule = Rule {
@@ -30,9 +30,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             Component.Specific(".dtprelword", ignoreCase = true),
             Component.Optional {
                 Component.Seq(
-                    Component.SpecNode(GASNodeType.INT_EXPR),
+                    Component.SpecNode(ASNodeType.INT_EXPR),
                     Component.Repeatable {
-                        Component.Seq(Component.Specific(","), Component.SpecNode(GASNodeType.INT_EXPR))
+                        Component.Seq(Component.Specific(","), Component.SpecNode(ASNodeType.INT_EXPR))
                     }
                 )
             }
@@ -43,9 +43,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             Component.Specific(".dtpreldword", ignoreCase = true),
             Component.Optional {
                 Component.Seq(
-                    Component.SpecNode(GASNodeType.INT_EXPR),
+                    Component.SpecNode(ASNodeType.INT_EXPR),
                     Component.Repeatable {
-                        Component.Seq(Component.Specific(","), Component.SpecNode(GASNodeType.INT_EXPR))
+                        Component.Seq(Component.Specific(","), Component.SpecNode(ASNodeType.INT_EXPR))
                     }
                 )
             }
@@ -56,9 +56,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             Component.Specific(".dword", ignoreCase = true),
             Component.Optional {
                 Component.Seq(
-                    Component.SpecNode(GASNodeType.INT_EXPR),
+                    Component.SpecNode(ASNodeType.INT_EXPR),
                     Component.Repeatable {
-                        Component.Seq(Component.Specific(","), Component.SpecNode(GASNodeType.INT_EXPR))
+                        Component.Seq(Component.Specific(","), Component.SpecNode(ASNodeType.INT_EXPR))
                     }
                 )
             }
@@ -69,9 +69,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             Component.Specific(".half", ignoreCase = true),
             Component.Optional {
                 Component.Seq(
-                    Component.SpecNode(GASNodeType.INT_EXPR),
+                    Component.SpecNode(ASNodeType.INT_EXPR),
                     Component.Repeatable {
-                        Component.Seq(Component.Specific(","), Component.SpecNode(GASNodeType.INT_EXPR))
+                        Component.Seq(Component.Specific(","), Component.SpecNode(ASNodeType.INT_EXPR))
                     }
                 )
             }
@@ -94,7 +94,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
     override val typeName: String
         get() = name
 
-    override fun buildDirectiveContent(lexer: AsmLexer, asmSpec: AsmSpec): GASNode.Directive? {
+    override fun buildDirectiveContent(lexer: AsmLexer, asmSpec: AsmSpec): ASNode.Directive? {
         val initialPos = lexer.position
         val result = this.rule?.matchStart(lexer, asmSpec)
 
@@ -107,9 +107,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             //nativeLog("RuleResult: ${result} for $this")
             val identificationToken = result.matchingTokens.firstOrNull { it.type == AsmTokenType.DIRECTIVE }
             return if (identificationToken != null) {
-                GASNode.Directive(this, identificationToken, result.matchingTokens - identificationToken, result.matchingNodes)
+                ASNode.Directive(this, identificationToken, result.matchingTokens - identificationToken, result.matchingNodes)
             } else {
-                GASNode.Directive(this, identificationToken, result.matchingTokens, result.matchingNodes)
+                ASNode.Directive(this, identificationToken, result.matchingTokens, result.matchingNodes)
             }
         }
 

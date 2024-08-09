@@ -2,8 +2,8 @@ package cengine.lang.asm
 
 import cengine.editor.text.TextModel
 import cengine.lang.asm.ast.AsmSpec
-import cengine.lang.asm.ast.gas.GASNode
-import cengine.lang.asm.ast.gas.GASNodeType
+import cengine.lang.asm.ast.impl.ASNode
+import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.psi.AsmFile
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
@@ -26,7 +26,7 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
         val lexer = asmSpec.createLexer(content)
         lexer.reset(content)
 
-        val program = GASNode.buildNode(GASNodeType.PROGRAM, lexer, asmSpec) as GASNode.Program
+        val program = ASNode.buildNode(ASNodeType.PROGRAM, lexer, asmSpec) as ASNode.Program
 
         program.accept(ParentLinker())
 
@@ -39,11 +39,11 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
         }
     }
 
-    fun reparseStatements(fromIndex: Int, toIndex: Int, asmFile: AsmFile): List<GASNode.Statement> {
+    fun reparseStatements(fromIndex: Int, toIndex: Int, asmFile: AsmFile): List<ASNode.Statement> {
         val lexer = asmSpec.createLexer("")
         val content = asmFile.file.getAsUTF8String().substring(fromIndex, toIndex)
         lexer.reset(content)
-        val program = GASNode.buildNode(GASNodeType.PROGRAM, lexer, asmSpec) as GASNode.Program
+        val program = ASNode.buildNode(ASNodeType.PROGRAM, lexer, asmSpec) as ASNode.Program
         return program.getAllStatements()
     }
 
@@ -57,7 +57,7 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
         }
 
         override fun visitElement(element: PsiElement) {
-            if (element !is GASNode) return
+            if (element !is ASNode) return
             element.children.forEach {
                 it.parent = element
                 it.accept(this)

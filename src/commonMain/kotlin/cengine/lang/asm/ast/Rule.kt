@@ -1,7 +1,6 @@
-package cengine.lang.asm.parser
+package cengine.lang.asm.ast
 
-import cengine.lang.asm.ast.AsmSpec
-import cengine.lang.asm.ast.gas.GASNode
+import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.lexer.AsmLexer
 import cengine.lang.asm.lexer.AsmToken
 
@@ -51,7 +50,7 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
      * @param remainingTokens The remaining tokens after the match.
      * @param ignoredSpaces The tokens that were ignored as spaces.
      */
-    data class MatchResult(val matches: Boolean, val matchingTokens: List<AsmToken> = listOf(), val matchingNodes: List<GASNode> = listOf()) {
+    data class MatchResult(val matches: Boolean, val matchingTokens: List<AsmToken> = listOf(), val matchingNodes: List<ASNode> = listOf()) {
         override fun toString(): String {
             return "Matches: $matches,${matchingTokens.joinToString("") { "\n\t${it::class.simpleName}" }}${matchingNodes.joinToString("") { it.getFormatted(4) }}"
         }
