@@ -6,7 +6,7 @@ import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.impl.ASDirType
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.lexer.AsmTokenType
+import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.psi.core.Interval
 import cengine.psi.core.PsiElement
 

@@ -1,4 +1,4 @@
-package cengine.lang.asm.target.riscv.rv64
+package cengine.lang.asm.ast.target.riscv.rv64
 
 
 import cengine.lang.asm.ast.InstrTypeInterface

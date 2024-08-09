@@ -1,4 +1,4 @@
-package cengine.lang.asm.lexer
+package cengine.lang.asm.ast.lexer
 
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface

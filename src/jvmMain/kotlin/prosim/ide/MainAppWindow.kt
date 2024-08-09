@@ -1,7 +1,7 @@
 package prosim.ide
 
 import cengine.lang.asm.AsmLang
-import cengine.lang.asm.target.riscv.rv64.RV64Spec
+import cengine.lang.asm.ast.target.riscv.rv64.RV64Spec
 import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.project.ProjectState

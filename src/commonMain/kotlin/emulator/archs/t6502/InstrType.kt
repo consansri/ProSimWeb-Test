@@ -2,27 +2,37 @@ package emulator.archs.t6502
 
 import emulator.archs.ArchT6502
 import emulator.archs.t6502.AModes.*
-import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.memory.Memory
 import emulator.core.Size.Bit1
 import emulator.core.Size.Bit9
 import emulator.core.Value.Bin
 import emulator.core.Value.Hex
+import emulator.kit.assembler.InstrTypeInterface
+import emulator.kit.memory.Memory
 
-enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): InstrTypeInterface {
+enum class InstrType(val opCode: Map<AModes, Hex>, val description: String) : InstrTypeInterface {
     // load, store, interregister transfer
-    LDA(mapOf(ABS to Hex("AD", T6502.BYTE_SIZE), ABS_X to Hex("BD", T6502.BYTE_SIZE), ABS_Y to Hex("B9", T6502.BYTE_SIZE), IMM to Hex("A9", T6502.BYTE_SIZE), ZP to Hex(
-        "A5",
-        T6502.BYTE_SIZE
-    ), ZP_X_IND to Hex("A1", T6502.BYTE_SIZE), ZP_X to Hex("B5", T6502.BYTE_SIZE), ZPIND_Y to Hex("B1", T6502.BYTE_SIZE)
-    ), "load accumulator"),
+    LDA(
+        mapOf(
+            ABS to Hex("AD", T6502.BYTE_SIZE),
+            ABS_X to Hex("BD", T6502.BYTE_SIZE),
+            ABS_Y to Hex("B9", T6502.BYTE_SIZE),
+            IMM to Hex("A9", T6502.BYTE_SIZE),
+            ZP to Hex("A5", T6502.BYTE_SIZE),
+            ZP_X_IND to Hex("A1", T6502.BYTE_SIZE),
+            ZP_X to Hex("B5", T6502.BYTE_SIZE),
+            ZPIND_Y to Hex("B1", T6502.BYTE_SIZE)
+        ), "load accumulator"
+    ),
     LDX(mapOf(ABS to Hex("AE", T6502.BYTE_SIZE), ABS_Y to Hex("BE", T6502.BYTE_SIZE), IMM to Hex("A2", T6502.BYTE_SIZE), ZP to Hex("A6", T6502.BYTE_SIZE), ZP_Y to Hex("B6", T6502.BYTE_SIZE)), "load X"),
     LDY(mapOf(ABS to Hex("AC", T6502.BYTE_SIZE), ABS_X to Hex("BC", T6502.BYTE_SIZE), IMM to Hex("A0", T6502.BYTE_SIZE), ZP to Hex("A4", T6502.BYTE_SIZE), ZP_X to Hex("B4", T6502.BYTE_SIZE)), "load Y"),
-    STA(mapOf(ABS to Hex("8D", T6502.BYTE_SIZE), ABS_X to Hex("9D", T6502.BYTE_SIZE), ABS_Y to Hex("99", T6502.BYTE_SIZE), ZP to Hex("85", T6502.BYTE_SIZE), ZP_X_IND to Hex(
-        "81",
-        T6502.BYTE_SIZE
-    ), ZP_X to Hex("95", T6502.BYTE_SIZE), ZPIND_Y to Hex("91", T6502.BYTE_SIZE)
-    ), "store accumulator"),
+    STA(
+        mapOf(
+            ABS to Hex("8D", T6502.BYTE_SIZE), ABS_X to Hex("9D", T6502.BYTE_SIZE), ABS_Y to Hex("99", T6502.BYTE_SIZE), ZP to Hex("85", T6502.BYTE_SIZE), ZP_X_IND to Hex(
+                "81",
+                T6502.BYTE_SIZE
+            ), ZP_X to Hex("95", T6502.BYTE_SIZE), ZPIND_Y to Hex("91", T6502.BYTE_SIZE)
+        ), "store accumulator"
+    ),
     STX(mapOf(ABS to Hex("8E", T6502.BYTE_SIZE), ZP to Hex("86", T6502.BYTE_SIZE), ZP_Y to Hex("96", T6502.BYTE_SIZE)), "store X"),
     STY(mapOf(ABS to Hex("8C", T6502.BYTE_SIZE), ZP to Hex("84", T6502.BYTE_SIZE), ZP_X to Hex("94", T6502.BYTE_SIZE)), "store Y"),
     TAX(mapOf(IMPLIED to Hex("AA", T6502.BYTE_SIZE)), "transfer accumulator to X"),
@@ -50,37 +60,52 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
     /**
      *
      */
-    ADC(mapOf(ABS to Hex("6D", T6502.BYTE_SIZE), ABS_X to Hex("7D", T6502.BYTE_SIZE), ABS_Y to Hex("79", T6502.BYTE_SIZE), IMM to Hex("69", T6502.BYTE_SIZE), ZP to Hex(
-        "65",
-        T6502.BYTE_SIZE
-    ), ZP_X_IND to Hex("61", T6502.BYTE_SIZE), ZP_X to Hex("75", T6502.BYTE_SIZE), ZPIND_Y to Hex("71", T6502.BYTE_SIZE)
-    ), "add with carry"),
+    ADC(
+        mapOf(
+            ABS to Hex("6D", T6502.BYTE_SIZE), ABS_X to Hex("7D", T6502.BYTE_SIZE), ABS_Y to Hex("79", T6502.BYTE_SIZE), IMM to Hex("69", T6502.BYTE_SIZE), ZP to Hex(
+                "65",
+                T6502.BYTE_SIZE
+            ), ZP_X_IND to Hex("61", T6502.BYTE_SIZE), ZP_X to Hex("75", T6502.BYTE_SIZE), ZPIND_Y to Hex("71", T6502.BYTE_SIZE)
+        ), "add with carry"
+    ),
 
     /**
      *
      */
-    SBC(mapOf(ABS to Hex("ED", T6502.BYTE_SIZE), ABS_X to Hex("FD", T6502.BYTE_SIZE), ABS_Y to Hex("F9", T6502.BYTE_SIZE), IMM to Hex("E9", T6502.BYTE_SIZE), ZP to Hex(
-        "E5",
-        T6502.BYTE_SIZE
-    ), ZP_X_IND to Hex("E1", T6502.BYTE_SIZE), ZP_X to Hex("F5", T6502.BYTE_SIZE), ZPIND_Y to Hex("F1", T6502.BYTE_SIZE)
-    ), "subtract with carry"),
+    SBC(
+        mapOf(
+            ABS to Hex("ED", T6502.BYTE_SIZE), ABS_X to Hex("FD", T6502.BYTE_SIZE), ABS_Y to Hex("F9", T6502.BYTE_SIZE), IMM to Hex("E9", T6502.BYTE_SIZE), ZP to Hex(
+                "E5",
+                T6502.BYTE_SIZE
+            ), ZP_X_IND to Hex("E1", T6502.BYTE_SIZE), ZP_X to Hex("F5", T6502.BYTE_SIZE), ZPIND_Y to Hex("F1", T6502.BYTE_SIZE)
+        ), "subtract with carry"
+    ),
 
     // logical operations
-    AND(mapOf(ABS to Hex("2D", T6502.BYTE_SIZE), ABS_X to Hex("3D", T6502.BYTE_SIZE), ABS_Y to Hex("39", T6502.BYTE_SIZE), IMM to Hex("29", T6502.BYTE_SIZE), ZP to Hex(
-        "25",
-        T6502.BYTE_SIZE
-    ), ZP_X_IND to Hex("21", T6502.BYTE_SIZE), ZP_X to Hex("35", T6502.BYTE_SIZE), ZPIND_Y to Hex("31", T6502.BYTE_SIZE)
-    ), "and (with accumulator)"),
-    EOR(mapOf(ABS to Hex("0D", T6502.BYTE_SIZE), ABS_X to Hex("1D", T6502.BYTE_SIZE), ABS_Y to Hex("19", T6502.BYTE_SIZE), IMM to Hex("09", T6502.BYTE_SIZE), ZP to Hex(
-        "05",
-        T6502.BYTE_SIZE
-    ), ZP_X_IND to Hex("01", T6502.BYTE_SIZE), ZP_X to Hex("15", T6502.BYTE_SIZE), ZPIND_Y to Hex("11", T6502.BYTE_SIZE)
-    ), "exclusive or (with accumulator)"),
-    ORA(mapOf(ABS to Hex("4D", T6502.BYTE_SIZE), ABS_X to Hex("5D", T6502.BYTE_SIZE), ABS_Y to Hex("59", T6502.BYTE_SIZE), IMM to Hex("49", T6502.BYTE_SIZE), ZP to Hex(
-        "45",
-        T6502.BYTE_SIZE
-    ), ZP_X_IND to Hex("41", T6502.BYTE_SIZE), ZP_X to Hex("55", T6502.BYTE_SIZE), ZPIND_Y to Hex("51", T6502.BYTE_SIZE)
-    ), "or (with accumulator)"),
+    AND(
+        mapOf(
+            ABS to Hex("2D", T6502.BYTE_SIZE), ABS_X to Hex("3D", T6502.BYTE_SIZE), ABS_Y to Hex("39", T6502.BYTE_SIZE), IMM to Hex("29", T6502.BYTE_SIZE), ZP to Hex(
+                "25",
+                T6502.BYTE_SIZE
+            ), ZP_X_IND to Hex("21", T6502.BYTE_SIZE), ZP_X to Hex("35", T6502.BYTE_SIZE), ZPIND_Y to Hex("31", T6502.BYTE_SIZE)
+        ), "and (with accumulator)"
+    ),
+    EOR(
+        mapOf(
+            ABS to Hex("0D", T6502.BYTE_SIZE), ABS_X to Hex("1D", T6502.BYTE_SIZE), ABS_Y to Hex("19", T6502.BYTE_SIZE), IMM to Hex("09", T6502.BYTE_SIZE), ZP to Hex(
+                "05",
+                T6502.BYTE_SIZE
+            ), ZP_X_IND to Hex("01", T6502.BYTE_SIZE), ZP_X to Hex("15", T6502.BYTE_SIZE), ZPIND_Y to Hex("11", T6502.BYTE_SIZE)
+        ), "exclusive or (with accumulator)"
+    ),
+    ORA(
+        mapOf(
+            ABS to Hex("4D", T6502.BYTE_SIZE), ABS_X to Hex("5D", T6502.BYTE_SIZE), ABS_Y to Hex("59", T6502.BYTE_SIZE), IMM to Hex("49", T6502.BYTE_SIZE), ZP to Hex(
+                "45",
+                T6502.BYTE_SIZE
+            ), ZP_X_IND to Hex("41", T6502.BYTE_SIZE), ZP_X to Hex("55", T6502.BYTE_SIZE), ZPIND_Y to Hex("51", T6502.BYTE_SIZE)
+        ), "or (with accumulator)"
+    ),
 
     // shift & rotate
     ASL(mapOf(ABS to Hex("0E", T6502.BYTE_SIZE), ABS_X to Hex("1E", T6502.BYTE_SIZE), ACCUMULATOR to Hex("0A", T6502.BYTE_SIZE), ZP to Hex("06", T6502.BYTE_SIZE), ZP_X to Hex("16", T6502.BYTE_SIZE)), "arithmetic shift left"),
@@ -98,11 +123,14 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
     SEI(mapOf(IMPLIED to Hex("78", T6502.BYTE_SIZE)), "set interrupt disable"),
 
     // comparison
-    CMP(mapOf(ABS to Hex("CD", T6502.BYTE_SIZE), ABS_X to Hex("DD", T6502.BYTE_SIZE), ABS_Y to Hex("D9", T6502.BYTE_SIZE), IMM to Hex("C9", T6502.BYTE_SIZE), ZP to Hex(
-        "C5",
-        T6502.BYTE_SIZE
-    ), ZP_X_IND to Hex("C1", T6502.BYTE_SIZE), ZP_X to Hex("D5", T6502.BYTE_SIZE), ZPIND_Y to Hex("D1", T6502.BYTE_SIZE)
-    ), "compare (with accumulator)"),
+    CMP(
+        mapOf(
+            ABS to Hex("CD", T6502.BYTE_SIZE), ABS_X to Hex("DD", T6502.BYTE_SIZE), ABS_Y to Hex("D9", T6502.BYTE_SIZE), IMM to Hex("C9", T6502.BYTE_SIZE), ZP to Hex(
+                "C5",
+                T6502.BYTE_SIZE
+            ), ZP_X_IND to Hex("C1", T6502.BYTE_SIZE), ZP_X to Hex("D5", T6502.BYTE_SIZE), ZPIND_Y to Hex("D1", T6502.BYTE_SIZE)
+        ), "compare (with accumulator)"
+    ),
     CPX(mapOf(ABS to Hex("EC", T6502.BYTE_SIZE), IMM to Hex("E0", T6502.BYTE_SIZE), ZP to Hex("E4", T6502.BYTE_SIZE)), "compare with X"),
     CPY(mapOf(ABS to Hex("CC", T6502.BYTE_SIZE), IMM to Hex("C0", T6502.BYTE_SIZE), ZP to Hex("C4", T6502.BYTE_SIZE)), "compare with Y"),
 
@@ -689,9 +717,9 @@ enum class InstrType(val opCode: Map<AModes, Hex>, val description: String): Ins
 
     }
 
-    private fun getOperand(arch: emulator.kit.Architecture, amode: AModes, smallVal: Hex, bigVal: Hex): Hex? {      
-        if(arch !is ArchT6502) return null
-        
+    private fun getOperand(arch: emulator.kit.Architecture, amode: AModes, smallVal: Hex, bigVal: Hex): Hex? {
+        if (arch !is ArchT6502) return null
+
         val pc = arch.regContainer.pc
         val ac = arch.getRegByName("AC")
         val x = arch.getRegByName("X")

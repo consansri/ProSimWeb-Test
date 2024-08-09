@@ -5,8 +5,8 @@ import cengine.editor.folding.FoldRegion
 import cengine.editor.folding.FoldRegionImpl
 import cengine.editor.text.Informational
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.lexer.AsmTokenType
-import cengine.lang.asm.psi.AsmFile
+import cengine.lang.asm.ast.lexer.AsmTokenType
+import cengine.lang.asm.ast.impl.AsmFile
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile

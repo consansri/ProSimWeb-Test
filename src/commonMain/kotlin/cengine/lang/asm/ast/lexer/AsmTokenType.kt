@@ -1,4 +1,4 @@
-package cengine.lang.asm.lexer
+package cengine.lang.asm.ast.lexer
 
 import Settings
 import cengine.lang.asm.CodeStyle

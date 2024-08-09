@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast
 
-import cengine.lang.asm.lexer.AsmLexer
+import cengine.lang.asm.ast.lexer.AsmLexer
 import emulator.core.Size
 
 /**

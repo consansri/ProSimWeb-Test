@@ -1,4 +1,4 @@
-package cengine.lang.asm.target.risc2
+package cengine.lang.asm.ast.target.risc2
 
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule

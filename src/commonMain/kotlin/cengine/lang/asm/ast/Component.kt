@@ -2,9 +2,9 @@ package cengine.lang.asm.ast
 
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
-import cengine.lang.asm.lexer.AsmLexer
-import cengine.lang.asm.lexer.AsmToken
-import cengine.lang.asm.lexer.AsmTokenType
+import cengine.lang.asm.ast.lexer.AsmLexer
+import cengine.lang.asm.ast.lexer.AsmToken
+import cengine.lang.asm.ast.lexer.AsmTokenType
 import debug.DebugTools
 import emulator.kit.nativeInfo
 import emulator.kit.nativeLog

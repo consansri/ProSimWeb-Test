@@ -3,8 +3,8 @@ package cengine.lang.asm.features
 import cengine.editor.widgets.Widget
 import cengine.editor.widgets.WidgetProvider
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.lexer.AsmTokenType
-import cengine.lang.asm.psi.AsmFile
+import cengine.lang.asm.ast.lexer.AsmTokenType
+import cengine.lang.asm.ast.impl.AsmFile
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile

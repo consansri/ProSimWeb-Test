@@ -4,7 +4,7 @@ import cengine.editor.text.TextModel
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
-import cengine.lang.asm.psi.AsmFile
+import cengine.lang.asm.ast.impl.AsmFile
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile

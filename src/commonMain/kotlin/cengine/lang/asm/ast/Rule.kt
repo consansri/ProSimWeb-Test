@@ -1,8 +1,8 @@
 package cengine.lang.asm.ast
 
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.lexer.AsmLexer
-import cengine.lang.asm.lexer.AsmToken
+import cengine.lang.asm.ast.lexer.AsmLexer
+import cengine.lang.asm.ast.lexer.AsmToken
 
 /**
  * Class representing a rule for the assembler, which matches components based on specified criteria.

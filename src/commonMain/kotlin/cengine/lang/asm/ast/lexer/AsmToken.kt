@@ -1,6 +1,6 @@
-package cengine.lang.asm.lexer
+package cengine.lang.asm.ast.lexer
 
-import cengine.lang.asm.lexer.AsmTokenType.*
+import cengine.lang.asm.ast.lexer.AsmTokenType.*
 import cengine.psi.lexer.core.Token
 
 /**

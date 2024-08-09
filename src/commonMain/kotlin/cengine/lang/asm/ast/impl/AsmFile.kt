@@ -1,10 +1,9 @@
-package cengine.lang.asm.psi
+package cengine.lang.asm.ast.impl
 
 import cengine.editor.annotation.Notation
 import cengine.editor.text.TextModel
 import cengine.editor.widgets.Widget
 import cengine.lang.asm.AsmLang
-import cengine.lang.asm.ast.impl.ASNode
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile

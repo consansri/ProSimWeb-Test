@@ -1,4 +1,4 @@
-package cengine.lang.asm.target.riscv
+package cengine.lang.asm.ast.target.riscv
 
 import cengine.lang.asm.ast.RegTypeInterface
 

@@ -7,8 +7,8 @@ import cengine.editor.completion.CompletionProvider.Companion.asCompletions
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.impl.ASDirType
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.lexer.AsmTokenType
-import cengine.lang.asm.psi.AsmFile
+import cengine.lang.asm.ast.lexer.AsmTokenType
+import cengine.lang.asm.ast.impl.AsmFile
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile

@@ -2,8 +2,8 @@ package cengine.lang.asm.ast.impl
 
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
-import cengine.lang.asm.lexer.AsmLexer
-import cengine.lang.asm.lexer.AsmTokenType
+import cengine.lang.asm.ast.lexer.AsmLexer
+import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.Rule
 import emulator.core.Size.*

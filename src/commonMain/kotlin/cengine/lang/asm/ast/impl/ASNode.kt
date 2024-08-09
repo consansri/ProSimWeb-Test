@@ -7,9 +7,9 @@ import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.impl.ASNode.*
-import cengine.lang.asm.lexer.AsmLexer
-import cengine.lang.asm.lexer.AsmToken
-import cengine.lang.asm.lexer.AsmTokenType
+import cengine.lang.asm.ast.lexer.AsmLexer
+import cengine.lang.asm.ast.lexer.AsmToken
+import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.Rule
 import cengine.psi.core.*

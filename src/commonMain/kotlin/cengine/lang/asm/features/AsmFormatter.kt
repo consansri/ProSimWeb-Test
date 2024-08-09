@@ -1,7 +1,7 @@
 package cengine.lang.asm.features
 
 import cengine.editor.formatting.Formatter
-import cengine.lang.asm.psi.AsmFile
+import cengine.lang.asm.ast.impl.AsmFile
 import cengine.psi.core.PsiFile
 
 class AsmFormatter : Formatter {

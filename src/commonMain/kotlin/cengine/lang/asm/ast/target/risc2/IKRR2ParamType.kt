@@ -1,7 +1,7 @@
-package cengine.lang.asm.target.risc2
+package cengine.lang.asm.ast.target.risc2
 
 import cengine.lang.asm.ast.impl.ASNodeType
-import cengine.lang.asm.lexer.AsmTokenType
+import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.ast.Component
 import cengine.lang.asm.ast.Rule
 
