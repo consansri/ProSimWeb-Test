@@ -45,6 +45,9 @@ class PerformantCodeEditor(
     project: Project
 
 ) : EditorComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()), CToolView.View {
+    companion object {
+        const val CARET_SCROLL_LINE_PADDING = 2
+    }
 
     override var currentElement: PsiElement? = null
         set(value) {
@@ -180,6 +183,26 @@ class PerformantCodeEditor(
         vLayout.invalidateAllLines()
     }
 
+    private fun scrollToCaret() {
+        launch {
+            scrollPane?.let {
+                val caretPos = runBlocking {
+                    vLayout.getCoords(selector.caret.index)
+                }
+
+                /**
+                 * Square with [CARET_SCROLL_LINE_PADDING] * [vLayout].lineHeight padding around the caret position.
+                 */
+                val rect = Rectangle(caretPos.x - vLayout.lineHeight * (1 + CARET_SCROLL_LINE_PADDING), caretPos.y - vLayout.lineHeight * (1 + CARET_SCROLL_LINE_PADDING), vLayout.lineHeight * (1 + 2 * CARET_SCROLL_LINE_PADDING), vLayout.lineHeight * (1 + 2 * CARET_SCROLL_LINE_PADDING))
+                withContext(Dispatchers.Main) {
+                    SwingUtilities.invokeLater {
+                        scrollRectToVisible(rect)
+                    }
+                }
+            }
+        }
+    }
+
     private fun getAllInlayWidgets(start: Int = 0, end: Int = textModel.length): Set<Widget> {
         val psiFile = psiManager?.getPsiFile(file)
         val inlayWidgets = if (psiFile != null) {
@@ -304,30 +327,35 @@ class PerformantCodeEditor(
         }
 
         suspend fun getCoords(index: Int): Point {
-            var yOffset = 0
             val xOffset = insets.left + rowHeaderWidth
+            var yOffset = 0
+            var lineStartIndex = 0
 
             val interlineWidgets = getAllInterlineWidgets(0, index)
 
+            // Add the yOffset added through interlineWidgets
             yOffset += interlineWidgets.size * lineHeight
 
+            // Iterate over cachedLines to find the line containing the index
             for (lineInfo in cachedLines) {
-                if (index >= lineInfo.startIndex && index <= lineInfo.endIndex) {
-                    // Found the line containing the index
-                    val lineStartIndex = lineInfo.startIndex
+
+                // Update line start index for the current line
+                lineStartIndex = lineInfo.startIndex
+
+                if (index in lineStartIndex..<lineInfo.endIndex) {
+                    // Calculate column position within the line
                     val columnInLine = index - lineStartIndex
 
                     val inlayWidgets = getAllInlayWidgets(lineStartIndex, index)
 
+                    // Calculate x-coordinate based on column position
+                    val xPosition = xOffset + columnInLine * fmColumnWidth + inlayWidgets.sumOf { it.calcSize().width }
+
                     // Calculate y-coordinate
                     yOffset += lineHeight
 
-                    var currentXOffset = xOffset
-
-                    currentXOffset += columnInLine * fmColumnWidth
-                    currentXOffset += inlayWidgets.sumOf { it.calcSize().width }
-
-                    return Point(currentXOffset, yOffset)
+                    // Return the calculated coordinates
+                    return Point(xPosition, yOffset)
                 }
 
                 // Move to the next line
@@ -398,8 +426,6 @@ class PerformantCodeEditor(
 
             return textModel.maxColumns
         }
-
-
     }
 
     inner class Renderer {
@@ -433,6 +459,7 @@ class PerformantCodeEditor(
             }
         }.derive(vLayout.lineIconSize, vLayout.lineIconSize).image
 
+
         suspend fun render(g: Graphics2D, visibleLines: VisibleLines) {
             val psiFile = psiManager?.getPsiFile(file)
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
@@ -465,11 +492,6 @@ class PerformantCodeEditor(
                 }
 
                 val currInlayWidgets = inlayWidgets.filter { it.index in lineInfo.startIndex..<lineInfo.endIndex }
-
-                /*lineInfo.interlineWidgets.filter { textModel.getLineAndColumn(it.position).first == lineInfo.lineNumber }.forEach {
-                    val widgetDimension = g.drawWidget(it, xOffset + rowHeaderWidth, yOffset)
-                    yOffset += widgetDimension.height
-                }*/
 
                 g.renderLine(psiFile, currInlayWidgets, lineInfo, selection, xOffset + rowHeaderWidth, yOffset)
 
@@ -565,19 +587,6 @@ class PerformantCodeEditor(
                     }
                     internalXOffset += widgetDim.width
                 }
-
-                /*lineInfo.inlayWidgets.filter { it.position == charIndex }.forEach { widget ->
-
-                    val widgetDim = drawWidget(widget, internalXOffset, yOffset)
-                    // Draw Selection under Widget
-                    selection?.let {
-                        if (charIndex in it) {
-                            color = selColor
-                            fillRect(internalXOffset, yOffset, widgetDim.width, vLayout.lineHeight)
-                        }
-                    }
-                    internalXOffset += widgetDim.width
-                }*/
             }
 
             // Render postline widgets
@@ -745,6 +754,7 @@ class PerformantCodeEditor(
                     textStateModel.insert(selector.caret, newChar)
                 }
             }
+            scrollToCaret()
             fetchCompletions()
             invalidateContent()
             e.consume()
@@ -872,11 +882,11 @@ class PerformantCodeEditor(
                 }
 
                 KeyEvent.VK_HOME -> {
-                    selector.home(e.isShiftDown)
+                    selector.home(e.isShiftDown, e.isControlDown)
                 }
 
                 KeyEvent.VK_END -> {
-                    selector.end(e.isShiftDown)
+                    selector.end(e.isShiftDown, e.isControlDown)
                 }
 
                 KeyEvent.VK_F -> {
@@ -905,6 +915,7 @@ class PerformantCodeEditor(
                     }
                 }
             }
+            scrollToCaret()
             fetchCompletions(onlyHide = true)
             invalidateContent()
             e.consume()

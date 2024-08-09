@@ -30,7 +30,7 @@ class Selector(textModel: TextModel) {
         caret.set(index)
     }
 
-    fun moveCaretTo(index: Int, shift: Boolean){
+    fun moveCaretTo(index: Int, shift: Boolean) {
         internalMoveCaret(index, shift)
         tempMaxColOfUpDownMovement = caret.col
     }
@@ -98,19 +98,28 @@ class Selector(textModel: TextModel) {
         tempMaxColOfUpDownMovement = maxOf(caret.col, tempMaxColOfUpDownMovement)
     }
 
-    fun home(shift: Boolean) {
-        val rowStartIndex = caret.model.indexOf(caret.line,0)
-        val indexOfFirstValidInCol = indexOfWordEnd(rowStartIndex, ONLY_SPACES, true)
-        if (caret.index != indexOfFirstValidInCol) {
-            internalMoveCaret(indexOfFirstValidInCol, shift)
+    fun home(shift: Boolean, ctrl: Boolean) {
+        if (ctrl) {
+            internalMoveCaret(0, shift)
         } else {
-            internalMoveCaret(rowStartIndex, shift)
+            val rowStartIndex = caret.model.indexOf(caret.line, 0)
+            val indexOfFirstValidInCol = indexOfWordEnd(rowStartIndex, ONLY_SPACES, true)
+            if (caret.index != indexOfFirstValidInCol) {
+                internalMoveCaret(indexOfFirstValidInCol, shift)
+            } else {
+                internalMoveCaret(rowStartIndex, shift)
+            }
         }
+
         tempMaxColOfUpDownMovement = caret.col
     }
 
-    fun end(shift: Boolean) {
-        internalMoveCaret(caret.line, Int.MAX_VALUE, shift)
+    fun end(shift: Boolean, ctrl: Boolean) {
+        if (ctrl) {
+            internalMoveCaret(caret.model.length, shift)
+        } else {
+            internalMoveCaret(caret.line, Int.MAX_VALUE, shift)
+        }
         tempMaxColOfUpDownMovement = caret.col
     }
 
