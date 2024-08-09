@@ -1,4 +1,4 @@
-package cengine.lang.asm.ast.target.t6502
+package cengine.lang.asm.ast.target.ikrmini
 
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
@@ -7,7 +7,7 @@ import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.lexer.AsmLexer
 import emulator.core.Size
 
-object T6502Spec : AsmSpec {
+object IKRMiniSpec: AsmSpec {
     override val memAddrSize: Size = Size.Bit16
     override val wordSize: Size = Size.Bit16
     override val detectRegistersByName: Boolean = false
@@ -17,9 +17,9 @@ object T6502Spec : AsmSpec {
         override val dec: String = ""
         override val comment: String = ";"
         override val oct: String = "0"
-        override val symbol: Regex = Regex("""[a-zA-Z._][a-zA-Z0-9$._]*""")
+        override val symbol: Regex = Regex("""[a-zA-Z._][a-zA-Z0-9._]*""")
     }
     override val allRegs: List<RegTypeInterface> = emptyList()
-    override val allInstrs: List<InstrTypeInterface> = T6502InstrType.entries
+    override val allInstrs: List<InstrTypeInterface> = IKRMiniInstrType.entries
     override val customDirs: List<DirTypeInterface> = emptyList()
 }

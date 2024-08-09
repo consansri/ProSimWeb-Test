@@ -13,11 +13,6 @@ interface AsmSpec {
     /** The size of words. */
     val wordSize: Size
 
-    /**
-     * USHR Amount for calculating the true memory address. (0 is byte aligned memory addresses)
-     */
-    val addrShift: Int
-
     /** Determines if registers are detected by name. */
     val detectRegistersByName: Boolean
 

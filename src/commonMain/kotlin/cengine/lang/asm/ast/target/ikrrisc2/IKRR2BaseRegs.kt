@@ -1,4 +1,4 @@
-package cengine.lang.asm.ast.target.risc2
+package cengine.lang.asm.ast.target.ikrrisc2
 
 import cengine.lang.asm.ast.RegTypeInterface
 

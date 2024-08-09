@@ -12,7 +12,6 @@ import emulator.core.Size
 object RV32Spec: AsmSpec {
     override val memAddrSize: Size = Size.Bit32
     override val wordSize: Size = Size.Bit32
-    override val addrShift: Int = 0
     override val detectRegistersByName: Boolean = true
     override val prefices: AsmLexer.Prefices = object : AsmLexer.Prefices{
         override val hex: String = "0x"

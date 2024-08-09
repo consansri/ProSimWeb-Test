@@ -5,5 +5,5 @@ interface InstrTypeInterface {
     val paramRule: Rule?
     val isPseudo: Boolean
     val bytesNeeded: Int?
-    fun getDetectionName(): String
+    val detectionName: String
 }

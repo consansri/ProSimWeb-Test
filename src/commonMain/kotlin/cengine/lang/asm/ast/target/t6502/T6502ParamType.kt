@@ -9,7 +9,7 @@ import cengine.lang.asm.ast.impl.ASNodeType
  * Addressing Modes
  * IMPORTANT: The order of the enums determines the order in which the modes will be checked!
  */
-enum class T6502AMode(val rule: Rule?, val byteAmount: Int, val exampleString: String, val description: String) {
+enum class T6502ParamType(val rule: Rule?, val byteAmount: Int, val exampleString: String, val description: String) {
 
     ZP_X(Rule { Seq(SpecNode(ASNodeType.INT_EXPR), Specific(","), Specific("X")) }, 2, exampleString = "$00, X", description = "zeropage, X-indexed"), // Zero Page Indexed with X: zp,x
     ZP_Y(Rule { Seq(SpecNode(ASNodeType.INT_EXPR), Specific(","), Specific("Y")) }, 2, exampleString = "$00, Y", description = "zeropage, Y-indexed"), // Zero Page Indexed with Y: zp,y

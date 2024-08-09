@@ -1,10 +1,10 @@
-package cengine.lang.asm.ast.target.risc2
+package cengine.lang.asm.ast.target.ikrrisc2
 
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 
 
-enum class IKRR2InstrType(val id: String, val paramType: IKRR2ParamType, val descr: String = "", override val isPseudo: Boolean = true, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", override val isPseudo: Boolean = true, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     ADD("add", IKRR2ParamType.R2_TYPE, "addiere"),
     ADDI("addi", IKRR2ParamType.I_TYPE, "addiere Konstante (erweitere Konstante vorzeichenrichtig)"),
     ADDLI("addli", IKRR2ParamType.I_TYPE, "addiere Konstante (erweitere Konstante vorzeichenlos)"),
@@ -91,22 +91,4 @@ enum class IKRR2InstrType(val id: String, val paramType: IKRR2ParamType, val des
 
     override val typeName: String
         get() = name
-
-    fun isBranchToSubRoutine(): Boolean {
-        return when (this) {
-            JSR -> true
-            BSR -> true
-            else -> false
-        }
-    }
-
-    fun isReturnFromSubRoutine(): Boolean {
-        return when (this) {
-            JMP -> true
-            else -> false
-        }
-    }
-
-    override fun getDetectionName(): String = id
-
 }

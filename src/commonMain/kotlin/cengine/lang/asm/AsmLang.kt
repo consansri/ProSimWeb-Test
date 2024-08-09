@@ -10,7 +10,7 @@ import cengine.editor.widgets.WidgetProvider
 import cengine.lang.LanguageService
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.features.*
-import cengine.lang.asm.ast.target.risc2.IKRR2Spec
+import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Spec
 import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.lang.asm.ast.target.riscv.rv64.RV64Spec
 import cengine.psi.core.PsiService

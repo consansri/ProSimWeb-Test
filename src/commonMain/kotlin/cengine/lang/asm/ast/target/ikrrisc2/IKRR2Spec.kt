@@ -1,4 +1,4 @@
-package cengine.lang.asm.ast.target.risc2
+package cengine.lang.asm.ast.target.ikrrisc2
 
 import cengine.lang.asm.ast.AsmSpec
 import cengine.lang.asm.ast.DirTypeInterface
@@ -10,7 +10,6 @@ import emulator.core.Size
 object IKRR2Spec: AsmSpec {
     override val memAddrSize: Size = Size.Bit32
     override val wordSize: Size = Size.Bit32
-    override val addrShift: Int = 2
     override val detectRegistersByName: Boolean = true
     override val prefices: AsmLexer.Prefices = object : AsmLexer.Prefices {
         override val hex: String = "$"
