@@ -1,9 +1,12 @@
-package prosim.uilib.styled
+package prosim.uilib.styled.frame
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import prosim.uilib.UIStates
 import prosim.uilib.scale.core.Scaling
 import prosim.uilib.state.StateListener
+import prosim.uilib.styled.CIconButton
+import prosim.uilib.styled.CLabel
+import prosim.uilib.styled.CPanel
 import prosim.uilib.styled.params.BorderMode
 import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.params.IconSize
@@ -14,7 +17,7 @@ import java.awt.event.MouseEvent
 import javax.swing.*
 import kotlin.system.exitProcess
 
-open class CFrame(val content: JComponent = CPanel(primary = false)) : JFrame() {
+open class CustomFrame(val content: JComponent = CPanel(primary = false)) : JFrame() {
     private val titleBar = TitleBar()
 
     private val cornerRadius: Int
@@ -117,9 +120,9 @@ open class CFrame(val content: JComponent = CPanel(primary = false)) : JFrame() 
         val logoButton = CIconButton(UIStates.icon.get().appLogo, IconSize.GRADIENT_NORMAL)
 
 
-        val titleLabel = object : CLabel(this@CFrame.title, FontType.BASIC) {
+        val titleLabel = object : CLabel(this@CustomFrame.title, FontType.BASIC) {
             override fun getText(): String {
-                return this@CFrame.title
+                return this@CustomFrame.title
             }
         }
         val minimizeButton = CIconButton(UIStates.icon.get().decrease, IconSize.SECONDARY_SMALL)
@@ -186,14 +189,14 @@ open class CFrame(val content: JComponent = CPanel(primary = false)) : JFrame() 
             // Add minimize button
             minimizeButton.addMouseListener(object : MouseAdapter() {
                 override fun mouseClicked(e: MouseEvent) {
-                    this@CFrame.state = ICONIFIED
+                    this@CustomFrame.state = ICONIFIED
                 }
             })
 
             // Add full-screen button
             maximizeButton.addMouseListener(object : MouseAdapter() {
                 override fun mouseClicked(e: MouseEvent) {
-                    this@CFrame.extendedState = if (this@CFrame.extendedState != MAXIMIZED_BOTH)
+                    this@CustomFrame.extendedState = if (this@CustomFrame.extendedState != MAXIMIZED_BOTH)
                         MAXIMIZED_BOTH
                     else
                         NORMAL

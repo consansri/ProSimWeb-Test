@@ -18,7 +18,7 @@ object DebugTools {
      * CENGINE
      */
 
-    const val ENGINE_showFileWatcherInfo = false
+    const val ENGINE_showFileWatcherInfo = true
 
     /**
      * KIT

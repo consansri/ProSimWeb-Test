@@ -44,7 +44,7 @@ actual class FileWatcher actual constructor(actual val vfs: VFileSystem) {
                             when (kind) {
                                 StandardWatchEventKinds.ENTRY_CREATE -> {
                                     if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-CREATED")
-                                    vfs.findFile(fullPath)?.let {
+                                    vfs.findFileByAbsolute(fullPath)?.let {
                                         vfs.notifyFileCreated(it)
                                     }
                                 }
@@ -52,14 +52,14 @@ actual class FileWatcher actual constructor(actual val vfs: VFileSystem) {
                                 StandardWatchEventKinds.ENTRY_DELETE -> {
                                     if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-DELETED")
                                     vfs.deleteFile(fullPath)
-                                    vfs.findFile(fullPath)?.let {
+                                    vfs.findFileByAbsolute(fullPath)?.let {
                                         vfs.notifyFileDeleted(it)
                                     }
                                 }
 
                                 StandardWatchEventKinds.ENTRY_MODIFY -> {
                                     if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-MODIFIED")
-                                    vfs.findFile(fullPath)?.let {
+                                    vfs.findFileByAbsolute(fullPath)?.let {
                                         vfs.notifyFileChanged(it)
                                     }
                                 }

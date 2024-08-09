@@ -7,7 +7,7 @@ import cengine.project.Project
 import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.util.SystemInfo
-import prosim.ide.NewProject
+import prosim.ide.WindowManager
 import prosim.ide.console.ProjectConsole
 import prosim.ide.editor.code.PerformantCodeEditor
 import prosim.ide.filetree.FileTree
@@ -15,6 +15,7 @@ import prosim.ide.filetree.FileTreeUIListener
 import prosim.ui.components.NativeFrame
 import prosim.uilib.styled.CSplitPane
 import prosim.uilib.styled.CTextField
+import prosim.uilib.styled.frame.CFrame
 import prosim.uilib.styled.params.FontType
 import java.awt.Dimension
 import javax.swing.JDialog
@@ -36,6 +37,7 @@ fun main() {
        JDialog.setDefaultLookAndFeelDecorated(true)
     }
 
+
     testMainAppWindow()
     //testNewEditor()
     // Initialize and test the base application.
@@ -55,10 +57,15 @@ fun launchBaseApp() {
     // BaseFrame()
 }
 
-
+fun testModernFrame(){
+    val CFrame = CFrame()
+    CFrame.size = Dimension(1920,1080)
+    CFrame.setLocationRelativeTo(null)
+    CFrame.isVisible = true
+}
 
 fun testMainAppWindow(){
-    val frame = NewProject()
+    WindowManager.createNewProjectWindow()
 }
 
 fun testNewEditor() {

@@ -13,6 +13,7 @@ import prosim.ui.components.tree.FileTree
 import prosim.uilib.UIStates
 import prosim.uilib.state.*
 import prosim.uilib.styled.*
+import prosim.uilib.styled.frame.CustomFrame
 import prosim.uilib.styled.params.IconSize
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -27,7 +28,7 @@ import javax.swing.SwingUtilities
  * Represents the main UI frame of the application, providing a Swing-based interface.
  * @param mManager The main manager responsible for coordinating UI components and actions.
  */
-class BaseFrame() : CFrame(), ProSimFrame {
+class BaseFrame() : CustomFrame(), ProSimFrame {
 
     override val bottomBar = BottomBar()
     override val topBar = TopControls(showArchSwitch = true)

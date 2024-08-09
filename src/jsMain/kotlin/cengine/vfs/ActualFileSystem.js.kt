@@ -27,7 +27,7 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
         val prefix = getDirPrefix(path)
         return getLocalStorageKeys()
             .filter { it.startsWith(prefix) }
-            .map { it.removePrefix(prefix).split("/").firstOrNull() ?: "" }
+            .map { it.removePrefix(prefix).split(VFileSystem.DELIMITER).firstOrNull() ?: "" }
             .filter { it.isNotEmpty() }
             .distinct()
     }
@@ -39,7 +39,7 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
 
     actual fun exists(path: String): Boolean = localStorage.getItem(getFileKey(path)) != null
 
-    actual fun getAbsolutePath(path: String): String = "$rootPath/$path".replace("//", "/")
+    actual fun getAbsolutePath(path: String): String = "$rootPath${VFileSystem.DELIMITER}$path".replace("//", VFileSystem.DELIMITER)
 
     private fun getFileKey(path: String): String = "${Keys.FILE_PREFIX}${getAbsolutePath(path)}"
     private fun getDirPrefix(path: String): String = "${Keys.FILE_PREFIX}${getAbsolutePath(path)}/"
@@ -64,6 +64,8 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
             localStorage.setItem(getFileKey(path), "")
         }
     }
+
+
 
 
 }
