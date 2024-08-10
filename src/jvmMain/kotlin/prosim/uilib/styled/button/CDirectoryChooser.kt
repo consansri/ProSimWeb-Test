@@ -16,7 +16,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.io.File
 
-class CDirectoryChooser(initial: File? = null,primary: Boolean = true) : CPanel(primary = primary, borderMode = BorderMode.SOUTH, roundCorners = true) {
+class CDirectoryChooser(initial: File? = null, primary: Boolean = true) : CPanel(primary = primary, borderMode = BorderMode.SOUTH, roundCorners = true) {
     val currDirectory = CTextField(FontType.BASIC, primary).apply {
         isEditable = false
         text = "-"
@@ -38,9 +38,9 @@ class CDirectoryChooser(initial: File? = null,primary: Boolean = true) : CPanel(
             customBorderColor = if (selectedDirectory == null) {
                 UIStates.theme.get().getColor(CodeStyle.RED)
             } else null
-            customBorderThickness = if(selectedDirectory == null){
+            customBorderThickness = if (selectedDirectory == null) {
                 UIStates.scale.get().SIZE_DIVIDER_THICKNESS
-            }else null
+            } else null
             revalidate()
             repaint()
         }
@@ -48,6 +48,9 @@ class CDirectoryChooser(initial: File? = null,primary: Boolean = true) : CPanel(
     init {
         customBorderColor = if (selectedDirectory == null) {
             UIStates.theme.get().getColor(CodeStyle.RED)
+        } else null
+        customBorderThickness = if (selectedDirectory == null) {
+            UIStates.scale.get().SIZE_DIVIDER_THICKNESS
         } else null
 
         layout = GridBagLayout()
