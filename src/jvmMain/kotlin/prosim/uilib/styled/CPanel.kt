@@ -1,6 +1,7 @@
 package prosim.uilib.styled
 
 import prosim.uilib.UIStates
+import prosim.uilib.styled.borders.CLineBorder
 import prosim.uilib.styled.params.BorderMode
 import java.awt.*
 import javax.swing.JPanel
@@ -11,17 +12,28 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
     var roundedCorners: Boolean = roundCorners
         set(value) {
             field = value
-            revalidate()
             repaint()
         }
     var primary: Boolean = primary
+        set(value) {
+            field = value
+            repaint()
+        }
+
+    var borderMode: BorderMode = borderMode
         set(value) {
             field = value
             revalidate()
             repaint()
         }
 
-    var borderMode: BorderMode = borderMode
+    var customBorderColor: Color? = null
+        set(value) {
+            field = value
+            repaint()
+        }
+
+    var customBorderThickness: Int? = null
         set(value) {
             field = value
             revalidate()
@@ -61,6 +73,15 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
         }
     }
 
+    override fun paintBorder(g: Graphics?) {
+        val border = border
+        if (border is CLineBorder) {
+            border.customColor = customBorderColor
+            border.customThickness = customBorderThickness
+        }
+        border.paintBorder(this, g, 0, 0, width, height)
+    }
+
     override fun getInsets(): Insets {
         return border.getBorderInsets(this)
     }
@@ -75,7 +96,7 @@ open class CPanel(primary: Boolean = false, borderMode: BorderMode = BorderMode.
 
     override fun getBackground(): Color {
         val currCustomBG = customBG
-        return when{
+        return when {
             currCustomBG != null -> currCustomBG
             isOverlay -> UIStates.theme.get().COLOR_BG_OVERLAY
             primary -> UIStates.theme.get().COLOR_BG_0

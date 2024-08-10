@@ -8,8 +8,10 @@ import prosim.uilib.styled.CTextButton
 import prosim.uilib.styled.button.CDirectoryChooser
 import prosim.uilib.styled.frame.CFrame
 import prosim.uilib.styled.params.FontType
+import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.Toolkit
 
 class NewProject : CFrame("New Project") {
     val directoryChooser = CDirectoryChooser()
@@ -38,7 +40,9 @@ class NewProject : CFrame("New Project") {
         gbc.gridy = 2
         contentPane.add(open, gbc)
 
-        pack()
+        val screenSize = Toolkit.getDefaultToolkit().screenSize
+
+        size = Dimension(screenSize.width / 5, screenSize.height / 2)
         setLocationRelativeTo(null)
         isVisible = true
         revalidate()
