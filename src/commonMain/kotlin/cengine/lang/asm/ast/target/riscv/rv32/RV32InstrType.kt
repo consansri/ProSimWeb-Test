@@ -3,7 +3,7 @@ package cengine.lang.asm.ast.target.riscv.rv32
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 
-enum class RV32InstrType(override val detectionName: String, override val isPseudo: Boolean, val paramType: RV32ParamType, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class RV32InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV32ParamType, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV32ParamType.RD_I20),
     AUIPC("AUIPC", false, RV32ParamType.RD_I20),
     JAL("JAL", false, RV32ParamType.RD_I20),
@@ -92,6 +92,8 @@ enum class RV32InstrType(override val detectionName: String, override val isPseu
     Ret("RET", true, RV32ParamType.PS_NONE),
     Call("CALL", true, RV32ParamType.PS_JLBL, bytesNeeded = 8),
     Tail("TAIL", true, RV32ParamType.PS_JLBL, bytesNeeded = 8);
+
+    override val inCodeInfo: String? = if(isPseudo) "${bytesNeeded ?: "?"} bytes" else null
 
     override val paramRule: Rule?
         get() = paramType.rule

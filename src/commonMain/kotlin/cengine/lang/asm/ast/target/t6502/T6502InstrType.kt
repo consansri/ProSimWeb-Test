@@ -3,7 +3,7 @@ package cengine.lang.asm.ast.target.t6502
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 
-enum class T6502InstrType(override val detectionName: String, val opCode: UByte, val aMode: T6502ParamType, val description: String, override val isPseudo: Boolean = false) : InstrTypeInterface {
+enum class T6502InstrType(override val detectionName: String, val opCode: UByte, val aMode: T6502ParamType, val description: String) : InstrTypeInterface {
     // Load, store, interregister transfer
     LDA_ABS("LDA", 0xADU, T6502ParamType.ABS, "load accumulator"),
     LDA_ABS_X("LDA", 0xBDU,T6502ParamType.ABS_X, "load accumulator"),
@@ -195,6 +195,9 @@ enum class T6502InstrType(override val detectionName: String, val opCode: UByte,
     BRK_IMPLIED("BRK", 0x00U, T6502ParamType.IMPLIED, "break / interrupt"),
 
     NOP("NOP", 0xeaU, T6502ParamType.IMPLIED, "no operation"),    ;
+
+    override val inCodeInfo: String?
+        get() = description
 
     override val typeName: String
         get() = name

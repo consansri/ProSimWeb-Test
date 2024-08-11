@@ -3,7 +3,7 @@ package cengine.lang.asm.ast.target.ikrmini
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 
-enum class IKRMiniInstrType(override val detectionName: String, val opCode: UShort, val paramType: IKRMiniParamType, val description: String, override val isPseudo: Boolean = false) : InstrTypeInterface {
+enum class IKRMiniInstrType(override val detectionName: String, val opCode: UShort, val paramType: IKRMiniParamType, val description: String) : InstrTypeInterface {
     // Data Transport
     LOAD_IMM("LOAD", 0x010CU, IKRMiniParamType.IMM, "load AC"),
     LOAD_DIR("LOAD", 0x020CU, IKRMiniParamType.DIR, "load AC"),
@@ -123,6 +123,7 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
 
     override val typeName: String = name
     override val bytesNeeded: Int? = paramType.wordAmount * 2
+    override val inCodeInfo: String? get() = description
     override val paramRule: Rule? get() = paramType.rule
 
 }

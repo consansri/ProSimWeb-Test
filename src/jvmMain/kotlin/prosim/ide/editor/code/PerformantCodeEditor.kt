@@ -439,8 +439,7 @@ class PerformantCodeEditor(
         private val foldIndication: Color get() = UIStates.theme.get().getColor(CodeStyle.YELLOW).alpha(13)
         private val secFGColor: Color get() = UIStates.theme.get().getColor(CodeStyle.BASE4)
         private val secBGColor: Color get() = UIStates.theme.get().getColor(CodeStyle.BASE6)
-
-        private val selColor get() = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x55)
+        private val selColor get() = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x45)
         private val markBGColor get() = UIStates.theme.get().getColor(CodeStyle.BLUE).alpha(0x13)
 
         private val collapseIcon = UIStates.icon.get().folderClosed.apply {
@@ -487,6 +486,10 @@ class PerformantCodeEditor(
                 val currInterlineWidgets = interlineWidgets.filter { it.index in lineInfo.startIndex..<lineInfo.endIndex }
                 currInterlineWidgets.forEach {
                     val column = it.index - lineInfo.startIndex
+                    if(selection != null && it.index in selection){
+                        g.color = selColor
+                        g.fillRect(xOffset + rowHeaderWidth, yOffset, width, vLayout.lineHeight)
+                    }
                     val widgetDim = g.drawWidget(it, xOffset + rowHeaderWidth + column * vLayout.fmColumnWidth, yOffset)
                     yOffset += widgetDim.height
                 }

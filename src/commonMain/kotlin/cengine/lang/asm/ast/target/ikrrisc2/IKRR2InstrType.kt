@@ -4,7 +4,7 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 
 
-enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", override val isPseudo: Boolean = true, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     ADD("add", IKRR2ParamType.R2_TYPE, "addiere"),
     ADDI("addi", IKRR2ParamType.I_TYPE, "addiere Konstante (erweitere Konstante vorzeichenrichtig)"),
     ADDLI("addli", IKRR2ParamType.I_TYPE, "addiere Konstante (erweitere Konstante vorzeichenlos)"),
@@ -85,6 +85,9 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
         IKRR2ParamType.B_REG_TYPE,
         "springe in Unterprg. an Adresse in rb (sichere Rücksprungadr. in r31)"
     );
+
+    override val inCodeInfo: String?
+        get() = descr
 
     override val paramRule: Rule?
         get() = paramType.rule
