@@ -8,7 +8,7 @@ import java.awt.Dimension
 object WindowManager {
 
     fun createNewProjectWindow(){
-        NewProject()
+        ProjectSelectorWindow()
     }
 
     fun openProject(path: String, asmSpec: AsmSpec) {

@@ -13,7 +13,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Toolkit
 
-class NewProject : CFrame("New Project") {
+class ProjectSelectorWindow : CFrame("New Project") {
     val directoryChooser = CDirectoryChooser()
     val asmChooser = CChooser<AsmSpec>(CChooser.Model(AsmSpec.specs, RV32Spec, "Target"), FontType.BASIC)
     val open = CTextButton("open").apply {
