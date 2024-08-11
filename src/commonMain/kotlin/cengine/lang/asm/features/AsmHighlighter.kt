@@ -17,12 +17,24 @@ class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
 
     override fun getHighlights(element: PsiElement): List<HLInfo> {
         if (element !is ASNode) return emptyList()
-        return cache.getOrPut(element){
+        return cache.getOrPut(element) {
             when (element) {
                 is ASNode.ArgDef.Named -> listOf(HL(element, CodeStyle.argument))
                 is ASNode.Argument.Basic -> listOf(HL(element, CodeStyle.argument))
                 is ASNode.Argument.DefaultValue -> listOf(HL(element, CodeStyle.argument))
                 is ASNode.Label -> listOf(HL(element, CodeStyle.label))
+                is ASNode.NumericExpr.Operand.Identifier -> {
+                    val ref = element.referencedElement
+                    if (ref != null && ref is ASNode.Label) {
+                        listOf(HL(element, CodeStyle.label))
+                    } else emptyList()
+                }
+                is ASNode.StringExpr.Operand.Identifier -> {
+                    val ref = element.referencedElement
+                    if (ref != null && ref is ASNode.Label) {
+                        listOf(HL(element, CodeStyle.label))
+                    } else emptyList()
+                }
                 is ASNode.NumericExpr.Operand.Char -> listOf(HL(element, CodeStyle.char))
                 is ASNode.NumericExpr.Operand.Number -> listOf(HL(element, CodeStyle.integer))
                 is ASNode.StringExpr.Operand.StringLiteral -> listOf(HL(element, CodeStyle.string))

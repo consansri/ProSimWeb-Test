@@ -19,5 +19,4 @@ object WindowManager {
         frame.setLocationRelativeTo(null)
         frame.isVisible = true
     }
-
 }

@@ -4,14 +4,14 @@ import cengine.editor.annotation.Notation
 import cengine.editor.widgets.Widget
 import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
+import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode.*
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmToken
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.ast.Component.*
-import cengine.lang.asm.ast.Rule
 import cengine.psi.core.*
 import cengine.psi.lexer.core.Token
 import debug.DebugTools
@@ -390,7 +390,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
     class Label(val nameToken: AsmToken, val colon: AsmToken) : ASNode(nameToken.start..<colon.end) {
         override val pathName get() = nameToken.value + colon.value
-        val type = if (nameToken.type == AsmTokenType.INT_DEC) Type.LOCAL else Type.GLOBAL
+        val type = if (nameToken.type == AsmTokenType.INT_DEC) Type.NUMERIC else Type.ALPHANUMERIC
         val identifier = nameToken.value
 
         override fun getFormatted(identSize: Int): String = "${nameToken.value}${colon.value}"
@@ -398,8 +398,8 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         override fun getCodeStyle(position: Int): CodeStyle = CodeStyle.label
 
         enum class Type {
-            LOCAL,
-            GLOBAL
+            NUMERIC,
+            ALPHANUMERIC
         }
     }
 
@@ -948,6 +948,8 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 private var labelAddr: Value? = null
                 override val additionalInfo: String
                     get() = token.value
+                override val element: PsiElement = this
+                override var referencedElement: ASNode? = null
 
                 override fun getFormatted(identSize: Int): String = symbol.value
                 fun isLinked(): Boolean = expr != null
@@ -974,9 +976,6 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 }
 
                 override fun isDefined(): Boolean = expr != null || labelAddr != null
-
-                override val element: PsiElement = this
-                override var referencedElement: NumericExpr? = null
 
                 override fun resolve(): PsiElement? = referencedElement
 
