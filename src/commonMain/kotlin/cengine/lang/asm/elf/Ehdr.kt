@@ -36,17 +36,17 @@ import cengine.lang.asm.elf.elf64.ELF64_Ehdr
  */
 interface Ehdr : BinaryProvider {
 
-    val e_ident: E_IDENT
-    val e_type: Elf_Half
-    val e_machine: Elf_Half
-    val e_version: Elf_Word
-    val e_flags: Elf_Word
-    val e_ehsize: Elf_Half
-    val e_phentsize: Elf_Half
-    val e_phnum: Elf_Half
-    val e_shentsize: Elf_Half
-    val e_shnum: Elf_Half
-    val e_shstrndx: Elf_Half
+    var e_ident: E_IDENT
+    var e_type: Elf_Half
+    var e_machine: Elf_Half
+    var e_version: Elf_Word
+    var e_flags: Elf_Word
+    var e_ehsize: Elf_Half
+    var e_phentsize: Elf_Half
+    var e_phnum: Elf_Half
+    var e_shentsize: Elf_Half
+    var e_shnum: Elf_Half
+    var e_shstrndx: Elf_Half
 
     companion object {
 

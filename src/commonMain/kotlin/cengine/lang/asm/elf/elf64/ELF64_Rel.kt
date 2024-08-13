@@ -3,6 +3,8 @@ package cengine.lang.asm.elf.elf64
 import cengine.lang.asm.elf.Elf64_Addr
 import cengine.lang.asm.elf.Elf_Xword
 import cengine.lang.asm.elf.Rel
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 
 /**
@@ -38,8 +40,12 @@ data class ELF64_Rel(
     var r_info: Elf_Xword
 ): Rel {
 
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
-    }
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
 
+        b.put(r_offset)
+        b.put(r_info)
+
+        return b.toByteArray()
+    }
 }

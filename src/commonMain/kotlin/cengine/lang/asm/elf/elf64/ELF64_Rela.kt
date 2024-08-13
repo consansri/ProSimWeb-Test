@@ -4,6 +4,8 @@ import cengine.lang.asm.elf.Elf64_Addr
 import cengine.lang.asm.elf.Elf_Sxword
 import cengine.lang.asm.elf.Elf_Xword
 import cengine.lang.asm.elf.Rela
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 /**
  * ELF Relocation Entry (with addend)
@@ -41,8 +43,14 @@ data class ELF64_Rela(
     var r_info: Elf_Xword,
     var r_addend: Elf_Sxword
 ): Rela {
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
+
+        b.put(r_offset)
+        b.put(r_info)
+        b.put(r_addend)
+
+        return b.toByteArray()
     }
 
 }

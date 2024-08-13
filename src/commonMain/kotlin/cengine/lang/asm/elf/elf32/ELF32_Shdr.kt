@@ -6,6 +6,8 @@ import cengine.lang.asm.elf.Elf_Word
 import cengine.lang.asm.elf.Shdr
 import cengine.lang.asm.elf.Shdr.Companion.SHN_UNDEF
 import cengine.lang.asm.elf.Shdr.Companion.SHT_NULL
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 /**
  * ELF Section Header
@@ -65,10 +67,21 @@ data class ELF32_Shdr(
     var sh_entsize: Elf_Word = 0U
 ): Shdr {
 
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
 
+        b.put(sh_name)
+        b.put(sh_type)
+        b.put(sh_flags)
+        b.put(sh_addr)
+        b.put(sh_offset)
+        b.put(sh_size)
+        b.put(sh_link)
+        b.put(sh_info)
+        b.put(sh_addralign)
+        b.put(sh_entsize)
 
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
+        return b.toByteArray()
     }
 
 }

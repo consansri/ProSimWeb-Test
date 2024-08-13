@@ -2,6 +2,8 @@ package cengine.lang.asm.elf.elf32
 
 import cengine.lang.asm.elf.*
 import cengine.lang.asm.elf.Ehdr.Companion.EV_CURRENT
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 
 /**
@@ -77,9 +79,25 @@ data class ELF32_Ehdr(
                 ""
     }
 
+    override fun build(endianness: Endianness): ByteArray {
+        val buffer = ByteBuffer(endianness)
 
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
+        buffer.put(e_ident.build(endianness))
+        buffer.put(e_type)
+        buffer.put(e_machine)
+        buffer.put(e_version)
+        buffer.put(e_entry)
+        buffer.put(e_phoff)
+        buffer.put(e_shoff)
+        buffer.put(e_flags)
+        buffer.put(e_ehsize)
+        buffer.put(e_phentsize)
+        buffer.put(e_phnum)
+        buffer.put(e_shentsize)
+        buffer.put(e_shnum)
+        buffer.put(e_shstrndx)
+
+        return buffer.toByteArray()
     }
 
 

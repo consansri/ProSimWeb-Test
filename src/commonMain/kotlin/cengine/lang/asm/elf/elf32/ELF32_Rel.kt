@@ -3,6 +3,8 @@ package cengine.lang.asm.elf.elf32
 import cengine.lang.asm.elf.Elf32_Addr
 import cengine.lang.asm.elf.Elf_Word
 import cengine.lang.asm.elf.Rel
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 /**
  * ELF Relocation Entry
@@ -37,8 +39,12 @@ data class ELF32_Rel(
     var r_info: Elf_Word
 ): Rel {
 
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
-    }
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
 
+        b.put(r_offset)
+        b.put(r_info)
+
+        return b.toByteArray()
+    }
 }

@@ -1,6 +1,8 @@
 package cengine.lang.asm.elf
 
 import cengine.lang.asm.elf.Ehdr.Companion.EV_CURRENT
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 /**
  * @param ei_mag0 File identification
@@ -25,7 +27,7 @@ data class E_IDENT(
     val ei_abiversion: Elf_Byte,
     val ei_pad: Elf_Byte = ZERO,
     val ei_nident: Elf_Byte = EI_NIDENT
-) {
+): BinaryProvider {
     companion object {
         const val ZERO: Elf_Byte = 0U
 
@@ -130,11 +132,23 @@ data class E_IDENT(
 
     }
 
-    fun build(): Array<Elf_Byte> {
-        val beginning = arrayOf(ei_mag0, ei_mag1, ei_mag2, ei_mag3, ei_class, ei_data, ei_version, ei_osabi, ei_abiversion, ei_pad)
-        val result = beginning + Array(ei_nident.toInt() - beginning.size) {
-            ZERO
-        }
-        return result
+    override fun build(endianness: Endianness): ByteArray {
+        val buffer = ByteBuffer(endianness)
+
+        buffer.put(ei_mag0)
+        buffer.put(ei_mag1)
+        buffer.put(ei_mag2)
+        buffer.put(ei_mag3)
+        buffer.put(ei_class)
+        buffer.put(ei_data)
+        buffer.put(ei_version)
+        buffer.put(ei_osabi)
+        buffer.put(ei_abiversion)
+        buffer.put(ei_pad)
+        buffer.put( ByteArray(ei_nident.toInt() - buffer.size) {
+            ZERO.toByte()
+        })
+
+        return buffer.toByteArray()
     }
 }

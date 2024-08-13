@@ -4,6 +4,8 @@ import cengine.lang.asm.elf.Elf32_Addr
 import cengine.lang.asm.elf.Elf32_Off
 import cengine.lang.asm.elf.Elf_Word
 import cengine.lang.asm.elf.Phdr
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 /**
  * ELF Program Header
@@ -56,7 +58,19 @@ data class ELF32_Phdr(
 ) : Phdr {
 
 
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
+
+        b.put(p_type)
+        b.put(p_offset)
+        b.put(p_vaddr)
+        b.put(p_paddr)
+        b.put(p_filesz)
+        b.put(p_memsz)
+        b.put(p_flags)
+        b.put(p_align)
+
+        return b.toByteArray()
     }
+
 }

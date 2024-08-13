@@ -37,6 +37,9 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
 
         program.accept(LabelLinker(labelCollector.labels))
 
+        val analyzer = SemanticAnalyzer()
+        program.accept(analyzer)
+
         nativeLog("Parsed File!")
 
         //nativeLog("AsmPsiParser parses file: $fileName!")
@@ -53,6 +56,48 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
         val program = ASNode.buildNode(ASNodeType.PROGRAM, lexer, asmSpec) as ASNode.Program
         return program.getAllStatements()
     }
+
+    private class SemanticAnalyzer : PsiElementVisitor {
+
+        override fun visitFile(file: PsiFile) {
+            if (file !is AsmFile) return
+            file.children.forEach {
+                it.accept(this)
+            }
+        }
+
+        override fun visitElement(element: PsiElement) {
+            if (element !is ASNode) return
+            when(element){
+                is ASNode.ArgDef.Named -> TODO()
+                is ASNode.ArgDef.Positional -> TODO()
+                is ASNode.Argument.Basic -> TODO()
+                is ASNode.Argument.DefaultValue -> TODO()
+                is ASNode.Comment -> TODO()
+                is ASNode.Directive -> TODO()
+                is ASNode.Error -> TODO()
+                is ASNode.Instruction -> TODO()
+                is ASNode.Label -> TODO()
+                is ASNode.NumericExpr.Classic -> TODO()
+                is ASNode.NumericExpr.Operand.Char -> TODO()
+                is ASNode.NumericExpr.Operand.Identifier -> TODO()
+                is ASNode.NumericExpr.Operand.Number -> TODO()
+                is ASNode.NumericExpr.Prefix -> TODO()
+                is ASNode.Program -> TODO()
+                is ASNode.Statement.Dir -> TODO()
+                is ASNode.Statement.Empty -> TODO()
+                is ASNode.Statement.Instr -> TODO()
+                is ASNode.Statement.Unresolved -> TODO()
+                is ASNode.StringExpr.Concatenation -> TODO()
+                is ASNode.StringExpr.Operand.Identifier -> TODO()
+                is ASNode.StringExpr.Operand.StringLiteral -> TODO()
+                is ASNode.TokenExpr -> TODO()
+            }
+
+        }
+    }
+
+
 
     private class LabelLinker(val labels: Set<ASNode.Label>) : PsiElementVisitor {
         override fun visitFile(file: PsiFile) {

@@ -1,6 +1,8 @@
 package cengine.lang.asm.elf.elf32
 
 import cengine.lang.asm.elf.*
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 /**
  * ELF Relocation Entry (with addend)
@@ -38,8 +40,14 @@ data class ELF32_Rela(
     var r_info: Elf_Word,
     var r_addend: Elf_Sword
 ): Rela {
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
+
+        b.put(r_offset)
+        b.put(r_info)
+        b.put(r_addend)
+
+        return b.toByteArray()
     }
 
 }

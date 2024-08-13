@@ -1,6 +1,8 @@
 package cengine.lang.asm.elf.elf64
 
 import cengine.lang.asm.elf.*
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 /**
  * ELF Program Header
@@ -50,9 +52,21 @@ data class ELF64_Phdr(
     var p_filesz: Elf_Xword,
     var p_memsz: Elf_Xword,
     var p_align: Elf_Xword
-): Phdr {
+) : Phdr {
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
 
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
+        b.put(p_type)
+        b.put(p_flags)
+        b.put(p_offset)
+        b.put(p_vaddr)
+        b.put(p_paddr)
+        b.put(p_filesz)
+        b.put(p_memsz)
+        b.put(p_align)
+
+        return b.toByteArray()
     }
+
+
 }

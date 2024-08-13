@@ -16,7 +16,9 @@ interface AsmSpec {
         val specs = setOf(RV32Spec, RV64Spec, IKRR2Spec, IKRMiniSpec, T6502Spec)
     }
 
+
     val name: String
+
 
     /** The size of memory addresses. */
     val memAddrSize: Size
@@ -39,4 +41,5 @@ interface AsmSpec {
     fun createLexer(input: String): AsmLexer = AsmLexer(input, this)
 
     override fun toString(): String
+
 }

@@ -1,6 +1,8 @@
 package cengine.lang.asm.elf.elf32
 
 import cengine.lang.asm.elf.*
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 /**
  * Symbol Table
@@ -41,8 +43,17 @@ data class ELF32_Sym(
 ): Sym {
 
 
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
+
+        b.put(st_name)
+        b.put(st_value)
+        b.put(st_size)
+        b.put(st_info)
+        b.put(st_other)
+        b.put(st_shndx)
+
+        return b.toByteArray()
     }
 
 }

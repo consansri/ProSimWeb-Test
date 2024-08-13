@@ -1,6 +1,8 @@
 package cengine.lang.asm.elf.elf64
 
 import cengine.lang.asm.elf.*
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 data class ELF64_Shdr(
     override var sh_name: Elf_Word = 0U,
@@ -14,8 +16,20 @@ data class ELF64_Shdr(
     var sh_addralign: Elf_Xword = 0U,
     var sh_entsize: Elf_Xword = 0U
 ): Shdr{
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
-    }
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
 
+        b.put(sh_name)
+        b.put(sh_type)
+        b.put(sh_flags)
+        b.put(sh_addr)
+        b.put(sh_offset)
+        b.put(sh_size)
+        b.put(sh_link)
+        b.put(sh_info)
+        b.put(sh_addralign)
+        b.put(sh_entsize)
+
+        return b.toByteArray()
+    }
 }

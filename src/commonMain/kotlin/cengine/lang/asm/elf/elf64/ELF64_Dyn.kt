@@ -4,6 +4,8 @@ import cengine.lang.asm.elf.Dyn
 import cengine.lang.asm.elf.Elf64_Addr
 import cengine.lang.asm.elf.Elf_Sxword
 import cengine.lang.asm.elf.Elf_Xword
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 /**
  * Data class representing the Elf32_Dyn structure in the ELF format.
@@ -17,7 +19,13 @@ data class ELF64_Dyn(
     var d_val: Elf_Xword,
     var d_ptr: Elf64_Addr
 ): Dyn{
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
+
+        b.put(d_tag)
+        b.put(d_val)
+        b.put(d_ptr)
+
+        return b.toByteArray()
     }
 }

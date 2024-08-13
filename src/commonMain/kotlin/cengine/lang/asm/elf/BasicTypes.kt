@@ -6,12 +6,6 @@ typealias Elf64_Addr = ULong
 typealias Elf32_Off = UInt
 typealias Elf64_Off = ULong
 
-typealias Elf32_Section = UShort
-typealias Elf64_Section = UShort
-
-typealias Elf32_Versym = UShort
-typealias Elf64_Versym = UShort
-
 typealias Elf_Byte = UByte
 
 typealias Elf_Half = UShort
