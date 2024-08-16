@@ -65,7 +65,17 @@ data class ELF32_Shdr(
     override var sh_info: Elf_Word = 0U,
     var sh_addralign: Elf_Word = 0U,
     var sh_entsize: Elf_Word = 0U
-): Shdr {
+) : Shdr {
+
+    companion object {
+        fun create(nameIndex: Elf_Word, type: Elf_Word, flags: Elf_Word): ELF32_Shdr {
+            return ELF32_Shdr(
+                sh_name = nameIndex,
+                sh_type = type,
+                sh_flags = flags
+            )
+        }
+    }
 
     override fun build(endianness: Endianness): ByteArray {
         val b = ByteBuffer(endianness)

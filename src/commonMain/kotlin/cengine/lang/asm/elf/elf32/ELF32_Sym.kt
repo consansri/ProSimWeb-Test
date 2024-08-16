@@ -41,8 +41,6 @@ data class ELF32_Sym(
     override var st_other: Elf_Byte,
     override var st_shndx: Elf_Half
 ): Sym {
-
-
     override fun build(endianness: Endianness): ByteArray {
         val b = ByteBuffer(endianness)
 

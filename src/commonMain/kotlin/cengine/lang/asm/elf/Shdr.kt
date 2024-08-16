@@ -12,6 +12,12 @@ interface Shdr : BinaryProvider {
 
     companion object {
 
+        fun create(ei_class: Elf_Byte): Shdr = when (ei_class) {
+            E_IDENT.ELFCLASS32 -> ELF32_Shdr()
+            E_IDENT.ELFCLASS64 -> ELF64_Shdr()
+            else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+        }
+
         fun getSectionType(type: Elf_Word): String = when (type) {
             SHT_NULL -> "NULL"
             SHT_PROGBITS -> "PROGBITS"
@@ -63,6 +69,7 @@ interface Shdr : BinaryProvider {
 
                     return ELF32_Shdr(sh_name, sh_type, sh_flags, sh_addr, sh_offset, sh_size, sh_link, sh_info, sh_addralign, sh_entsize)
                 }
+
                 E_IDENT.ELFCLASS64 -> {
                     val sh_flags = byteArray.loadULong(eIdent, currIndex)
                     currIndex += 8
@@ -82,6 +89,7 @@ interface Shdr : BinaryProvider {
 
                     return ELF64_Shdr(sh_name, sh_type, sh_flags, sh_addr, sh_offset, sh_size, sh_link, sh_info, sh_addralign, sh_entsize)
                 }
+
                 else -> throw NotInELFFormatException
             }
         }
@@ -294,138 +302,77 @@ interface Shdr : BinaryProvider {
          */
 
         /**
-         * This section holds uninitialized data that contribute to the program's
+         * (BSS) This section holds uninitialized data that contribute to the program's
          * memory image. By definition, the system initializes the data with zeros
          * when the program begins to run. The section occupies no file space, as
          * indicated by the section type, [SHT_NOBITS].
          */
-        fun createBSS(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_NOBITS,
-            sh_flags = SHF_ALLOC + SHF_WRITE
-        )
+        val SHT_bss = SHT_NOBITS
+        val SHF_bss = SHF_ALLOC + SHF_WRITE
 
         /**
-         * This section holds version control information.
+         * (COMMENT) This section holds version control information.
          */
-        fun createCOMMENT(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_PROGBITS
-        )
+        val SHT_comment = SHT_PROGBITS
 
         /**
-         * ([createDATA] and [createDATA1]) These sections hold initialized data that contribute to the program's memory
+         * (DATA) These sections hold initialized data that contribute to the program's memory
          * image.
          */
-        fun createDATA(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_PROGBITS,
-            sh_flags = SHF_ALLOC + SHF_WRITE
-        )
+        val SHT_data = SHT_PROGBITS
+        val SHF_data = SHF_ALLOC + SHF_WRITE
 
         /**
-         * ([createDATA] and [createDATA1]) These sections hold initialized data that contribute to the program's memory
-         * image.
-         */
-        fun createDATA1(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_PROGBITS,
-            sh_flags = SHF_ALLOC + SHF_WRITE
-        )
-
-        /**
-         * This section holds information for symbolic debugging. The contents are
+         * (DEBUG) This section holds information for symbolic debugging. The contents are
          * unspecified.  All section names with the prefix .debug are reserved for
          * future use.
          */
-        fun createDEBUG(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_PROGBITS
-        )
+        val SHT_debug = SHT_PROGBITS
+
 
         /**
-         * This section holds dynamic linking information and has attributes such as
+         * (DYNAMIC) This section holds dynamic linking information and has attributes such as
          * [SHF_ALLOC] and [SHF_WRITE]. Whether the [SHF_WRITE] bit is set is
          * determined by the operating system and processor.
          */
-        fun createDYNAMIC(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_DYNAMIC
-        )
+        val SHT_dynamic = SHT_DYNAMIC
 
         /**
-         * This section holds a symbol hash table.
+         * (HASH) This section holds a symbol hash table.
          */
-        fun createHASH(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_HASH,
-            sh_flags = SHF_ALLOC
-        )
+        val SHT_hash = SHT_HASH
+        val SHF_hash = SHF_ALLOC
 
         /**
          * This section holds line number information for symbolic debugging, which
          * describes the correspondence between the source program and the machine
          * code. The contents are unspecified.
          */
-        fun createLINE(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_PROGBITS
-        )
+        val SHT_line = SHT_PROGBITS
 
         /**
          * This section holds information in the format that is described in the "Note
          * Section'' in Chapter 2.
          */
-        fun createNOTE(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_NOTE
-        )
+
+        val SHT_note = SHT_NOTE
 
         /**
          * These sections hold read-only data that typically contribute to a
          * non-writable segment in the process image. See "Program Header'' in
          * Chapter 2 for more information.
          */
-        fun createRODATA(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_PROGBITS,
-            sh_flags = SHF_ALLOC
-        )
 
-        /**
-         * These sections hold read-only data that typically contribute to a
-         * non-writable segment in the process image. See "Program Header'' in
-         * Chapter 2 for more information.
-         */
-        fun createRODATA1(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_PROGBITS,
-            sh_flags = SHF_ALLOC
-        )
+        val SHT_rodata = SHT_PROGBITS
+        val SHF_rodata = SHF_ALLOC
 
-        /**
-         * This section holds section names.
-         */
-        fun createSHSTRTAB(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_STRTAB
-        )
-
-        /**
-         * This section holds strings, most commonly the strings that represent the names
-         * associated with symbol table entries. If a file has a loadable segment that
-         * includes the symbol string table, the section's attributes will include the
-         * [SHF_ALLOC] bit; otherwise, that bit will be off.
-         */
-        fun createSTRTAB(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_STRTAB
-        )
-
-        /**
-         * This section holds a symbol table, as "Symbol Table'' in this chapter
-         * describes. If a file has a loadable segment that includes the symbol table,
-         * the section's attributes will include the [SHF_ALLOC] bit; otherwise, that bit
-         * will be off.
-         */
-        fun createSYMTAB(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_SYMTAB
-        )
 
         /**
          *  This section holds the "text,'' or executable instructions, of a program.
          */
-        fun createTEXT(): ELF32_Shdr = ELF32_Shdr(
-            sh_type = SHT_PROGBITS,
-            sh_flags = SHF_ALLOC + SHF_EXECINSTR
-        )
+
+        val SHT_text = SHT_PROGBITS
+        val SHF_text = SHF_ALLOC + SHF_EXECINSTR
 
 
     }

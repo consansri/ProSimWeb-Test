@@ -5,6 +5,11 @@ class ByteBuffer(private var endianness: Endianness) {
 
     val size: Int get() = data.size
 
+    companion object {
+        fun String.toASCIIByteArray(): ByteArray = this.encodeToByteArray()
+        fun ByteArray.toASCIIString(): String = this.decodeToString()
+    }
+
     fun setEndianess(newEndianess: Endianness) {
         endianness = newEndianess
     }
@@ -17,8 +22,26 @@ class ByteBuffer(private var endianness: Endianness) {
         put(value.toByte())
     }
 
-    fun put(bytes: ByteArray) {
+    fun putAll(bytes: ByteArray) {
         data.addAll(bytes.toList())
+    }
+
+    fun putAll(bytes: Array<Byte>) {
+        data.addAll(bytes.toList())
+    }
+
+    operator fun get(index: Int): Byte = data[index]
+
+    fun getZeroTerminated(index: Int): ByteArray {
+        val result = mutableListOf<Byte>()
+        var currentIndex = index
+
+        while (currentIndex < size && this[currentIndex] != 0.toByte()) {
+            result.add(this[currentIndex])
+            currentIndex++
+        }
+
+        return result.toByteArray()
     }
 
     fun put(value: Short) {
@@ -90,8 +113,6 @@ class ByteBuffer(private var endianness: Endianness) {
     fun put(value: ULong) {
         put(value.toLong())
     }
-
-    fun position(): Int = data.size
 
     fun toByteArray(): ByteArray = data.toByteArray()
 }

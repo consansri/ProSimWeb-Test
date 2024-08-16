@@ -145,7 +145,7 @@ data class E_IDENT(
         buffer.put(ei_osabi)
         buffer.put(ei_abiversion)
         buffer.put(ei_pad)
-        buffer.put( ByteArray(ei_nident.toInt() - buffer.size) {
+        buffer.putAll( ByteArray(ei_nident.toInt() - buffer.size) {
             ZERO.toByte()
         })
 

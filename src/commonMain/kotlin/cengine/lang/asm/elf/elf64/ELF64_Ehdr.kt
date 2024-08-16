@@ -23,7 +23,7 @@ data class ELF64_Ehdr(
     override fun build(endianness: Endianness): ByteArray {
         val buffer = ByteBuffer(endianness)
 
-        buffer.put(e_ident.build(endianness))
+        buffer.putAll(e_ident.build(endianness))
         buffer.put(e_type)
         buffer.put(e_machine)
         buffer.put(e_version)
