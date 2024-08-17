@@ -7,10 +7,21 @@ import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVDirType
+import cengine.lang.asm.elf.E_IDENT
+import cengine.lang.asm.elf.Ehdr
+import cengine.lang.asm.elf.Elf_Byte
+import cengine.lang.asm.elf.Elf_Half
 import emulator.core.Size
 
-data object RV64Spec: AsmSpec {
+data object RV64Spec : AsmSpec {
     override val name: String = "RISC-V 64 Bit"
+
+    override val ei_class: Elf_Byte = E_IDENT.ELFCLASS64
+    override val ei_data: Elf_Byte = E_IDENT.ELFDATA2LSB
+    override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
+    override val ei_abiversion: Elf_Byte = E_IDENT.ZERO
+    override val e_machine: Elf_Half = Ehdr.EM_RISCV
+
     override val memAddrSize: Size = Size.Bit64
     override val wordSize: Size = Size.Bit32
     override val detectRegistersByName: Boolean = true

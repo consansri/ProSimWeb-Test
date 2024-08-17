@@ -12,6 +12,8 @@ import cengine.util.Endianness
  * @param ei_class File class
  * @param ei_data Data encoding
  * @param ei_version File version
+ * @param ei_osabi
+ * @param ei_abiversion
  * @param ei_pad Start of padding bytes
  * @param ei_nident Size of [E_IDENT.build]
  */
@@ -80,6 +82,10 @@ data class E_IDENT(
          */
         const val ELFDATA2MSB: Elf_Byte = 2U
 
+        /**
+         * This indicates that the ELF file follows the System V ABI.
+         */
+        const val ELFOSABI_SYSV: Elf_Byte = 0U
 
         fun extractFrom(byteArray: ByteArray): E_IDENT {
             val ei_mag0 = byteArray.getOrNull(0)?.toUByte() ?: throw NotInELFFormatException

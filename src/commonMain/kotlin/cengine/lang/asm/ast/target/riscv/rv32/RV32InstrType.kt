@@ -2,6 +2,8 @@ package cengine.lang.asm.ast.target.riscv.rv32
 
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
+import cengine.lang.asm.ast.impl.ASNode
+import cengine.lang.asm.elf.ELFBuilder
 
 enum class RV32InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV32ParamType, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV32ParamType.RD_I20),
@@ -99,4 +101,12 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
         get() = paramType.rule
 
     override val typeName: String = name.lowercase()
+
+    override fun execute(builder: ELFBuilder, instr: ASNode.Instruction) {
+        TODO("Not yet implemented")
+    }
+
+    override fun checkSemantic(instr: ASNode.Instruction) {
+        TODO("Not yet implemented")
+    }
 }

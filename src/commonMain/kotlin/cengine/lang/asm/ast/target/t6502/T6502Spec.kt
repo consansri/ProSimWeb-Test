@@ -5,10 +5,22 @@ import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.lexer.AsmLexer
+import cengine.lang.asm.elf.Elf_Byte
+import cengine.lang.asm.elf.Elf_Half
 import emulator.core.Size
 
 object T6502Spec : AsmSpec {
     override val name: String = "6502 MOS"
+    override val ei_class: Elf_Byte
+        get() = TODO("Not yet implemented")
+    override val ei_data: Elf_Byte
+        get() = TODO("Not yet implemented")
+    override val ei_osabi: Elf_Byte
+        get() = TODO("Not yet implemented")
+    override val ei_abiversion: Elf_Byte
+        get() = TODO("Not yet implemented")
+    override val e_machine: Elf_Half
+        get() = TODO("Not yet implemented")
     override val memAddrSize: Size = Size.Bit16
     override val wordSize: Size = Size.Bit16
     override val detectRegistersByName: Boolean = false

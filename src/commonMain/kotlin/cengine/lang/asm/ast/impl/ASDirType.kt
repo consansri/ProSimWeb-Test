@@ -1,11 +1,12 @@
 package cengine.lang.asm.ast.impl
 
 import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.DirTypeInterface
+import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.ast.Component.*
-import cengine.lang.asm.ast.Rule
+import cengine.lang.asm.elf.ELFBuilder
 import emulator.core.Size.*
 import emulator.core.Value.Hex
 
@@ -1049,6 +1050,14 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
 
         lexer.position = initialPos
         return null
+    }
+
+    override fun checkSemantic(dir: ASNode.Directive) {
+        TODO("Not yet implemented")
+    }
+
+    override fun execute(builder: ELFBuilder, dir: ASNode.Directive) {
+        TODO("Not yet implemented")
     }
 
     companion object {

@@ -7,6 +7,8 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.impl.AsmFile
 import cengine.lang.asm.ast.lexer.AsmTokenType
+import cengine.lang.asm.elf.ELFBuilder
+import cengine.lang.asm.elf.Ehdr
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
@@ -14,8 +16,7 @@ import cengine.psi.core.PsiParser
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
 
-class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiParser {
-
+class AsmPsiParser(val spec: AsmSpec, val languageService: AsmLang) : PsiParser {
     override fun parseFile(file: VirtualFile, textModel: TextModel?): AsmFile {
         nativeLog("Parsing file ...")
 
@@ -25,10 +26,10 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
             textModel?.toString() ?: file.getAsUTF8String()
         }
 
-        val lexer = asmSpec.createLexer(content)
+        val lexer = spec.createLexer(content)
         lexer.reset(content)
 
-        val program = ASNode.buildNode(ASNodeType.PROGRAM, lexer, asmSpec) as ASNode.Program
+        val program = ASNode.buildNode(ASNodeType.PROGRAM, lexer, spec) as ASNode.Program
 
         program.accept(ParentLinker())
 
@@ -49,16 +50,19 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
         }
     }
 
+    fun generateExecutable(file: AsmFile){
+        val builder = ELFBuilder(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, Ehdr.ET_EXEC, spec.e_machine)
+    }
+
     fun reparseStatements(fromIndex: Int, toIndex: Int, asmFile: AsmFile): List<ASNode.Statement> {
-        val lexer = asmSpec.createLexer("")
+        val lexer = spec.createLexer("")
         val content = asmFile.file.getAsUTF8String().substring(fromIndex, toIndex)
         lexer.reset(content)
-        val program = ASNode.buildNode(ASNodeType.PROGRAM, lexer, asmSpec) as ASNode.Program
+        val program = ASNode.buildNode(ASNodeType.PROGRAM, lexer, spec) as ASNode.Program
         return program.getAllStatements()
     }
 
-    private class SemanticAnalyzer : PsiElementVisitor {
-
+    private class SemanticAnalyzer() : PsiElementVisitor {
         override fun visitFile(file: PsiFile) {
             if (file !is AsmFile) return
             file.children.forEach {
@@ -69,35 +73,16 @@ class AsmPsiParser(val asmSpec: AsmSpec, val languageService: AsmLang) : PsiPars
         override fun visitElement(element: PsiElement) {
             if (element !is ASNode) return
             when(element){
-                is ASNode.ArgDef.Named -> TODO()
-                is ASNode.ArgDef.Positional -> TODO()
-                is ASNode.Argument.Basic -> TODO()
-                is ASNode.Argument.DefaultValue -> TODO()
-                is ASNode.Comment -> TODO()
-                is ASNode.Directive -> TODO()
-                is ASNode.Error -> TODO()
-                is ASNode.Instruction -> TODO()
-                is ASNode.Label -> TODO()
-                is ASNode.NumericExpr.Classic -> TODO()
-                is ASNode.NumericExpr.Operand.Char -> TODO()
-                is ASNode.NumericExpr.Operand.Identifier -> TODO()
-                is ASNode.NumericExpr.Operand.Number -> TODO()
-                is ASNode.NumericExpr.Prefix -> TODO()
-                is ASNode.Program -> TODO()
-                is ASNode.Statement.Dir -> TODO()
-                is ASNode.Statement.Empty -> TODO()
-                is ASNode.Statement.Instr -> TODO()
-                is ASNode.Statement.Unresolved -> TODO()
-                is ASNode.StringExpr.Concatenation -> TODO()
-                is ASNode.StringExpr.Operand.Identifier -> TODO()
-                is ASNode.StringExpr.Operand.StringLiteral -> TODO()
-                is ASNode.TokenExpr -> TODO()
+                is ASNode.Directive -> return element.type.checkSemantic(element)
+                is ASNode.Instruction -> return element.type.checkSemantic(element)
+                else -> {}
             }
 
+            element.children.forEach {
+                it.accept(this)
+            }
         }
     }
-
-
 
     private class LabelLinker(val labels: Set<ASNode.Label>) : PsiElementVisitor {
         override fun visitFile(file: PsiFile) {

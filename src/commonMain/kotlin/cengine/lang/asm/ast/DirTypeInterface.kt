@@ -2,6 +2,7 @@ package cengine.lang.asm.ast
 
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.lexer.AsmLexer
+import cengine.lang.asm.elf.ELFBuilder
 
 interface DirTypeInterface {
 
@@ -13,5 +14,7 @@ interface DirTypeInterface {
     val rule: Rule?
     val typeName: String
     fun buildDirectiveContent(lexer: AsmLexer, asmSpec: AsmSpec): ASNode.Directive?
+    fun execute(builder: ELFBuilder, dir: ASNode.Directive)
+    fun checkSemantic(dir: ASNode.Directive)
 
 }

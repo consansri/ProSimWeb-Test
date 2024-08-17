@@ -22,20 +22,19 @@ import cengine.vfs.VirtualFile
  * 4. [Shdr]s
  */
 class ELFBuilder(
-    val ei_class: Elf_Byte,
-    val ei_data: Elf_Byte,
-    val ei_osabi: Elf_Byte,
-    val ei_abiversion: Elf_Byte,
-    val e_type: Elf_Half,
-    val e_machine: Elf_Half
+    private val ei_class: Elf_Byte,
+    private val ei_data: Elf_Byte,
+    private val ei_osabi: Elf_Byte,
+    private val ei_abiversion: Elf_Byte,
+    private val e_type: Elf_Half,
+    private val e_machine: Elf_Half,
+    private var e_flags: Elf_Word = 0U
 ) {
 
     /**
      * ELF IDENTIFICATION & CLASSIFICATION
      */
     private val e_ident: E_IDENT = E_IDENT(ei_class = ei_class, ei_data = ei_data, ei_osabi = ei_osabi, ei_abiversion = ei_abiversion)
-
-    var e_flags: Elf_Word = 0U
 
     private val endianness = when (ei_data) {
         E_IDENT.ELFDATA2LSB -> Endianness.LITTLE
@@ -121,7 +120,7 @@ class ELFBuilder(
 
     fun build(outputFile: VirtualFile, vararg statements: ASNode.Statement) {
         statements.forEach {
-            it.parse()
+            it.execute()
         }
 
         outputFile.setContent(writeELFFile())
@@ -129,7 +128,7 @@ class ELFBuilder(
 
     // PRIVATE METHODS
 
-    private fun ASNode.Statement.parse() {
+    private fun ASNode.Statement.execute() {
 
     }
 
@@ -272,7 +271,6 @@ class ELFBuilder(
         fun addSymbol() {
             TODO()
         }
-
     }
 
     /**

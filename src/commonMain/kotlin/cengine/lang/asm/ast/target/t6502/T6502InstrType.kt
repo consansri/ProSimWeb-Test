@@ -2,6 +2,8 @@ package cengine.lang.asm.ast.target.t6502
 
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
+import cengine.lang.asm.ast.impl.ASNode
+import cengine.lang.asm.elf.ELFBuilder
 
 enum class T6502InstrType(override val detectionName: String, val opCode: UByte, val aMode: T6502ParamType, val description: String) : InstrTypeInterface {
     // Load, store, interregister transfer
@@ -205,4 +207,12 @@ enum class T6502InstrType(override val detectionName: String, val opCode: UByte,
     override val bytesNeeded: Int = aMode.byteAmount
     override val paramRule: Rule?
         get() = aMode.rule
+
+    override fun checkSemantic(instr: ASNode.Instruction) {
+        TODO("Not yet implemented")
+    }
+
+    override fun execute(builder: ELFBuilder, instr: ASNode.Instruction) {
+        TODO("Not yet implemented")
+    }
 }

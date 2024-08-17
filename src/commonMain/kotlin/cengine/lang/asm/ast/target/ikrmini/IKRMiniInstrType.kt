@@ -2,6 +2,8 @@ package cengine.lang.asm.ast.target.ikrmini
 
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
+import cengine.lang.asm.ast.impl.ASNode
+import cengine.lang.asm.elf.ELFBuilder
 
 enum class IKRMiniInstrType(override val detectionName: String, val opCode: UShort, val paramType: IKRMiniParamType, val description: String) : InstrTypeInterface {
     // Data Transport
@@ -125,5 +127,13 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
     override val bytesNeeded: Int? = paramType.wordAmount * 2
     override val inCodeInfo: String? get() = description
     override val paramRule: Rule? get() = paramType.rule
+
+    override fun checkSemantic(instr: ASNode.Instruction) {
+        TODO("Not yet implemented")
+    }
+
+    override fun execute(builder: ELFBuilder, instr: ASNode.Instruction) {
+        TODO("Not yet implemented")
+    }
 
 }
