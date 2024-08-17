@@ -94,4 +94,6 @@ data class ELF32_Shdr(
         return b.toByteArray()
     }
 
+    override fun byteSize(): Int = 40
+
 }

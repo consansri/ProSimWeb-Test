@@ -5,4 +5,6 @@ import cengine.util.Endianness
 interface BinaryProvider {
     fun build(endianness: Endianness): ByteArray
 
+    fun byteSize(): Int
+
 }

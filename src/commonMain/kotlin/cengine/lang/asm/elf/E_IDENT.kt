@@ -27,7 +27,7 @@ data class E_IDENT(
     val ei_abiversion: Elf_Byte,
     val ei_pad: Elf_Byte = ZERO,
     val ei_nident: Elf_Byte = EI_NIDENT
-): BinaryProvider {
+) : BinaryProvider {
     companion object {
         const val ZERO: Elf_Byte = 0U
 
@@ -145,10 +145,12 @@ data class E_IDENT(
         buffer.put(ei_osabi)
         buffer.put(ei_abiversion)
         buffer.put(ei_pad)
-        buffer.putAll( ByteArray(ei_nident.toInt() - buffer.size) {
+        buffer.putAll(ByteArray(ei_nident.toInt() - buffer.size) {
             ZERO.toByte()
         })
 
         return buffer.toByteArray()
     }
+
+    override fun byteSize(): Int = ei_nident.toInt()
 }

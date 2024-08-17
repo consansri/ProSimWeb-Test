@@ -48,6 +48,13 @@ interface Phdr : BinaryProvider {
     var p_flags: Elf_Word
 
     companion object {
+        fun size(ei_class: Elf_Byte): Elf_Half{
+            return when(ei_class){
+                E_IDENT.ELFCLASS32 -> 32U
+                E_IDENT.ELFCLASS64 -> 56U
+                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+            }
+        }
 
         fun getProgramHeaderType(type: Elf_Word): String = when (type) {
             PT_NULL -> "NULL"

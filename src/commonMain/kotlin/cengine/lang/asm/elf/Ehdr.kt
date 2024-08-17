@@ -49,7 +49,6 @@ interface Ehdr : BinaryProvider {
     var e_shstrndx: Elf_Half
 
     companion object {
-
         private fun getELFType(type: Elf_Half): String = when (type) {
             ET_NONE -> "NONE (No file type)"
             ET_REL -> "REL (Relocatable file)"

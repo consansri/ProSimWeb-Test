@@ -64,20 +64,7 @@ data class ELF32_Ehdr(
         e_type
     )*/
 
-    fun print(): String {
-        return " Class: " +
-                " Data: " +
-                " Version: " +
-                " OS/ABI: " +
-                " ABI Version: " +
-                " Type: " +
-                " Machine" +
-                "" +
-                "" +
-                "" +
-                "" +
-                ""
-    }
+    override fun byteSize(): Int = e_ident.byteSize() + 36
 
     override fun build(endianness: Endianness): ByteArray {
         val buffer = ByteBuffer(endianness)
@@ -100,5 +87,19 @@ data class ELF32_Ehdr(
         return buffer.toByteArray()
     }
 
+    fun print(): String {
+        return " Class: " +
+                " Data: " +
+                " Version: " +
+                " OS/ABI: " +
+                " ABI Version: " +
+                " Type: " +
+                " Machine" +
+                "" +
+                "" +
+                "" +
+                "" +
+                ""
+    }
 
 }

@@ -50,4 +50,6 @@ data class ELF32_Rela(
         return b.toByteArray()
     }
 
+    override fun byteSize(): Int = 12
+
 }

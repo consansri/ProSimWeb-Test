@@ -1,8 +1,11 @@
 package cengine.lang.asm.elf
 
 import cengine.lang.asm.ast.impl.ASNode
+import cengine.lang.asm.elf.ELFBuilder.Section
 import cengine.lang.asm.elf.Shdr.Companion.SHF_ALLOC
+import cengine.lang.asm.elf.elf32.ELF32_Ehdr
 import cengine.lang.asm.elf.elf32.ELF32_Shdr
+import cengine.lang.asm.elf.elf64.ELF64_Ehdr
 import cengine.lang.asm.elf.elf64.ELF64_Shdr
 import cengine.util.ByteBuffer
 import cengine.util.ByteBuffer.Companion.toASCIIByteArray
@@ -10,6 +13,14 @@ import cengine.util.ByteBuffer.Companion.toASCIIString
 import cengine.util.Endianness
 import cengine.vfs.VirtualFile
 
+/**
+ * ELF File
+ *
+ * 1. [Ehdr]
+ * 2. [Phdr]s
+ * 3. [Section]s
+ * 4. [Shdr]s
+ */
 class ELFBuilder(
     val ei_class: Elf_Byte,
     val ei_data: Elf_Byte,
@@ -19,11 +30,12 @@ class ELFBuilder(
     val e_machine: Elf_Half
 ) {
 
-
     /**
      * ELF IDENTIFICATION & CLASSIFICATION
      */
     private val e_ident: E_IDENT = E_IDENT(ei_class = ei_class, ei_data = ei_data, ei_osabi = ei_osabi, ei_abiversion = ei_abiversion)
+
+    var e_flags: Elf_Word = 0U
 
     private val endianness = when (ei_data) {
         E_IDENT.ELFDATA2LSB -> Endianness.LITTLE
@@ -33,11 +45,7 @@ class ELFBuilder(
         }
     }
 
-    private val programHeaderTable: MutableList<Phdr> = mutableListOf()
-
-    private val sectionContents: MutableList<Byte> = mutableListOf()
-
-    private val sectionHeaderTable: MutableList<Shdr> = mutableListOf()
+    private val phdrs: MutableList<Phdr> = mutableListOf()
 
     private var entryPoint: ULong = 0x0UL
 
@@ -112,7 +120,6 @@ class ELFBuilder(
     // PUBLIC METHODS
 
     fun build(outputFile: VirtualFile, vararg statements: ASNode.Statement) {
-
         statements.forEach {
             it.parse()
         }
@@ -129,16 +136,83 @@ class ELFBuilder(
     private fun writeELFFile(): ByteArray {
         val buffer = ByteBuffer(endianness)
 
-        buffer.writeELFHeader()
-        buffer.writeSHDRs()
-        buffer.writeSections()
+        val phdrSize = phdrs.firstOrNull()?.byteSize()?.toULong() ?: 0U
+        val phdrCount = phdrs.size.toULong()
+
+        val ehdr = createELFHeader()
+
+        val totalEhdrBytes = ehdr.byteSize().toULong()
+        val totalPhdrBytes = phdrSize * phdrCount
+        val totalSectionBytes = sections.sumOf { it.content.size.toULong() }
+        val shstrndx = (totalEhdrBytes + totalPhdrBytes + totalSectionBytes + sections.takeWhile { it != shStrTab }.size.toULong() * Shdr.size(ei_class).toULong()).toUShort()
+        val phoff = totalEhdrBytes
+        val shoff = totalEhdrBytes + totalPhdrBytes + totalSectionBytes
+
+        buffer.writeELFHeader(ehdr, shstrndx, phoff, shoff)
         buffer.writePHDRs()
+        buffer.writeSections()
+        buffer.writeSHDRs()
 
         return buffer.toByteArray()
     }
 
-    private fun ByteBuffer.writeELFHeader() {
+    private fun createELFHeader(): Ehdr {
+        val ehdr = when (e_ident.ei_class) {
+            E_IDENT.ELFCLASS32 -> ELF32_Ehdr(
+                e_ident = e_ident,
+                e_type = e_type,
+                e_machine = e_machine,
+                e_flags = e_flags,
+                e_ehsize = 0U, // assign later
+                e_phentsize = Phdr.size(ei_class),
+                e_phnum = phdrs.size.toUShort(),
+                e_shentsize = Shdr.size(ei_class),
+                e_shnum = sections.size.toUShort(),
+                e_shstrndx = 0U, // assign later
+                e_entry = 0U, // assign later
+                e_phoff = 0U, // assign later
+                e_shoff = 0U // assign later
+            )
 
+            E_IDENT.ELFCLASS64 -> ELF64_Ehdr(
+                e_ident = e_ident,
+                e_type = e_type,
+                e_machine = e_machine,
+                e_flags = e_flags,
+                e_ehsize = 0U, // assign later
+                e_phentsize = Phdr.size(ei_class),
+                e_phnum = phdrs.size.toUShort(),
+                e_shentsize = Shdr.size(ei_class),
+                e_shnum = sections.size.toUShort(),
+                e_shstrndx = 0U, // assign later
+                e_entry = 0U, // assign later
+                e_phoff = 0U, // assign later
+                e_shoff = 0U // assign later
+            )
+
+            else -> throw InvalidElfClassException(e_ident.ei_class)
+        }
+        ehdr.e_ehsize = ehdr.byteSize().toUShort()
+        return ehdr
+    }
+
+    private fun ByteBuffer.writeELFHeader(ehdr: Ehdr, shstrndx: UShort, phoff: ULong, shoff: ULong) {
+        ehdr.e_shstrndx = shstrndx
+        when (ehdr) {
+            is ELF32_Ehdr -> {
+                ehdr.e_entry = entryPoint.toUInt()
+                if (phdrs.isNotEmpty()) ehdr.e_phoff = phoff.toUInt()
+                if (sections.isNotEmpty()) ehdr.e_shoff = shoff.toUInt()
+            }
+
+            is ELF64_Ehdr -> {
+                ehdr.e_entry = entryPoint
+                if (phdrs.isNotEmpty()) ehdr.e_phoff = phoff
+                if (sections.isNotEmpty()) ehdr.e_shoff = shoff
+            }
+        }
+
+        putAll(ehdr.build(endianness))
     }
 
     private fun ByteBuffer.writePHDRs() {
@@ -152,7 +226,9 @@ class ELFBuilder(
     }
 
     private fun ByteBuffer.writeSHDRs() {
-
+        sections.forEach {
+            putAll(it.shdr.build(endianness))
+        }
     }
 
     private fun getOrCreateSection(name: String, type: Elf_Word? = null, link: Elf_Word? = null, info: String? = null): Section {

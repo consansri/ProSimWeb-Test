@@ -47,4 +47,6 @@ data class ELF32_Rel(
 
         return b.toByteArray()
     }
+
+    override fun byteSize(): Int = 8
 }

@@ -54,4 +54,6 @@ data class ELF32_Sym(
         return b.toByteArray()
     }
 
+    override fun byteSize(): Int = 16
+
 }

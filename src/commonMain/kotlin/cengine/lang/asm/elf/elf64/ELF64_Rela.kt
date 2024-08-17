@@ -53,4 +53,6 @@ data class ELF64_Rela(
         return b.toByteArray()
     }
 
+    override fun byteSize(): Int = 24
+
 }

@@ -68,5 +68,6 @@ data class ELF64_Phdr(
         return b.toByteArray()
     }
 
+    override fun byteSize(): Int = 56
 
 }

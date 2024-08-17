@@ -15,7 +15,7 @@ data class ELF64_Shdr(
     override var sh_info: Elf_Word = 0U,
     var sh_addralign: Elf_Xword = 0U,
     var sh_entsize: Elf_Xword = 0U
-): Shdr{
+) : Shdr {
 
     companion object {
         fun create(nameIndex: Elf_Word, type: Elf_Word, flags: Elf_Xword): ELF64_Shdr {
@@ -43,4 +43,6 @@ data class ELF64_Shdr(
 
         return b.toByteArray()
     }
+
+    override fun byteSize(): Int = 64
 }

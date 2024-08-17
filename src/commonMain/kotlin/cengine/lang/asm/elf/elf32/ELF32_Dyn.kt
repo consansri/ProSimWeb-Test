@@ -28,4 +28,6 @@ data class ELF32_Dyn(
 
         return b.toByteArray()
     }
+
+    override fun byteSize(): Int = 12
 }

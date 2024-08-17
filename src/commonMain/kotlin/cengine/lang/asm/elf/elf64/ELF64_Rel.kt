@@ -48,4 +48,6 @@ data class ELF64_Rel(
 
         return b.toByteArray()
     }
+
+    override fun byteSize(): Int = 16
 }

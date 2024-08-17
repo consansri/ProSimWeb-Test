@@ -73,4 +73,6 @@ data class ELF32_Phdr(
         return b.toByteArray()
     }
 
+    override fun byteSize(): Int = 32
+
 }
