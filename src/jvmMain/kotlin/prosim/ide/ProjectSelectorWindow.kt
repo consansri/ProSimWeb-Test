@@ -1,6 +1,6 @@
 package prosim.ide
 
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import emulator.kit.nativeLog
 import prosim.uilib.styled.CChooser
@@ -15,7 +15,7 @@ import java.awt.Toolkit
 
 class ProjectSelectorWindow : CFrame("New Project") {
     val directoryChooser = CDirectoryChooser()
-    val asmChooser = CChooser<AsmSpec>(CChooser.Model(AsmSpec.specs, RV32Spec, "Target"), FontType.BASIC)
+    val asmChooser = CChooser<TargetSpec>(CChooser.Model(TargetSpec.specs, RV32Spec, "Target"), FontType.BASIC)
     val open = CTextButton("open").apply {
         addActionListener {
             val dir = directoryChooser.selectedDirectory

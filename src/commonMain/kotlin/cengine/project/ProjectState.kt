@@ -1,8 +1,8 @@
 package cengine.project
 
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 
 data class ProjectState(
     val absRootPath: String,
-    val asmSpec: AsmSpec
+    val targetSpec: TargetSpec
 )

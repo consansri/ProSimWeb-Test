@@ -2,7 +2,7 @@ package cengine.lang.asm
 
 import cengine.editor.annotation.Notation
 import cengine.editor.text.TextModel
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.impl.AsmFile
@@ -16,7 +16,7 @@ import cengine.psi.core.PsiParser
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
 
-class AsmPsiParser(val spec: AsmSpec, val languageService: AsmLang) : PsiParser {
+class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiParser {
     override fun parseFile(file: VirtualFile, textModel: TextModel?): AsmFile {
         nativeLog("Parsing file ...")
 

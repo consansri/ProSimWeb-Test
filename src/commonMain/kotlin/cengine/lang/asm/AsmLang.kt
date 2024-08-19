@@ -8,15 +8,15 @@ import cengine.editor.formatting.Formatter
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
 import cengine.lang.LanguageService
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.features.*
 import cengine.psi.core.PsiService
 import cengine.psi.impl.PsiServiceImpl
 import cengine.vfs.VirtualFile
 
-class AsmLang(spec: AsmSpec) : LanguageService {
+class AsmLang(spec: TargetSpec) : LanguageService {
 
-    var spec: AsmSpec = spec
+    var spec: TargetSpec = spec
         set(value) {
             field = value
             psiParser = AsmPsiParser(value, this)

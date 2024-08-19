@@ -11,7 +11,7 @@ import cengine.vfs.VirtualFile
 class Project(initialState: ProjectState, vararg languageServices: LanguageService) : FileChangeListener {
 
     val projectState: ProjectState = initialState
-    val services: Set<LanguageService> = languageServices.toSet() + AsmLang(initialState.asmSpec)
+    val services: Set<LanguageService> = languageServices.toSet() + AsmLang(initialState.targetSpec)
     val fileSystem: VFileSystem = VFileSystem(projectState.absRootPath)
     val psiManagers: List<PsiManager<*>> = services.map { PsiManager(fileSystem, it) }
     val currentEditors: MutableList<CodeEditor> = mutableListOf()

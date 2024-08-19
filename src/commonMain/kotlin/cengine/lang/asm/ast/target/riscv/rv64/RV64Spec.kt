@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast.target.riscv.rv64
 
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
@@ -13,7 +13,7 @@ import cengine.lang.asm.elf.Elf_Byte
 import cengine.lang.asm.elf.Elf_Half
 import emulator.core.Size
 
-data object RV64Spec : AsmSpec {
+data object RV64Spec : TargetSpec {
     override val name: String = "RISC-V 64 Bit"
 
     override val ei_class: Elf_Byte = E_IDENT.ELFCLASS64

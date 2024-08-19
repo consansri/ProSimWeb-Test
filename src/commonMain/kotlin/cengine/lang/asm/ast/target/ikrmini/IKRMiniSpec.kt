@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast.target.ikrmini
 
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
@@ -9,7 +9,7 @@ import cengine.lang.asm.elf.Elf_Byte
 import cengine.lang.asm.elf.Elf_Half
 import emulator.core.Size
 
-data object IKRMiniSpec: AsmSpec {
+data object IKRMiniSpec: TargetSpec {
     override val name: String = "IKR Mini"
     override val ei_class: Elf_Byte
         get() = TODO("Not yet implemented")

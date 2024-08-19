@@ -1,18 +1,18 @@
 package cengine.lang.asm.ast.lexer
 
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.impl.ASDirType
 import cengine.psi.lexer.impl.BaseLexer
 
-class AsmLexer(input: String, val asmSpec: AsmSpec) : BaseLexer(input) {
+class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
 
-    private val prefices: Prefices get() = asmSpec.prefices
-    private val regs: List<Pair<RegTypeInterface, Regex>> = asmSpec.allRegs.map { it to it.getRegex() }
-    private val instrs: List<Pair<InstrTypeInterface, Regex>> = asmSpec.allInstrs.map { it to it.getInstrRegex() }
-    private val dirs: List<Pair<DirTypeInterface, Regex>> = (ASDirType.entries + asmSpec.customDirs).map { it to it.getDirRegex() }
+    private val prefices: Prefices get() = targetSpec.prefices
+    private val regs: List<Pair<RegTypeInterface, Regex>> = targetSpec.allRegs.map { it to it.getRegex() }
+    private val instrs: List<Pair<InstrTypeInterface, Regex>> = targetSpec.allInstrs.map { it to it.getInstrRegex() }
+    private val dirs: List<Pair<DirTypeInterface, Regex>> = (ASDirType.entries + targetSpec.customDirs).map { it to it.getDirRegex() }
     private val regexMap: Map<AsmTokenType, Regex?> = AsmTokenType.entries.associateWith { it.getRegex(prefices) }
 
     override fun peek(ignoreLeadingSpaces: Boolean, ignoreComments: Boolean): AsmToken {

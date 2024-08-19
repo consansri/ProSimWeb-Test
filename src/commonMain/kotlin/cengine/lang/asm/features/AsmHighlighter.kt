@@ -3,17 +3,17 @@ package cengine.lang.asm.features
 import cengine.editor.highlighting.HLInfo
 import cengine.editor.highlighting.HighlightProvider
 import cengine.lang.asm.CodeStyle
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASDirType
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.psi.core.Interval
 import cengine.psi.core.PsiElement
 
-class AsmHighlighter(asmSpec: AsmSpec) : HighlightProvider {
+class AsmHighlighter(targetSpec: TargetSpec) : HighlightProvider {
     private val cache = mutableMapOf<PsiElement, List<HLInfo>>()
 
-    private val lexer = asmSpec.createLexer("")
+    private val lexer = targetSpec.createLexer("")
 
     override fun getHighlights(element: PsiElement): List<HLInfo> {
         if (element !is ASNode) return emptyList()

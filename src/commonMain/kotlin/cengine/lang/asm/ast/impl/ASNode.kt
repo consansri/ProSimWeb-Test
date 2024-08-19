@@ -3,7 +3,7 @@ package cengine.lang.asm.ast.impl
 import cengine.editor.annotation.Notation
 import cengine.editor.widgets.Widget
 import cengine.lang.asm.CodeStyle
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
@@ -86,7 +86,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         /**
          * Severities will be set by the Lowest Node, which is actually checking the token.
          */
-        fun buildNode(gasNodeType: ASNodeType, lexer: AsmLexer, asmSpec: AsmSpec): ASNode? {
+        fun buildNode(gasNodeType: ASNodeType, lexer: AsmLexer, targetSpec: TargetSpec): ASNode? {
             val initialPos = lexer.position
 
             when (gasNodeType) {
@@ -95,7 +95,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     val annotations = mutableListOf<Notation>()
 
                     while (lexer.hasMoreTokens()) {
-                        val node = buildNode(ASNodeType.STATEMENT, lexer, asmSpec)
+                        val node = buildNode(ASNodeType.STATEMENT, lexer, targetSpec)
 
                         if (node == null) {
                             val token = lexer.consume(true)
@@ -121,9 +121,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 }
 
                 ASNodeType.STATEMENT -> {
-                    val label = buildNode(ASNodeType.LABEL, lexer, asmSpec) as? Label
+                    val label = buildNode(ASNodeType.LABEL, lexer, targetSpec) as? Label
 
-                    val directive = buildNode(ASNodeType.DIRECTIVE, lexer, asmSpec)
+                    val directive = buildNode(ASNodeType.DIRECTIVE, lexer, targetSpec)
                     if (directive != null && directive is Directive) {
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
@@ -135,7 +135,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                         return Statement.Dir(label, directive, lineBreak)
                     }
 
-                    val instruction = buildNode(ASNodeType.INSTRUCTION, lexer, asmSpec)
+                    val instruction = buildNode(ASNodeType.INSTRUCTION, lexer, targetSpec)
                     if (instruction != null && instruction is Instruction) {
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
@@ -176,8 +176,8 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 }
 
                 ASNodeType.DIRECTIVE -> {
-                    (asmSpec.customDirs + ASDirType.entries).forEach {
-                        val node = it.buildDirectiveContent(lexer, asmSpec)
+                    (targetSpec.customDirs + ASDirType.entries).forEach {
+                        val node = it.buildDirectiveContent(lexer, targetSpec)
                         if (node != null) {
                             //nativeLog("Found directive ${it.getDetectionString()} ${node::class.simpleName}")
                             return node
@@ -194,7 +194,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                         return null
                     }
 
-                    val validTypes = asmSpec.allInstrs.filter { it.detectionName.lowercase() == first.value.lowercase() }
+                    val validTypes = targetSpec.allInstrs.filter { it.detectionName.lowercase() == first.value.lowercase() }
                     if (validTypes.isEmpty()) {
                         val node = Error("No valid instruction type found for $first.", first)
                         return node
@@ -202,7 +202,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
                     validTypes.forEach {
                         val rule = it.paramRule ?: return Instruction(it, first, emptyList(), emptyList())
-                        val result = rule.matchStart(lexer, asmSpec)
+                        val result = rule.matchStart(lexer, targetSpec)
                         if (result.matches) {
                             return Instruction(it, first, result.matchingTokens, result.matchingNodes)
                         }
@@ -256,7 +256,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                         return Argument.Basic(first)
                     }
 
-                    val third = buildNode(ASNodeType.ANY_EXPR, lexer, asmSpec)
+                    val third = buildNode(ASNodeType.ANY_EXPR, lexer, targetSpec)
                     if (third != null) {
                         return Argument.DefaultValue(first, second, third)
                     }
@@ -266,12 +266,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 }
 
                 ASNodeType.ARG_DEF -> {
-                    val named = ArgDef.Named.rule.matchStart(lexer, asmSpec)
+                    val named = ArgDef.Named.rule.matchStart(lexer, targetSpec)
                     if (named.matches) {
                         return ArgDef.Named(named.matchingTokens[0], named.matchingTokens[1], named.matchingTokens.drop(2))
                     }
 
-                    val pos = ArgDef.Positional.rule.matchStart(lexer, asmSpec)
+                    val pos = ArgDef.Positional.rule.matchStart(lexer, targetSpec)
                     if (pos.matches && pos.matchingTokens.isNotEmpty()) {
                         return ArgDef.Positional(pos.matchingTokens)
                     }

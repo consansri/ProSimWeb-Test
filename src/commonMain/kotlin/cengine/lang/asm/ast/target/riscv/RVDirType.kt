@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast.target.riscv
 
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.Component
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.Rule
@@ -95,9 +95,9 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
     override val typeName: String
         get() = name
 
-    override fun buildDirectiveContent(lexer: AsmLexer, asmSpec: AsmSpec): ASNode.Directive? {
+    override fun buildDirectiveContent(lexer: AsmLexer, targetSpec: TargetSpec): ASNode.Directive? {
         val initialPos = lexer.position
-        val result = this.rule?.matchStart(lexer, asmSpec)
+        val result = this.rule?.matchStart(lexer, targetSpec)
 
         if (result == null) {
             lexer.position = initialPos

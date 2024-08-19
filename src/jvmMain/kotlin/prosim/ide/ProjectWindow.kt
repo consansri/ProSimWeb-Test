@@ -1,7 +1,7 @@
 package prosim.ide
 
 import cengine.lang.asm.AsmLang
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.lang.asm.ast.target.riscv.rv64.RV64Spec
 import cengine.lang.cown.CownLang
@@ -164,7 +164,7 @@ class ProjectWindow(val state: ProjectState) : CPanel() {
         private var currOverlay: CDialog? = null
 
 
-        private val assemblerSwitch = CChooser<AsmSpec>(CChooser.Model(AsmSpec.specs, RV32Spec, "Target"),FontType.BASIC, {new ->
+        private val assemblerSwitch = CChooser<TargetSpec>(CChooser.Model(TargetSpec.specs, RV32Spec, "Target"),FontType.BASIC, { new ->
 
         })
 

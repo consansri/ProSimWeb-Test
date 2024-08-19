@@ -30,8 +30,8 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
      *
      * @return A [MatchResult] indicating whether the match was successful and the details of the match.
      */
-    fun matchStart(lexer: AsmLexer, asmSpec: AsmSpec): MatchResult {
-        val result = comp.matchStart(lexer, asmSpec)
+    fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): MatchResult {
+        val result = comp.matchStart(lexer, targetSpec)
         return result
     }
 

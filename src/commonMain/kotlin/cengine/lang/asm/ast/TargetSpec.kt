@@ -13,7 +13,7 @@ import emulator.core.Size
 /**
  * Interface representing a defined assembly configuration.
  */
-interface AsmSpec {
+interface TargetSpec {
     companion object {
         val specs = setOf(RV32Spec, RV64Spec, IKRR2Spec, IKRMiniSpec, T6502Spec)
     }

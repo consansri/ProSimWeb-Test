@@ -4,7 +4,7 @@ import cengine.editor.completion.Completion
 import cengine.editor.completion.CompletionItemKind
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.completion.CompletionProvider.Companion.asCompletions
-import cengine.lang.asm.ast.AsmSpec
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASDirType
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.AsmFile
@@ -13,9 +13,9 @@ import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 
-class AsmCompleter(asmSpec: AsmSpec) : CompletionProvider {
-    val directives: Set<String> = (ASDirType.entries + asmSpec.customDirs).map { "." + it.getDetectionString().lowercase() }.filter { it.isNotEmpty() }.toSet()
-    val instructions: Set<String> = asmSpec.allInstrs.map { it.detectionName }.toSet()
+class AsmCompleter(targetSpec: TargetSpec) : CompletionProvider {
+    val directives: Set<String> = (ASDirType.entries + targetSpec.customDirs).map { "." + it.getDetectionString().lowercase() }.filter { it.isNotEmpty() }.toSet()
+    val instructions: Set<String> = targetSpec.allInstrs.map { it.detectionName }.toSet()
     val cachedCompletions: MutableMap<PsiFile, CompletionSet> = mutableMapOf()
 
     data class CompletionSet(
