@@ -1,5 +1,8 @@
 package cengine.lang.asm.elf
 
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
+
 /**
  * Note Information
  *
@@ -52,8 +55,16 @@ data class Nhdr(
         }
     }
 
-    override fun build(): ByteArray {
-        TODO("Not yet implemented")
+    override fun byteSize(): Int = 12
+
+    override fun build(endianness: Endianness): ByteArray {
+        val b = ByteBuffer(endianness)
+
+        b.put(n_namesz)
+        b.put(n_descsz)
+        b.put(n_type)
+
+        return b.toByteArray()
     }
 
 }

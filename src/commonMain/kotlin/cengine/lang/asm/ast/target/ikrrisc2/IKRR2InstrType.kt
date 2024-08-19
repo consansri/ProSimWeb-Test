@@ -101,7 +101,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
         TODO("Not yet implemented")
     }
 
-    override fun execute(builder: ELFBuilder, instr: ASNode.Instruction) {
+    override fun build(builder: ELFBuilder, instr: ASNode.Instruction) {
         TODO("Not yet implemented")
     }
 }

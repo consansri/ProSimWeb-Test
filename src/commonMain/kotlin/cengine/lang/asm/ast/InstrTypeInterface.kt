@@ -9,6 +9,6 @@ interface InstrTypeInterface {
     val bytesNeeded: Int?
     val detectionName: String
     val inCodeInfo: String?
-    fun execute(builder: ELFBuilder, instr: ASNode.Instruction)
+    fun build(builder: ELFBuilder, instr: ASNode.Instruction)
     fun checkSemantic(instr: ASNode.Instruction)
 }

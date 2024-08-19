@@ -1,9 +1,10 @@
 package cengine.lang.asm.ast.impl
 
-import cengine.lang.asm.ast.TargetSpec
+import cengine.editor.annotation.Notation
 import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.Rule
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.elf.ELFBuilder
@@ -1053,11 +1054,210 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
     }
 
     override fun checkSemantic(dir: ASNode.Directive) {
-        TODO("Not yet implemented")
+        when (this) {
+            BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
+                val value = it.evaluate(false)
+                if (!value.checkSizeSigned(Bit8) || !value.checkSizeUnsigned(Bit8)) {
+                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit8}."))
+                }
+            }
+
+            HWORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
+                val value = it.evaluate(false)
+                if (!value.checkSizeSigned(Bit16) || !value.checkSizeUnsigned(Bit16)) {
+                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit16}."))
+                }
+            }
+
+            INT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
+                val value = it.evaluate(false)
+                if (!value.checkSizeSigned(Bit32) || !value.checkSizeUnsigned(Bit32)) {
+                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit32}."))
+                }
+            }
+
+            SHORT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
+                val value = it.evaluate(false)
+                if (!value.checkSizeSigned(Bit16) || !value.checkSizeUnsigned(Bit16)) {
+                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit16}."))
+                }
+            }
+
+            WORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
+                val value = it.evaluate(false)
+                if (!value.checkSizeSigned(Bit32) || !value.checkSizeUnsigned(Bit32)) {
+                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit32}."))
+                }
+            }
+
+            _2BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
+                val value = it.evaluate(false)
+                if (!value.checkSizeSigned(Bit16) || !value.checkSizeUnsigned(Bit16)) {
+                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit16}."))
+                }
+            }
+
+            _4BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
+                val value = it.evaluate(false)
+                if (!value.checkSizeSigned(Bit32) || !value.checkSizeUnsigned(Bit32)) {
+                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit32}."))
+                }
+            }
+
+            _8BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
+                val value = it.evaluate(false)
+                if (!value.checkSizeSigned(Bit64) || !value.checkSizeUnsigned(Bit64)) {
+                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit64}."))
+                }
+            }
+
+            else -> {}
+        }
     }
 
-    override fun execute(builder: ELFBuilder, dir: ASNode.Directive) {
-        TODO("Not yet implemented")
+    override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
+        when (this) {
+            ALIGN -> TODO()
+            ASCII -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.StringExpr>()
+                exprs.forEach {
+                    builder.currentSection.content.putAll(it.evaluate(true).encodeToByteArray())
+                }
+            }
+
+            ASCIZ -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.StringExpr>()
+                exprs.forEach {
+                    builder.currentSection.content.putAll(it.evaluate(true).encodeToByteArray() + 0)
+                }
+            }
+
+            ATTACH_TO_GROUP_NAME -> TODO()
+            BALIGN -> TODO()
+            BALIGNL -> TODO()
+            BALIGNW -> TODO()
+            BSS -> builder.currentSection = builder.bss
+            BYTE -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
+                for (expr in exprs) {
+                    try {
+                        val byte = expr.evaluate(true).toIntOrNull()?.toByte()
+                        if (byte == null) {
+                            expr.notations.add(Notation.error(expr, "Unable to evaluate Byte!"))
+                            continue
+                        }
+                        builder.currentSection.content.put(byte)
+                    } catch (e: Exception) {
+                        expr.notations.add(Notation.error(expr, "Evaluation Error: " + e.message))
+                    }
+                }
+            }
+
+            COMM -> TODO()
+            DATA -> builder.currentSection = builder.data
+            DEF -> TODO()
+            DESC -> TODO()
+            DIM -> TODO()
+            DOUBLE -> TODO()
+            EJECT -> TODO()
+            EQU -> TODO()
+            EQUIV -> TODO()
+            EQV -> TODO()
+            ERR -> TODO()
+            ERROR -> TODO()
+            EXITM -> TODO()
+            EXTERN -> TODO()
+            FAIL -> TODO()
+            FILE -> TODO()
+            FILL -> TODO()
+            FLOAT -> TODO()
+            FUNC -> TODO()
+            GLOBAL -> TODO()
+            GLOBL -> TODO()
+            GNU_ATTRIBUTE -> TODO()
+            HIDDEN -> TODO()
+            HWORD -> TODO()
+            IDENT -> TODO()
+            INCBIN -> TODO()
+            INCLUDE -> TODO()
+            INT -> TODO()
+            INTERNAL -> TODO()
+            IRP -> TODO()
+            IRPC -> TODO()
+            LCOMM -> TODO()
+            LFLAGS -> TODO()
+            LINE -> TODO()
+            LINKONCE -> TODO()
+            LIST -> TODO()
+            LN -> TODO()
+            LOC -> TODO()
+            LOC_MARK_LABELS -> TODO()
+            LOCAL -> TODO()
+            LONG -> TODO()
+            MACRO -> TODO()
+            MRI -> TODO()
+            NOALTMACRO -> TODO()
+            NOLIST -> TODO()
+            NOP -> TODO()
+            NOPS -> TODO()
+            OCTA -> TODO()
+            OFFSET -> TODO()
+            ORG -> TODO()
+            P2ALIGN -> TODO()
+            P2ALIGNW -> TODO()
+            P2ALIGNL -> TODO()
+            POPSECTION -> TODO()
+            PREVIOUS -> TODO()
+            PRINT -> TODO()
+            PROTECTED -> TODO()
+            PSIZE -> TODO()
+            PURGEM -> TODO()
+            PUSHSECTION -> TODO()
+            QUAD -> TODO()
+            RODATA -> builder.currentSection = builder.rodata
+            RELOC -> TODO()
+            REPT -> TODO()
+            SBTTL -> TODO()
+            SCL -> TODO()
+            SECTION -> TODO()
+            SET_ALT -> TODO()
+            SET -> TODO()
+            SHORT -> TODO()
+            SINGLE -> TODO()
+            SIZE -> TODO()
+            SKIP -> TODO()
+            SLEB128 -> TODO()
+            SPACE -> TODO()
+            STABD -> TODO()
+            STABN -> TODO()
+            STABS -> TODO()
+            STRING -> TODO()
+            STRING8 -> TODO()
+            STRING16 -> TODO()
+            STRING32 -> TODO()
+            STRUCT -> TODO()
+            SUBSECTION -> TODO()
+            SYMVER -> TODO()
+            TAG -> TODO()
+            TEXT -> builder.currentSection = builder.text
+            TITLE -> TODO()
+            TLS_COMMON -> TODO()
+            TYPE -> TODO()
+            ULEB128 -> TODO()
+            VAL -> TODO()
+            VERSION -> TODO()
+            VTABLE_ENTRY -> TODO()
+            VTABLE_INHERIT -> TODO()
+            WARNING -> TODO()
+            WEAK -> TODO()
+            WEAKREF -> TODO()
+            WORD -> TODO()
+            ZERO -> TODO()
+            _2BYTE -> TODO()
+            _4BYTE -> TODO()
+            _8BYTE -> TODO()
+            else -> dir.notations.add(Notation.warn(dir, "Not $this yet implemented."))
+        }
     }
 
     companion object {

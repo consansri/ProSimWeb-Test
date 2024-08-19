@@ -102,7 +102,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
     override val typeName: String = name.lowercase()
 
-    override fun execute(builder: ELFBuilder, instr: ASNode.Instruction) {
+    override fun build(builder: ELFBuilder, instr: ASNode.Instruction) {
         TODO("Not yet implemented")
     }
 

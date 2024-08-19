@@ -122,7 +122,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
         TODO("Not yet implemented")
     }
 
-    override fun execute(builder: ELFBuilder, dir: ASNode.Directive) {
+    override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
         TODO("Not yet implemented")
     }
 }

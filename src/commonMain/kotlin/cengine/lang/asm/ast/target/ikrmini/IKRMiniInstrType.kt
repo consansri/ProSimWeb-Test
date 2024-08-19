@@ -132,7 +132,7 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
         TODO("Not yet implemented")
     }
 
-    override fun execute(builder: ELFBuilder, instr: ASNode.Instruction) {
+    override fun build(builder: ELFBuilder, instr: ASNode.Instruction) {
         TODO("Not yet implemented")
     }
 

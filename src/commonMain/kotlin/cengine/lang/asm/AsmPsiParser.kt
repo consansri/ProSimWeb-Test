@@ -41,16 +41,19 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
         val analyzer = SemanticAnalyzer()
         program.accept(analyzer)
 
-        nativeLog("Parsed File!")
-
         //nativeLog("AsmPsiParser parses file: $fileName!")
 
-        return AsmFile(file, languageService, program).apply {
+
+        val asmFile = AsmFile(file, languageService, program).apply {
             this.textModel = textModel
         }
+
+        generateExecutable(asmFile)
+
+        return asmFile
     }
 
-    fun generateExecutable(file: AsmFile){
+    fun generateExecutable(file: AsmFile) {
         val builder = ELFBuilder(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, Ehdr.ET_EXEC, spec.e_machine)
     }
 
@@ -72,7 +75,7 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
 
         override fun visitElement(element: PsiElement) {
             if (element !is ASNode) return
-            when(element){
+            when (element) {
                 is ASNode.Directive -> return element.type.checkSemantic(element)
                 is ASNode.Instruction -> return element.type.checkSemantic(element)
                 else -> {}

@@ -212,7 +212,7 @@ enum class T6502InstrType(override val detectionName: String, val opCode: UByte,
         TODO("Not yet implemented")
     }
 
-    override fun execute(builder: ELFBuilder, instr: ASNode.Instruction) {
+    override fun build(builder: ELFBuilder, instr: ASNode.Instruction) {
         TODO("Not yet implemented")
     }
 }

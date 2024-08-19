@@ -14,7 +14,7 @@ interface DirTypeInterface {
     val rule: Rule?
     val typeName: String
     fun buildDirectiveContent(lexer: AsmLexer, targetSpec: TargetSpec): ASNode.Directive?
-    fun execute(builder: ELFBuilder, dir: ASNode.Directive)
+    fun build(builder: ELFBuilder, dir: ASNode.Directive)
     fun checkSemantic(dir: ASNode.Directive)
 
 }

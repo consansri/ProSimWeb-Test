@@ -1,12 +1,14 @@
 package cengine.lang.asm.elf
 
 import cengine.lang.asm.ast.impl.ASNode
+import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.elf.ELFBuilder.Section
 import cengine.lang.asm.elf.Shdr.Companion.SHF_ALLOC
 import cengine.lang.asm.elf.elf32.ELF32_Ehdr
 import cengine.lang.asm.elf.elf32.ELF32_Shdr
 import cengine.lang.asm.elf.elf64.ELF64_Ehdr
 import cengine.lang.asm.elf.elf64.ELF64_Shdr
+import cengine.psi.core.*
 import cengine.util.ByteBuffer
 import cengine.util.ByteBuffer.Companion.toASCIIByteArray
 import cengine.util.ByteBuffer.Companion.toASCIIString
@@ -68,43 +70,43 @@ class ELFBuilder(
         sections.add(it)
     }
 
-    private val shStrTab = SHStrTab().also {
+    val shStrTab = SHStrTab().also {
         sections.add(it)
         ++endingSections
     }
 
-    private val strTab = StrTab().also {
+    val strTab = StrTab().also {
         sections.add(it)
         ++endingSections
     }
 
-    private val symTab = SymTab().also {
+    val symTab = SymTab().also {
         sections.add(it)
         ++endingSections
     }
 
-    private val text = getOrCreateSection(".text", Shdr.SHT_text).apply {
+    val text = getOrCreateSection(".text", Shdr.SHT_text).apply {
         when (val shdr = shdr) {
             is ELF32_Shdr -> shdr.sh_flags = Shdr.SHF_text
             is ELF64_Shdr -> shdr.sh_flags = Shdr.SHF_text.toULong()
         }
     }
 
-    private val rodata = createNewSection(".rodata", Shdr.SHT_rodata).apply {
+    val rodata = createNewSection(".rodata", Shdr.SHT_rodata).apply {
         when (val shdr = shdr) {
             is ELF32_Shdr -> shdr.sh_flags = Shdr.SHF_rodata
             is ELF64_Shdr -> shdr.sh_flags = Shdr.SHF_rodata.toULong()
         }
     }
 
-    private val data = createNewSection(".data", Shdr.SHT_data).apply {
+    val data = createNewSection(".data", Shdr.SHT_data).apply {
         when (val shdr = shdr) {
             is ELF32_Shdr -> shdr.sh_flags = Shdr.SHF_data
             is ELF64_Shdr -> shdr.sh_flags = Shdr.SHF_data.toULong()
         }
     }
 
-    private val bss = createNewSection(".bss", Shdr.SHT_bss).apply {
+    val bss = createNewSection(".bss", Shdr.SHT_bss).apply {
         when (val shdr = shdr) {
             is ELF32_Shdr -> shdr.sh_flags = Shdr.SHF_bss
             is ELF64_Shdr -> shdr.sh_flags = Shdr.SHF_bss.toULong()
@@ -113,7 +115,7 @@ class ELFBuilder(
 
     //
 
-    private var currentSection: Section = text
+    var currentSection: Section = text
 
 
     // PUBLIC METHODS
@@ -129,7 +131,23 @@ class ELFBuilder(
     // PRIVATE METHODS
 
     private fun ASNode.Statement.execute() {
+        if (this.label != null) {
+            currentSection.addLabel(this.label)
+        }
 
+        when (this) {
+            is ASNode.Statement.Dir -> {
+                this.dir.type.build(this@ELFBuilder, this.dir)
+            }
+
+            is ASNode.Statement.Empty -> {}
+
+            is ASNode.Statement.Instr -> {
+                this.instruction.type.build(this@ELFBuilder, this.instruction)
+            }
+
+            is ASNode.Statement.Unresolved -> {}
+        }
     }
 
     private fun writeELFFile(): ByteArray {
@@ -241,6 +259,7 @@ class ELFBuilder(
     private fun createNewSection(name: String? = null, type: Elf_Word? = null, link: Elf_Word? = null, info: String? = null): Section = object : Section {
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
+        override val labels: MutableSet<Section.LabelDefinition> = mutableSetOf()
 
         init {
             if (name != null) shdr.sh_name = shStrTab.addString(name)
@@ -258,10 +277,11 @@ class ELFBuilder(
      * the section's attributes will include the [SHF_ALLOC] bit; otherwise, that bit
      * will be off.
      */
-    inner class SymTab() : Section {
+    inner class SymTab : Section {
         val name = ".symtab"
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
+        override val labels: MutableSet<Section.LabelDefinition> = mutableSetOf()
 
         init {
             shdr.sh_name = shStrTab.addString(name)
@@ -276,11 +296,11 @@ class ELFBuilder(
     /**
      * This section holds section names.
      */
-    inner class SHStrTab() : Section {
+    inner class SHStrTab : Section {
         val name = ".shstrtab"
         override val shdr: Shdr = Shdr.create(ei_class)
-
         override val content: ByteBuffer = ByteBuffer(endianness)
+        override val labels: MutableSet<Section.LabelDefinition> = mutableSetOf()
         private val stringIndexMap = mutableMapOf<String, UInt>()
 
         init {
@@ -308,12 +328,12 @@ class ELFBuilder(
      * includes the symbol string table, the section's attributes will include the
      * [SHF_ALLOC] bit; otherwise, that bit will be off.
      */
-    inner class StrTab() : Section {
+    inner class StrTab : Section {
 
         val name = ".strtab"
         override val shdr: Shdr = Shdr.create(ei_class)
-
         override val content: ByteBuffer = ByteBuffer(endianness)
+        override val labels: MutableSet<Section.LabelDefinition> = mutableSetOf()
         private val stringIndexMap = mutableMapOf<String, UInt>()
 
         init {
@@ -337,14 +357,54 @@ class ELFBuilder(
 
     // INTERFACES
 
+    inner class IntExprEvaluater() : PsiElementEvaluator<Int> {
+        override fun evaluate(element: PsiElement): Int {
+            if (element !is ASNode.NumericExpr) throw PsiParser.NodeException(element, "Element is not an Expression!")
+            return when (element) {
+                is ASNode.NumericExpr.Classic -> {
+                    val opA = evaluate(element.operandA)
+                    val opB = evaluate(element.operandB)
+
+                    when (element.operator.type) {
+                        AsmTokenType.MULT -> opA * opB
+                        AsmTokenType.DIV -> opA / opB
+                        AsmTokenType.REM -> opA % opB
+                        AsmTokenType.SHL -> opA shl opB
+                        AsmTokenType.SHR -> opA shr opB
+                        AsmTokenType.BITWISE_OR -> opA or opB
+                        AsmTokenType.BITWISE_AND -> opA and opB
+                        AsmTokenType.BITWISE_XOR -> opA xor opB
+                        AsmTokenType.BITWISE_ORNOT -> opA or (opB.inv())
+                        AsmTokenType.PLUS -> opA + opB
+                        AsmTokenType.MINUS -> opA - opB
+                        else -> throw PsiParser.NodeException(element, "${element.operator} is not a valid Int Expression Operator!")
+                    }
+                }
+
+                is ASNode.NumericExpr.Operand.Char -> element.value.toInt()
+                is ASNode.NumericExpr.Operand.Identifier -> TODO()
+                is ASNode.NumericExpr.Operand.Number -> TODO()
+                is ASNode.NumericExpr.Prefix -> TODO()
+            }
+        }
+    }
+
     interface Section {
         val shdr: Shdr
         val content: ByteBuffer
+        val labels: MutableSet<LabelDefinition>
+
+        fun addLabel(label: ASNode.Label) {
+            labels.add(LabelDefinition(content.size, label))
+        }
+
+        data class LabelDefinition(val sectionInternalOffset: Int, val label: ASNode.Label)
     }
 
     // EXCEPTIONS
 
     open class ELFBuilderException(message: String) : Exception(message)
+
 
     class InvalidElfClassException(ei_class: Elf_Byte) : ELFBuilderException("Invalid ELF Class $ei_class.")
 }

@@ -3,11 +3,11 @@ package cengine.lang.asm.ast.impl
 import cengine.editor.annotation.Notation
 import cengine.editor.widgets.Widget
 import cengine.lang.asm.CodeStyle
-import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASNode.*
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmToken
@@ -661,9 +661,6 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
      *
      */
     sealed class NumericExpr(val brackets: List<AsmToken>, range: IntRange, vararg operands: NumericExpr) : ASNode(range, *operands) {
-        abstract fun evaluate(throwErrors: Boolean): Value.Dec
-        abstract fun isDefined(): Boolean
-
         companion object {
             fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): ASNode? {
                 val initialPos = lexer.position
@@ -887,27 +884,14 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             override val pathName: String
                 get() = operator.value
 
-            override fun evaluate(throwErrors: Boolean): Value.Dec {
-                return when (operator.type) {
-                    AsmTokenType.COMPLEMENT -> operand.evaluate(throwErrors).toBin().inv().toDec()
-                    AsmTokenType.MINUS -> (-operand.evaluate(throwErrors)).toDec()
-                    AsmTokenType.PLUS -> operand.evaluate(throwErrors)
-                    else -> {
-                        throw PsiParser.NodeException(this, "$operator is not defined for this type of expression!")
-                    }
-                }
-            }
-
             override fun getFormatted(identSize: Int): String = if (brackets.isEmpty()) "${operator.value}${operand.getFormatted(identSize)}" else "${operator.value}(${operand.getFormatted(identSize)})"
-
-            override fun isDefined(): Boolean = operand.isDefined()
         }
 
         /**
          * [Classic]
          * - [operandA] [operator] [operandB]
          */
-        class Classic(private val operandA: NumericExpr, private val operator: AsmToken, private val operandB: NumericExpr, brackets: List<AsmToken>) : NumericExpr(
+        class Classic(val operandA: NumericExpr, val operator: AsmToken, val operandB: NumericExpr, brackets: List<AsmToken>) : NumericExpr(
             brackets,
             (brackets.firstOrNull()?.range?.first ?: operandA.range.first)..(brackets.lastOrNull()?.range?.last ?: operandB.range.last), operandA,
             operandB
@@ -915,28 +899,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             override val pathName: String
                 get() = operator.value
 
-            override fun evaluate(throwErrors: Boolean): Value.Dec {
-                return (when (operator.type) {
-                    AsmTokenType.MULT -> operandA.evaluate(throwErrors) * operandB.evaluate(throwErrors)
-                    AsmTokenType.DIV -> operandA.evaluate(throwErrors) / operandB.evaluate(throwErrors)
-                    AsmTokenType.REM -> operandA.evaluate(throwErrors) % operandB.evaluate(throwErrors)
-                    AsmTokenType.SHL -> operandA.evaluate(throwErrors).toBin() shl (operandB.evaluate(throwErrors).toUDec().toIntOrNull() ?: return operandA.evaluate(throwErrors))
-                    AsmTokenType.SHR -> operandA.evaluate(throwErrors).toBin() shl (operandB.evaluate(throwErrors).toUDec().toIntOrNull() ?: return operandA.evaluate(throwErrors))
-                    AsmTokenType.BITWISE_OR -> operandA.evaluate(throwErrors).toBin() or operandB.evaluate(throwErrors).toBin()
-                    AsmTokenType.BITWISE_AND -> operandA.evaluate(throwErrors).toBin() and operandB.evaluate(throwErrors).toBin()
-                    AsmTokenType.BITWISE_XOR -> operandA.evaluate(throwErrors).toBin() xor operandB.evaluate(throwErrors).toBin()
-                    AsmTokenType.BITWISE_ORNOT -> operandA.evaluate(throwErrors).toBin() or operandB.evaluate(throwErrors).toBin().inv()
-                    AsmTokenType.PLUS -> operandA.evaluate(throwErrors) + operandB.evaluate(throwErrors)
-                    AsmTokenType.MINUS -> operandA.evaluate(throwErrors) - operandB.evaluate(throwErrors)
-                    else -> {
-                        throw PsiParser.NodeException(this, "$operator is not defined for this type of expression!")
-                    }
-                }).toDec()
-            }
-
             override fun getFormatted(identSize: Int): String = if (brackets.isEmpty()) "${operandA.getFormatted(identSize)} ${operator.value} ${operandB.getFormatted(identSize)}" else "(${operandA.getFormatted(identSize)} ${operator.value} ${operandB.getFormatted(identSize)})"
-
-            override fun isDefined(): Boolean = operandA.isDefined() && operandB.isDefined()
         }
 
         sealed class Operand(val token: AsmToken, range: IntRange) : NumericExpr(listOf(), range) {
@@ -953,29 +916,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
                 override fun getFormatted(identSize: Int): String = symbol.value
                 fun isLinked(): Boolean = expr != null
-                override fun evaluate(throwErrors: Boolean): Value.Dec {
-                    val currExpr = expr
-                    if (currExpr != null) {
-                        return currExpr.evaluate(throwErrors)
-                    }
-
-                    val currLabelAddr = labelAddr
-                    if (currLabelAddr != null) {
-                        return currLabelAddr.toDec()
-                    }
-
-                    if (throwErrors) throw PsiParser.NodeException(this, "Unknown Numeric Identifier!")
-                    //symbol.addSeverity(Severity.Type.ERROR, "Can't evaluate from a undefined symbol. Returning 0.")
-                    return Value.Dec("0", Size.Bit32)
-                }
 
                 override fun getCodeStyle(position: Int): CodeStyle? {
                     if (expr != null) return CodeStyle.symbol
                     if (labelAddr != null) return CodeStyle.label
                     return null
                 }
-
-                override fun isDefined(): Boolean = expr != null || labelAddr != null
 
                 override fun resolve(): PsiElement? = referencedElement
 
@@ -1056,12 +1002,8 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     }
                 }
 
-                override fun evaluate(throwErrors: Boolean): Value.Dec = value
-
                 override fun getFormatted(identSize: Int): String = number.value
                 override fun getCodeStyle(position: Int): CodeStyle? = number.type.style
-
-                override fun isDefined(): Boolean = true
 
                 enum class Type {
                     Integer,
@@ -1072,20 +1014,11 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
             class Char(val char: AsmToken) : Operand(char, char.range) {
 
-                val value: Value.Dec
+                val value: Byte = char.getContentAsString().encodeToByteArray().first()
                 override val additionalInfo: String
                     get() = char.value
 
                 override fun getFormatted(identSize: Int): String = char.value
-
-                init {
-                    val hexString = Value.Tools.asciiToHex(char.getContentAsString())
-                    value = Value.Hex(hexString, Size.Bit32).toDec()
-                }
-
-                override fun evaluate(throwErrors: Boolean): Value.Dec = value
-
-                override fun isDefined(): Boolean = true
 
                 override fun getCodeStyle(position: Int): CodeStyle? = char.type.style
             }
