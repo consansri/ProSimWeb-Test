@@ -209,10 +209,8 @@ class FileTree(private val project: Project) : FileTreeUI {
     private fun refreshNode(node: DefaultMutableTreeNode) {
         val file = node.userObject as VirtualFile
         if (file.isDirectory) {
-            val expandedPaths = tree.getExpandedDescendants(TreePath(node.path))
             node.removeAllChildren()
             loadChildren(node)
-            expandedPaths?.asSequence()?.forEach { tree.expandPath(it as TreePath) }
         }
     }
 

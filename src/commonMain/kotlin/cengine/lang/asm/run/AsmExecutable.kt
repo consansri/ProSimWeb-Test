@@ -26,7 +26,7 @@ class AsmExecutable(val asmLang: AsmLang) : RunConfiguration.FileRun {
         val outputFile = vfs.createFile(outputPath)
 
         val builder = ELFBuilder(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, Ehdr.ET_EXEC, spec.e_machine)
-        builder.build(outputFile, *asmFile.children.filterIsInstance<ASNode.Statement>().toTypedArray())
-
+        val content = builder.build(*asmFile.children.filterIsInstance<ASNode.Statement>().toTypedArray())
+        outputFile.setContent(content)
     }
 }

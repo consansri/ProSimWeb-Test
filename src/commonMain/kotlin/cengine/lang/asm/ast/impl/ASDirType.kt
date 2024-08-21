@@ -10,6 +10,7 @@ import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.elf.ELFBuilder
 import cengine.util.integer.Hex
 import cengine.util.integer.Size.*
+import cengine.util.integer.toByte
 import cengine.util.integer.toInt
 
 enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
@@ -1061,57 +1062,57 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
         when (this) {
             BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit8) || !value.checkSizeUnsigned(Bit8)) {
-                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit8}."))
+                if (!value.checkSizeSigned(Bit8) && !value.checkSizeUnsigned(Bit8)) {
+                    it.notations.add(Notation.error(it, "$value exceeds ${Bit8}."))
                 }
             }
 
             HWORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit16) || !value.checkSizeUnsigned(Bit16)) {
-                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit16}."))
+                if (!value.checkSizeSigned(Bit16) && !value.checkSizeUnsigned(Bit16)) {
+                    it.notations.add(Notation.error(it, "$value exceeds ${Bit16}."))
                 }
             }
 
             INT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit32) || !value.checkSizeUnsigned(Bit32)) {
-                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit32}."))
+                if (!value.checkSizeSigned(Bit32) && !value.checkSizeUnsigned(Bit32)) {
+                    it.notations.add(Notation.error(it, "$value exceeds ${Bit32}."))
                 }
             }
 
             SHORT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit16) || !value.checkSizeUnsigned(Bit16)) {
-                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit16}."))
+                if (!value.checkSizeSigned(Bit16) && !value.checkSizeUnsigned(Bit16)) {
+                    it.notations.add(Notation.error(it, "$value exceeds ${Bit16}."))
                 }
             }
 
             WORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit32) || !value.checkSizeUnsigned(Bit32)) {
-                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit32}."))
+                if (!value.checkSizeSigned(Bit32) && !value.checkSizeUnsigned(Bit32)) {
+                    it.notations.add(Notation.error(it, "$value exceeds ${Bit32}."))
                 }
             }
 
             _2BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit16) || !value.checkSizeUnsigned(Bit16)) {
-                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit16}."))
+                if (!value.checkSizeSigned(Bit16) && !value.checkSizeUnsigned(Bit16)) {
+                    it.notations.add(Notation.error(it, "$value exceeds ${Bit16}."))
                 }
             }
 
             _4BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit32) || !value.checkSizeUnsigned(Bit32)) {
-                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit32}."))
+                if (!value.checkSizeSigned(Bit32) && !value.checkSizeUnsigned(Bit32)) {
+                    it.notations.add(Notation.error(it, "$value exceeds ${Bit32}."))
                 }
             }
 
             _8BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit64) || !value.checkSizeUnsigned(Bit64)) {
-                    it.notations.add(Notation.error(it, "Expression exceeds ${Bit64}."))
+                if (!value.checkSizeSigned(Bit64) && !value.checkSizeUnsigned(Bit64)) {
+                    it.notations.add(Notation.error(it, "$value exceeds ${Bit64}."))
                 }
             }
 
@@ -1146,9 +1147,9 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
                     try {
-                        val byte = expr.evaluate(builder).toIntOrNull()?.toByte()
+                        val byte = expr.evaluate(builder).toByte()
                         if (byte == null) {
-                            expr.notations.add(Notation.error(expr, "Unable to evaluate Byte!"))
+                            expr.notations.add(Notation.error(expr, "${expr.evaluated} exceeds ${Bit8}!"))
                             continue
                         }
                         builder.currentSection.content.put(byte)
@@ -1262,7 +1263,7 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                     try {
                         val int32 = expr.evaluate(builder).toInt()
                         if (int32 == null) {
-                            expr.notations.add(Notation.error(expr, "Unable to evaluate Byte!"))
+                            expr.notations.add(Notation.error(expr, "${expr.evaluated} exceeds ${Bit32}!"))
                             continue
                         }
                         builder.currentSection.content.put(int32)

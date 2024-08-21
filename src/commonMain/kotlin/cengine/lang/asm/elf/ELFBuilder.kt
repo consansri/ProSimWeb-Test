@@ -1,5 +1,6 @@
 package cengine.lang.asm.elf
 
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.ELFBuilder.Section
 import cengine.lang.asm.elf.Shdr.Companion.SHF_ALLOC
@@ -10,7 +11,6 @@ import cengine.util.ByteBuffer
 import cengine.util.ByteBuffer.Companion.toASCIIByteArray
 import cengine.util.ByteBuffer.Companion.toASCIIString
 import cengine.util.Endianness
-import cengine.vfs.VirtualFile
 import kotlin.experimental.*
 
 /**
@@ -30,6 +30,8 @@ class ELFBuilder(
     private val e_machine: Elf_Half,
     private var e_flags: Elf_Word = 0U
 ) {
+
+    constructor(spec: TargetSpec, type: Elf_Half) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, type, spec.e_machine)
 
     /**
      * ELF IDENTIFICATION & CLASSIFICATION
@@ -125,9 +127,10 @@ class ELFBuilder(
 
     var currentSection: Section = text
 
+
     // PUBLIC METHODS
 
-    fun build(outputFile: VirtualFile, vararg statements: ASNode.Statement) {
+    fun build(vararg statements: ASNode.Statement): ByteArray {
         statements.forEach {
             it.execute()
         }
@@ -136,7 +139,7 @@ class ELFBuilder(
             it.resolveInSectionJumps()
         }
 
-        outputFile.setContent(writeELFFile())
+        return writeELFFile()
     }
 
     // PRIVATE METHODS
