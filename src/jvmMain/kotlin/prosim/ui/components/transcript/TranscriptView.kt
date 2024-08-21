@@ -1,8 +1,9 @@
 package prosim.ui.components.transcript
 
+import cengine.util.integer.Value
 import emulator.core.*
-import emulator.core.Size.*
-import emulator.core.Value.*
+import cengine.util.integer.Size.*
+import cengine.util.integer.Value.*
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.assembler.gas.GASParser

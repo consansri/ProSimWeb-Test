@@ -19,9 +19,9 @@ import emulator.kit.config.Config.Description
 import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
 import emulator.core.*
-import emulator.core.Size.*
-import emulator.core.Value.Bin
-import emulator.core.Value.Hex
+import cengine.util.integer.Size.*
+import cengine.util.integer.Value.Bin
+import cengine.util.integer.Value.Hex
 
 
 /**

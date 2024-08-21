@@ -1,5 +1,6 @@
 package emulator.archs.riscv64
 
+import cengine.util.integer.Value
 import emulator.kit.common.RegContainer
 import emulator.core.*
 

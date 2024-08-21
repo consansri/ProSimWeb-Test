@@ -1,10 +1,10 @@
 package visual
 
 import StyleAttr
+import cengine.util.integer.Value
 import debug.DebugTools
 import emotion.react.css
 import emulator.kit.assembler.gas.GASParser
-import emulator.core.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div

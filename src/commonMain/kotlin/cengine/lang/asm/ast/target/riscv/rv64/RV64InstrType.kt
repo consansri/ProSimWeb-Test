@@ -5,20 +5,21 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.ELFBuilder
+import cengine.util.ByteBuffer
 
-enum class RV64InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV64ParamType, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class RV64InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV64ParamType, override val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV64ParamType.RD_I20),
     AUIPC("AUIPC", false, RV64ParamType.RD_I20),
-    JAL("JAL", false, RV64ParamType.RD_I20),
+    JAL("JAL", false, RV64ParamType.RD_I20, true),
     JALR("JALR", false, RV64ParamType.RD_RS1_I12),
     ECALL("ECALL", false, RV64ParamType.NONE),
     EBREAK("EBREAK", false, RV64ParamType.NONE),
-    BEQ("BEQ", false, RV64ParamType.RS1_RS2_LBL),
-    BNE("BNE", false, RV64ParamType.RS1_RS2_LBL),
-    BLT("BLT", false, RV64ParamType.RS1_RS2_LBL),
-    BGE("BGE", false, RV64ParamType.RS1_RS2_LBL),
-    BLTU("BLTU", false, RV64ParamType.RS1_RS2_LBL),
-    BGEU("BGEU", false, RV64ParamType.RS1_RS2_LBL),
+    BEQ("BEQ", false, RV64ParamType.RS1_RS2_LBL, true),
+    BNE("BNE", false, RV64ParamType.RS1_RS2_LBL, true),
+    BLT("BLT", false, RV64ParamType.RS1_RS2_LBL, true),
+    BGE("BGE", false, RV64ParamType.RS1_RS2_LBL, true),
+    BLTU("BLTU", false, RV64ParamType.RS1_RS2_LBL, true),
+    BGEU("BGEU", false, RV64ParamType.RS1_RS2_LBL, true),
     LB("LB", false, RV64ParamType.RD_Off12),
     LH("LH", false, RV64ParamType.RD_Off12),
     LW("LW", false, RV64ParamType.RD_Off12),
@@ -92,30 +93,30 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
     Nop("NOP", true, RV64ParamType.PS_NONE),
     Mv("MV", true, RV64ParamType.PS_RD_RS1),
     Li64("LI", true, RV64ParamType.PS_RD_LI_I64, bytesNeeded = null),
-    La("LA", true, RV64ParamType.PS_RD_Albl, bytesNeeded = 8),
+    La("LA", true, RV64ParamType.PS_RD_Albl, true, bytesNeeded = 8),
     Not("NOT", true, RV64ParamType.PS_RD_RS1),
     Neg("NEG", true, RV64ParamType.PS_RD_RS1),
     Seqz("SEQZ", true, RV64ParamType.PS_RD_RS1),
     Snez("SNEZ", true, RV64ParamType.PS_RD_RS1),
     Sltz("SLTZ", true, RV64ParamType.PS_RD_RS1),
     Sgtz("SGTZ", true, RV64ParamType.PS_RD_RS1),
-    Beqz("BEQZ", true, RV64ParamType.PS_RS1_Jlbl),
-    Bnez("BNEZ", true, RV64ParamType.PS_RS1_Jlbl),
-    Blez("BLEZ", true, RV64ParamType.PS_RS1_Jlbl),
-    Bgez("BGEZ", true, RV64ParamType.PS_RS1_Jlbl),
-    Bltz("BLTZ", true, RV64ParamType.PS_RS1_Jlbl),
-    BGTZ("BGTZ", true, RV64ParamType.PS_RS1_Jlbl),
-    Bgt("BGT", true, RV64ParamType.RS1_RS2_LBL),
-    Ble("BLE", true, RV64ParamType.RS1_RS2_LBL),
-    Bgtu("BGTU", true, RV64ParamType.RS1_RS2_LBL),
-    Bleu("BLEU", true, RV64ParamType.RS1_RS2_LBL),
-    J("J", true, RV64ParamType.PS_lbl),
-    JAL1("JAL", true, RV64ParamType.PS_lbl),
+    Beqz("BEQZ", true, RV64ParamType.PS_RS1_Jlbl, true),
+    Bnez("BNEZ", true, RV64ParamType.PS_RS1_Jlbl, true),
+    Blez("BLEZ", true, RV64ParamType.PS_RS1_Jlbl, true),
+    Bgez("BGEZ", true, RV64ParamType.PS_RS1_Jlbl, true),
+    Bltz("BLTZ", true, RV64ParamType.PS_RS1_Jlbl, true),
+    BGTZ("BGTZ", true, RV64ParamType.PS_RS1_Jlbl, true),
+    Bgt("BGT", true, RV64ParamType.RS1_RS2_LBL, true),
+    Ble("BLE", true, RV64ParamType.RS1_RS2_LBL, true),
+    Bgtu("BGTU", true, RV64ParamType.RS1_RS2_LBL, true),
+    Bleu("BLEU", true, RV64ParamType.RS1_RS2_LBL, true),
+    J("J", true, RV64ParamType.PS_lbl, true),
+    JAL1("JAL", true, RV64ParamType.PS_lbl, true),
     Jr("JR", true, RV64ParamType.PS_RS1),
     JALR1("JALR", true, RV64ParamType.PS_RS1),
     Ret("RET", true, RV64ParamType.PS_NONE),
-    Call("CALL", true, RV64ParamType.PS_lbl, bytesNeeded = 8),
-    Tail("TAIL", true, RV64ParamType.PS_lbl, bytesNeeded = 8);
+    Call("CALL", true, RV64ParamType.PS_lbl, true, bytesNeeded = 8),
+    Tail("TAIL", true, RV64ParamType.PS_lbl, true, bytesNeeded = 8);
 
     override val inCodeInfo: String? = if(isPseudo) "${bytesNeeded ?: "?"} bytes" else null
 
@@ -123,11 +124,11 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
     override val typeName: String = name
 
-    override fun checkSemantic(instr: ASNode.Instruction) {
+    override fun build(instr: ASNode.Instruction): ByteBuffer {
         TODO("Not yet implemented")
     }
 
-    override fun build(builder: ELFBuilder, instr: ASNode.Instruction) {
+    override fun lateEvaluation(instrDef: ELFBuilder.Section.InstrDef): ByteBuffer {
         TODO("Not yet implemented")
     }
 

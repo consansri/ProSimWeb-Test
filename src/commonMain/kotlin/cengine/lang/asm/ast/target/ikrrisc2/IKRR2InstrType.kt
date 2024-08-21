@@ -4,9 +4,10 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.ELFBuilder
+import cengine.util.ByteBuffer
 
 
-enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", override val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     ADD("add", IKRR2ParamType.R2_TYPE, "addiere"),
     ADDI("addi", IKRR2ParamType.I_TYPE, "addiere Konstante (erweitere Konstante vorzeichenrichtig)"),
     ADDLI("addli", IKRR2ParamType.I_TYPE, "addiere Konstante (erweitere Konstante vorzeichenlos)"),
@@ -64,29 +65,20 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
     STR("str", IKRR2ParamType.S_INDEX_TYPE, "store (Register indirekt mit Index)"),
 
     //
-    BEQ("beq", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc gleich 0 (EQual to 0)"),
-    BNE("bne", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc ungleich 0 (Not Equal to 0)"),
-    BLT("blt", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc kleiner als 0 (Less Than 0)"),
-    BGT("bgt", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc größer als 0 (Greater Than 0)"),
-    BLE("ble", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc kleiner oder gleich 0 (Less than or Equal to 0)"),
-    BGE("bge", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc größer oder gleich 0 (Greater than or Equal to 0)"),
+    BEQ("beq", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc gleich 0 (EQual to 0)", true),
+    BNE("bne", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc ungleich 0 (Not Equal to 0)", true),
+    BLT("blt", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc kleiner als 0 (Less Than 0)", true),
+    BGT("bgt", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc größer als 0 (Greater Than 0)", true),
+    BLE("ble", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc kleiner oder gleich 0 (Less than or Equal to 0)", true),
+    BGE("bge", IKRR2ParamType.B_DISP18_TYPE, "verzweige, falls rc größer oder gleich 0 (Greater than or Equal to 0)", true),
 
     //
-    BRA("bra", IKRR2ParamType.B_DISP26_TYPE, "verzweige unbedingt (branch always)"),
-    BSR("bsr", IKRR2ParamType.B_DISP26_TYPE, "verzweige in Unterprogramm (sichere Rücksprungadresse in r31)"),
+    BRA("bra", IKRR2ParamType.B_DISP26_TYPE, "verzweige unbedingt (branch always)", true),
+    BSR("bsr", IKRR2ParamType.B_DISP26_TYPE, "verzweige in Unterprogramm (sichere Rücksprungadresse in r31)", true),
 
     //
-    JMP(
-        "jmp",
-        IKRR2ParamType.B_REG_TYPE,
-
-        "springe an Adresse in rb"
-    ),
-    JSR(
-        "jsr",
-        IKRR2ParamType.B_REG_TYPE,
-        "springe in Unterprg. an Adresse in rb (sichere Rücksprungadr. in r31)"
-    );
+    JMP("jmp", IKRR2ParamType.B_REG_TYPE, "springe an Adresse in rb"),
+    JSR("jsr", IKRR2ParamType.B_REG_TYPE, "springe in Unterprg. an Adresse in rb (sichere Rücksprungadr. in r31)");
 
     override val inCodeInfo: String?
         get() = descr
@@ -97,11 +89,13 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
     override val typeName: String
         get() = name
 
-    override fun checkSemantic(instr: ASNode.Instruction) {
+    override fun build(instr: ASNode.Instruction): ByteBuffer {
         TODO("Not yet implemented")
     }
 
-    override fun build(builder: ELFBuilder, instr: ASNode.Instruction) {
+    override fun lateEvaluation(instrDef: ELFBuilder.Section.InstrDef): ByteBuffer {
         TODO("Not yet implemented")
     }
+
+
 }

@@ -1,9 +1,9 @@
 package cengine.lang.asm.ast.target.riscv
 
-import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.Component
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.Rule
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.lexer.AsmLexer
@@ -116,10 +116,6 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
 
         lexer.position = initialPos
         return null
-    }
-
-    override fun checkSemantic(dir: ASNode.Directive) {
-        TODO("Not yet implemented")
     }
 
     override fun build(builder: ELFBuilder, dir: ASNode.Directive) {

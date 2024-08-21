@@ -1,11 +1,13 @@
 package emulator.kit.assembler.gas
 
+import cengine.util.integer.Size
+import cengine.util.integer.Value
 import debug.DebugTools
 import emulator.core.*
-import emulator.core.Size.Bit16
-import emulator.core.Value.Bin
-import emulator.core.Value.Hex
-import emulator.core.Value.Tools.mergeToChunks
+import cengine.util.integer.Size.Bit16
+import cengine.util.integer.Value.Bin
+import cengine.util.integer.Value.Hex
+import cengine.util.integer.Value.Tools.mergeToChunks
 import emulator.kit.assembler.*
 import emulator.kit.assembler.gas.GASNode.*
 import emulator.kit.assembler.lexer.Lexer

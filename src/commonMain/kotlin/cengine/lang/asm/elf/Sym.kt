@@ -12,6 +12,14 @@ interface Sym : BinaryProvider {
 
     companion object {
 
+        fun size(ei_class: Elf_Byte): Elf_Half {
+            return when (ei_class) {
+                E_IDENT.ELFCLASS32 -> 16U
+                E_IDENT.ELFCLASS64 -> 24U
+                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+            }
+        }
+
         fun getSymbolType(st_info: Elf_Byte): String = when (ELF_ST_TYPE(st_info)) {
             STT_NOTYPE -> "NOTYPE"
             STT_OBJECT -> "OBJECT"
@@ -103,10 +111,10 @@ interface Sym : BinaryProvider {
          * Symbol Binding
          */
 
-        fun ELF_ST_BIND(st_info: Elf_Byte) = st_info.toUInt().shr(4).toUByte()
-        fun ELF_ST_TYPE(st_info: Elf_Byte) = st_info.and(0xfU)
-        fun ELF_ST_VISIBILITY(st_other: Elf_Byte) = st_other and 0x03U
-        fun ELF_ST_INFO(b: Elf_Word, t: Elf_Word) = b.shl(4) + t.and(0xfU)
+        fun ELF_ST_BIND(st_info: Elf_Byte): Elf_Byte = st_info.toUInt().shr(4).toUByte()
+        fun ELF_ST_TYPE(st_info: Elf_Byte): Elf_Byte = st_info.and(0xfU)
+        fun ELF_ST_VISIBILITY(st_other: Elf_Byte): Elf_Byte = st_other and 0x03U
+        fun ELF_ST_INFO(b: Elf_Byte, t: Elf_Byte): Elf_Word = b.toUInt().shl(4) + t.and(0xfU)
 
         /**
          * Local symbols are not visible outside the object file containing their

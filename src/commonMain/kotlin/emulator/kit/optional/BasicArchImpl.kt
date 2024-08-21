@@ -4,7 +4,7 @@ import Performance
 import emulator.kit.memory.Memory
 import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
-import emulator.core.Value
+import cengine.util.integer.Value
 import kotlin.time.measureTime
 
 abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {

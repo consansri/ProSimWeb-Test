@@ -1,7 +1,7 @@
 package emulator.kit.common
 
-import emulator.core.Size
-import emulator.core.Value
+import cengine.util.integer.Size
+import cengine.util.integer.Value
 import emulator.core.Variable
 import emulator.kit.common.RegContainer.PC
 import emulator.kit.common.RegContainer.RegisterFile

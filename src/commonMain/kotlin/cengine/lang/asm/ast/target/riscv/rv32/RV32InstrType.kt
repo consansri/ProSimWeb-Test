@@ -4,20 +4,21 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.ELFBuilder
+import cengine.util.ByteBuffer
 
-enum class RV32InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV32ParamType, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class RV32InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV32ParamType, override val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV32ParamType.RD_I20),
     AUIPC("AUIPC", false, RV32ParamType.RD_I20),
-    JAL("JAL", false, RV32ParamType.RD_I20),
+    JAL("JAL", false, RV32ParamType.RD_I20, true),
     JALR("JALR", false, RV32ParamType.RD_RS1_I12),
     ECALL("ECALL", false, RV32ParamType.NONE),
     EBREAK("EBREAK", false, RV32ParamType.NONE),
-    BEQ("BEQ", false, RV32ParamType.RS1_RS2_LBL),
-    BNE("BNE", false, RV32ParamType.RS1_RS2_LBL),
-    BLT("BLT", false, RV32ParamType.RS1_RS2_LBL),
-    BGE("BGE", false, RV32ParamType.RS1_RS2_LBL),
-    BLTU("BLTU", false, RV32ParamType.RS1_RS2_LBL),
-    BGEU("BGEU", false, RV32ParamType.RS1_RS2_LBL),
+    BEQ("BEQ", false, RV32ParamType.RS1_RS2_LBL, true),
+    BNE("BNE", false, RV32ParamType.RS1_RS2_LBL, true),
+    BLT("BLT", false, RV32ParamType.RS1_RS2_LBL, true),
+    BGE("BGE", false, RV32ParamType.RS1_RS2_LBL, true),
+    BLTU("BLTU", false, RV32ParamType.RS1_RS2_LBL, true),
+    BGEU("BGEU", false, RV32ParamType.RS1_RS2_LBL, true),
     LB("LB", false, RV32ParamType.RD_OFF12),
     LH("LH", false, RV32ParamType.RD_OFF12),
     LW("LW", false, RV32ParamType.RD_OFF12),
@@ -70,43 +71,44 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
     Nop("NOP", true, RV32ParamType.PS_NONE),
     Mv("MV", true, RV32ParamType.PS_RD_RS1),
     Li("LI", true, RV32ParamType.PS_RD_I32, bytesNeeded = 8),
-    La("LA", true, RV32ParamType.PS_RD_ALBL, bytesNeeded = 8),
+    La("LA", true, RV32ParamType.PS_RD_ALBL, true, bytesNeeded = 8),
     Not("NOT", true, RV32ParamType.PS_RD_RS1),
     Neg("NEG", true, RV32ParamType.PS_RD_RS1),
     Seqz("SEQZ", true, RV32ParamType.PS_RD_RS1),
     Snez("SNEZ", true, RV32ParamType.PS_RD_RS1),
     Sltz("SLTZ", true, RV32ParamType.PS_RD_RS1),
     Sgtz("SGTZ", true, RV32ParamType.PS_RD_RS1),
-    Beqz("BEQZ", true, RV32ParamType.PS_RS1_JLBL),
-    Bnez("BNEZ", true, RV32ParamType.PS_RS1_JLBL),
-    Blez("BLEZ", true, RV32ParamType.PS_RS1_JLBL),
-    Bgez("BGEZ", true, RV32ParamType.PS_RS1_JLBL),
-    Bltz("BLTZ", true, RV32ParamType.PS_RS1_JLBL),
-    BGTZ("BGTZ", true, RV32ParamType.PS_RS1_JLBL),
-    Bgt("BGT", true, RV32ParamType.RS1_RS2_LBL),
-    Ble("BLE", true, RV32ParamType.RS1_RS2_LBL),
-    Bgtu("BGTU", true, RV32ParamType.RS1_RS2_LBL),
-    Bleu("BLEU", true, RV32ParamType.RS1_RS2_LBL),
-    J("J", true, RV32ParamType.PS_JLBL),
-    JAL1("JAL", true, RV32ParamType.PS_JLBL),
+    Beqz("BEQZ", true, RV32ParamType.PS_RS1_JLBL, true),
+    Bnez("BNEZ", true, RV32ParamType.PS_RS1_JLBL, true),
+    Blez("BLEZ", true, RV32ParamType.PS_RS1_JLBL, true),
+    Bgez("BGEZ", true, RV32ParamType.PS_RS1_JLBL, true),
+    Bltz("BLTZ", true, RV32ParamType.PS_RS1_JLBL, true),
+    BGTZ("BGTZ", true, RV32ParamType.PS_RS1_JLBL, true),
+    Bgt("BGT", true, RV32ParamType.RS1_RS2_LBL, true),
+    Ble("BLE", true, RV32ParamType.RS1_RS2_LBL, true),
+    Bgtu("BGTU", true, RV32ParamType.RS1_RS2_LBL, true),
+    Bleu("BLEU", true, RV32ParamType.RS1_RS2_LBL, true),
+    J("J", true, RV32ParamType.PS_JLBL, true),
+    JAL1("JAL", true, RV32ParamType.PS_JLBL, true),
     Jr("JR", true, RV32ParamType.PS_RS1),
     JALR1("JALR", true, RV32ParamType.PS_RS1),
     Ret("RET", true, RV32ParamType.PS_NONE),
-    Call("CALL", true, RV32ParamType.PS_JLBL, bytesNeeded = 8),
-    Tail("TAIL", true, RV32ParamType.PS_JLBL, bytesNeeded = 8);
+    Call("CALL", true, RV32ParamType.PS_JLBL, true, bytesNeeded = 8),
+    Tail("TAIL", true, RV32ParamType.PS_JLBL, true, bytesNeeded = 8);
 
-    override val inCodeInfo: String? = if(isPseudo) "${bytesNeeded ?: "?"} bytes" else null
+    override val inCodeInfo: String? = if (isPseudo) "${bytesNeeded ?: "?"} bytes" else null
 
     override val paramRule: Rule?
         get() = paramType.rule
 
     override val typeName: String = name.lowercase()
 
-    override fun build(builder: ELFBuilder, instr: ASNode.Instruction) {
+    override fun build(instr: ASNode.Instruction): ByteBuffer {
         TODO("Not yet implemented")
     }
 
-    override fun checkSemantic(instr: ASNode.Instruction) {
+    override fun lateEvaluation(instrDef: ELFBuilder.Section.InstrDef): ByteBuffer {
         TODO("Not yet implemented")
     }
+
 }

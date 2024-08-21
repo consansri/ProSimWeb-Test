@@ -8,7 +8,7 @@ import cengine.lang.asm.ast.target.riscv.rv64.RV64Spec
 import cengine.lang.asm.ast.target.t6502.T6502Spec
 import cengine.lang.asm.elf.Elf_Byte
 import cengine.lang.asm.elf.Elf_Half
-import emulator.core.Size
+import cengine.util.integer.Size
 
 /**
  * Interface representing a defined assembly configuration.

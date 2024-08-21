@@ -1,10 +1,10 @@
 package emulator.kit.assembler
 
+import cengine.util.integer.Size
 import emulator.kit.assembler.gas.GASNode
 import emulator.kit.assembler.gas.GASParser
 import emulator.kit.assembler.lexer.Lexer
 import emulator.kit.optional.Feature
-import emulator.core.*
 
 /**
  * Interface representing a defined assembly configuration.

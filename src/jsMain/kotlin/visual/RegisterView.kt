@@ -4,8 +4,8 @@ import Settings
 import StyleAttr
 import debug.DebugTools
 import emotion.react.css
-import emulator.core.Value.Types
-import emulator.core.Value.Types.*
+import cengine.util.integer.Value.Types
+import cengine.util.integer.Value.Types.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button

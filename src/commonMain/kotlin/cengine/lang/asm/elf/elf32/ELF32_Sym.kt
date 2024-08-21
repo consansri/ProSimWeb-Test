@@ -38,7 +38,7 @@ data class ELF32_Sym(
     var st_value: Elf32_Addr,
     var st_size: Elf_Word,
     override var st_info: Elf_Byte,
-    override var st_other: Elf_Byte,
+    override var st_other: Elf_Byte = 0U,
     override var st_shndx: Elf_Half
 ): Sym {
     override fun build(endianness: Endianness): ByteArray {

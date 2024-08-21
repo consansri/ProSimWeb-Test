@@ -14,10 +14,10 @@ data class AsmToken(
     override val value: String,
     override val start: Int,
     override val end: Int,
-    val onlyNumber: String? = null
+    val withoutPrefix: String? = null
 ) : Token() {
 
-    val asNumber: String get() = onlyNumber ?: value
+    val asNumber: String get() = withoutPrefix ?: value
 
     /**
      * Gets the value of the token as a string.

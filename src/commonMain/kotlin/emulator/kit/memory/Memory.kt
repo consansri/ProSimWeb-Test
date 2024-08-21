@@ -1,9 +1,11 @@
 package emulator.kit.memory
 
+import cengine.util.integer.Size
+import cengine.util.integer.Value
 import emulator.core.*
-import emulator.core.Size.Bit8
-import emulator.core.Value.Tools.toValue
-import emulator.core.Value.Hex
+import cengine.util.integer.Size.Bit8
+import cengine.util.integer.Value.Tools.toValue
+import cengine.util.integer.Value.Hex
 
 /**
  * Represents a Memory class that provides functionality for loading, storing, and managing memory instances.

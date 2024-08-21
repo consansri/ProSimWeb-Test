@@ -1,4 +1,4 @@
-package emulator.core
+package cengine.util.integer
 
 import kotlin.math.roundToInt
 

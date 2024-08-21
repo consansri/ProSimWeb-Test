@@ -7,7 +7,7 @@ import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.elf.Elf_Byte
 import cengine.lang.asm.elf.Elf_Half
-import emulator.core.Size
+import cengine.util.integer.Size
 
 data object IKRR2Spec: TargetSpec {
     override val name: String = "IKR RISC-II"

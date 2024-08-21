@@ -20,7 +20,7 @@ class ProjectSelectorWindow : CFrame("New Project") {
         addActionListener {
             val dir = directoryChooser.selectedDirectory
             if (dir != null) {
-                nativeLog("NewProject: ${dir.absolutePath}")
+                nativeLog("Open: ${dir.absolutePath}")
                 WindowManager.openProject(dir.absolutePath, asmChooser.value)
                 dispose()
             }

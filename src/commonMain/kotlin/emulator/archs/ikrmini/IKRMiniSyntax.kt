@@ -1,5 +1,6 @@
 package emulator.archs.ikrmini
 
+import cengine.util.integer.Size
 import emulator.archs.ArchIKRMini
 import emulator.archs.ikrmini.IKRMini.WORDSIZE
 import emulator.kit.assembler.InstrTypeInterface
@@ -7,9 +8,8 @@ import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.memory.Memory
-import emulator.core.*
-import emulator.core.Value.Bin
-import emulator.core.Value.Hex
+import cengine.util.integer.Value.Bin
+import cengine.util.integer.Value.Hex
 
 class IKRMiniSyntax {
     enum class ParamType(val tokenSeq: Rule?, val wordAmount: Int, val exampleString: String) {

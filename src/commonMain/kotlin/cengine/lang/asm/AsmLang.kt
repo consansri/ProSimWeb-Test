@@ -8,13 +8,18 @@ import cengine.editor.formatting.Formatter
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
 import cengine.lang.LanguageService
+import cengine.lang.RunConfiguration
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.features.*
+import cengine.lang.asm.run.AsmExecutable
 import cengine.psi.core.PsiService
 import cengine.psi.impl.PsiServiceImpl
 import cengine.vfs.VirtualFile
 
 class AsmLang(spec: TargetSpec) : LanguageService {
+    companion object {
+        const val OUTPUT_DIR = ".asm"
+    }
 
     var spec: TargetSpec = spec
         set(value) {
@@ -25,6 +30,9 @@ class AsmLang(spec: TargetSpec) : LanguageService {
             highlightProvider = AsmHighlighter(value)
             annotations.clear()
         }
+
+    override val runConfigurations: Set<RunConfiguration> = setOf(AsmExecutable(this))
+
 
     override val name: String = "Assembly"
     override val fileSuffix: String = ".s"

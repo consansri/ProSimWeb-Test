@@ -48,13 +48,13 @@ class AsmWidgets : WidgetProvider {
 
                 is ASNode.NumericExpr.Prefix -> {
                     if ((element.operand !is ASNode.NumericExpr.Operand.Number) || (element.operand.number.type != AsmTokenType.INT_DEC)) {
-                        element.inlayWidgets.add(Widget(ID_EXPRESSION_RESULT, "= ${element.evaluate(false)}", Widget.Type.INLAY, { element.range.last }))
+                        element.inlayWidgets.add(Widget(ID_EXPRESSION_RESULT, "= ${element.evaluated}", Widget.Type.INLAY, { element.range.last }))
                     }
                     return
                 }
 
                 is ASNode.NumericExpr.Classic -> {
-                    element.inlayWidgets.add(Widget(ID_EXPRESSION_RESULT, "= ${element.evaluate(false)}", Widget.Type.INLAY, { element.range.last }))
+                    element.inlayWidgets.add(Widget(ID_EXPRESSION_RESULT, "= ${element.evaluated}", Widget.Type.INLAY, { element.range.last }))
                     return
                 }
 

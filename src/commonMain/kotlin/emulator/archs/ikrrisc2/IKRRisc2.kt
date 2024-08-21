@@ -1,9 +1,9 @@
 package emulator.archs.ikrrisc2
 
 import emulator.archs.ArchIKRRisc2
-import emulator.core.Size.Bit32
-import emulator.core.Size.Bit5
-import emulator.core.Value.Bin
+import cengine.util.integer.Size.Bit32
+import cengine.util.integer.Size.Bit5
+import cengine.util.integer.Value.Bin
 import emulator.core.Variable
 import emulator.kit.common.Docs
 import emulator.kit.common.RegContainer

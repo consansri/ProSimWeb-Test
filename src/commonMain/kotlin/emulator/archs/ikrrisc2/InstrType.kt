@@ -1,12 +1,13 @@
 package emulator.archs.ikrrisc2
 
+import cengine.util.integer.Size
+import cengine.util.integer.Value
 import emulator.archs.ArchIKRRisc2
 import emulator.archs.ikrrisc2.IKRRisc2BinMapper.MaskLabel.*
 import emulator.archs.ikrrisc2.IKRRisc2BinMapper.OpCode
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.common.RegContainer
 import emulator.kit.memory.Memory
-import emulator.core.*
 
 
 enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCode, val descr: String = "") : InstrTypeInterface {

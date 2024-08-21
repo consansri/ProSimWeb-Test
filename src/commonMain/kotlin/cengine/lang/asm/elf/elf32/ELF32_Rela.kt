@@ -28,7 +28,7 @@ import cengine.util.Endianness
  * processor-specific; descriptions of their behavior appear in the processor
  * supplement. When the text in the processor supplement refers to a
  * relocation entry's relocation type or symbol table index, it means the result
- * of applying [ELF32_R_TYPE] or  [ELF32_R_SYM], respectively, to the
+ * of applying [Rel.ELF32_R_TYPE] or  [Rel.ELF32_R_SYM], respectively, to the
  * entry's [r_info] member.
  *
  * @param r_addend This member specifies a constant addend used to compute the value to be

@@ -1,7 +1,7 @@
 package emulator.archs.ikrrisc2
 
-import emulator.core.Size
-import emulator.core.Value
+import cengine.util.integer.Size
+import cengine.util.integer.Value
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface

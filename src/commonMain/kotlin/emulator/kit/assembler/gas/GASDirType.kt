@@ -1,9 +1,9 @@
 package emulator.kit.assembler.gas
 
-import emulator.core.Size.*
-import emulator.core.Value
-import emulator.core.Value.Dec
-import emulator.core.Value.Hex
+import cengine.util.integer.Size.*
+import cengine.util.integer.Value
+import cengine.util.integer.Value.Dec
+import cengine.util.integer.Value.Hex
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface

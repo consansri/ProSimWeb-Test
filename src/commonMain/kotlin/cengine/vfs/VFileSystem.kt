@@ -89,6 +89,19 @@ class VFileSystem(absRootPath: String) {
      * @return The newly created [VirtualFile] object.
      */
     fun createFile(relativePath: String, isDirectory: Boolean = false): VirtualFile {
+
+        // Create Parent Directory if non-existent
+
+        val lastDeliIndex = relativePath.indexOfLast { it == DELIMITER.first() }
+        if (lastDeliIndex != -1) {
+            val remainingPath = relativePath.substring(0, relativePath.indexOfLast { it == DELIMITER.first() })
+            if (!actualFileSystem.exists(remainingPath)) {
+                actualFileSystem.createFile(remainingPath, true)
+            }
+        }
+
+        // Create File
+
         actualFileSystem.createFile(relativePath, isDirectory)
         val parts = relativePath.split(DELIMITER).filter { it.isNotEmpty() }
         var current: VirtualFile = root

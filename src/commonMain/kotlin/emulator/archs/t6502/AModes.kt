@@ -1,9 +1,9 @@
 package emulator.archs.t6502
 
+import cengine.util.integer.Value
 import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.syntax.Rule
-import emulator.core.*
 
 /**
  * Addressing Modes

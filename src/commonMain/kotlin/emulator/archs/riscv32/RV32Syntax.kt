@@ -1,6 +1,8 @@
 package emulator.archs.riscv32
 
 
+import cengine.util.integer.Size
+import cengine.util.integer.Value
 import emulator.archs.ArchRV32
 import emulator.archs.riscv32.RV32BinMapper.MaskLabel.*
 import emulator.archs.riscv32.RV32BinMapper.OpCode
@@ -9,7 +11,6 @@ import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.memory.Memory
-import emulator.core.*
 
 class RV32Syntax {
 

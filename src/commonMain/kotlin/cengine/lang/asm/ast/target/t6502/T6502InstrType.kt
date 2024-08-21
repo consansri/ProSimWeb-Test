@@ -4,8 +4,9 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.ELFBuilder
+import cengine.util.ByteBuffer
 
-enum class T6502InstrType(override val detectionName: String, val opCode: UByte, val aMode: T6502ParamType, val description: String) : InstrTypeInterface {
+enum class T6502InstrType(override val detectionName: String, val opCode: UByte, val aMode: T6502ParamType, val description: String, override val labelDependent: Boolean = false) : InstrTypeInterface {
     // Load, store, interregister transfer
     LDA_ABS("LDA", 0xADU, T6502ParamType.ABS, "load accumulator"),
     LDA_ABS_X("LDA", 0xBDU,T6502ParamType.ABS_X, "load accumulator"),
@@ -178,21 +179,21 @@ enum class T6502InstrType(override val detectionName: String, val opCode: UByte,
     SEI("SEI", 0x78U, T6502ParamType.IMPLIED, "set interrupt disable"),
 
     // Jumps, Calls, Returns
-    JMP_ABS("JMP", 0x4CU, T6502ParamType.ABS, "jump"),
+    JMP_ABS("JMP", 0x4CU, T6502ParamType.ABS, "jump", true),
     JMP_IND("JMP", 0x6CU, T6502ParamType.IND, "jump"),
-    JSR_ABS("JSR", 0x20U, T6502ParamType.ABS, "jump to subroutine"),
+    JSR_ABS("JSR", 0x20U, T6502ParamType.ABS, "jump to subroutine", true),
     RTS_IMPLIED("RTS", 0x60U, T6502ParamType.IMPLIED, "return from subroutine"),
     RTI_IMPLIED("RTI", 0x40U, T6502ParamType.IMPLIED, "return from interrupt"),
 
     // Branching
-    BCC_REL("BCC", 0x90U, T6502ParamType.REL, "branch if carry clear"),
-    BCS_REL("BCS", 0xB0U, T6502ParamType.REL, "branch if carry set"),
-    BEQ_REL("BEQ", 0xF0U, T6502ParamType.REL, "branch if equal"),
-    BMI_REL("BMI", 0x30U, T6502ParamType.REL, "branch if minus"),
-    BNE_REL("BNE", 0xD0U, T6502ParamType.REL, "branch if not equal"),
-    BPL_REL("BPL", 0x10U, T6502ParamType.REL, "branch on plus"),
-    BVC_REL("BVC", 0x50U, T6502ParamType.REL, "branch on overflow clear"),
-    BVS_REL("BVS", 0x70U, T6502ParamType.REL, "branch on overflow set"),
+    BCC_REL("BCC", 0x90U, T6502ParamType.REL, "branch if carry clear", true),
+    BCS_REL("BCS", 0xB0U, T6502ParamType.REL, "branch if carry set", true),
+    BEQ_REL("BEQ", 0xF0U, T6502ParamType.REL, "branch if equal", true),
+    BMI_REL("BMI", 0x30U, T6502ParamType.REL, "branch if minus", true),
+    BNE_REL("BNE", 0xD0U, T6502ParamType.REL, "branch if not equal", true),
+    BPL_REL("BPL", 0x10U, T6502ParamType.REL, "branch on plus", true),
+    BVC_REL("BVC", 0x50U, T6502ParamType.REL, "branch on overflow clear", true),
+    BVS_REL("BVS", 0x70U, T6502ParamType.REL, "branch on overflow set", true),
 
     BRK_IMPLIED("BRK", 0x00U, T6502ParamType.IMPLIED, "break / interrupt"),
 
@@ -208,11 +209,11 @@ enum class T6502InstrType(override val detectionName: String, val opCode: UByte,
     override val paramRule: Rule?
         get() = aMode.rule
 
-    override fun checkSemantic(instr: ASNode.Instruction) {
+    override fun build(instr: ASNode.Instruction): ByteBuffer {
         TODO("Not yet implemented")
     }
 
-    override fun build(builder: ELFBuilder, instr: ASNode.Instruction) {
+    override fun lateEvaluation(instrDef: ELFBuilder.Section.InstrDef): ByteBuffer {
         TODO("Not yet implemented")
     }
 }

@@ -1,6 +1,6 @@
 package prosim.ui.components.processor.memory
 
-import emulator.core.Value
+import cengine.util.integer.Value
 import emulator.kit.Architecture
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.MainMemory

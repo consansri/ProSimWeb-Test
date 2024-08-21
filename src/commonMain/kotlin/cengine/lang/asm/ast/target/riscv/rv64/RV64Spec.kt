@@ -11,7 +11,7 @@ import cengine.lang.asm.elf.E_IDENT
 import cengine.lang.asm.elf.Ehdr
 import cengine.lang.asm.elf.Elf_Byte
 import cengine.lang.asm.elf.Elf_Half
-import emulator.core.Size
+import cengine.util.integer.Size
 
 data object RV64Spec : TargetSpec {
     override val name: String = "RISC-V 64 Bit"

@@ -1,5 +1,6 @@
 package prosim.ide.filetree
 
+import cengine.lang.RunConfiguration
 import cengine.project.Project
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
@@ -19,7 +20,6 @@ import prosim.uilib.styled.params.FontType
 import prosim.uilib.styled.tree.CTree
 import prosim.uilib.styled.tree.NodeInformationProvider
 import java.awt.Color
-import java.awt.Component
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
@@ -44,6 +44,9 @@ class FileTree(private val project: Project) : FileTreeUI {
         }
 
         override fun getFgColor(userObject: VirtualFile): Color? {
+            if (userObject.isDirectory && userObject.name.startsWith(".")) {
+               return UIStates.theme.get().COLOR_YELLOW
+            }
             return null
         }
 
@@ -66,7 +69,7 @@ class FileTree(private val project: Project) : FileTreeUI {
     }
 
     fun createContainer(): JComponent {
-        val cScrollPane = CScrollPane( tree, true)
+        val cScrollPane = CScrollPane(tree, true)
         return cScrollPane
     }
 
@@ -77,15 +80,16 @@ class FileTree(private val project: Project) : FileTreeUI {
             override fun onFileCreated(file: VirtualFile) {
                 val parent = file.parent ?: return refresh()
                 val parentNode = findNodeByPath(parent.path) ?: return refresh()
-                refreshNode(parentNode)
-                treeModel.reload(parentNode)
+
+                val newNode = DefaultMutableTreeNode(file)
+                treeModel.insertNodeInto(newNode, parentNode, parentNode.childCount)
             }
 
             override fun onFileDeleted(file: VirtualFile) {
-                val parent = file.parent ?: return refresh()
-                val parentNode = findNodeByPath(parent.path) ?: return refresh()
-                refreshNode(parentNode)
-                treeModel.reload(parentNode)
+                val node = findNodeByPath(file.path)
+                if (node != null) {
+                    treeModel.removeNodeFromParent(node)
+                }
             }
         })
     }
@@ -109,7 +113,6 @@ class FileTree(private val project: Project) : FileTreeUI {
             tree.expandPath(treePath)
         }
     }
-
 
     override fun collapseNode(path: String) {
         val node = findNodeByPath(path)
@@ -186,6 +189,7 @@ class FileTree(private val project: Project) : FileTreeUI {
                 }
             }
         }
+        treeModel.nodeStructureChanged(node)
     }
 
     private fun findNodeByPath(path: String): DefaultMutableTreeNode? {
@@ -226,6 +230,7 @@ class FileTree(private val project: Project) : FileTreeUI {
 
         val dirs = treeFiles.filter { it.isDirectory }
         val files = treeFiles.filter { it.isFile }
+        val langs = treeFiles.mapNotNull { project.getLang(it) }.toSet()
 
         val containsDirs = dirs.isNotEmpty()
         val containsFiles = files.isNotEmpty()
@@ -277,10 +282,8 @@ class FileTree(private val project: Project) : FileTreeUI {
         reloadFromDisk?.addActionListener {
             overlayScope.launch {
                 refreshNode(root)
-                treeModel.reload()
 
                 withContext(Dispatchers.Main) {
-                    treeModel.reload()
                     tree.revalidate()
                     tree.repaint()
                 }
@@ -292,6 +295,28 @@ class FileTree(private val project: Project) : FileTreeUI {
         openItem?.addActionListener {
             files.forEach {
                 openFile(it.path)
+            }
+        }
+
+        val runConfigs = mutableListOf<CMenuItem>()
+
+        for (lang in langs) {
+            lang.runConfigurations.forEach { config ->
+                when (config) {
+                    is RunConfiguration.FileRun -> {
+                        runConfigs += CMenuItem(config.name).apply {
+                            addActionListener {
+                                overlayScope.launch {
+                                    treeFiles.forEach { file ->
+                                        if (file.name.endsWith(lang.fileSuffix)) {
+                                            config.run(file, vfs)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -365,6 +390,9 @@ class FileTree(private val project: Project) : FileTreeUI {
 
         // File
         openItem?.let { popupMenu.add(it) }
+        runConfigs.forEach {
+            popupMenu.add(it)
+        }
 
         // Append Custom Items TODO
 
@@ -407,46 +435,6 @@ class FileTree(private val project: Project) : FileTreeUI {
             }
         }
 
-        private fun showContextMenu(component: Component, x: Int, y: Int, file: VirtualFile) {
-            val menu = CPopupMenu()
-
-            if (file.isDirectory) {
-                menu.add(CMenuItem("New File").apply {
-                    addActionListener {
-                        overlayScope.launch {
-                            val newName = COptionPane.showInputDialog(component, "Create New File:").await()
-                            if (newName.isNotEmpty()) {
-                                createNode(file.path, newName, false)
-                            }
-                        }
-                    }
-                })
-                menu.add(CMenuItem("New Directory").apply {
-                    addActionListener {
-                        overlayScope.launch {
-                            val newName = COptionPane.showInputDialog(component, "Create New Directory:").await()
-                            if (newName.isNotEmpty()) {
-                                createNode(file.path, newName, true)
-                            }
-                        }
-                    }
-                })
-            }
-
-            menu.add(CMenuItem("Rename").apply {
-                addActionListener {
-                    overlayScope.launch {
-                        val newName = COptionPane.showInputDialog(component, "Rename File:").await()
-                        if (newName.isNotEmpty()) {
-                            renameNode(file.path, newName)
-                        }
-                    }
-                }
-            })
-
-            menu.show(component, x, y)
-            menu.requestFocus()
-        }
     }
 
     private inner class ExpansionListener : TreeExpansionListener {

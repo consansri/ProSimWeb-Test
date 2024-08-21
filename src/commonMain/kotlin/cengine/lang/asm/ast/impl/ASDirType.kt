@@ -8,8 +8,8 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.elf.ELFBuilder
-import emulator.core.Size.*
-import emulator.core.Value.Hex
+import cengine.util.integer.Size.*
+import cengine.util.integer.Value.Hex
 
 enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
@@ -1053,59 +1053,62 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
         return null
     }
 
-    override fun checkSemantic(dir: ASNode.Directive) {
+    override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
+        /**
+         * Check Semantic
+         */
         when (this) {
             BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
-                val value = it.evaluate(false)
+                val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit8) || !value.checkSizeUnsigned(Bit8)) {
                     it.notations.add(Notation.error(it, "Expression exceeds ${Bit8}."))
                 }
             }
 
             HWORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
-                val value = it.evaluate(false)
+                val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit16) || !value.checkSizeUnsigned(Bit16)) {
                     it.notations.add(Notation.error(it, "Expression exceeds ${Bit16}."))
                 }
             }
 
             INT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
-                val value = it.evaluate(false)
+                val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit32) || !value.checkSizeUnsigned(Bit32)) {
                     it.notations.add(Notation.error(it, "Expression exceeds ${Bit32}."))
                 }
             }
 
             SHORT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
-                val value = it.evaluate(false)
+                val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit16) || !value.checkSizeUnsigned(Bit16)) {
                     it.notations.add(Notation.error(it, "Expression exceeds ${Bit16}."))
                 }
             }
 
             WORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
-                val value = it.evaluate(false)
+                val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit32) || !value.checkSizeUnsigned(Bit32)) {
                     it.notations.add(Notation.error(it, "Expression exceeds ${Bit32}."))
                 }
             }
 
             _2BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
-                val value = it.evaluate(false)
+                val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit16) || !value.checkSizeUnsigned(Bit16)) {
                     it.notations.add(Notation.error(it, "Expression exceeds ${Bit16}."))
                 }
             }
 
             _4BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
-                val value = it.evaluate(false)
+                val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit32) || !value.checkSizeUnsigned(Bit32)) {
                     it.notations.add(Notation.error(it, "Expression exceeds ${Bit32}."))
                 }
             }
 
             _8BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
-                val value = it.evaluate(false)
+                val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit64) || !value.checkSizeUnsigned(Bit64)) {
                     it.notations.add(Notation.error(it, "Expression exceeds ${Bit64}."))
                 }
@@ -1113,9 +1116,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
 
             else -> {}
         }
-    }
 
-    override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
+        /**
+         * Execute Directive
+         */
         when (this) {
             ALIGN -> TODO()
             ASCII -> {
@@ -1141,7 +1145,7 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
                     try {
-                        val byte = expr.evaluate(true).toIntOrNull()?.toByte()
+                        val byte = expr.evaluate(builder).toIntOrNull()?.toByte()
                         if (byte == null) {
                             expr.notations.add(Notation.error(expr, "Unable to evaluate Byte!"))
                             continue
@@ -1251,7 +1255,21 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             WARNING -> TODO()
             WEAK -> TODO()
             WEAKREF -> TODO()
-            WORD -> TODO()
+            WORD -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
+                for (expr in exprs) {
+                    try {
+                        val int32 = expr.evaluate(builder).toIntOrNull()
+                        if (int32 == null) {
+                            expr.notations.add(Notation.error(expr, "Unable to evaluate Byte!"))
+                            continue
+                        }
+                        builder.currentSection.content.put(int32)
+                    } catch (e: Exception) {
+                        expr.notations.add(Notation.error(expr, "Evaluation Error: " + e.message))
+                    }
+                }
+            }
             ZERO -> TODO()
             _2BYTE -> TODO()
             _4BYTE -> TODO()

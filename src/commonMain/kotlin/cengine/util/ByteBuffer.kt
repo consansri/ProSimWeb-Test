@@ -32,6 +32,10 @@ class ByteBuffer(private var endianness: Endianness) {
 
     operator fun get(index: Int): Byte = data[index]
 
+    operator fun set(index: Int, byte: Byte){
+        data[index] = byte
+    }
+
     fun getZeroTerminated(index: Int): ByteArray {
         val result = mutableListOf<Byte>()
         var currentIndex = index

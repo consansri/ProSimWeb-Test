@@ -1,10 +1,10 @@
 package emulator.archs.ikrmini
 
-import emulator.core.Size
-import emulator.core.Size.Bit16
-import emulator.core.Value
-import emulator.core.Value.Bin
-import emulator.core.Value.Hex
+import cengine.util.integer.Size
+import cengine.util.integer.Size.Bit16
+import cengine.util.integer.Value
+import cengine.util.integer.Value.Bin
+import cengine.util.integer.Value.Hex
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface

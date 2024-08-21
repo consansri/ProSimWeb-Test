@@ -8,6 +8,7 @@ import cengine.editor.formatting.Formatter
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.widgets.WidgetProvider
 import cengine.lang.LanguageService
+import cengine.lang.RunConfiguration
 import cengine.lang.cown.psi.*
 import cengine.psi.core.PsiParser
 import cengine.psi.core.PsiService
@@ -19,6 +20,7 @@ class CownLang: LanguageService {
     override val fileSuffix: String = ".cown"
     override val psiParser: PsiParser = CownPsiParser(this)
     override val psiService: PsiService = PsiServiceImpl(psiParser)
+    override val runConfigurations: Set<RunConfiguration> = setOf()
     override val codeFoldingProvider: CodeFoldingProvider = CownFolder()
     override val widgetProvider: WidgetProvider = CownWidgets()
     override val completionProvider: CompletionProvider = CownCompleter()

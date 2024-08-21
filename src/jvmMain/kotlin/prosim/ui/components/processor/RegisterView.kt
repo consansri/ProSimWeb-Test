@@ -1,6 +1,6 @@
 package prosim.ui.components.processor
 
-import emulator.core.Value
+import cengine.util.integer.Value
 import emulator.kit.Architecture
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn

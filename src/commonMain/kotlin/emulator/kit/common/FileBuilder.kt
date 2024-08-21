@@ -9,7 +9,7 @@ import emulator.kit.common.FileBuilder.buildFileContentLines
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
-import emulator.core.Value
+import cengine.util.integer.Value
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime

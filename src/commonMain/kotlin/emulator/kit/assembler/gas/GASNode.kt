@@ -1,8 +1,8 @@
 package emulator.kit.assembler.gas
 
+import cengine.util.integer.Size
+import cengine.util.integer.Value
 import debug.DebugTools
-import emulator.core.Size
-import emulator.core.Value
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface

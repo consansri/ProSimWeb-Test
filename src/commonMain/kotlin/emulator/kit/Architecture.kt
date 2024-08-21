@@ -1,9 +1,10 @@
 package emulator.kit
 
+import cengine.util.integer.Value
 import debug.DebugTools
 import emulator.core.*
-import emulator.core.Size.*
-import emulator.core.Value.*
+import cengine.util.integer.Size.*
+import cengine.util.integer.Value.*
 import emulator.kit.assembler.*
 import emulator.kit.common.*
 import emulator.kit.config.AsmConfig

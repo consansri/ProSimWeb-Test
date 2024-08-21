@@ -12,11 +12,22 @@ import cengine.lang.asm.ast.impl.ASNode.*
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmToken
 import cengine.lang.asm.ast.lexer.AsmTokenType
+import cengine.lang.asm.elf.ELFBuilder
+import cengine.lang.asm.elf.Elf_Sxword
+import cengine.lang.asm.elf.Elf_Word
+import cengine.lang.asm.elf.Sym
+import cengine.lang.asm.elf.elf32.ELF32_Sym
+import cengine.lang.asm.elf.elf64.ELF64_Sym
 import cengine.psi.core.*
 import cengine.psi.lexer.core.Token
+import cengine.util.integer.Size
+import cengine.util.integer.Value
+import cengine.util.integer.Value.Tools.asBin
+import cengine.util.integer.Value.Tools.asDec
+import cengine.util.integer.Value.Tools.asHex
+import cengine.util.integer.Value.Tools.asOct
+import cengine.util.integer.Value.Tools.toValue
 import debug.DebugTools
-import emulator.core.Size
-import emulator.core.Value
 import emulator.kit.nativeLog
 
 /**
@@ -291,7 +302,6 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         (statements.minByOrNull { it.range.start }?.range?.start ?: 0)..(statements.maxByOrNull { it.range.last }?.range?.last ?: 0),
         *(statements + comments).sortedBy { it.range.start }.toTypedArray()
     ) {
-
         override val pathName: String = this::class.simpleName.toString()
 
         init {
@@ -513,7 +523,6 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
     }
 
     class Instruction(val type: InstrTypeInterface, val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
-        var addr: Value? = null
         override val pathName: String
             get() = instrName.value
 
@@ -661,6 +670,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
      *
      */
     sealed class NumericExpr(val brackets: List<AsmToken>, range: IntRange, vararg operands: NumericExpr) : ASNode(range, *operands) {
+        abstract var evaluated: Value.Dec?
         companion object {
             fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): ASNode? {
                 val initialPos = lexer.position
@@ -872,6 +882,14 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         }
 
         /**
+         * @param builder is for storing relocation information.
+         *
+         */
+        abstract fun evaluate(builder: ELFBuilder, withRel: Boolean = false, withType: Elf_Word = 0U, withAddend: Elf_Sxword? = null): Value.Dec
+        abstract fun assign(section: ELFBuilder.Section)
+        abstract fun assign(symTab: ELFBuilder.SymTab)
+
+        /**
          * [Prefix]
          * - [operator] [Operand]
          *
@@ -881,8 +899,30 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             operator.range.first..(brackets.lastOrNull()?.range?.last ?: operand.range.last),
             operand
         ) {
+
             override val pathName: String
                 get() = operator.value
+
+            override var evaluated: Value.Dec? = null
+
+            override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Value.Dec {
+                return when (operator.type) {
+                    AsmTokenType.COMPLEMENT -> operand.evaluate(builder, withRel, withType, withAddend).toBin().inv().toDec()
+                    AsmTokenType.MINUS -> (-operand.evaluate(builder, withRel, withType, withAddend)).toDec()
+                    AsmTokenType.PLUS -> operand.evaluate(builder, withRel, withType, withAddend)
+                    else -> {
+                        throw PsiParser.NodeException(this, "$operator is not defined for this type of expression!")
+                    }
+                }.also { evaluated = it }
+            }
+
+            override fun assign(section: ELFBuilder.Section) {
+                operand.assign(section)
+            }
+
+            override fun assign(symTab: ELFBuilder.SymTab) {
+                operand.assign(symTab)
+            }
 
             override fun getFormatted(identSize: Int): String = if (brackets.isEmpty()) "${operator.value}${operand.getFormatted(identSize)}" else "${operator.value}(${operand.getFormatted(identSize)})"
         }
@@ -896,8 +936,38 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             (brackets.firstOrNull()?.range?.first ?: operandA.range.first)..(brackets.lastOrNull()?.range?.last ?: operandB.range.last), operandA,
             operandB
         ) {
+            override var evaluated: Value.Dec? = null
             override val pathName: String
                 get() = operator.value
+
+            override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Value.Dec {
+                return (when (operator.type) {
+                    AsmTokenType.MULT -> operandA.evaluate(builder, withRel, withType, withAddend) * operandB.evaluate(builder, withRel, withType, withAddend)
+                    AsmTokenType.DIV -> operandA.evaluate(builder, withRel, withType, withAddend) / operandB.evaluate(builder, withRel, withType, withAddend)
+                    AsmTokenType.REM -> operandA.evaluate(builder, withRel, withType, withAddend) % operandB.evaluate(builder, withRel, withType, withAddend)
+                    AsmTokenType.SHL -> operandA.evaluate(builder, withRel, withType, withAddend).toBin() shl (operandB.evaluate(builder, withRel, withType, withAddend).toUDec().toIntOrNull() ?: return operandA.evaluate(builder, withRel, withType, withAddend))
+                    AsmTokenType.SHR -> operandA.evaluate(builder, withRel, withType, withAddend).toBin() shl (operandB.evaluate(builder, withRel, withType, withAddend).toUDec().toIntOrNull() ?: return operandA.evaluate(builder, withRel, withType, withAddend))
+                    AsmTokenType.BITWISE_OR -> operandA.evaluate(builder, withRel, withType, withAddend).toBin() or operandB.evaluate(builder, withRel, withType, withAddend).toBin()
+                    AsmTokenType.BITWISE_AND -> operandA.evaluate(builder, withRel, withType, withAddend).toBin() and operandB.evaluate(builder, withRel, withType, withAddend).toBin()
+                    AsmTokenType.BITWISE_XOR -> operandA.evaluate(builder, withRel, withType, withAddend).toBin() xor operandB.evaluate(builder, withRel, withType, withAddend).toBin()
+                    AsmTokenType.BITWISE_ORNOT -> operandA.evaluate(builder, withRel, withType, withAddend).toBin() or operandB.evaluate(builder, withRel, withType, withAddend).toBin().inv()
+                    AsmTokenType.PLUS -> operandA.evaluate(builder, withRel, withType, withAddend) + operandB.evaluate(builder, withRel, withType, withAddend)
+                    AsmTokenType.MINUS -> operandA.evaluate(builder, withRel, withType, withAddend) - operandB.evaluate(builder, withRel, withType, withAddend)
+                    else -> {
+                        throw PsiParser.NodeException(this, "$operator is not defined for this type of expression!")
+                    }
+                }).toDec().also { evaluated = it }
+            }
+
+            override fun assign(symTab: ELFBuilder.SymTab) {
+                operandA.assign(symTab)
+                operandB.assign(symTab)
+            }
+
+            override fun assign(section: ELFBuilder.Section) {
+                operandA.assign(section)
+                operandB.assign(section)
+            }
 
             override fun getFormatted(identSize: Int): String = if (brackets.isEmpty()) "${operandA.getFormatted(identSize)} ${operator.value} ${operandB.getFormatted(identSize)}" else "(${operandA.getFormatted(identSize)} ${operator.value} ${operandB.getFormatted(identSize)})"
         }
@@ -906,20 +976,62 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             override val pathName: String
                 get() = additionalInfo
 
-            class Identifier(val symbol: AsmToken) : Operand(symbol, symbol.range), PsiReference {
-                private var expr: NumericExpr? = null
-                private var labelAddr: Value? = null
+            class Identifier(val symToken: AsmToken) : Operand(symToken, symToken.range), PsiReference {
+                private var symbol: Sym? = null
+                private var label: ELFBuilder.Section.LabelDef? = null
+
                 override val additionalInfo: String
                     get() = token.value
                 override val element: PsiElement = this
                 override var referencedElement: ASNode? = null
+                override var evaluated: Value.Dec? = null
 
-                override fun getFormatted(identSize: Int): String = symbol.value
-                fun isLinked(): Boolean = expr != null
+                override fun getFormatted(identSize: Int): String = symToken.value
+
+                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Value.Dec {
+                    val currSymbol = symbol
+
+                    if (currSymbol != null) {
+                        return when (currSymbol) {
+                            is ELF32_Sym -> currSymbol.st_value.toValue().toDec().also { evaluated = it }
+                            is ELF64_Sym -> currSymbol.st_value.toValue().toDec().also { evaluated = it }
+                            else -> {
+                                throw PsiParser.NodeException(this, "Symbol ${currSymbol::class.simpleName} is not expected!")
+                            }
+                        }
+                    }
+
+                    val currLabel = label
+                    if (currLabel != null) {
+                        return (currLabel.offset.toInt() - builder.currentSection.content.size).toValue().also { evaluated = it }
+                    }
+
+                    if (withRel) {
+                        if (withAddend != null) {
+                            builder.relaTab.addEntry(symToken.value, withType, withAddend)
+                        } else {
+                            builder.relTab.addEntry(symToken.value, withType)
+                        }
+                    } else {
+                        notations.add(Notation.error(this, "Unresolved Symbol ${symToken.value}!"))
+                    }
+
+                    return 0.toValue().also { evaluated = it }
+                }
+
+                override fun assign(section: ELFBuilder.Section) {
+                    label = section.labels.firstOrNull { it.label.identifier == symToken.value }
+                    if (label != null) symbol = null
+                }
+
+                override fun assign(symTab: ELFBuilder.SymTab) {
+                    symbol = symTab.search(symToken.value)?.symbol
+                    if (symbol != null) label = null
+                }
 
                 override fun getCodeStyle(position: Int): CodeStyle? {
-                    if (expr != null) return CodeStyle.symbol
-                    if (labelAddr != null) return CodeStyle.label
+                    if (symbol != null) return CodeStyle.symbol
+                    if (label != null) return CodeStyle.label
                     return null
                 }
 
@@ -929,87 +1041,65 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             }
 
             class Number(val number: AsmToken) : Operand(number, number.range) {
-                val type: Type
-                val value: Value.Dec
                 override val additionalInfo: String
                     get() = number.value
+                override var evaluated: Value.Dec? = null
 
-                init {
-                    val intVal: Value?
-                    val bigNum64: Value?
-                    val bigNum128: Value?
-                    when (number.type) {
-                        AsmTokenType.INT_BIN -> {
-                            val possibleInt = Value.Bin(number.asNumber, Size.Bit32)
-                            intVal = if (possibleInt.getBit(0)?.toRawString() == "1") null else possibleInt
-
-                            val possibleBigNum64 = Value.Bin(number.asNumber, Size.Bit64)
-                            bigNum64 = if (possibleBigNum64.getBit(0)?.toRawString() == "1") null else possibleBigNum64
-
-                            val possibleBigNum128 = Value.Bin(number.asNumber, Size.Bit128)
-                            bigNum128 = if (possibleBigNum128.getBit(0)?.toRawString() == "1") null else possibleBigNum128
+                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Value.Dec {
+                    return (when (number.type) {
+                        AsmTokenType.INT_DEC -> {
+                            val auto = number.asNumber.asDec()
+                            when {
+                                auto.size == Size.Bit32 -> auto
+                                auto.size == Size.Bit64 -> auto
+                                auto.size == Size.Bit128 -> auto
+                                auto.size.bitWidth < 32 -> number.asNumber.asDec(Size.Bit32)
+                                auto.size.bitWidth < 64 -> number.asNumber.asDec(Size.Bit64)
+                                auto.size.bitWidth < 128 -> number.asNumber.asDec(Size.Bit128)
+                                else -> throw PsiParser.NodeException(this, "Integer ($number) of size ${auto.size} is not supported!")
+                            }
                         }
 
                         AsmTokenType.INT_HEX -> {
-                            val possibleInt = Value.Hex(number.asNumber, Size.Bit32)
-                            intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
-
-                            val possibleBigNum = Value.Hex(number.asNumber, Size.Bit64)
-                            bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
-
-                            val possibleBigNum128 = Value.Hex(number.asNumber, Size.Bit128)
-                            bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
+                            val auto = number.asNumber.asHex()
+                            when {
+                                auto.size.bitWidth < 32 -> number.asNumber.asHex(Size.Bit32).toDec()
+                                auto.size.bitWidth < 64 -> number.asNumber.asHex(Size.Bit64).toDec()
+                                auto.size.bitWidth < 128 -> number.asNumber.asHex(Size.Bit128).toDec()
+                                else -> throw PsiParser.NodeException(this, "Integer ($number) of size ${auto.size} is not supported!")
+                            }
                         }
 
                         AsmTokenType.INT_OCT -> {
-                            val possibleInt = Value.Oct(number.asNumber, Size.Bit32)
-                            intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
-
-                            val possibleBigNum = Value.Oct(number.asNumber, Size.Bit64)
-                            bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
-
-                            val possibleBigNum128 = Value.Oct(number.asNumber, Size.Bit128)
-                            bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
+                            val auto = number.asNumber.asOct()
+                            when {
+                                auto.size.bitWidth < 32 -> number.asNumber.asOct(Size.Bit32).toDec()
+                                auto.size.bitWidth < 64 -> number.asNumber.asOct(Size.Bit64).toDec()
+                                auto.size.bitWidth < 128 -> number.asNumber.asOct(Size.Bit128).toDec()
+                                else -> throw PsiParser.NodeException(this, "Integer ($number) of size ${auto.size} is not supported!")
+                            }
                         }
 
-                        AsmTokenType.INT_DEC -> {
-                            val possibleInt = Value.UDec(number.asNumber, Size.Bit32)
-                            intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
-
-                            val possibleBigNum = Value.UDec(number.asNumber, Size.Bit64)
-                            bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
-
-                            val possibleBigNum128 = Value.UDec(number.asNumber, Size.Bit128)
-                            bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
+                        AsmTokenType.INT_BIN -> {
+                            val auto = number.asNumber.asBin()
+                            when {
+                                auto.size.bitWidth < 32 -> number.asNumber.asBin(Size.Bit32).toDec()
+                                auto.size.bitWidth < 64 -> number.asNumber.asBin(Size.Bit64).toDec()
+                                auto.size.bitWidth < 128 -> number.asNumber.asBin(Size.Bit128).toDec()
+                                else -> throw PsiParser.NodeException(this, "Integer ($number) of size ${auto.size} is not supported!")
+                            }
                         }
 
-                        else -> {
-                            throw PsiParser.NodeException(this, "$number is not an Integer, BigNum64 or BigNum128.")
-                        }
-                    }
-
-                    if (intVal?.valid == true) {
-                        value = intVal.toDec()
-                        type = Type.Integer
-                    } else if (bigNum64?.valid == true) {
-                        value = bigNum64.toDec()
-                        type = Type.BigNum64
-                    } else if (bigNum128?.valid == true) {
-                        value = bigNum128.toDec()
-                        type = Type.BigNum128
-                    } else {
-                        throw PsiParser.NodeException(this, "$number is not supported. Supported Types: Integer, BigNum64, BigNum128.")
-                    }
+                        else -> throw PsiParser.NodeException(this, "$number is not a valid Int Literal!")
+                    }).also { evaluated = it }
                 }
+
+                override fun assign(section: ELFBuilder.Section) {}
+
+                override fun assign(symTab: ELFBuilder.SymTab) {}
 
                 override fun getFormatted(identSize: Int): String = number.value
                 override fun getCodeStyle(position: Int): CodeStyle? = number.type.style
-
-                enum class Type {
-                    Integer,
-                    BigNum64,
-                    BigNum128
-                }
             }
 
             class Char(val char: AsmToken) : Operand(char, char.range) {
@@ -1017,6 +1107,15 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 val value: Byte = char.getContentAsString().encodeToByteArray().first()
                 override val additionalInfo: String
                     get() = char.value
+
+                override var evaluated: Value.Dec? = null
+                override fun assign(symTab: ELFBuilder.SymTab) {}
+
+                override fun assign(section: ELFBuilder.Section) {}
+
+                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Value.Dec {
+                    return char.getContentAsString().first().code.toValue().also { evaluated = it }
+                }
 
                 override fun getFormatted(identSize: Int): String = char.value
 

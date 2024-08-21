@@ -1,5 +1,9 @@
 package emulator.core
 
+import cengine.util.integer.Bounds
+import cengine.util.integer.Size
+import cengine.util.integer.Value
+
 /**
  * [Variable] is the mutable version of [Value] which can contain several types all based on [String].
  * Each Variable has a fixed [size] which can't be changed. When a new value will be [set] it will automatically be resized to the former [size].

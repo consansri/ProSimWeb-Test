@@ -1,10 +1,12 @@
 package emulator.kit.memory
 
+import cengine.util.integer.Size
+import cengine.util.integer.Value
 import debug.DebugTools
 import emulator.kit.nativeWarn
 import emulator.core.*
-import emulator.core.Size.Bit8
-import emulator.core.Value.Hex
+import cengine.util.integer.Size.Bit8
+import cengine.util.integer.Value.Hex
 
 /**
  * Represents the main memory of a system.

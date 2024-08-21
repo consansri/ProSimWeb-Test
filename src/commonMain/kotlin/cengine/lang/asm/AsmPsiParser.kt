@@ -7,8 +7,6 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.impl.AsmFile
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.ELFBuilder
-import cengine.lang.asm.elf.Ehdr
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
@@ -38,24 +36,16 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
 
         program.accept(LabelLinker(labelCollector.labels))
 
-        val analyzer = SemanticAnalyzer()
-        program.accept(analyzer)
-
         //nativeLog("AsmPsiParser parses file: $fileName!")
-
 
         val asmFile = AsmFile(file, languageService, program).apply {
             this.textModel = textModel
         }
 
-        generateExecutable(asmFile)
-
         return asmFile
     }
 
-    fun generateExecutable(file: AsmFile) {
-        val builder = ELFBuilder(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, Ehdr.ET_EXEC, spec.e_machine)
-    }
+
 
     fun reparseStatements(fromIndex: Int, toIndex: Int, asmFile: AsmFile): List<ASNode.Statement> {
         val lexer = spec.createLexer("")
@@ -63,28 +53,6 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
         lexer.reset(content)
         val program = ASNode.buildNode(ASNodeType.PROGRAM, lexer, spec) as ASNode.Program
         return program.getAllStatements()
-    }
-
-    private class SemanticAnalyzer() : PsiElementVisitor {
-        override fun visitFile(file: PsiFile) {
-            if (file !is AsmFile) return
-            file.children.forEach {
-                it.accept(this)
-            }
-        }
-
-        override fun visitElement(element: PsiElement) {
-            if (element !is ASNode) return
-            when (element) {
-                is ASNode.Directive -> return element.type.checkSemantic(element)
-                is ASNode.Instruction -> return element.type.checkSemantic(element)
-                else -> {}
-            }
-
-            element.children.forEach {
-                it.accept(this)
-            }
-        }
     }
 
     private class LabelLinker(val labels: Set<ASNode.Label>) : PsiElementVisitor {
@@ -100,14 +68,14 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
 
             when (element) {
                 is ASNode.NumericExpr.Operand.Identifier -> {
-                    val identifier = element.symbol.value.take(element.symbol.value.length - 1)
-                    if (element.symbol.type == AsmTokenType.L_LABEL_REF) {
+                    val identifier = element.symToken.value.take(element.symToken.value.length - 1)
+                    if (element.symToken.type == AsmTokenType.L_LABEL_REF) {
                         val reference = when {
-                            element.symbol.value.endsWith("f", true) -> {
+                            element.symToken.value.endsWith("f", true) -> {
                                 labels.firstOrNull { it.type == ASNode.Label.Type.NUMERIC && it.range.first > element.range.last && it.identifier == identifier }
                             }
 
-                            element.symbol.value.endsWith("b", true) -> {
+                            element.symToken.value.endsWith("b", true) -> {
                                 labels.lastOrNull { it.type == ASNode.Label.Type.NUMERIC && it.range.last < element.range.first && it.identifier == identifier }
                             }
 
@@ -115,7 +83,7 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
                         }
                         element.referencedElement = reference
                     } else {
-                        val reference = labels.firstOrNull { it.identifier == element.symbol.value }
+                        val reference = labels.firstOrNull { it.identifier == element.symToken.value }
                         element.referencedElement = reference
                     }
                     return

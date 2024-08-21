@@ -21,6 +21,8 @@ interface LanguageService {
     val psiParser: PsiParser
     val psiService: PsiService
 
+    val runConfigurations: Set<RunConfiguration>
+
     val codeFoldingProvider: CodeFoldingProvider?
     val widgetProvider: WidgetProvider?
     val completionProvider: CompletionProvider?

@@ -1,8 +1,9 @@
-package emulator.core
+package cengine.util.integer
 
 import Settings
+import cengine.util.integer.Value.*
 import debug.DebugTools
-import emulator.core.Value.*
+import emulator.core.StringTools
 import emulator.kit.nativeError
 import emulator.kit.nativeInfo
 import emulator.kit.nativeWarn
@@ -795,6 +796,11 @@ sealed class Value(val size: Size) {
 
         override fun toRawString(): String = input.removePrefix(Settings.PRESTRING_DECIMAL)
         override fun toString(): String = input
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + input.hashCode()
+            return result
+        }
     }
 
 
@@ -1064,8 +1070,23 @@ sealed class Value(val size: Size) {
      * Contains all additional needed tools for working with [Value].
      */
     object Tools {
+        fun String.asDec(size: Size): Dec = Dec(this, size)
+        fun String.asDec(): Dec = Dec(this, getNearestDecSize(this))
+        fun String.asHex(size: Size): Hex = Hex(this, size)
+        fun String.asHex(): Hex = Hex(this)
+        fun String.asOct(size: Size): Oct = Oct(this, size)
+        fun String.asOct(): Oct = Oct(this)
+        fun String.asBin(size: Size): Bin = Bin(this, size)
+        fun String.asBin(): Bin = Bin(this)
 
-        fun Int.toValue(size: Size): Dec = Dec(this.toString(), size)
+        fun Byte.toValue(size: Size = Size.Bit8): Dec = Dec(this.toString(), size)
+        fun Short.toValue(size: Size = Size.Bit16): Dec = Dec(this.toString(), size)
+        fun Int.toValue(size: Size = Size.Bit32): Dec = Dec(this.toString(), size)
+        fun Long.toValue(size: Size = Size.Bit64): Dec = Dec(this.toString(), size)
+        fun UShort.toValue(size: Size = Size.Bit16): UDec = UDec(this.toString(), size)
+        fun UInt.toValue(size: Size = Size.Bit32): UDec = UDec(this.toString(), size)
+        fun ULong.toValue(size: Size = Size.Bit64): UDec = UDec(this.toString(), size)
+
 
         fun Array<Bin>.mergeToChunks(currSize: Size, chunkSize: Size): Array<Bin> {
             val source = this.toMutableList()
@@ -1096,7 +1117,6 @@ sealed class Value(val size: Size) {
         }
 
         fun getNearestSize(bitWidth: Int): Size {
-
             when {
                 bitWidth <= 8 -> {
                     return Size.Bit8

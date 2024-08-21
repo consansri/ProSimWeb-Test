@@ -2,12 +2,12 @@ package visual.memory
 
 import Settings
 import StyleAttr
+import cengine.util.integer.Value
 import debug.DebugTools
 import emotion.react.css
 import emulator.kit.Architecture
 import emulator.kit.memory.MainMemory
 import emulator.kit.memory.Memory
-import emulator.core.*
 import react.*
 import react.dom.html.ReactHTML
 import visual.StyleExt.get

@@ -4,8 +4,9 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.ELFBuilder
+import cengine.util.ByteBuffer
 
-enum class IKRMiniInstrType(override val detectionName: String, val opCode: UShort, val paramType: IKRMiniParamType, val description: String) : InstrTypeInterface {
+enum class IKRMiniInstrType(override val detectionName: String, val opCode: UShort, val paramType: IKRMiniParamType, val description: String, override val labelDependent: Boolean = false) : InstrTypeInterface {
     // Data Transport
     LOAD_IMM("LOAD", 0x010CU, IKRMiniParamType.IMM, "load AC"),
     LOAD_DIR("LOAD", 0x020CU, IKRMiniParamType.DIR, "load AC"),
@@ -103,37 +104,38 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
     DEC_IND_OFF("DEC", 0x041FU, IKRMiniParamType.IND_OFF, "decrement (-1)"),
 
     // Unconditional Branches
-    BSR("BSR", 0x510CU, IKRMiniParamType.DEST, "branch and save return address in AC"),
+    BSR("BSR", 0x510CU, IKRMiniParamType.DEST, "branch and save return address in AC", true),
     JMP("JMP", 0x4000U, IKRMiniParamType.IMPL, "jump to address in AC"),
-    BRA("BRA", 0x6101U, IKRMiniParamType.DEST, "branch"),
+    BRA("BRA", 0x6101U, IKRMiniParamType.DEST, "branch", true),
 
     // Conditional Branches
-    BHI("BHI", 0x6102U, IKRMiniParamType.DEST, "branch if higher"),
-    BLS("BLS", 0x6103U, IKRMiniParamType.DEST, "branch if lower or same"),
-    BCC("BCC", 0x6104U, IKRMiniParamType.DEST, "branch if carry clear"),
-    BCS("BCS", 0x6105U, IKRMiniParamType.DEST, "branch if carry set"),
-    BNE("BNE", 0x6106U, IKRMiniParamType.DEST, "branch if not equal"),
-    BEQ("BEQ", 0x6107U, IKRMiniParamType.DEST, "branch if equal"),
-    BVC("BVC", 0x6108U, IKRMiniParamType.DEST, "branch if overflow clear"),
-    BVS("BVS", 0x6109U, IKRMiniParamType.DEST, "branch if overflow set"),
-    BPL("BPL", 0x610AU, IKRMiniParamType.DEST, "branch if positive"),
-    BMI("BMI", 0x610BU, IKRMiniParamType.DEST, "branch if negative"),
-    BGE("BGE", 0x610CU, IKRMiniParamType.DEST, "branch if greater or equal"),
-    BLT("BLT", 0x610DU, IKRMiniParamType.DEST, "branch if less than"),
-    BGT("BGT", 0x610EU, IKRMiniParamType.DEST, "branch if greater than"),
-    BLE("BLE", 0x610FU, IKRMiniParamType.DEST, "branch if less or equal");
+    BHI("BHI", 0x6102U, IKRMiniParamType.DEST, "branch if higher", true),
+    BLS("BLS", 0x6103U, IKRMiniParamType.DEST, "branch if lower or same", true),
+    BCC("BCC", 0x6104U, IKRMiniParamType.DEST, "branch if carry clear", true),
+    BCS("BCS", 0x6105U, IKRMiniParamType.DEST, "branch if carry set", true),
+    BNE("BNE", 0x6106U, IKRMiniParamType.DEST, "branch if not equal", true),
+    BEQ("BEQ", 0x6107U, IKRMiniParamType.DEST, "branch if equal", true),
+    BVC("BVC", 0x6108U, IKRMiniParamType.DEST, "branch if overflow clear", true),
+    BVS("BVS", 0x6109U, IKRMiniParamType.DEST, "branch if overflow set", true),
+    BPL("BPL", 0x610AU, IKRMiniParamType.DEST, "branch if positive", true),
+    BMI("BMI", 0x610BU, IKRMiniParamType.DEST, "branch if negative", true),
+    BGE("BGE", 0x610CU, IKRMiniParamType.DEST, "branch if greater or equal", true),
+    BLT("BLT", 0x610DU, IKRMiniParamType.DEST, "branch if less than", true),
+    BGT("BGT", 0x610EU, IKRMiniParamType.DEST, "branch if greater than", true),
+    BLE("BLE", 0x610FU, IKRMiniParamType.DEST, "branch if less or equal", true);
 
     override val typeName: String = name
     override val bytesNeeded: Int? = paramType.wordAmount * 2
     override val inCodeInfo: String? get() = description
     override val paramRule: Rule? get() = paramType.rule
 
-    override fun checkSemantic(instr: ASNode.Instruction) {
+    override fun build(instr: ASNode.Instruction): ByteBuffer {
         TODO("Not yet implemented")
     }
 
-    override fun build(builder: ELFBuilder, instr: ASNode.Instruction) {
+    override fun lateEvaluation(instrDef: ELFBuilder.Section.InstrDef): ByteBuffer {
         TODO("Not yet implemented")
     }
+
 
 }

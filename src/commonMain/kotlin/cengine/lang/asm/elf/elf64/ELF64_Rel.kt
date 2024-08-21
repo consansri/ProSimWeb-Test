@@ -3,6 +3,8 @@ package cengine.lang.asm.elf.elf64
 import cengine.lang.asm.elf.Elf64_Addr
 import cengine.lang.asm.elf.Elf_Xword
 import cengine.lang.asm.elf.Rel
+import cengine.lang.asm.elf.elf64.ELF64_Rel.Companion.R_SYM
+import cengine.lang.asm.elf.elf64.ELF64_Rel.Companion.R_TYPE
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
 
@@ -31,7 +33,7 @@ import cengine.util.Endianness
  * processor-specific; descriptions of their behavior appear in the processor
  * supplement. When the text in the processor supplement refers to a
  * relocation entry's relocation type or symbol table index, it means the result
- * of applying [ELF32_R_TYPE] or  [ELF32_R_SYM], respectively, to the
+ * of applying [R_TYPE] or  [R_SYM], respectively, to the
  * entry's [r_info] member.
  *
  */
@@ -39,6 +41,12 @@ data class ELF64_Rel(
     var r_offset: Elf64_Addr,
     var r_info: Elf_Xword
 ): Rel {
+
+    companion object{
+        fun R_SYM(i: Elf_Xword) = i.shr(32)
+        fun R_TYPE(i: Elf_Xword) = i.and(0xffffffffUL)
+        fun R_INFO(s: Elf_Xword, t: Elf_Xword) = s.shl(32) + t.and(0xffffffffUL)
+    }
 
     override fun build(endianness: Endianness): ByteArray {
         val b = ByteBuffer(endianness)

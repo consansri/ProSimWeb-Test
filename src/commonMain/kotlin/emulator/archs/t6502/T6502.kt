@@ -9,9 +9,9 @@ import emulator.kit.memory.*
 import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
 import emulator.kit.optional.SetupSetting
-import emulator.core.Size.Bit16
-import emulator.core.Size.Bit8
-import emulator.core.Value.Hex
+import cengine.util.integer.Size.Bit16
+import cengine.util.integer.Size.Bit8
+import cengine.util.integer.Value.Hex
 import emulator.core.*
 
 

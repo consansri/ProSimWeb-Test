@@ -1,5 +1,6 @@
 package emulator.archs.riscv64
 
+import cengine.util.integer.Size
 import emulator.archs.ArchRV64
 import emulator.archs.riscv64.CSRegister.Privilege
 import emulator.kit.common.Docs
@@ -13,9 +14,9 @@ import emulator.kit.config.Config
 import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
 import emulator.core.*
-import emulator.core.Size.*
-import emulator.core.Value.Bin
-import emulator.core.Value.Hex
+import cengine.util.integer.Size.*
+import cengine.util.integer.Value.Bin
+import cengine.util.integer.Value.Hex
 
 data object RV64 {
 

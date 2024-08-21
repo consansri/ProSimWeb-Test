@@ -2,10 +2,10 @@ package emulator.archs.ikrrisc2
 
 import Settings
 import emulator.archs.ikrrisc2.IKRRisc2BinMapper.MaskLabel.*
-import emulator.core.Size
-import emulator.core.Size.*
-import emulator.core.Value.Bin
-import emulator.core.Value.Dec
+import cengine.util.integer.Size
+import cengine.util.integer.Size.*
+import cengine.util.integer.Value.Bin
+import cengine.util.integer.Value.Dec
 import emulator.kit.Architecture
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.RegContainer

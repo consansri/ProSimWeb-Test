@@ -3,11 +3,11 @@ package emulator.archs.riscv32
 import Settings
 import debug.DebugTools
 import emulator.archs.riscv32.RV32Syntax.InstrType.*
-import emulator.core.Size
-import emulator.core.Size.*
-import emulator.core.Value
-import emulator.core.Value.Bin
-import emulator.core.Value.Hex
+import cengine.util.integer.Size
+import cengine.util.integer.Size.*
+import cengine.util.integer.Value
+import cengine.util.integer.Value.Bin
+import cengine.util.integer.Value.Hex
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeWarn
 

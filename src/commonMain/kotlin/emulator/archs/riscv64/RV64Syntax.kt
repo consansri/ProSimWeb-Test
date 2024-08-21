@@ -1,5 +1,7 @@
 package emulator.archs.riscv64
 
+import cengine.util.integer.Size
+import cengine.util.integer.Value
 import emulator.archs.ArchRV64
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel
 import emulator.kit.assembler.InstrTypeInterface
@@ -8,8 +10,7 @@ import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.syntax.Rule
 import emulator.kit.memory.Memory
 import emulator.kit.nativeLog
-import emulator.core.*
-import emulator.core.Value.Bin
+import cengine.util.integer.Value.Bin
 import kotlin.time.measureTime
 
 
