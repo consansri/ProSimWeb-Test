@@ -1,7 +1,6 @@
 package emulator.archs.ikrrisc2
 
-import cengine.util.integer.Size
-import cengine.util.integer.Value
+import cengine.util.integer.*
 import emulator.archs.ArchIKRRisc2
 import emulator.archs.ikrrisc2.IKRRisc2BinMapper.MaskLabel.*
 import emulator.archs.ikrrisc2.IKRRisc2BinMapper.OpCode
@@ -135,7 +134,7 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
     },
     AND1i("and1i", ParamType.I_TYPE, OpCode("000101 00000 00000 0000000000000000", OPCODE, RC, RB, IMM16), "verknüpfe logisch Und mit Konstante (höherwertiges Halbwort 11...1)") {
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
-            val imm = Value.Bin("1".repeat(IKRRisc2.WORD_WIDTH.bitWidth / 2) + decodeResult.imm16.toRawString(), IKRRisc2.WORD_WIDTH)
+            val imm = Bin("1".repeat(IKRRisc2.WORD_WIDTH.bitWidth / 2) + decodeResult.imm16.toRawString(), IKRRisc2.WORD_WIDTH)
             decodeResult.rc.set(decodeResult.rb.get().toBin() and imm)
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
@@ -226,7 +225,7 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
             val binStr = decodeResult.rb.get().toBin().toRawString()
             val swappedStr = binStr.substring(8, 16) + binStr.substring(0, 8) + binStr.substring(24, 32) + binStr.substring(16, 24)
-            decodeResult.rc.set(Value.Bin(swappedStr, IKRRisc2.WORD_WIDTH))
+            decodeResult.rc.set(Bin(swappedStr, IKRRisc2.WORD_WIDTH))
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
     },
@@ -234,7 +233,7 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
             val binStr = decodeResult.rb.get().toBin().toRawString()
             val swappedStr = binStr.substring(16, 32) + binStr.substring(0, 16)
-            decodeResult.rc.set(Value.Bin(swappedStr, IKRRisc2.WORD_WIDTH))
+            decodeResult.rc.set(Bin(swappedStr, IKRRisc2.WORD_WIDTH))
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
     },

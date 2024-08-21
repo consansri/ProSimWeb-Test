@@ -1,9 +1,9 @@
 package prosim.ui.components.transcript
 
-import cengine.util.integer.Value
-import emulator.core.*
+import cengine.util.integer.Hex
 import cengine.util.integer.Size.*
 import cengine.util.integer.Value.*
+import emulator.core.*
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.Process
 import emulator.kit.assembler.gas.GASParser
@@ -107,7 +107,7 @@ class TranscriptView() : CPanel(primary = false), StateListener<Workspace?> {
      * Executes the code until the specified address.
      * @param address The address to execute until.
      */
-    private fun executeUntilAddress(address: Value.Hex) {
+    private fun executeUntilAddress(address: Hex) {
         States.arch.get().exeUntilAddress(address)
         Events.exe.triggerEvent(States.arch.get())
     }

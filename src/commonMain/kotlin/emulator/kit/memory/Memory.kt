@@ -4,8 +4,7 @@ import cengine.util.integer.Size
 import cengine.util.integer.Value
 import emulator.core.*
 import cengine.util.integer.Size.Bit8
-import cengine.util.integer.Value.Tools.toValue
-import cengine.util.integer.Value.Hex
+import cengine.util.integer.*
 
 /**
  * Represents a Memory class that provides functionality for loading, storing, and managing memory instances.
@@ -26,8 +25,8 @@ import cengine.util.integer.Value.Hex
  *   stores the value of the variable at the specified memory address with optional parameters for marking and readonly
  * - storeArray(address: Value, vararg values: Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false): Unit,
  *   stores an array of values starting at the specified memory address with optional parameters for marking and readonly
- * - load(address: Value, amount: Int): Value.Bin, loads a specified amount of values starting at the memory address
- * - loadArray(address: Value, amount: Int): Array<Value.Bin>, loads an array of values starting at the memory address
+ * - load(address: Value, amount: Int): Bin, loads a specified amount of values starting at the memory address
+ * - loadArray(address: Value, amount: Int): Array<Bin>, loads an array of values starting at the memory address
  * - getInitialBinary(): Variable, returns the initial binary value of the memory
  *
  * Nested Classes:

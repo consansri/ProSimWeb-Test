@@ -1,11 +1,11 @@
 package emulator.archs.t6502
 
-import emulator.archs.ArchT6502
-import emulator.archs.t6502.AModes.*
+import cengine.util.integer.Bin
+import cengine.util.integer.Hex
 import cengine.util.integer.Size.Bit1
 import cengine.util.integer.Size.Bit9
-import cengine.util.integer.Value.Bin
-import cengine.util.integer.Value.Hex
+import emulator.archs.ArchT6502
+import emulator.archs.t6502.AModes.*
 import emulator.kit.assembler.InstrTypeInterface
 import emulator.kit.memory.Memory
 

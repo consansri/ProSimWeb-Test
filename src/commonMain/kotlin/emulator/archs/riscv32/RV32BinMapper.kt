@@ -6,8 +6,8 @@ import emulator.archs.riscv32.RV32Syntax.InstrType.*
 import cengine.util.integer.Size
 import cengine.util.integer.Size.*
 import cengine.util.integer.Value
-import cengine.util.integer.Value.Bin
-import cengine.util.integer.Value.Hex
+import cengine.util.integer.Bin
+import cengine.util.integer.Hex
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeWarn
 
@@ -94,8 +94,8 @@ object RV32BinMapper {
                    }
 
                    val imm12 = offset.shr(1).getResized(Size.Bit12).toRawString()
-                   val imm5 = Value.Bin(imm12.substring(8) + imm12[1], Size.Bit5)
-                   val imm7 = Value.Bin(imm12[0] + imm12.substring(2, 8), Size.Bit7)
+                   val imm5 = Bin(imm12.substring(8) + imm12[1], Size.Bit5)
+                   val imm7 = Bin(imm12[0] + imm12.substring(2, 8), Size.Bit7)
 
                    val opCode = instr.type.relative?.opCode?.getOpCode(mapOf(MaskLabel.RS1 to regs[0], MaskLabel.RS2 to regs[1], MaskLabel.IMM5 to imm5, MaskLabel.IMM7 to imm7))
                    opCode?.let {

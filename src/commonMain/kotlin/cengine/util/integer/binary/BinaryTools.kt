@@ -1,4 +1,4 @@
-package cengine.util.integer
+package cengine.util.integer.binary
 
 import Settings
 import debug.DebugTools

@@ -1,10 +1,8 @@
 package emulator.archs.riscv64
 
 import debug.DebugTools
-import cengine.util.integer.Size
+import cengine.util.integer.*
 import cengine.util.integer.Size.*
-import cengine.util.integer.Value
-import cengine.util.integer.Value.*
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface

@@ -1,6 +1,7 @@
-package cengine.util.integer
+package cengine.util.integer.decimal
 
 import Settings
+import cengine.util.integer.Size
 import debug.DebugTools
 import emulator.kit.nativeError
 import emulator.kit.nativeInfo
@@ -9,7 +10,7 @@ import emulator.kit.nativeWarn
 /**
  * This Object contains all performant relevant decimal calculations based on [String] representations.
  */
-object DecTools {
+object DecimalTools {
 
     private val negRegex = Regex("-[0-9]+")
     private val posRegex = Regex("[0-9]+")

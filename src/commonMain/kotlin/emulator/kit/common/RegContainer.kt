@@ -1,5 +1,6 @@
 package emulator.kit.common
 
+import cengine.util.integer.Bin
 import cengine.util.integer.Size
 import cengine.util.integer.Value
 import emulator.core.Variable
@@ -13,13 +14,13 @@ import emulator.kit.optional.Feature
  */
 class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize: Size, private val standardRegFileName: String) {
 
-    val pc = PC(Variable("0", pcSize), Value.Bin("0", pcSize))
+    val pc = PC(Variable("0", pcSize), Bin("0", pcSize))
 
     fun clear() {
         for (registerFile in registerFileList) {
             registerFile.clearAll()
         }
-        pc.set(Value.Bin("0", pcSize))
+        pc.set(Bin("0", pcSize))
     }
 
     fun getReg(name: String, features: List<Feature>, regFile: String? = null): Register? {

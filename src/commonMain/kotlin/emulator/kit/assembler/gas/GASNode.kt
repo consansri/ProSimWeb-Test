@@ -1,7 +1,7 @@
 package emulator.kit.assembler.gas
 
-import cengine.util.integer.Size
-import cengine.util.integer.Value
+import cengine.util.integer.*
+import cengine.util.string.asciiToHexString
 import debug.DebugTools
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.CodeStyle
@@ -497,11 +497,11 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
             this.addChilds(*spaces.map { BaseNode(it) }.toTypedArray())
         }
 
-        abstract fun evaluate(throwErrors: Boolean): Value.Dec
+        abstract fun evaluate(throwErrors: Boolean): Dec
 
         abstract fun assignSymbols(assignedSymbols: List<GASParser.Symbol>)
         abstract fun isDefined(): Boolean
-        abstract fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Value.Hex>>)
+        abstract fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Hex>>)
 
         companion object {
             fun parse(tokens: List<Token>, assignedSymbols: List<GASParser.Symbol>, allowSymbolsAsOperands: Boolean = true): NumericExpr? {
@@ -711,7 +711,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                 addChild(BaseNode(operator))
             }
 
-            override fun evaluate(throwErrors: Boolean): Value.Dec {
+            override fun evaluate(throwErrors: Boolean): Dec {
                 return when (operator.type) {
                     Token.Type.COMPLEMENT -> operand.evaluate(throwErrors).toBin().inv().toDec()
                     Token.Type.MINUS -> (-operand.evaluate(throwErrors)).toDec()
@@ -722,7 +722,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                 }
             }
 
-            override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Value.Hex>>) {
+            override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Hex>>) {
                 operand.assignLabels(assigendLabels)
             }
 
@@ -745,7 +745,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                 addChild(BaseNode(operator))
             }
 
-            override fun evaluate(throwErrors: Boolean): Value.Dec {
+            override fun evaluate(throwErrors: Boolean): Dec {
                 return (when (operator.type) {
                     Token.Type.MULT -> operandA.evaluate(throwErrors) * operandB.evaluate(throwErrors)
                     Token.Type.DIV -> operandA.evaluate(throwErrors) / operandB.evaluate(throwErrors)
@@ -771,7 +771,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                 operandB.assignSymbols(assignedSymbols)
             }
 
-            override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Value.Hex>>) {
+            override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Hex>>) {
                 operandA.assignLabels(assigendLabels)
                 operandB.assignLabels(assigendLabels)
             }
@@ -788,7 +788,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                 private var expr: NumericExpr? = null
                 private var labelAddr: Value? = null
                 fun isLinked(): Boolean = expr != null
-                override fun evaluate(throwErrors: Boolean): Value.Dec {
+                override fun evaluate(throwErrors: Boolean): Dec {
                     val currExpr = expr
                     if (currExpr != null) {
                         return currExpr.evaluate(throwErrors)
@@ -801,7 +801,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
 
                     if (throwErrors) throw Parser.ParserError(symbol, "Unknown Numeric Identifier!")
                     //symbol.addSeverity(Severity.Type.ERROR, "Can't evaluate from a undefined symbol. Returning 0.")
-                    return Value.Dec("0", Size.Bit32)
+                    return Dec("0", Size.Bit32)
                 }
 
                 override fun print(prefix: String): String = "$prefix<$symbol>"
@@ -834,7 +834,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                     }
                 }
 
-                override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Value.Hex>>) {
+                override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Hex>>) {
                     val assignment = when (symbol.type) {
                         Token.Type.L_LABEL_REF -> {
                             val backwards = symbol.content.endsWith("b")
@@ -875,7 +875,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
 
             class Number(val number: Token) : Operand(number) {
                 val type: Type
-                val value: Value.Dec
+                val value: Dec
 
                 init {
                     val intVal: Value?
@@ -883,46 +883,46 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                     val bigNum128: Value?
                     when (number.type) {
                         Token.Type.INT_BIN -> {
-                            val possibleInt = Value.Bin(number.onlyNumber, Size.Bit32)
+                            val possibleInt = Bin(number.onlyNumber, Size.Bit32)
                             intVal = if (possibleInt.getBit(0)?.toRawString() == "1") null else possibleInt
 
-                            val possibleBigNum64 = Value.Bin(number.onlyNumber, Size.Bit64)
+                            val possibleBigNum64 = Bin(number.onlyNumber, Size.Bit64)
                             bigNum64 = if (possibleBigNum64.getBit(0)?.toRawString() == "1") null else possibleBigNum64
 
-                            val possibleBigNum128 = Value.Bin(number.onlyNumber, Size.Bit128)
+                            val possibleBigNum128 = Bin(number.onlyNumber, Size.Bit128)
                             bigNum128 = if (possibleBigNum128.getBit(0)?.toRawString() == "1") null else possibleBigNum128
                         }
 
                         Token.Type.INT_HEX -> {
-                            val possibleInt = Value.Hex(number.onlyNumber, Size.Bit32)
+                            val possibleInt = Hex(number.onlyNumber, Size.Bit32)
                             intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
 
-                            val possibleBigNum = Value.Hex(number.onlyNumber, Size.Bit64)
+                            val possibleBigNum = Hex(number.onlyNumber, Size.Bit64)
                             bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
 
-                            val possibleBigNum128 = Value.Hex(number.onlyNumber, Size.Bit128)
+                            val possibleBigNum128 = Hex(number.onlyNumber, Size.Bit128)
                             bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
                         }
 
                         Token.Type.INT_OCT -> {
-                            val possibleInt = Value.Oct(number.onlyNumber, Size.Bit32)
+                            val possibleInt = Oct(number.onlyNumber, Size.Bit32)
                             intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
 
-                            val possibleBigNum = Value.Oct(number.onlyNumber, Size.Bit64)
+                            val possibleBigNum = Oct(number.onlyNumber, Size.Bit64)
                             bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
 
-                            val possibleBigNum128 = Value.Oct(number.onlyNumber, Size.Bit128)
+                            val possibleBigNum128 = Oct(number.onlyNumber, Size.Bit128)
                             bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
                         }
 
                         Token.Type.INT_DEC -> {
-                            val possibleInt = Value.UDec(number.onlyNumber, Size.Bit32)
+                            val possibleInt = UDec(number.onlyNumber, Size.Bit32)
                             intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
 
-                            val possibleBigNum = Value.UDec(number.onlyNumber, Size.Bit64)
+                            val possibleBigNum = UDec(number.onlyNumber, Size.Bit64)
                             bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
 
-                            val possibleBigNum128 = Value.UDec(number.onlyNumber, Size.Bit128)
+                            val possibleBigNum128 = UDec(number.onlyNumber, Size.Bit128)
                             bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
                         }
 
@@ -947,13 +947,13 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
 
                 override fun print(prefix: String): String = "$prefix$number"
 
-                override fun evaluate(throwErrors: Boolean): Value.Dec = value
+                override fun evaluate(throwErrors: Boolean): Dec = value
 
                 override fun assignSymbols(assignedSymbols: List<GASParser.Symbol>) {
                     // NOTHING
                 }
 
-                override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Value.Hex>>) {
+                override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Hex>>) {
                     // NOTHING
                 }
 
@@ -968,19 +968,19 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
 
             class Char(char: Token) : Operand(char) {
 
-                val value: Value.Dec
+                val value: Dec
 
                 init {
-                    val hexString = Value.Tools.asciiToHex(char.getContentAsString())
-                    value = Value.Hex(hexString, Size.Bit32).toDec()
+                    val hexString = char.getContentAsString().asciiToHexString()
+                    value = Hex(hexString, Size.Bit32).toDec()
                 }
 
-                override fun evaluate(throwErrors: Boolean): Value.Dec = value
+                override fun evaluate(throwErrors: Boolean): Dec = value
                 override fun assignSymbols(assignedSymbols: List<GASParser.Symbol>) {
                     // NOTHING
                 }
 
-                override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Value.Hex>>) {
+                override fun assignLabels(assigendLabels: List<Pair<GASParser.Label, Hex>>) {
                     // NOTHING
                 }
 

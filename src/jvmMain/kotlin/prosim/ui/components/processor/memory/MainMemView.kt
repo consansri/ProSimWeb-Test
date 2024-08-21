@@ -1,6 +1,6 @@
 package prosim.ui.components.processor.memory
 
-import cengine.util.integer.Value
+import cengine.util.integer.Hex
 import emulator.kit.Architecture
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.MainMemory
@@ -55,7 +55,7 @@ class MainMemView(val memory: MainMemory) : CPanel(primary = false), StateListen
                         it.row.toRawString() == rowAddr.toString() && it.offset == offset
                     }
                     memInstance?.let { memInst ->
-                        val hex = Value.Hex(newValue.toString(), memory.instanceSize)
+                        val hex = Hex(newValue.toString(), memory.instanceSize)
                         if (hex.valid) {
                             memInst.variable.set(hex)
                         }

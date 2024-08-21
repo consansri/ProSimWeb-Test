@@ -1,7 +1,8 @@
 package emulator.archs.riscv64
 
+import cengine.util.integer.Bin
+import cengine.util.integer.Hex
 import cengine.util.integer.Size
-import cengine.util.integer.Value
 import emulator.archs.ArchRV64
 import emulator.archs.riscv64.RV64BinMapper.MaskLabel
 import emulator.kit.assembler.InstrTypeInterface
@@ -10,7 +11,6 @@ import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.syntax.Rule
 import emulator.kit.memory.Memory
 import emulator.kit.nativeLog
-import cengine.util.integer.Value.Bin
 import kotlin.time.measureTime
 
 
@@ -247,7 +247,7 @@ class RV64Syntax {
                 val shiftedIMM = imm20.getResized(RV64.XLEN) shl 12 // from imm20 to imm32
                 // change states
                 rd.set(shiftedIMM)    // set register to imm32 value
-                pc.set(pc.get() + Value.Hex("4"))
+                pc.set(pc.get() + Hex("4"))
             }
         },
         AUIPC("AUIPC", false, ParamType.RD_I20, RV64BinMapper.OpCode("00000000000000000000 00000 0010111", arrayOf(MaskLabel.IMM20, MaskLabel.RD, MaskLabel.OPCODE))) {
@@ -262,7 +262,7 @@ class RV64Syntax {
                         val shiftedIMM = imm20.getUResized(RV64.XLEN) shl 12
                         val sum = pc.get() + shiftedIMM
                         rd.set(sum)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -286,7 +286,7 @@ class RV64Syntax {
 
                         val shiftedImm = Bin(imm20str[0].toString() + imm20str.substring(12) + imm20str[11] + imm20str.substring(1, 11), Size.Bit20).getResized(RV64.XLEN) shl 1
 
-                        rd.set(pc.get() + Value.Hex("4"))
+                        rd.set(pc.get() + Hex("4"))
                         pc.set(pc.get() + shiftedImm)
                     }
                 }
@@ -304,7 +304,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && imm12 != null && rs1 != null) {
                         val jumpAddr = rs1.get() + imm12.getResized(RV64.XLEN)
-                        rd.set(pc.get() + Value.Hex("4"))
+                        rd.set(pc.get() + Hex("4"))
                         pc.set(jumpAddr)
                     }
                 }
@@ -335,7 +335,7 @@ class RV64Syntax {
                         if (rs1.get().toBin() == rs2.get().toBin()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Value.Hex("4"))
+                            pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
@@ -363,7 +363,7 @@ class RV64Syntax {
                         if (rs1.get().toBin() != rs2.get().toBin()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Value.Hex("4"))
+                            pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
@@ -391,7 +391,7 @@ class RV64Syntax {
                         if (rs1.get().toDec() < rs2.get().toDec()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Value.Hex("4"))
+                            pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
@@ -419,7 +419,7 @@ class RV64Syntax {
                         if (rs1.get().toDec() >= rs2.get().toDec()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Value.Hex("4"))
+                            pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
@@ -447,7 +447,7 @@ class RV64Syntax {
                         if (rs1.get().toUDec() < rs2.get().toUDec()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Value.Hex("4"))
+                            pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
@@ -475,7 +475,7 @@ class RV64Syntax {
                         if (rs1.get().toUDec() >= rs2.get().toUDec()) {
                             pc.set(pc.get() + offset)
                         } else {
-                            pc.set(pc.get() + Value.Hex("4"))
+                            pc.set(pc.get() + Hex("4"))
                         }
                     }
                 }
@@ -495,7 +495,7 @@ class RV64Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
                         val loadedByte = arch.dataMemory.load(memAddr.toHex(), tracker =  tracker).toBin().getResized(RV64.XLEN)
                         rd.set(loadedByte)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -514,7 +514,7 @@ class RV64Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
                         val loadedHalfWord = arch.dataMemory.load(memAddr.toHex(), 2, tracker =  tracker).toBin().getResized(RV64.XLEN)
                         rd.set(loadedHalfWord)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -533,7 +533,7 @@ class RV64Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
                         val loadedWord = arch.dataMemory.load(memAddr.toHex(), 4, tracker =  tracker).toBin().getResized(RV64.XLEN)
                         rd.set(loadedWord)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -552,7 +552,7 @@ class RV64Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
                         val loadedWord = arch.dataMemory.load(memAddr.toHex(), 8, tracker =  tracker).toBin().getResized(RV64.XLEN)
                         rd.set(loadedWord)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -571,7 +571,7 @@ class RV64Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
                         val loadedByte = arch.dataMemory.load(memAddr.toHex(), tracker =  tracker).toBin()
                         rd.set(loadedByte.toBin().getUResized(RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -590,7 +590,7 @@ class RV64Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
                         val loadedByte = arch.dataMemory.load(memAddr.toHex(), 2, tracker =  tracker)
                         rd.set(loadedByte.getUResized(RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -609,7 +609,7 @@ class RV64Syntax {
                         val memAddr = rs1.get().toBin() + imm12.getResized(RV64.XLEN)
                         val loadedWord = arch.dataMemory.load(memAddr.toHex(), 4, tracker =  tracker)
                         rd.set(loadedWord.getUResized(RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -629,7 +629,7 @@ class RV64Syntax {
                         val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
                         val memAddr = rs1.get().toBin().getResized(RV64.XLEN) + off64
                         arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Size.Bit8), tracker =  tracker)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -649,7 +649,7 @@ class RV64Syntax {
                         val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
                         val memAddr = rs1.get().toBin().getResized(RV64.XLEN) + off64
                         arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Size.Bit16), tracker =  tracker)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -669,7 +669,7 @@ class RV64Syntax {
                         val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
                         val memAddr = rs1.variable.get().toBin().getResized(RV64.XLEN) + off64
                         arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(Size.Bit32), tracker =  tracker)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -689,7 +689,7 @@ class RV64Syntax {
                         val off64 = (imm7.getResized(RV64.XLEN) shl 5) + imm5
                         val memAddr = rs1.variable.get().toBin().getResized(RV64.XLEN) + off64
                         arch.dataMemory.store(memAddr.toHex(), rs2.get().toBin().getResized(RV64.XLEN), tracker =  tracker)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -708,7 +708,7 @@ class RV64Syntax {
                         val paddedImm64 = imm12.getResized(RV64.XLEN)
                         val sum = rs1.get().toBin() + paddedImm64
                         rd.set(sum)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -727,7 +727,7 @@ class RV64Syntax {
                         val paddedImm32 = imm12.getResized(Size.Bit32)
                         val sum = rs1.get().toBin().getResized(Size.Bit32) + paddedImm32
                         rd.set(sum.toBin().getResized(RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -745,7 +745,7 @@ class RV64Syntax {
                     if (rd != null && imm12 != null && rs1 != null) {
                         val paddedImm64 = imm12.getResized(RV64.XLEN)
                         rd.set(if (rs1.get().toDec() < paddedImm64.toDec()) Bin("1", RV64.XLEN) else Bin("0", RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -763,7 +763,7 @@ class RV64Syntax {
                     if (rd != null && imm12 != null && rs1 != null) {
                         val paddedImm64 = imm12.getUResized(RV64.XLEN)
                         rd.set(if (rs1.get().toBin() < paddedImm64) Bin("1", RV64.XLEN) else Bin("0", RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -781,7 +781,7 @@ class RV64Syntax {
                     if (rd != null && imm12 != null && rs1 != null) {
                         val paddedImm64 = imm12.getResized(RV64.XLEN)
                         rd.set(rs1.get().toBin() xor paddedImm64)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -799,7 +799,7 @@ class RV64Syntax {
                     if (rd != null && imm12 != null && rs1 != null) {
                         val paddedImm64 = imm12.getResized(RV64.XLEN)
                         rd.set(rs1.get().toBin() or paddedImm64)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -817,7 +817,7 @@ class RV64Syntax {
                     if (rd != null && imm12 != null && rs1 != null) {
                         val paddedImm64 = imm12.getResized(RV64.XLEN)
                         rd.set(rs1.get().toBin() and paddedImm64)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -837,7 +837,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
                         rd.set(rs1.get().toBin() ushl (shamt6.toUDec().toIntOrNull() ?: 0))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -857,7 +857,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
                         rd.set((rs1.get().toBin().getUResized(Size.Bit32) ushl shamt6.getUResized(Size.Bit5).toRawString().toInt(2)).getResized(RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -877,7 +877,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
                         rd.set(rs1.get().toBin() ushr shamt6.toRawString().toInt(2))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -897,7 +897,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
                         rd.set((rs1.get().toBin().getUResized(Size.Bit32) ushr shamt6.getUResized(Size.Bit5).toRawString().toInt(2)).getResized(RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -917,7 +917,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
                         rd.set(rs1.get().toBin() shr shamt6.toRawString().toInt(2))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -937,7 +937,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
                         rd.set((rs1.get().toBin().getUResized(Size.Bit32) shr shamt6.getUResized(Size.Bit5).toRawString().toInt(2)).getResized(RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -958,7 +958,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() + rs2.get().toBin())
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -979,7 +979,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set((rs1.get().toBin().getResized(Size.Bit32) + rs2.get().toBin().getResized(Size.Bit32)).toBin().getResized(RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1000,7 +1000,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() - rs2.get().toBin())
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1021,7 +1021,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set((rs1.get().toBin().getResized(Size.Bit32) - rs2.get().toBin().getResized(Size.Bit32)).toBin().getResized(RV64.XLEN))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1042,7 +1042,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() ushl rs2.get().toBin().getUResized(Size.Bit6).toRawString().toInt(2))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1063,7 +1063,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin().getUResized(Size.Bit32) ushl rs2.get().toBin().getUResized(Size.Bit5).toRawString().toInt(2))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1084,7 +1084,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(if (rs1.get().toDec() < rs2.get().toDec()) Bin("1", Size.Bit32) else Bin("0", Size.Bit32))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1105,7 +1105,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(if (rs1.get().toBin() < rs2.get().toBin()) Bin("1", Size.Bit32) else Bin("0", Size.Bit32))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1126,7 +1126,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() xor rs2.get().toBin())
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1147,7 +1147,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() ushr rs2.get().toBin().getUResized(Size.Bit6).toRawString().toInt(2))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1168,7 +1168,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin().getUResized(Size.Bit32) ushr rs2.get().toBin().getUResized(Size.Bit5).toRawString().toInt(2))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1189,7 +1189,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() shr rs2.get().toBin().getUResized(Size.Bit6).toRawString().toInt(2))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1210,7 +1210,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin().getUResized(Size.Bit32) shr rs2.get().toBin().getUResized(Size.Bit5).toRawString().toInt(2))
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1233,7 +1233,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() or rs2.get().toBin())
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1254,7 +1254,7 @@ class RV64Syntax {
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
                         rd.set(rs1.get().toBin() and rs2.get().toBin())
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1286,7 +1286,7 @@ class RV64Syntax {
 
                         csr.set(rs1.get())
 
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1316,7 +1316,7 @@ class RV64Syntax {
 
                         csr.set(rs1.get().toBin() or csr.get().toBin())
 
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1346,7 +1346,7 @@ class RV64Syntax {
 
                         csr.set(csr.get().toBin() and rs1.get().toBin().inv())
 
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1375,7 +1375,7 @@ class RV64Syntax {
 
                         csr.set(uimm5.getUResized(RV64.XLEN))
 
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1404,7 +1404,7 @@ class RV64Syntax {
 
                         csr.set(csr.get().toBin() or uimm5.getUResized(RV64.XLEN))
 
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1433,7 +1433,7 @@ class RV64Syntax {
 
                         csr.set(csr.get().toBin() and uimm5.getUResized(RV64.XLEN).inv())
 
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1466,7 +1466,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexTimesSigned(factor2)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1494,7 +1494,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexTimesSigned(factor2, false).shr(RV64.XLEN.bitWidth).getResized(RV64.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1522,7 +1522,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexTimesSigned(factor2, resizeToLargestParamSize = false, true).ushr(RV64.XLEN.bitWidth).getResized(RV64.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1550,7 +1550,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = (factor1 * factor2).toBin().ushr(RV64.XLEN.bitWidth).getUResized(RV64.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1578,7 +1578,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexDivSigned(factor2, dividendIsUnsigned = true)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1606,7 +1606,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1 / factor2
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1634,7 +1634,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexRemSigned(factor2)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1662,7 +1662,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1 % factor2
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1692,7 +1692,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin()
                         val result = factor1.flexTimesSigned(factor2).getUResized(Size.Bit32).getResized(RV64.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1720,7 +1720,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin().getUResized(Size.Bit32)
                         val result = factor1.flexDivSigned(factor2, dividendIsUnsigned = true).getUResized(RV64.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1748,7 +1748,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin().getUResized(Size.Bit32)
                         val result = (factor1 / factor2).toBin().getUResized(RV64.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1776,7 +1776,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin().getUResized(Size.Bit32)
                         val result = factor1.flexRemSigned(factor2).getUResized(RV64.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }
@@ -1804,7 +1804,7 @@ class RV64Syntax {
                         val factor2 = rs2.get().toBin().getUResized(Size.Bit32)
                         val result = (factor1 % factor2).toBin().getUResized(RV64.XLEN)
                         rd.set(result)
-                        pc.set(pc.get() + Value.Hex("4"))
+                        pc.set(pc.get() + Hex("4"))
                     }
                 }
             }

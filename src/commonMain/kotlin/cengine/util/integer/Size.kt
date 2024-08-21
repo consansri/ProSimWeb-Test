@@ -1,5 +1,8 @@
 package cengine.util.integer
 
+import Settings
+import cengine.util.integer.decimal.DecimalTools
+import emulator.kit.nativeWarn
 import kotlin.math.roundToInt
 
 /**
@@ -58,4 +61,95 @@ sealed class Size(val name: String, val bitWidth: Int) {
     object Bit60 : Size("60 Bit", 60)
     object Bit64 : Size("64 Bit", 64)
     object Bit128 : Size("128 Bit", 128)
+
+    companion object {
+        fun nearestSize(bitWidth: Int): Size {
+            when {
+                bitWidth <= 8 -> {
+                    return Size.Bit8
+                }
+
+                bitWidth <= 16 -> {
+                    return Size.Bit16
+                }
+
+                bitWidth <= 32 -> {
+                    return Size.Bit32
+                }
+
+                bitWidth <= 64 -> {
+                    return Size.Bit64
+                }
+
+                bitWidth <= 128 -> {
+                    return Size.Bit128
+                }
+
+                else -> {
+                    nativeWarn("Bounds.getNearestSize(): $bitWidth is greater than possible maximum Size of 128bit -> returning Size.Bit128")
+                    return Size.Bit128
+                }
+            }
+        }
+
+        fun nearestDecSize(decString: String): Size {
+            val string = decString.trim().removePrefix(Settings.PRESTRING_DECIMAL)
+            when {
+                DecimalTools.isGreaterEqualThan(Bounds(Size.Bit8).max, string) && DecimalTools.isGreaterEqualThan(string, Bounds(Size.Bit8).min) -> {
+                    return Size.Bit8
+                }
+
+                DecimalTools.isGreaterEqualThan(Bounds(Size.Bit16).max, string) && DecimalTools.isGreaterEqualThan(string, Bounds(Size.Bit16).min) -> {
+                    return Size.Bit16
+                }
+
+                DecimalTools.isGreaterEqualThan(Bounds(Size.Bit32).max, string) && DecimalTools.isGreaterEqualThan(string, Bounds(Size.Bit32).min) -> {
+                    return Size.Bit32
+                }
+
+                DecimalTools.isGreaterEqualThan(Bounds(Size.Bit64).max, string) && DecimalTools.isGreaterEqualThan(string, Bounds(Size.Bit64).min) -> {
+                    return Size.Bit64
+                }
+
+                DecimalTools.isGreaterEqualThan(Bounds(Size.Bit128).max, string) && DecimalTools.isGreaterEqualThan(string, Bounds(Size.Bit128).min) -> {
+                    return Size.Bit128
+                }
+
+                else -> {
+                    nativeWarn("Bounds.getNearestDecSize(): $decString is not in Bounds of Size.Bit128 [max: ${Bounds(Bit128).max}, min: ${Bounds(Bit128).min}] -> returning Size.Bit128")
+                    return Size.Bit128
+                }
+            }
+        }
+
+        fun nearestUDecSize(udecString: String): Size {
+            val string = udecString.trim().removePrefix(Settings.PRESTRING_UDECIMAL)
+            when {
+                DecimalTools.isGreaterEqualThan(Bounds(Size.Bit8).umax, string) -> {
+                    return Size.Bit8
+                }
+
+                DecimalTools.isGreaterEqualThan(Bounds(Size.Bit16).umax, string) -> {
+                    return Size.Bit16
+                }
+
+                DecimalTools.isGreaterEqualThan(Bounds(Size.Bit32).umax, string) -> {
+                    return Size.Bit32
+                }
+
+                DecimalTools.isGreaterEqualThan(Bounds(Size.Bit64).umax, string) -> {
+                    return Size.Bit64
+                }
+
+                DecimalTools.isGreaterEqualThan(Bounds(Size.Bit128).umax, string) -> {
+                    return Size.Bit128
+                }
+
+                else -> {
+                    nativeWarn("Bounds.getNearestDecSize(): $udecString is not in Bounds of Size.Bit128 [max: ${Bounds(Bit128).umax}, min: ${Bounds(Bit128).umin}] -> returning Size.Bit128")
+                    return Size.Bit128
+                }
+            }
+        }
+    }
 }

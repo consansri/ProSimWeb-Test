@@ -6,7 +6,7 @@ import debug.DebugTools
 import emulator.kit.nativeWarn
 import emulator.core.*
 import cengine.util.integer.Size.Bit8
-import cengine.util.integer.Value.Hex
+import cengine.util.integer.Hex
 
 /**
  * Represents the main memory of a system.

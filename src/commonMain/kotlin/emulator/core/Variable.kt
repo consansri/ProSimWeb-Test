@@ -1,8 +1,6 @@
 package emulator.core
 
-import cengine.util.integer.Bounds
-import cengine.util.integer.Size
-import cengine.util.integer.Value
+import cengine.util.integer.*
 
 /**
  * [Variable] is the mutable version of [Value] which can contain several types all based on [String].
@@ -17,7 +15,7 @@ class Variable {
     constructor(initialBinary: String, size: Size) {
         this.initialBinary = initialBinary
         this.size = size
-        value = Value.Bin(initialBinary, size)
+        value = Bin(initialBinary, size)
     }
 
     constructor(value: Value) {
@@ -27,7 +25,7 @@ class Variable {
     }
 
     constructor(size: Size) {
-        this.value = Value.Bin("0", size)
+        this.value = Bin("0", size)
         this.size = size
         this.initialBinary = value.toBin().toString()
     }
@@ -51,27 +49,27 @@ class Variable {
     }
 
     fun setHex(hexString: String): Variable {
-        value = Value.Hex(hexString, size)
+        value = Hex(hexString, size)
         return this
     }
 
     fun setDec(decString: String): Variable {
-        value = Value.Dec(decString, size)
+        value = Dec(decString, size)
         return this
     }
 
     fun setUDec(udecString: String): Variable {
-        value = Value.UDec(udecString, size)
+        value = UDec(udecString, size)
         return this
     }
 
     fun setBin(binString: String): Variable {
-        value = Value.Bin(binString, size)
+        value = Bin(binString, size)
         return this
     }
 
     fun clear() {
-        value = Value.Bin(initialBinary, size)
+        value = Bin(initialBinary, size)
     }
 
     /* operator */

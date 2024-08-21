@@ -1,0 +1,54 @@
+package cengine.util.integer
+
+import cengine.util.integer.Size.Companion.nearestDecSize
+
+/**
+ * Quality of use extensions for [Value].
+ */
+
+
+/**
+ * [Dec] from signed dec string.
+ */
+fun String.asDec(size: Size): Dec = Dec(this, size)
+fun String.asDec(): Dec = Dec(this, nearestDecSize(this))
+fun String.asHex(size: Size): Hex = Hex(this, size)
+fun String.asHex(): Hex = Hex(this)
+fun String.asOct(size: Size): Oct = Oct(this, size)
+fun String.asOct(): Oct = Oct(this)
+fun String.asBin(size: Size): Bin = Bin(this, size)
+fun String.asBin(): Bin = Bin(this)
+
+fun Byte.toValue(size: Size = Size.Bit8): Dec = Dec(this.toString(), size)
+fun Short.toValue(size: Size = Size.Bit16): Dec = Dec(this.toString(), size)
+fun Int.toValue(size: Size = Size.Bit32): Dec = Dec(this.toString(), size)
+fun Long.toValue(size: Size = Size.Bit64): Dec = Dec(this.toString(), size)
+fun UShort.toValue(size: Size = Size.Bit16): UDec = UDec(this.toString(), size)
+fun UInt.toValue(size: Size = Size.Bit32): UDec = UDec(this.toString(), size)
+fun ULong.toValue(size: Size = Size.Bit64): UDec = UDec(this.toString(), size)
+
+fun Dec.toLong(): Long = this.toRawString().toLong()
+fun UDec.toULong(): ULong = this.toRawString().toULong()
+fun Bin.toULong(): ULong = this.toRawString().toULong(2)
+fun Oct.toULong(): ULong = this.toRawString().toULong(8)
+fun Hex.toULong(): ULong = this.toRawString().toULong(16)
+
+fun Dec.toInt(): Int = this.toRawString().toInt()
+fun UDec.toUInt(): UInt = this.toRawString().toUInt()
+fun Bin.toUInt(): UInt = this.toRawString().toUInt(2)
+fun Oct.toUInt(): UInt = this.toRawString().toUInt(8)
+fun Hex.toUInt(): UInt = this.toRawString().toUInt(16)
+
+fun Dec.toShort(): Short = this.toRawString().toShort()
+fun UDec.toUShort(): UShort = this.toRawString().toUShort()
+fun Bin.toUShort(): UShort = this.toRawString().toUShort(2)
+fun Oct.toUShort(): UShort = this.toRawString().toUShort(8)
+fun Hex.toUShort(): UShort = this.toRawString().toUShort(16)
+
+fun Dec.toByte(): Byte = this.toRawString().toByte()
+fun UDec.toUByte(): UByte = this.toRawString().toUByte()
+fun Bin.toUByte(): UByte = this.toRawString().toUByte(2)
+fun Oct.toUByte(): UByte = this.toRawString().toUByte(8)
+fun Hex.toUByte(): UByte = this.toRawString().toUByte(16)
+
+

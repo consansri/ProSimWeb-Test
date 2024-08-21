@@ -1,7 +1,6 @@
 package emulator.archs.riscv64
 
-import cengine.util.integer.Size
-import cengine.util.integer.Value.Tools.toValue
+import cengine.util.integer.*
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.gas.GASDirType

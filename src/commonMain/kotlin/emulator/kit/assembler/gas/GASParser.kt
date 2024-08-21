@@ -5,9 +5,7 @@ import cengine.util.integer.Value
 import debug.DebugTools
 import emulator.core.*
 import cengine.util.integer.Size.Bit16
-import cengine.util.integer.Value.Bin
-import cengine.util.integer.Value.Hex
-import cengine.util.integer.Value.Tools.mergeToChunks
+import cengine.util.integer.*
 import emulator.kit.assembler.*
 import emulator.kit.assembler.gas.GASNode.*
 import emulator.kit.assembler.lexer.Lexer

@@ -4,8 +4,8 @@ import Settings
 import emulator.archs.ikrrisc2.IKRRisc2BinMapper.MaskLabel.*
 import cengine.util.integer.Size
 import cengine.util.integer.Size.*
-import cengine.util.integer.Value.Bin
-import cengine.util.integer.Value.Dec
+import cengine.util.integer.Bin
+import cengine.util.integer.Dec
 import emulator.kit.Architecture
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.common.RegContainer

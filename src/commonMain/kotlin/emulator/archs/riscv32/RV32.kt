@@ -20,8 +20,8 @@ import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
 import emulator.core.*
 import cengine.util.integer.Size.*
-import cengine.util.integer.Value.Bin
-import cengine.util.integer.Value.Hex
+import cengine.util.integer.Bin
+import cengine.util.integer.Hex
 
 
 /**

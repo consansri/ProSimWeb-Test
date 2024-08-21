@@ -1,5 +1,6 @@
 package cengine.util.integer
 
+import cengine.util.integer.decimal.DecimalTools
 import emulator.kit.nativeError
 
 /**
@@ -205,6 +206,6 @@ class Bounds {
         this.min = min
         this.max = max
         this.umin = "0"
-        this.umax = DecTools.abs(DecTools.sub(min, max))
+        this.umax = DecimalTools.abs(DecimalTools.sub(min, max))
     }
 }

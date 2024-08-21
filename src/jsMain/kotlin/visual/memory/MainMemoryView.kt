@@ -2,7 +2,7 @@ package visual.memory
 
 import Settings
 import StyleAttr
-import cengine.util.integer.Value
+import cengine.util.integer.Hex
 import debug.DebugTools
 import emotion.react.css
 import emulator.kit.Architecture
@@ -90,7 +90,7 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
             ReactHTML.tbody {
                 ref = tbody
 
-                var previousAddress: Value.Hex? = null
+                var previousAddress: Hex? = null
                 val tempMemRows = memList.sortedBy { it.address.toRawString() }.groupBy { it.row.toRawString() }
                 val tempRevMemRows = memList.sortedBy { it.offset }.sortedByDescending { it.row.toRawString() }.groupBy { it.row.toRawString() }
                 if (DebugTools.REACT_showUpdateInfo) {
@@ -99,9 +99,9 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                 for (memRow in if (props.lowFirst) tempMemRows else tempRevMemRows) {
                     val rowsBetween = if (previousAddress != null) {
                         if (props.lowFirst) {
-                            Value.Hex(memRow.key) - previousAddress > Value.Hex(props.memory.entrysInRow.toString(16), props.memory.addressSize)
+                            Hex(memRow.key) - previousAddress > Hex(props.memory.entrysInRow.toString(16), props.memory.addressSize)
                         } else {
-                            previousAddress - Value.Hex(memRow.key) > Value.Hex(props.memory.entrysInRow.toString(16), props.memory.addressSize)
+                            previousAddress - Hex(memRow.key) > Hex(props.memory.entrysInRow.toString(16), props.memory.addressSize)
                         }
                     } else false
 
@@ -118,7 +118,7 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                             }
                         }
                     }
-                    previousAddress = Value.Hex(memRow.key, props.memory.addressSize)
+                    previousAddress = Hex(memRow.key, props.memory.addressSize)
                     ReactHTML.tr {
                         ReactHTML.th {
                             className = ClassName(StyleAttr.Main.Table.CLASS_TXT_CENTER)
@@ -218,7 +218,7 @@ val MainMemoryView = FC<MainMemViewProps> {props ->
                     defaultValue = editVar.variable.get().toHex().toRawString()
 
                     onChange = {
-                        val hex = Value.Hex(it.currentTarget.value, props.archState.component1().memory.instanceSize)
+                        val hex = Hex(it.currentTarget.value, props.archState.component1().memory.instanceSize)
                         if (hex.valid) {
                             editVar.variable.set(hex)
                         } else {

@@ -1,6 +1,6 @@
 package emulator.archs.t6502
 
-import cengine.util.integer.Value
+import cengine.util.integer.*
 import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.syntax.Rule
@@ -30,7 +30,7 @@ enum class AModes(val tokenSequence: Rule?, val byteAmount: Int, val exampleStri
 
     IMPLIED(null, 1, exampleString = "", description = "implied"); // Implied: i
 
-    fun getString(threeByte: Array<Value.Bin>): String {
+    fun getString(threeByte: Array<Bin>): String {
         val smallVal = threeByte.get(1).toHex().toRawString()
         val bigVal = threeByte.drop(1).joinToString("") { it.toHex().toRawString() }
         return when (this) {
@@ -50,7 +50,7 @@ enum class AModes(val tokenSequence: Rule?, val byteAmount: Int, val exampleStri
         }
     }
 
-    fun getString(immediate: Value.Hex): String {
+    fun getString(immediate: Hex): String {
         return when (this) {
             ZP_X -> "$${immediate}, X"
             ZP_Y -> "$${immediate}, Y"

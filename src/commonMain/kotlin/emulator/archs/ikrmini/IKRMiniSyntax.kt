@@ -8,8 +8,8 @@ import emulator.kit.assembler.syntax.Rule
 import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASNodeType
 import emulator.kit.memory.Memory
-import cengine.util.integer.Value.Bin
-import cengine.util.integer.Value.Hex
+import cengine.util.integer.Bin
+import cengine.util.integer.Hex
 
 class IKRMiniSyntax {
     enum class ParamType(val tokenSeq: Rule?, val wordAmount: Int, val exampleString: String) {

@@ -4,9 +4,7 @@ import cengine.util.integer.Size
 import cengine.util.integer.Value
 import debug.DebugTools
 import emulator.core.*
-import cengine.util.integer.Value.Bin
-import cengine.util.integer.Value.Hex
-import cengine.util.integer.Value.Tools.toValue
+import cengine.util.integer.*
 import emulator.kit.common.IConsole
 import emulator.kit.nativeLog
 import kotlin.math.pow

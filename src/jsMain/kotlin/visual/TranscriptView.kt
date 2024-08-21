@@ -1,7 +1,7 @@
 package visual
 
 import StyleAttr
-import cengine.util.integer.Value
+import cengine.util.integer.*
 import debug.DebugTools
 import emotion.react.css
 import emulator.kit.assembler.gas.GASParser
@@ -28,7 +28,7 @@ val TranscriptView = FC<TranscriptProps> { props ->
 
     val arch = props.arch.component1()
 
-    val (currExeAddr, setCurrExeAddr) = useState(Value.Hex("0"))
+    val (currExeAddr, setCurrExeAddr) = useState(Hex("0"))
     val (currSections, setCurrSections) = props.sections
     val (currSec, setCurrSec) = useState<GASParser.Section>()
 

@@ -1,6 +1,7 @@
 package emulator.kit.common
 
 import Constants
+import cengine.util.integer.Dec
 import emulator.kit.Architecture
 import emulator.kit.assembler.AsmFile
 import emulator.kit.common.FileBuilder.ExportFormat
@@ -9,7 +10,6 @@ import emulator.kit.common.FileBuilder.buildFileContentLines
 import emulator.kit.nativeError
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
-import cengine.util.integer.Value
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -51,14 +51,14 @@ object FileBuilder {
                 nativeLog("FileBuilder: AddrWidth: $addrWidth, DataWidth: $dataWidth from ${settings.joinToString(",") { it.toString() }}")
 
                 val vhdlItems = mutableListOf<VHDLItem>()
-                var itemsPerRow = Value.Dec((dataWidth / 8).toString()).toRawString().toLongOrNull()
+                var itemsPerRow = Dec((dataWidth / 8).toString()).toRawString().toLongOrNull()
                 if (itemsPerRow == null) {
                     itemsPerRow = 1
                 }
 
                 for (instance in memInstances) {
                     val rowAddr = instance.address.toRawString().toLong(16) / itemsPerRow
-                    val id = (instance.address % Value.Dec((dataWidth / 8).toString())).toHex().toRawString().toIntOrNull(16)
+                    val id = (instance.address % Dec((dataWidth / 8).toString())).toHex().toRawString().toIntOrNull(16)
                     if (id != null) {
                         vhdlItems.add(VHDLItem(rowAddr, id, instance.variable.get().toHex().toRawString()))
                     } else {

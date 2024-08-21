@@ -4,7 +4,7 @@ import cengine.util.integer.Value
 import debug.DebugTools
 import emulator.core.*
 import cengine.util.integer.Size.*
-import cengine.util.integer.Value.*
+import cengine.util.integer.*
 import emulator.kit.assembler.*
 import emulator.kit.common.*
 import emulator.kit.config.AsmConfig

@@ -1,7 +1,6 @@
 package emulator.archs.ikrrisc2
 
-import cengine.util.integer.Size
-import cengine.util.integer.Value
+import cengine.util.integer.*
 import emulator.kit.assembler.AsmHeader
 import emulator.kit.assembler.DirTypeInterface
 import emulator.kit.assembler.InstrTypeInterface
@@ -54,8 +53,8 @@ object IKRRisc2Assembler : AsmHeader {
         )
     }
 
-    class IKRRisc2Instr(val rawInstr: GASNode.RawInstr, val type: InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Value = Value.Dec("0", Size.Bit32), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
-        var displacement: Value.Dec? = null
+    class IKRRisc2Instr(val rawInstr: GASNode.RawInstr, val type: InstrType, val regs: Array<RegContainer.Register> = emptyArray(), val immediate: Value = Dec("0", Size.Bit32), val label: GASNode.NumericExpr? = null) : GASParser.SecContent {
+        var displacement: Dec? = null
         override val bytesNeeded: Int = 4
         override fun getFirstToken(): Token = rawInstr.instrName
 
@@ -63,7 +62,7 @@ object IKRRisc2Assembler : AsmHeader {
 
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
 
-        override fun getBinaryArray(yourAddr: Value, labels: List<Pair<GASParser.Label, Value.Hex>>): Array<Value.Bin> {
+        override fun getBinaryArray(yourAddr: Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
             label?.assignLabels(labels)
 
             displacement = if (label != null) {
@@ -83,12 +82,12 @@ object IKRRisc2Assembler : AsmHeader {
 
             else -> {
                 val imm = expr?.checkInstrType(type)
-                listOf(IKRRisc2Instr(rawInstr, type, regs, imm ?: Value.Dec("0", Size.Bit32), if (imm == null) expr else null))
+                listOf(IKRRisc2Instr(rawInstr, type, regs, imm ?: Dec("0", Size.Bit32), if (imm == null) expr else null))
             }
         }
     }
 
-    private fun GASNode.NumericExpr.checkInstrType(type: InstrType): Value.Dec? {
+    private fun GASNode.NumericExpr.checkInstrType(type: InstrType): Dec? {
         when (type.paramType) {
             ParamType.I_TYPE -> {
                 val immediate = this.evaluate(true)

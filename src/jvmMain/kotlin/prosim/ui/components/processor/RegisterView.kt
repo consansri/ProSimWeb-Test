@@ -1,6 +1,6 @@
 package prosim.ui.components.processor
 
-import cengine.util.integer.Value
+import cengine.util.integer.*
 import emulator.kit.Architecture
 import emulator.kit.common.RegContainer
 import emulator.kit.nativeWarn
@@ -228,10 +228,10 @@ class RegisterView : CPanel(primary = true, BorderMode.SOUTH), StateListener<Arc
                             return@addTableModelListener
                         }
                         val newValue = when (numericType) {
-                            Value.Types.Bin -> Value.Bin(newStringValue.toString(), reg.get().size)
-                            Value.Types.Hex -> Value.Hex(newStringValue.toString(), reg.get().size)
-                            Value.Types.Dec -> Value.Dec(newStringValue.toString(), reg.get().size)
-                            Value.Types.UDec -> Value.UDec(newStringValue.toString(), reg.get().size)
+                            Value.Types.Bin -> Bin(newStringValue.toString(), reg.get().size)
+                            Value.Types.Hex -> Hex(newStringValue.toString(), reg.get().size)
+                            Value.Types.Dec -> Dec(newStringValue.toString(), reg.get().size)
+                            Value.Types.UDec -> UDec(newStringValue.toString(), reg.get().size)
                         }
                         if (newValue.valid) {
                             reg.set(newValue)

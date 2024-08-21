@@ -20,13 +20,7 @@ import cengine.lang.asm.elf.elf32.ELF32_Sym
 import cengine.lang.asm.elf.elf64.ELF64_Sym
 import cengine.psi.core.*
 import cengine.psi.lexer.core.Token
-import cengine.util.integer.Size
-import cengine.util.integer.Value
-import cengine.util.integer.Value.Tools.asBin
-import cengine.util.integer.Value.Tools.asDec
-import cengine.util.integer.Value.Tools.asHex
-import cengine.util.integer.Value.Tools.asOct
-import cengine.util.integer.Value.Tools.toValue
+import cengine.util.integer.*
 import debug.DebugTools
 import emulator.kit.nativeLog
 
@@ -670,7 +664,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
      *
      */
     sealed class NumericExpr(val brackets: List<AsmToken>, range: IntRange, vararg operands: NumericExpr) : ASNode(range, *operands) {
-        abstract var evaluated: Value.Dec?
+        abstract var evaluated: Dec?
         companion object {
             fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): ASNode? {
                 val initialPos = lexer.position
@@ -885,7 +879,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
          * @param builder is for storing relocation information.
          *
          */
-        abstract fun evaluate(builder: ELFBuilder, withRel: Boolean = false, withType: Elf_Word = 0U, withAddend: Elf_Sxword? = null): Value.Dec
+        abstract fun evaluate(builder: ELFBuilder, withRel: Boolean = false, withType: Elf_Word = 0U, withAddend: Elf_Sxword? = null): Dec
         abstract fun assign(section: ELFBuilder.Section)
         abstract fun assign(symTab: ELFBuilder.SymTab)
 
@@ -903,9 +897,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             override val pathName: String
                 get() = operator.value
 
-            override var evaluated: Value.Dec? = null
+            override var evaluated: Dec? = null
 
-            override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Value.Dec {
+            override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Dec {
                 return when (operator.type) {
                     AsmTokenType.COMPLEMENT -> operand.evaluate(builder, withRel, withType, withAddend).toBin().inv().toDec()
                     AsmTokenType.MINUS -> (-operand.evaluate(builder, withRel, withType, withAddend)).toDec()
@@ -936,11 +930,11 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             (brackets.firstOrNull()?.range?.first ?: operandA.range.first)..(brackets.lastOrNull()?.range?.last ?: operandB.range.last), operandA,
             operandB
         ) {
-            override var evaluated: Value.Dec? = null
+            override var evaluated: Dec? = null
             override val pathName: String
                 get() = operator.value
 
-            override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Value.Dec {
+            override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Dec {
                 return (when (operator.type) {
                     AsmTokenType.MULT -> operandA.evaluate(builder, withRel, withType, withAddend) * operandB.evaluate(builder, withRel, withType, withAddend)
                     AsmTokenType.DIV -> operandA.evaluate(builder, withRel, withType, withAddend) / operandB.evaluate(builder, withRel, withType, withAddend)
@@ -984,11 +978,11 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     get() = token.value
                 override val element: PsiElement = this
                 override var referencedElement: ASNode? = null
-                override var evaluated: Value.Dec? = null
+                override var evaluated: Dec? = null
 
                 override fun getFormatted(identSize: Int): String = symToken.value
 
-                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Value.Dec {
+                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Dec {
                     val currSymbol = symbol
 
                     if (currSymbol != null) {
@@ -1043,9 +1037,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             class Number(val number: AsmToken) : Operand(number, number.range) {
                 override val additionalInfo: String
                     get() = number.value
-                override var evaluated: Value.Dec? = null
+                override var evaluated: Dec? = null
 
-                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Value.Dec {
+                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Dec {
                     return (when (number.type) {
                         AsmTokenType.INT_DEC -> {
                             val auto = number.asNumber.asDec()
@@ -1108,12 +1102,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 override val additionalInfo: String
                     get() = char.value
 
-                override var evaluated: Value.Dec? = null
+                override var evaluated: Dec? = null
                 override fun assign(symTab: ELFBuilder.SymTab) {}
 
                 override fun assign(section: ELFBuilder.Section) {}
 
-                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Value.Dec {
+                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?): Dec {
                     return char.getContentAsString().first().code.toValue().also { evaluated = it }
                 }
 

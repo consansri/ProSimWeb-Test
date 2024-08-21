@@ -1,5 +1,6 @@
 package cengine.lang.asm.ast.target.riscv
 
+import cengine.editor.annotation.Notation
 import cengine.lang.asm.ast.Component
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.Rule
@@ -9,6 +10,7 @@ import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.elf.ELFBuilder
+import cengine.util.integer.Size
 
 enum class RVDirType(override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ATTRIBUTE(rule = Rule {
@@ -119,6 +121,46 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
     }
 
     override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
-        TODO("Not yet implemented")
+        /**
+         * Check Semantic
+         */
+
+        when (this) {
+            ATTRIBUTE -> TODO()
+            ALIGN -> TODO()
+            DTPRELWORD -> TODO()
+            DTPRELDWORD -> TODO()
+            DWORD -> {
+                dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
+                    val evaluated = it.evaluate(builder)
+                    if (!evaluated.checkSizeSignedAndUnsigned(Size.Bit64)) {
+                        dir.notations.add(Notation.error(dir, "$evaluated exceeds ${Size.Bit64}!"))
+                    }
+                }
+            }
+
+            HALF -> TODO()
+            OPTION -> TODO()
+        }
+
+        /**
+         * Execute Directive
+         */
+
+        when (this) {
+            ATTRIBUTE -> TODO()
+            ALIGN -> TODO()
+            DTPRELWORD -> TODO()
+            DTPRELDWORD -> TODO()
+            DWORD -> {
+                dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
+                    val evaluated = it.evaluate(builder)
+
+                }
+            }
+
+            HALF -> TODO()
+            OPTION -> TODO()
+        }
     }
 }

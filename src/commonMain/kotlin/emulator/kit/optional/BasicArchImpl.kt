@@ -1,10 +1,10 @@
 package emulator.kit.optional
 
 import Performance
-import emulator.kit.memory.Memory
+import cengine.util.integer.Hex
 import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
-import cengine.util.integer.Value
+import emulator.kit.memory.Memory
 import kotlin.time.measureTime
 
 abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {
@@ -105,7 +105,7 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
         console.exeInfo("return from subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
     }
 
-    override fun exeUntilAddress(address: Value.Hex) {
+    override fun exeUntilAddress(address: Hex) {
         var instrCount = 0L
         val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {
