@@ -10,6 +10,7 @@ import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.elf.ELFBuilder
 import cengine.util.integer.Hex
 import cengine.util.integer.Size.*
+import cengine.util.integer.toInt
 
 enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
@@ -1259,7 +1260,7 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
                     try {
-                        val int32 = expr.evaluate(builder).toIntOrNull()
+                        val int32 = expr.evaluate(builder).toInt()
                         if (int32 == null) {
                             expr.notations.add(Notation.error(expr, "Unable to evaluate Byte!"))
                             continue
