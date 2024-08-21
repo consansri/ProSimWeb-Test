@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    kotlin("multiplatform") version "2.0.0"
+    kotlin("multiplatform") version "2.0.10"
     id("org.jetbrains.dokka") version "1.9.20"
     distribution
 }
@@ -126,10 +126,11 @@ tasks.withType<Jar>() {
         }
     }
 }
+
 val copyDistZipToJsDistribution by tasks.registering(Copy::class){
     group = "distribution"
     description = "Copy distZip output to js distribution folder"
-    dependsOn("distZip")
+    dependsOn("distZip", "distTar")
     from("build/distributions")
     into("build/dist/js/productionExecutable")
 }
