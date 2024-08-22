@@ -40,6 +40,10 @@ data class ELF32_Rela(
     var r_info: Elf_Word,
     var r_addend: Elf_Sword
 ): Rela {
+    companion object{
+        const val SIZE = 12
+    }
+
     override fun build(endianness: Endianness): ByteArray {
         val b = ByteBuffer(endianness)
 
@@ -50,6 +54,6 @@ data class ELF32_Rela(
         return b.toByteArray()
     }
 
-    override fun byteSize(): Int = 12
+    override fun byteSize(): Int = SIZE
 
 }

@@ -1,9 +1,6 @@
 package cengine.lang.asm.elf.elf64
 
-import cengine.lang.asm.elf.Elf64_Addr
-import cengine.lang.asm.elf.Elf_Sxword
-import cengine.lang.asm.elf.Elf_Xword
-import cengine.lang.asm.elf.Rela
+import cengine.lang.asm.elf.*
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
 
@@ -43,6 +40,9 @@ data class ELF64_Rela(
     var r_info: Elf_Xword,
     var r_addend: Elf_Sxword
 ): Rela {
+    companion object{
+        const val SIZE = 24
+    }
     override fun build(endianness: Endianness): ByteArray {
         val b = ByteBuffer(endianness)
 
@@ -53,6 +53,6 @@ data class ELF64_Rela(
         return b.toByteArray()
     }
 
-    override fun byteSize(): Int = 24
+    override fun byteSize(): Int = SIZE
 
 }

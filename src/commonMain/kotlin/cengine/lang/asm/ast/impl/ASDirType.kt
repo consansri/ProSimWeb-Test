@@ -11,7 +11,7 @@ import cengine.lang.asm.elf.ELFBuilder
 import cengine.util.integer.Hex
 import cengine.util.integer.Size.*
 import cengine.util.integer.toByte
-import cengine.util.integer.toInt
+import cengine.util.integer.toUInt
 
 enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
@@ -1261,12 +1261,12 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
                     try {
-                        val int32 = expr.evaluate(builder).toInt()
-                        if (int32 == null) {
+                        val uint32 = expr.evaluate(builder).toHex().toUInt()
+                        if (uint32 == null) {
                             expr.notations.add(Notation.error(expr, "${expr.evaluated} exceeds ${Bit32}!"))
                             continue
                         }
-                        builder.currentSection.content.put(int32)
+                        builder.currentSection.content.put(uint32)
                     } catch (e: Exception) {
                         expr.notations.add(Notation.error(expr, "Evaluation Error: " + e.message))
                     }

@@ -11,6 +11,7 @@ import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.elf.ELFBuilder
 import cengine.util.integer.Size
+import cengine.util.integer.toLong
 
 enum class RVDirType(override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ATTRIBUTE(rule = Rule {
@@ -154,8 +155,12 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             DTPRELDWORD -> TODO()
             DWORD -> {
                 dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
-                    val evaluated = it.evaluate(builder)
-
+                    val evaluated = it.evaluate(builder).toLong()
+                    if (evaluated != null) {
+                        builder.currentSection.content.put(evaluated)
+                    } else {
+                        it.notations.add(Notation.error(it, "Couldn't evaluate Expression!"))
+                    }
                 }
             }
 

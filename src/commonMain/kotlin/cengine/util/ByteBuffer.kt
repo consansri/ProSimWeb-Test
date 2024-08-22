@@ -1,7 +1,7 @@
 package cengine.util
 
-class ByteBuffer(private var endianness: Endianness) {
-    private val data = mutableListOf<Byte>()
+class ByteBuffer(private var endianness: Endianness, initial: ByteArray = byteArrayOf()) {
+    private val data = initial.toMutableList()
 
     val size: Int get() = data.size
 

@@ -42,6 +42,8 @@ data class ELF32_Rel(
 ): Rel {
 
     companion object{
+        const val SIZE = 8
+
         fun R_SYM(i: Elf_Word) = i.shr(8)
         fun R_TYPE(i: Elf_Word) = i.toUByte()
         fun R_INFO(s: Elf_Word, t: Elf_Word) = s.shl(8) + t.toUByte()
@@ -56,5 +58,5 @@ data class ELF32_Rel(
         return b.toByteArray()
     }
 
-    override fun byteSize(): Int = 8
+    override fun byteSize(): Int = SIZE
 }

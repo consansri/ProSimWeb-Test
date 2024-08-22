@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import prosim.ide.editor.CDraggableTabbedEditorPane
 import prosim.ide.editor.code.PerformantCodeEditor
+import prosim.ide.editor.objectfile.ObjFileEditor
 import prosim.ide.filetree.FileTree
 import prosim.ide.filetree.FileTreeUIAdapter
 import prosim.uilib.UIResource
@@ -37,6 +38,9 @@ class ProjectWindow(val state: ProjectState) : CPanel() {
     val fileTree = FileTree(project).apply {
         setFileTreeListener(object : FileTreeUIAdapter() {
             override fun onOpenRequest(file: VirtualFile) {
+                if (file.name.endsWith(ObjFileEditor.fileSuffix)) {
+                    return editorPanel.addTab(ObjFileEditor(file))
+                }
                 editorPanel.addTab(PerformantCodeEditor(file, project))
             }
         })
@@ -164,7 +168,7 @@ class ProjectWindow(val state: ProjectState) : CPanel() {
         private var currOverlay: CDialog? = null
 
 
-        private val assemblerSwitch = CChooser<TargetSpec>(CChooser.Model(TargetSpec.specs, RV32Spec, "Target"),FontType.BASIC, { new ->
+        private val assemblerSwitch = CChooser<TargetSpec>(CChooser.Model(TargetSpec.specs, RV32Spec, "Target"), FontType.BASIC, { new ->
 
         })
 

@@ -6,6 +6,14 @@ import cengine.lang.asm.elf.elf64.ELF64_Rela
 interface Rela : BinaryProvider {
 
     companion object {
+        fun size(ei_class: Elf_Byte): Elf_Half{
+            return when(ei_class){
+                E_IDENT.ELFCLASS32 -> ELF32_Rela.SIZE.toUShort()
+                E_IDENT.ELFCLASS64 -> ELF64_Rela.SIZE.toUShort()
+                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+            }
+        }
+
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Rela {
             var currIndex = offset
             when (eIdent.ei_class) {

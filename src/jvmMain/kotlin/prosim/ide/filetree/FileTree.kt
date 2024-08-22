@@ -182,14 +182,14 @@ class FileTree(private val project: Project) : FileTreeUI {
             val children = uobj.getChildren()
             for (child in children) {
                 val childNode = DefaultMutableTreeNode(child)
-                node.add(childNode)
                 if (child.isDirectory) {
                     // Add a dummy node to show expand icon
                     childNode.add(DefaultMutableTreeNode(DummyFile()))
                 }
+                node.add(childNode)
             }
+            treeModel.nodeStructureChanged(node)
         }
-        treeModel.nodeStructureChanged(node)
     }
 
     private fun findNodeByPath(path: String): DefaultMutableTreeNode? {

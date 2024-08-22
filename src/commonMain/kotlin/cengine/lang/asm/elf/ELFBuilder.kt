@@ -255,13 +255,25 @@ class ELFBuilder(
 
     private fun ByteBuffer.writeSections() {
         sections.forEach {
+            val start = size
             putAll(it.content.toByteArray())
+            when (val shdr = it.shdr) {
+                is ELF32_Shdr -> {
+                    shdr.sh_offset = start.toUInt()
+                }
+                is ELF64_Shdr -> {
+                    shdr.sh_offset = start.toULong()
+                }
+            }
+
         }
     }
 
     private fun ByteBuffer.writeSHDRs() {
-        sections.forEach {
-            putAll(it.shdr.build(endianness))
+        sections.forEachIndexed { index, sec ->
+            val shdr = sec.shdr
+
+            putAll(sec.shdr.build(endianness))
         }
     }
 
@@ -308,6 +320,10 @@ class ELFBuilder(
         init {
             shdr.sh_name = shStrTab.addString(name)
             shdr.sh_type = Shdr.SHT_SYMTAB
+            when (shdr) {
+                is ELF32_Shdr -> shdr.sh_entsize = Sym.size(ei_class).toUInt()
+                is ELF64_Shdr -> shdr.sh_entsize = Sym.size(ei_class).toULong()
+            }
         }
 
         fun search(identifier: String): Section.SymbolDef? = symbols.firstOrNull { strTab.getStringAt(it.symbol.st_name) == identifier }
@@ -352,8 +368,6 @@ class ELFBuilder(
             content.putAll(symbol.build(endianness))
             return symbolDef
         }
-
-
     }
 
     /**
@@ -431,6 +445,10 @@ class ELFBuilder(
         init {
             shdr.sh_name = shStrTab.addString(name)
             shdr.sh_type = Shdr.SHT_REL
+            when (shdr) {
+                is ELF32_Shdr -> shdr.sh_entsize = Rel.size(ei_class).toUInt()
+                is ELF64_Shdr -> shdr.sh_entsize = Rel.size(ei_class).toULong()
+            }
         }
 
         fun addEntry(identifier: String, type: Elf_Word) {
@@ -470,6 +488,10 @@ class ELFBuilder(
         init {
             shdr.sh_name = shStrTab.addString(name)
             shdr.sh_type = Shdr.SHT_RELA
+            when (shdr) {
+                is ELF32_Shdr -> shdr.sh_entsize = Rela.size(ei_class).toUInt()
+                is ELF64_Shdr -> shdr.sh_entsize = Rela.size(ei_class).toULong()
+            }
         }
 
         fun addEntry(identifier: String, type: Elf_Word, addend: Elf_Sxword) {
@@ -539,4 +561,5 @@ class ELFBuilder(
 
 
     class InvalidElfClassException(ei_class: Elf_Byte) : ELFBuilderException("Invalid ELF Class $ei_class.")
+    class InvalidElfDataException(ei_data: Elf_Byte) : ELFBuilderException("Invalid ELF Data $ei_data type.")
 }

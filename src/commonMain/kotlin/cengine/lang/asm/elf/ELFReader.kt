@@ -4,6 +4,8 @@ import cengine.lang.asm.elf.elf32.ELF32_Ehdr
 import cengine.lang.asm.elf.elf32.ELF32_Shdr
 import cengine.lang.asm.elf.elf64.ELF64_Ehdr
 import cengine.lang.asm.elf.elf64.ELF64_Shdr
+import cengine.util.ByteBuffer
+import cengine.util.Endianness
 
 /**
  * Throws Exception if the file is not matching the ELF Format.
@@ -11,6 +13,12 @@ import cengine.lang.asm.elf.elf64.ELF64_Shdr
 class ELFReader(val fileContent: ByteArray) {
     val e_ident: E_IDENT = E_IDENT.extractFrom(fileContent)
     val ehdr: Ehdr = Ehdr.extractFrom(fileContent, e_ident)
+    val endianess: Endianness = when (e_ident.ei_data) {
+        E_IDENT.ELFDATA2MSB -> Endianness.BIG
+        E_IDENT.ELFDATA2LSB -> Endianness.LITTLE
+        else -> throw ELFBuilder.InvalidElfDataException(e_ident.ei_data)
+    }
+    val buffer = ByteBuffer(endianess, fileContent)
 
     val sectionHeaders: List<Shdr>
     val programHeaders: List<Phdr>
@@ -206,7 +214,7 @@ class ELFReader(val fileContent: ByteArray) {
         }
     }
 
-    private fun getSectionName(section: Shdr): String {
+    fun getSectionName(section: Shdr): String {
         val stringTableSection = sectionHeaders[ehdr.e_shstrndx.toInt()]
         when (e_ident.ei_class) {
             E_IDENT.ELFCLASS32 -> {
