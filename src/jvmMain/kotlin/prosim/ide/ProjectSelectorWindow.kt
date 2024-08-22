@@ -2,7 +2,6 @@ package prosim.ide
 
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
-import emulator.kit.nativeLog
 import prosim.uilib.styled.CChooser
 import prosim.uilib.styled.CTextButton
 import prosim.uilib.styled.button.CDirectoryChooser
@@ -20,7 +19,6 @@ class ProjectSelectorWindow : CFrame("New Project") {
         addActionListener {
             val dir = directoryChooser.selectedDirectory
             if (dir != null) {
-                nativeLog("Open: ${dir.absolutePath}")
                 WindowManager.openProject(dir.absolutePath, asmChooser.value)
                 dispose()
             }

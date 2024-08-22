@@ -15,7 +15,6 @@ import cengine.lang.asm.run.AsmExecutable
 import cengine.psi.core.PsiService
 import cengine.psi.impl.PsiServiceImpl
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 
 class AsmLang(spec: TargetSpec) : LanguageService {
     companion object {
@@ -25,17 +24,12 @@ class AsmLang(spec: TargetSpec) : LanguageService {
     var spec: TargetSpec = spec
         set(value) {
             field = value
-            nativeLog("AsmLang Set Target: ${value.name}")
             psiParser = AsmPsiParser(value, this)
             psiService = PsiServiceImpl(psiParser)
             completionProvider = AsmCompleter(value)
             highlightProvider = AsmHighlighter(value)
             annotations.clear()
         }
-
-    init {
-        nativeLog("AsmLang Set Target: ${spec.name}")
-    }
 
     override var runConfigurations: Set<RunConfiguration<LanguageService>> = setOf(AsmExecutable())
 
