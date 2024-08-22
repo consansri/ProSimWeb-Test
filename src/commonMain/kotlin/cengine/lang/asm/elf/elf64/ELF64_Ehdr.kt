@@ -3,6 +3,7 @@ package cengine.lang.asm.elf.elf64
 import cengine.lang.asm.elf.*
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.string.hexDump
 
 data class ELF64_Ehdr(
     override var e_ident: E_IDENT,
@@ -43,4 +44,27 @@ data class ELF64_Ehdr(
     }
 
     override fun byteSize(): Int = e_ident.byteSize() + 48
+
+    override fun toString(): String {
+        return "Elf Header:\n" +
+                " Magic:                             ${e_ident.build(Endianness.BIG).hexDump()}\n" +
+                " Class:                             ${E_IDENT.getElfClass(e_ident.ei_class)}\n" +
+                " Data:                              ${E_IDENT.getElfData(e_ident.ei_data)}\n" +
+                " Version:                           ${e_ident.ei_version}\n" +
+                " OS/ABI:                            ${E_IDENT.getOsAbi(e_ident.ei_osabi)}\n" +
+                " ABI Version:                       ${e_ident.ei_abiversion}\n" +
+                " Type:                              ${Ehdr.getELFType(e_type)}\n" +
+                " Machine:                           ${Ehdr.getELFMachine(e_machine)}\n" +
+                " Version:                           $e_version\n" +
+                " Entry point address:               $e_entry\n" +
+                " Start of program headers:          $e_phoff (bytes into file)\n" +
+                " Start of section headers:          $e_shoff (bytes into file)\n" +
+                " Flags:                             0x${e_flags.toString(16)}\n" +
+                " Size of this header:               $e_ehsize (bytes)\n" +
+                " Size of program headers:           $e_phentsize (bytes)\n" +
+                " Number of program headers:         $e_phnum\n" +
+                " Size of section headers:           $e_shentsize (bytes)\n" +
+                " Number of section headers:         $e_shnum\n" +
+                " Section header string table index: $e_shstrndx\n"
+    }
 }

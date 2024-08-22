@@ -8,6 +8,9 @@ import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
 
+/**
+ * @property services [AsmLang] gets always added by the [Project] with specification from [ProjectState].
+ */
 class Project(initialState: ProjectState, vararg languageServices: LanguageService) : FileChangeListener {
 
     val projectState: ProjectState = initialState

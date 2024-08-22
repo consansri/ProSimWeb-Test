@@ -238,5 +238,12 @@ class ELFReader(val fileContent: ByteArray) {
         return ""
     }
 
+    override fun toString(): String {
+
+        val sections = sectionHeaders.joinToString(",") { "$it" }
+
+        return super.toString()
+    }
+
 
 }

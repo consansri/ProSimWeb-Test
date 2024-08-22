@@ -49,7 +49,7 @@ interface Ehdr : BinaryProvider {
     var e_shstrndx: Elf_Half
 
     companion object {
-        private fun getELFType(type: Elf_Half): String = when (type) {
+        fun getELFType(type: Elf_Half): String = when (type) {
             ET_NONE -> "NONE (No file type)"
             ET_REL -> "REL (Relocatable file)"
             ET_EXEC -> "EXEC (Executable file)"
@@ -58,7 +58,7 @@ interface Ehdr : BinaryProvider {
             else -> "UNKNOWN (0x${type.toString(16)})"
         }
 
-        private fun getELFMachine(machine: Elf_Half): String = when (machine) {
+        fun getELFMachine(machine: Elf_Half): String = when (machine) {
             EM_386 -> "Intel 80386"
             EM_VPP500 -> "VPP500"
             EM_SPARC -> "SPARC"
@@ -71,8 +71,7 @@ interface Ehdr : BinaryProvider {
         }
 
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT): Ehdr {
-            val eIdentSize = eIdent.ei_nident.toInt()
-            var currIndex = eIdentSize
+            var currIndex = E_IDENT.EI_NIDENT.toInt()
             val e_type = byteArray.loadUShort(eIdent, currIndex)
             currIndex += 2
             val e_machine = byteArray.loadUShort(eIdent, currIndex)
@@ -269,5 +268,7 @@ interface Ehdr : BinaryProvider {
          */
         const val EV_CURRENT: Elf_Word = 1U
     }
+
+    override fun toString(): String
 
 }

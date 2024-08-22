@@ -11,6 +11,7 @@ import cengine.util.ByteBuffer
 import cengine.util.ByteBuffer.Companion.toASCIIByteArray
 import cengine.util.ByteBuffer.Companion.toASCIIString
 import cengine.util.Endianness
+import emulator.kit.nativeLog
 import kotlin.experimental.*
 
 /**
@@ -28,10 +29,12 @@ class ELFBuilder(
     private val ei_abiversion: Elf_Byte,
     private val e_type: Elf_Half,
     private val e_machine: Elf_Half,
-    private var e_flags: Elf_Word = 0U
+    private var e_flags: Elf_Word
 ) {
 
-    constructor(spec: TargetSpec, type: Elf_Half) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, type, spec.e_machine)
+    constructor(spec: TargetSpec, type: Elf_Half, e_flags: Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, type, spec.e_machine, e_flags){
+        nativeLog("ELFBuilder of ${spec.name}")
+    }
 
     /**
      * ELF IDENTIFICATION & CLASSIFICATION
@@ -178,7 +181,7 @@ class ELFBuilder(
         val totalEhdrBytes = ehdr.byteSize().toULong()
         val totalPhdrBytes = phdrSize * phdrCount
         val totalSectionBytes = sections.sumOf { it.content.size.toULong() }
-        val shstrndx = (totalEhdrBytes + totalPhdrBytes + totalSectionBytes + sections.takeWhile { it != shStrTab }.size.toULong() * Shdr.size(ei_class).toULong()).toUShort()
+        val shstrndx = sections.indexOf(shStrTab).toUShort()
         val phoff = totalEhdrBytes
         val shoff = totalEhdrBytes + totalPhdrBytes + totalSectionBytes
 
@@ -261,6 +264,7 @@ class ELFBuilder(
                 is ELF32_Shdr -> {
                     shdr.sh_offset = start.toUInt()
                 }
+
                 is ELF64_Shdr -> {
                     shdr.sh_offset = start.toULong()
                 }

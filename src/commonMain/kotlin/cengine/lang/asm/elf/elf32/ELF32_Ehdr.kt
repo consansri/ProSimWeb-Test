@@ -2,8 +2,11 @@ package cengine.lang.asm.elf.elf32
 
 import cengine.lang.asm.elf.*
 import cengine.lang.asm.elf.Ehdr.Companion.EV_CURRENT
+import cengine.lang.asm.elf.Ehdr.Companion.getELFMachine
+import cengine.lang.asm.elf.Ehdr.Companion.getELFType
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.string.hexDump
 
 
 /**
@@ -87,19 +90,27 @@ data class ELF32_Ehdr(
         return buffer.toByteArray()
     }
 
-    fun print(): String {
-        return " Class: " +
-                " Data: " +
-                " Version: " +
-                " OS/ABI: " +
-                " ABI Version: " +
-                " Type: " +
-                " Machine" +
-                "" +
-                "" +
-                "" +
-                "" +
-                ""
+    override fun toString(): String {
+        return "Elf Header:\n" +
+                " Magic:                             ${e_ident.build(Endianness.BIG).hexDump()}\n" +
+                " Class:                             ${E_IDENT.getElfClass(e_ident.ei_class)}\n" +
+                " Data:                              ${E_IDENT.getElfData(e_ident.ei_data)}\n" +
+                " Version:                           ${e_ident.ei_version}\n" +
+                " OS/ABI:                            ${E_IDENT.getOsAbi(e_ident.ei_osabi)}\n" +
+                " ABI Version:                       ${e_ident.ei_abiversion}\n" +
+                " Type:                              ${getELFType(e_type)}\n" +
+                " Machine:                           ${getELFMachine(e_machine)}\n" +
+                " Version:                           $e_version\n" +
+                " Entry point address:               $e_entry\n" +
+                " Start of program headers:          $e_phoff (bytes into file)\n" +
+                " Start of section headers:          $e_shoff (bytes into file)\n" +
+                " Flags:                             0x${e_flags.toString(16)}\n" +
+                " Size of this header:               $e_ehsize (bytes)\n" +
+                " Size of program headers:           $e_phentsize (bytes)\n" +
+                " Number of program headers:         $e_phnum\n" +
+                " Size of section headers:           $e_shentsize (bytes)\n" +
+                " Number of section headers:         $e_shnum\n" +
+                " Section header string table index: $e_shstrndx\n"
     }
 
 }

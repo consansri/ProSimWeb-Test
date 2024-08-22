@@ -96,4 +96,6 @@ data class ELF32_Shdr(
 
     override fun byteSize(): Int = 40
 
+    override fun toString(): String = "$sh_name-${Shdr.getSectionType(sh_type)}-${Shdr.getSectionFlags(sh_flags.toULong())}"
+
 }

@@ -63,7 +63,7 @@ class VFileSystem(absRootPath: String) {
      */
     fun findFileByAbsolute(absolutePath: String): VirtualFile? {
         val relativePath = absolutePath.removePrefix(absRootPath)
-        nativeLog("AbsRoot: $absRootPath, $relativePath -> {${fileCache.keys.joinToString(",")}}")
+        //nativeLog("AbsRoot: $absRootPath, $relativePath -> {${fileCache.keys.joinToString(",")}}")
         return fileCache[relativePath] ?: findFileInternal(relativePath)?.also { fileCache[relativePath] = it }
     }
 

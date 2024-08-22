@@ -20,7 +20,7 @@ class CownLang: LanguageService {
     override val fileSuffix: String = ".cown"
     override val psiParser: PsiParser = CownPsiParser(this)
     override val psiService: PsiService = PsiServiceImpl(psiParser)
-    override val runConfigurations: Set<RunConfiguration> = setOf()
+    override val runConfigurations: Set<RunConfiguration<LanguageService>> = setOf()
     override val codeFoldingProvider: CodeFoldingProvider = CownFolder()
     override val widgetProvider: WidgetProvider = CownWidgets()
     override val completionProvider: CompletionProvider = CownCompleter()

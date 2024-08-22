@@ -381,7 +381,7 @@ interface Shdr : BinaryProvider {
 
         val SHT_text = SHT_PROGBITS
         val SHF_text = SHF_ALLOC + SHF_EXECINSTR
-
-
     }
+
+    override fun toString(): String
 }

@@ -1,5 +1,6 @@
 package prosim.ide.filetree
 
+import cengine.lang.LanguageService
 import cengine.lang.RunConfiguration
 import cengine.project.Project
 import cengine.vfs.FileChangeListener
@@ -45,7 +46,7 @@ class FileTree(private val project: Project) : FileTreeUI {
 
         override fun getFgColor(userObject: VirtualFile): Color? {
             if (userObject.isDirectory && userObject.name.startsWith(".")) {
-               return UIStates.theme.get().COLOR_YELLOW
+                return UIStates.theme.get().COLOR_YELLOW
             }
             return null
         }
@@ -301,13 +302,13 @@ class FileTree(private val project: Project) : FileTreeUI {
         for (lang in langs) {
             lang.runConfigurations.forEach { config ->
                 when (config) {
-                    is RunConfiguration.FileRun -> {
+                    is RunConfiguration.FileRun<LanguageService> -> {
                         runConfigs += CMenuItem(config.name).apply {
                             addActionListener {
                                 overlayScope.launch {
                                     treeFiles.forEach { file ->
                                         if (file.name.endsWith(lang.fileSuffix)) {
-                                            config.run(file, vfs)
+                                            config.run(file, lang, vfs)
                                         }
                                     }
                                 }

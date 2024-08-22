@@ -25,12 +25,38 @@ data class E_IDENT(
     val ei_class: Elf_Byte,
     val ei_data: Elf_Byte,
     val ei_version: Elf_Byte = EV_CURRENT.toUByte(),
-    val ei_osabi: Elf_Byte,
-    val ei_abiversion: Elf_Byte,
+    val ei_osabi: Elf_Byte = ZERO,
+    val ei_abiversion: Elf_Byte = ZERO,
     val ei_pad: Elf_Byte = ZERO,
     val ei_nident: Elf_Byte = EI_NIDENT
 ) : BinaryProvider {
     companion object {
+
+        fun getOsAbi(ei_osabi: Elf_Byte): String{
+            return when(ei_osabi){
+                ELFOSABI_SYSV -> "UNIX - System V"
+                else -> "?"
+            }
+        }
+
+        fun getElfClass(ei_class: Elf_Byte): String{
+            return when(ei_class){
+                ELFCLASS32 -> "ELF32"
+                ELFCLASS64 -> "ELF64"
+                ELFCLASSNONE -> "NONE"
+                else -> "INVALID"
+            }
+        }
+
+        fun getElfData(ei_data: Elf_Byte): String{
+            return when(ei_data){
+                ELFDATA2MSB -> "2's complement, big endian"
+                ELFDATA2LSB -> "2's complement, little endian"
+                ELFDATANONE -> "NONE"
+                else -> "INVALID"
+            }
+        }
+
         const val ZERO: Elf_Byte = 0U
 
         const val EI_NIDENT: Elf_Byte = 16U
@@ -151,12 +177,22 @@ data class E_IDENT(
         buffer.put(ei_osabi)
         buffer.put(ei_abiversion)
         buffer.put(ei_pad)
-        buffer.putAll(ByteArray(ei_nident.toInt() - buffer.size) {
-            ZERO.toByte()
-        })
+        try {
+            buffer.putAll(ByteArray(ei_nident.toInt() - buffer.size) {
+                ZERO.toByte()
+            })
+        }catch (e: Exception){
+            buffer.putAll(ByteArray(EI_NIDENT.toInt() - buffer.size){
+                ZERO.toByte()
+            })
+        }
 
         return buffer.toByteArray()
     }
 
     override fun byteSize(): Int = ei_nident.toInt()
+
+    override fun toString(): String {
+        return "ELF Class:${getElfClass(ei_class)} Data:${getElfData(ei_data)} Version:$ei_version"
+    }
 }
