@@ -14,6 +14,8 @@ class ByteBuffer(private var endianness: Endianness, initial: ByteArray = byteAr
         endianness = newEndianess
     }
 
+    // BYTE
+
     fun put(value: Byte) {
         data.add(value)
     }
@@ -21,6 +23,8 @@ class ByteBuffer(private var endianness: Endianness, initial: ByteArray = byteAr
     fun put(value: UByte) {
         put(value.toByte())
     }
+
+    // BYTEARRAY
 
     fun putAll(bytes: ByteArray) {
         data.addAll(bytes.toList())
@@ -30,11 +34,6 @@ class ByteBuffer(private var endianness: Endianness, initial: ByteArray = byteAr
         data.addAll(bytes.toList())
     }
 
-    operator fun get(index: Int): Byte = data[index]
-
-    operator fun set(index: Int, byte: Byte){
-        data[index] = byte
-    }
 
     fun getZeroTerminated(index: Int): ByteArray {
         val result = mutableListOf<Byte>()
@@ -62,9 +61,11 @@ class ByteBuffer(private var endianness: Endianness, initial: ByteArray = byteAr
         }
     }
 
+
     fun put(value: UShort) {
         put(value.toShort())
     }
+
 
     fun put(value: Int) {
         when (endianness) {
@@ -119,4 +120,86 @@ class ByteBuffer(private var endianness: Endianness, initial: ByteArray = byteAr
     }
 
     fun toByteArray(): ByteArray = data.toByteArray()
+
+    operator fun get(index: Int): Byte = data[index]
+
+    operator fun set(index: Int, byte: Byte) {
+        data[index] = byte
+    }
+
+    operator fun set(index: Int, value: UByte){
+        this[index] = value.toByte()
+    }
+
+    operator fun set(index: Int, short: Short) {
+        when (endianness) {
+            Endianness.LITTLE -> {
+                data[index] = (short.toInt() and 0xFF).toByte()
+                data[index + 1] = ((short.toInt() shr 8) and 0xFF).toByte()
+            }
+
+            Endianness.BIG -> {
+                data[index] = ((short.toInt() shr 8) and 0xFF).toByte()
+                data[index + 1] = (short.toInt() and 0xFF).toByte()
+            }
+        }
+    }
+
+    operator fun set(index: Int, value: UShort){
+        this[index] = value.toShort()
+    }
+
+    operator fun set(index: Int, value: Int) {
+        when (endianness) {
+            Endianness.LITTLE -> {
+                data[index] = (value and 0xFF).toByte()
+                data[index + 1] = ((value shr 8) and 0xFF).toByte()
+                data[index + 2] = ((value shr 16) and 0xFF).toByte()
+                data[index + 3] = ((value shr 24) and 0xFF).toByte()
+            }
+
+            Endianness.BIG -> {
+                data[index] = ((value shr 24) and 0xFF).toByte()
+                data[index + 1] = ((value shr 16) and 0xFF).toByte()
+                data[index + 2] = ((value shr 8) and 0xFF).toByte()
+                data[index + 3] = (value and 0xFF).toByte()
+            }
+        }
+    }
+
+    operator fun set(index: Int, value: UInt){
+        this[index] = value.toInt()
+    }
+
+    operator fun set(index: Int, value: Long) {
+        when (endianness) {
+            Endianness.LITTLE -> {
+                data[index] = (value and 0xFF).toByte()
+                data[index + 1] = ((value shr 8) and 0xFF).toByte()
+                data[index + 2] = ((value shr 16) and 0xFF).toByte()
+                data[index + 3] = ((value shr 24) and 0xFF).toByte()
+                data[index + 4] = ((value shr 32) and 0xFF).toByte()
+                data[index + 5] = ((value shr 40) and 0xFF).toByte()
+                data[index + 6] = ((value shr 48) and 0xFF).toByte()
+                data[index + 7] = ((value shr 56) and 0xFF).toByte()
+            }
+
+            Endianness.BIG -> {
+                data[index] = ((value shr 56) and 0xFF).toByte()
+                data[index + 1] = ((value shr 48) and 0xFF).toByte()
+                data[index + 2] = ((value shr 40) and 0xFF).toByte()
+                data[index + 3] = ((value shr 32) and 0xFF).toByte()
+                data[index + 4] = ((value shr 24) and 0xFF).toByte()
+                data[index + 5] = ((value shr 16) and 0xFF).toByte()
+                data[index + 6] = ((value shr 8) and 0xFF).toByte()
+                data[index + 7] = (value and 0xFF).toByte()
+            }
+        }
+    }
+
+
+    operator fun set(index: Int, value: ULong){
+        this[index] = value.toLong()
+    }
+
 }

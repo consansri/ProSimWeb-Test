@@ -452,20 +452,20 @@ class ELFBuilder(
             }
         }
 
-        fun addEntry(identifier: String, type: Elf_Word) {
+        fun addEntry(identifier: String, type: Elf_Word, section: Section, offset: UInt) {
             val sym = symTab.search(identifier) ?: symTab.addUndefinedSymbol(identifier)
 
             val rel = when (ei_class) {
                 E_IDENT.ELFCLASS32 -> {
                     ELF32_Rel(
-                        currentSection.content.size.toUInt(),
+                        offset,
                         ELF32_Rel.R_INFO(sym.offset, type)
                     )
                 }
 
                 E_IDENT.ELFCLASS64 -> {
                     ELF64_Rel(
-                        currentSection.content.size.toULong(),
+                        offset.toULong(),
                         ELF64_Rel.R_INFO(sym.offset.toULong(), type.toULong())
                     )
                 }
@@ -473,7 +473,7 @@ class ELFBuilder(
                 else -> throw InvalidElfClassException(ei_class)
             }
 
-            rels.add(Section.RelDef(rel, content.size.toUInt()))
+            rels.add(Section.RelDef(rel, section, content.size.toUInt()))
             content.putAll(rel.build(endianness))
         }
     }
@@ -495,13 +495,13 @@ class ELFBuilder(
             }
         }
 
-        fun addEntry(identifier: String, type: Elf_Word, addend: Elf_Sxword) {
+        fun addEntry(identifier: String, type: Elf_Word, addend: Elf_Sxword, section: Section, offset: UInt) {
             val sym = symTab.search(identifier) ?: symTab.addUndefinedSymbol(identifier)
 
             val rel = when (ei_class) {
                 E_IDENT.ELFCLASS32 -> {
                     ELF32_Rela(
-                        currentSection.content.size.toUInt(),
+                        offset,
                         ELF32_Rel.R_INFO(sym.offset, type),
                         addend.toInt()
                     )
@@ -509,7 +509,7 @@ class ELFBuilder(
 
                 E_IDENT.ELFCLASS64 -> {
                     ELF64_Rela(
-                        currentSection.content.size.toULong(),
+                        offset.toULong(),
                         ELF64_Rel.R_INFO(sym.offset.toULong(), type.toULong()),
                         addend
                     )
@@ -518,7 +518,7 @@ class ELFBuilder(
                 else -> throw InvalidElfClassException(ei_class)
             }
 
-            relas.add(Section.RelaDef(rel, content.size.toUInt()))
+            relas.add(Section.RelaDef(rel, section, content.size.toUInt()))
             content.putAll(rel.build(endianness))
         }
     }
@@ -553,8 +553,8 @@ class ELFBuilder(
         data class LabelDef(val label: ASNode.Label, val offset: Elf_Word)
         data class InstrReservation(val instr: ASNode.Instruction, val offset: Elf_Word)
         data class SymbolDef(val symbol: Sym, val offset: Elf_Word)
-        data class RelDef(val rel: Rel, val offset: Elf_Word)
-        data class RelaDef(val rela: Rela, val offset: Elf_Word)
+        data class RelDef(val rel: Rel, val section: Section, val offset: Elf_Word)
+        data class RelaDef(val rela: Rela, val section: Section, val offset: Elf_Word)
     }
 
     // EXCEPTIONS

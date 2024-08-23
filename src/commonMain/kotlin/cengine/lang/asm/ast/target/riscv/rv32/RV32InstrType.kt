@@ -7,14 +7,17 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVConst
-import cengine.lang.asm.ast.target.riscv.RVConst.MASK_12_HI7
-import cengine.lang.asm.ast.target.riscv.RVConst.MASK_12_LO5
-import cengine.lang.asm.ast.target.riscv.RVConst.MASK_32_HI20
-import cengine.lang.asm.ast.target.riscv.RVConst.MASK_32_LO12
+import cengine.lang.asm.ast.target.riscv.RVConst.bit
+import cengine.lang.asm.ast.target.riscv.RVConst.mask12Hi7
+import cengine.lang.asm.ast.target.riscv.RVConst.mask12Lo5
+import cengine.lang.asm.ast.target.riscv.RVConst.mask20JalLayout
+import cengine.lang.asm.ast.target.riscv.RVConst.mask32Hi20
+import cengine.lang.asm.ast.target.riscv.RVConst.mask32Lo12
 import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.asm.elf.ELFBuilder
 import cengine.util.integer.Size
 import cengine.util.integer.toUInt
+import cengine.util.integer.toValue
 
 enum class RV32InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV32ParamType, val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV32ParamType.RD_I20),
@@ -190,7 +193,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
                 val opcode = RVConst.OPC_STORE
                 val rs2 = regs[0].ordinal.toUInt()
-                val bundle = (imm12.MASK_12_HI7() shl 25) or (rs2 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (imm12.MASK_12_LO5() shl 7) or opcode
+                val bundle = (imm12.mask12Hi7() shl 25) or (rs2 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (imm12.mask12Lo5() shl 7) or opcode
 
                 builder.currentSection.content.put(bundle)
             }
@@ -349,8 +352,8 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 }
 
                 val imm32 = imm.toBin().getResized(Size.Bit32).toUInt() ?: 0U
-                var hi20 = imm32.MASK_32_HI20()
-                val lo12 = imm32.MASK_32_LO12()
+                var hi20 = imm32.mask32Hi20()
+                val lo12 = imm32.mask32Lo12()
 
                 if (lo12 shr 11 == 1U) {
                     hi20 += 1U
@@ -384,7 +387,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                     Not -> {
                         val opcode = RVConst.OPC_ARITH_IMM
                         val funct3 = RVConst.FUNCT3_XOR
-                        val imm12 = (-1).toUInt().MASK_32_LO12()
+                        val imm12 = (-1).toUInt().mask32Lo12()
                         val rd = regs[0].ordinal.toUInt()
                         val rs1 = regs[1].ordinal.toUInt()
                         val bundle = (imm12 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
@@ -401,6 +404,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                         val bundle = (funct7 shl 25) or (rs2 shl 20) or (funct3 shl 12) or (rd shl 7) or opcode
                         builder.currentSection.content.put(bundle)
                     }
+
                     Seqz -> {
                         val opcode = RVConst.OPC_ARITH_IMM
                         val funct3 = RVConst.FUNCT3_SLTU
@@ -410,6 +414,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                         val bundle = (imm12 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
                         builder.currentSection.content.put(bundle)
                     }
+
                     Snez -> {
                         val opcode = RVConst.OPC_ARITH
                         val funct3 = RVConst.FUNCT3_SLTU
@@ -418,6 +423,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                         val bundle = (rs2 shl 20) or (funct3 shl 12) or (rd shl 7) or opcode
                         builder.currentSection.content.put(bundle)
                     }
+
                     Sltz -> {
                         val opcode = RVConst.OPC_ARITH
                         val funct3 = RVConst.FUNCT3_SLT
@@ -426,6 +432,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                         val bundle = (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
                         builder.currentSection.content.put(bundle)
                     }
+
                     Sgtz -> {
                         val opcode = RVConst.OPC_ARITH
                         val funct3 = RVConst.FUNCT3_SLT
@@ -434,6 +441,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                         val bundle = (rs2 shl 20) or (funct3 shl 12) or (rd shl 7) or opcode
                         builder.currentSection.content.put(bundle)
                     }
+
                     else -> {
                         // Should never happen
                     }
@@ -499,7 +507,86 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
     }
 
     override fun lateEvaluation(builder: ELFBuilder, section: ELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
+        val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVBaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) } }
+        val exprs = instr.nodes.filterIsInstance<ASNode.NumericExpr>()
 
+        when (this) {
+            JAL -> {
+                val expr = exprs[0]
+                val absTarget = expr.evaluate(builder, true)
+                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
+                }
+
+                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target.toInt() - index
+                val imm = result.toValue().toBin().shr(1).toDec()
+                if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
+                    expr.notations.add(Notation.error(expr, "$imm exceeds ${Size.Bit20}"))
+                }
+
+                val imm20 = imm.toBin().toUInt()?.mask20JalLayout() ?: 0U
+
+                val rd = regs[0].ordinal.toUInt()
+                val opcode = RVConst.OPC_JAL
+
+                val bundle = (imm20 shl 12) or (rd shl 7) or opcode
+                section.content[index] = bundle
+            }
+
+            BEQ -> TODO()
+            BNE -> TODO()
+            BLT -> TODO()
+            BGE -> TODO()
+            BLTU -> TODO()
+            BGEU -> TODO()
+            La -> {
+                val expr = exprs[0]
+                val absTarget = expr.evaluate(builder, true)
+                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
+                }
+
+                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = (target.toInt() - index).toUInt()
+
+                val lo12 = result.mask32Lo12()
+                var hi20 = result.mask32Hi20()
+
+                if (lo12.bit(12) == 1U) {
+                     hi20 += 1U
+                }
+
+                val rd = regs[0].ordinal.toUInt()
+
+                val auipcOpCode = RVConst.OPC_AUIPC
+                val auipcBundle = (hi20 shl 12) or (rd shl 7) or auipcOpCode
+                section.content[index] = auipcBundle
+
+                val addiOpCode = RVConst.OPC_ARITH_IMM
+                val funct3 = RVConst.FUNCT3_OPERATION
+                val addiBundle = (lo12 shl 20) or (rd shl 15) or (funct3 shl 12) or (rd shl 7) or addiOpCode
+                section.content[index + 4] = addiBundle
+            }
+
+            Beqz -> TODO()
+            Bnez -> TODO()
+            Blez -> TODO()
+            Bgez -> TODO()
+            Bltz -> TODO()
+            BGTZ -> TODO()
+            Bgt -> TODO()
+            Ble -> TODO()
+            Bgtu -> TODO()
+            Bleu -> TODO()
+            J -> TODO()
+            JAL1 -> TODO()
+            Call -> TODO()
+            Tail -> TODO()
+            else -> {
+                // Nothing needs to be done
+            }
+        }
     }
 
 }

@@ -82,14 +82,24 @@ data object RVConst{
      * MASKS
      */
 
-    fun UInt.MASK_12_HI7(): UInt = this shr 5
+    fun UInt.mask12Hi7(): UInt = this shr 5
 
-    fun UInt.MASK_12_LO5(): UInt = this and 0b000000011111U
+    fun UInt.mask12Lo5(): UInt = this and 0b000000011111U
 
-    fun UInt.MASK_32_HI20(): UInt = this shr 12
+    fun UInt.mask32Hi20(): UInt = this shr 12
 
-    fun UInt.MASK_32_LO12(): UInt = this and 0b111111111111U
+    fun UInt.mask32Lo12(): UInt = this and 0b111111111111U
 
+    /**
+     * @param index 1 (lowest) .. 32 (highest possible)
+     */
+    fun UInt.bit(index: Int): UInt = (this shr (index - 1)) and 1U
+
+    fun UInt.lowest8(): UInt = this and 0b11111111U
+
+    fun UInt.lowest10(): UInt = this and 0b1111111111U
+
+    fun UInt.mask20JalLayout(): UInt = (bit(20) shl 19) or (lowest10() shl 9) or (bit(11) shl 8) or (this shr 11).lowest8()
 }
 
 
