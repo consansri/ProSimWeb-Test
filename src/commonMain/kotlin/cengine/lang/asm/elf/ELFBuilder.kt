@@ -76,12 +76,12 @@ class ELFBuilder(
     }
 
     val strTab = StrTab().also {
-        sections.add(it)
+        sections.add(sections.size - endingSections, it)
         ++endingSections
     }
 
     val symTab = SymTab().also {
-        sections.add(it)
+        sections.add(sections.size - endingSections, it)
         ++endingSections
     }
 
@@ -260,10 +260,12 @@ class ELFBuilder(
             when (val shdr = it.shdr) {
                 is ELF32_Shdr -> {
                     shdr.sh_offset = start.toUInt()
+                    shdr.sh_size = it.content.size.toUInt()
                 }
 
                 is ELF64_Shdr -> {
                     shdr.sh_offset = start.toULong()
+                    shdr.sh_size = it.content.size.toULong()
                 }
             }
 
@@ -272,8 +274,6 @@ class ELFBuilder(
 
     private fun ByteBuffer.writeSHDRs() {
         sections.forEachIndexed { index, sec ->
-            val shdr = sec.shdr
-
             putAll(sec.shdr.build(endianness))
         }
     }
