@@ -5,9 +5,8 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.ELFBuilder
-import cengine.util.ByteBuffer
 
-enum class RV64InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV64ParamType, override val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class RV64InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV64ParamType, val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV64ParamType.RD_I20),
     AUIPC("AUIPC", false, RV64ParamType.RD_I20),
     JAL("JAL", false, RV64ParamType.RD_I20, true),
@@ -124,11 +123,11 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
     override val typeName: String = name
 
-    override fun build(instr: ASNode.Instruction): ByteBuffer {
+    override fun resolve(builder: ELFBuilder, instr: ASNode.Instruction) {
         TODO("Not yet implemented")
     }
 
-    override fun lateEvaluation(instrDef: ELFBuilder.Section.InstrDef): ByteBuffer {
+    override fun lateEvaluation(builder: ELFBuilder, section: ELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
         TODO("Not yet implemented")
     }
 

@@ -1,11 +1,12 @@
 package cengine.lang.asm.ast.target.riscv.rv64
 
-import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
+import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.asm.ast.target.riscv.RVDirType
 import cengine.lang.asm.elf.E_IDENT
 import cengine.lang.asm.elf.Ehdr
@@ -34,7 +35,7 @@ data object RV64Spec : TargetSpec {
         override val symbol: Regex = Regex("""[a-zA-Z$._][a-zA-Z0-9$._]*""")
     }
 
-    override val allRegs: List<RegTypeInterface> = RVBaseRegs.entries
+    override val allRegs: List<RegTypeInterface> = RVBaseRegs.entries + RVCsr.regs
     override val allInstrs: List<InstrTypeInterface> = RV64InstrType.entries
     override val customDirs: List<DirTypeInterface> = RVDirType.entries
     override fun toString(): String = name

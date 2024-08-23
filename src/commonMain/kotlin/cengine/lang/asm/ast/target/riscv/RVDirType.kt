@@ -134,7 +134,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             DWORD -> {
                 dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                     val evaluated = it.evaluate(builder)
-                    if (!evaluated.checkSizeSignedAndUnsigned(Size.Bit64)) {
+                    if (!evaluated.checkSizeSignedOrUnsigned(Size.Bit64)) {
                         dir.notations.add(Notation.error(dir, "$evaluated exceeds ${Size.Bit64}!"))
                     }
                 }

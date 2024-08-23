@@ -11,7 +11,6 @@ import cengine.util.ByteBuffer
 import cengine.util.ByteBuffer.Companion.toASCIIByteArray
 import cengine.util.ByteBuffer.Companion.toASCIIString
 import cengine.util.Endianness
-import emulator.kit.nativeLog
 import kotlin.experimental.*
 
 /**
@@ -32,9 +31,7 @@ class ELFBuilder(
     private var e_flags: Elf_Word
 ) {
 
-    constructor(spec: TargetSpec, type: Elf_Half, e_flags: Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, type, spec.e_machine, e_flags){
-        nativeLog("ELFBuilder of ${spec.name}")
-    }
+    constructor(spec: TargetSpec, type: Elf_Half, e_flags: Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, type, spec.e_machine, e_flags)
 
     /**
      * ELF IDENTIFICATION & CLASSIFICATION
@@ -139,7 +136,7 @@ class ELFBuilder(
         }
 
         sections.forEach {
-            it.resolveInSectionJumps()
+            it.resolveReservations(this)
         }
 
         return writeELFFile()
@@ -163,7 +160,7 @@ class ELFBuilder(
                 instruction.nodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                     it.assign(symTab)
                 }
-                currentSection.addInstr(instruction, instruction.type.build(instruction))
+                instruction.type.resolve(this@ELFBuilder, instruction)
             }
 
             is ASNode.Statement.Unresolved -> {}
@@ -292,7 +289,7 @@ class ELFBuilder(
     private fun createNewSection(name: String? = null, type: Elf_Word? = null, link: Elf_Word? = null, info: String? = null): Section = object : Section {
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
-        override val instrs: MutableList<Section.InstrDef> = mutableListOf()
+        override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
         override val labels: MutableSet<Section.LabelDef> = mutableSetOf()
 
         init {
@@ -315,7 +312,7 @@ class ELFBuilder(
         val name = ".symtab"
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
-        override val instrs: MutableList<Section.InstrDef> = mutableListOf()
+        override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
         override val labels: MutableSet<Section.LabelDef> = mutableSetOf()
 
         private val symbols: MutableList<Section.SymbolDef> = mutableListOf()
@@ -381,7 +378,7 @@ class ELFBuilder(
         val name = ".shstrtab"
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
-        override val instrs: MutableList<Section.InstrDef> = mutableListOf()
+        override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
         override val labels: MutableSet<Section.LabelDef> = mutableSetOf()
         private val stringIndexMap = mutableMapOf<String, UInt>()
 
@@ -415,7 +412,7 @@ class ELFBuilder(
         val name = ".strtab"
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
-        override val instrs: MutableList<Section.InstrDef> = mutableListOf()
+        override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
         override val labels: MutableSet<Section.LabelDef> = mutableSetOf()
         private val stringIndexMap = mutableMapOf<String, UInt>()
 
@@ -442,7 +439,7 @@ class ELFBuilder(
         val name = ".rel"
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
-        override val instrs: MutableList<Section.InstrDef> = mutableListOf()
+        override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
         override val labels: MutableSet<Section.LabelDef> = mutableSetOf()
         val rels: MutableSet<Section.RelDef> = mutableSetOf()
 
@@ -485,7 +482,7 @@ class ELFBuilder(
         val name = ".rela"
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
-        override val instrs: MutableList<Section.InstrDef> = mutableListOf()
+        override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
         override val labels: MutableSet<Section.LabelDef> = mutableSetOf()
         val relas: MutableSet<Section.RelaDef> = mutableSetOf()
 
@@ -531,29 +528,30 @@ class ELFBuilder(
     interface Section {
         val shdr: Shdr
         val content: ByteBuffer
-        val instrs: MutableList<InstrDef>
+        val reservations: MutableList<InstrReservation>
         val labels: MutableSet<LabelDef>
 
         fun addLabel(label: ASNode.Label) {
             labels.add(LabelDef(label, content.size.toUInt()))
         }
 
-        fun addInstr(instr: ASNode.Instruction, buffer: ByteBuffer) {
-            instrs.add(InstrDef(instr, content.size.toUInt()))
-            content.putAll(buffer.toByteArray())
+        fun queueLateInit(instr: ASNode.Instruction, byteAmount: Int) {
+            reservations.add(InstrReservation(instr, content.size.toUInt()))
+            content.putAll(ByteArray(byteAmount) { 0 })
         }
 
-        fun resolveInSectionJumps() {
-            instrs.filter { it.instr.type.labelDependent }.forEach { def ->
+        fun resolveReservations(builder: ELFBuilder) {
+            reservations.forEach { def ->
                 def.instr.nodes.filterIsInstance<ASNode.NumericExpr>().forEach { expr ->
                     expr.assign(this)
                 }
-                def.instr.type.lateEvaluation(def)
+                def.instr.type.lateEvaluation(builder, this, def.instr, def.offset.toInt())
             }
+            reservations.clear()
         }
 
         data class LabelDef(val label: ASNode.Label, val offset: Elf_Word)
-        data class InstrDef(val instr: ASNode.Instruction, val offset: Elf_Word)
+        data class InstrReservation(val instr: ASNode.Instruction, val offset: Elf_Word)
         data class SymbolDef(val symbol: Sym, val offset: Elf_Word)
         data class RelDef(val rel: Rel, val offset: Elf_Word)
         data class RelaDef(val rela: Rela, val offset: Elf_Word)

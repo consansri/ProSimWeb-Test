@@ -4,10 +4,9 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.ELFBuilder
-import cengine.util.ByteBuffer
 
 
-enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", override val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     ADD("add", IKRR2ParamType.R2_TYPE, "addiere"),
     ADDI("addi", IKRR2ParamType.I_TYPE, "addiere Konstante (erweitere Konstante vorzeichenrichtig)"),
     ADDLI("addli", IKRR2ParamType.I_TYPE, "addiere Konstante (erweitere Konstante vorzeichenlos)"),
@@ -89,11 +88,11 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
     override val typeName: String
         get() = name
 
-    override fun build(instr: ASNode.Instruction): ByteBuffer {
+    override fun resolve(builder: ELFBuilder, instr: ASNode.Instruction) {
         TODO("Not yet implemented")
     }
 
-    override fun lateEvaluation(instrDef: ELFBuilder.Section.InstrDef): ByteBuffer {
+    override fun lateEvaluation(builder: ELFBuilder, section: ELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
         TODO("Not yet implemented")
     }
 

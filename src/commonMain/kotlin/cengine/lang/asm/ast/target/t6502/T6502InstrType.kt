@@ -4,9 +4,8 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.ELFBuilder
-import cengine.util.ByteBuffer
 
-enum class T6502InstrType(override val detectionName: String, val opCode: UByte, val aMode: T6502ParamType, val description: String, override val labelDependent: Boolean = false) : InstrTypeInterface {
+enum class T6502InstrType(override val detectionName: String, val opCode: UByte, val aMode: T6502ParamType, val description: String, val labelDependent: Boolean = false) : InstrTypeInterface {
     // Load, store, interregister transfer
     LDA_ABS("LDA", 0xADU, T6502ParamType.ABS, "load accumulator"),
     LDA_ABS_X("LDA", 0xBDU,T6502ParamType.ABS_X, "load accumulator"),
@@ -209,11 +208,11 @@ enum class T6502InstrType(override val detectionName: String, val opCode: UByte,
     override val paramRule: Rule?
         get() = aMode.rule
 
-    override fun build(instr: ASNode.Instruction): ByteBuffer {
+    override fun resolve(builder: ELFBuilder, instr: ASNode.Instruction) {
         TODO("Not yet implemented")
     }
 
-    override fun lateEvaluation(instrDef: ELFBuilder.Section.InstrDef): ByteBuffer {
+    override fun lateEvaluation(builder: ELFBuilder, section: ELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
         TODO("Not yet implemented")
     }
 }

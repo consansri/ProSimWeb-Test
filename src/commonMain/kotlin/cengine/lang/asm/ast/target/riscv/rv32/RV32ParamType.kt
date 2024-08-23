@@ -1,8 +1,8 @@
 package cengine.lang.asm.ast.target.riscv.rv32
 
-import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.Rule
+import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 
 enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rule: Rule?) {
@@ -68,18 +68,7 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
             )
         }
     ) , // rd, rs, shamt
-    RS1_RS2_I12(
-        false, "rs1, rs2, imm12", Rule {
-            Seq(
 
-                Reg(RVBaseRegs.entries),
-                Specific(","),
-                Reg(RVBaseRegs.entries),
-                Specific(","),
-                SpecNode(ASNodeType.INT_EXPR)
-            )
-        }
-    ) , // rs1, rs2, imm
     CSR_RD_OFF12_RS1(
         false, "rd, csr12, rs1", Rule {
             Seq(

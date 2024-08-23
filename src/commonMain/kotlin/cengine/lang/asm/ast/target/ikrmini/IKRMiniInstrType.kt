@@ -4,9 +4,8 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.ELFBuilder
-import cengine.util.ByteBuffer
 
-enum class IKRMiniInstrType(override val detectionName: String, val opCode: UShort, val paramType: IKRMiniParamType, val description: String, override val labelDependent: Boolean = false) : InstrTypeInterface {
+enum class IKRMiniInstrType(override val detectionName: String, val opCode: UShort, val paramType: IKRMiniParamType, val description: String, val labelDependent: Boolean = false) : InstrTypeInterface {
     // Data Transport
     LOAD_IMM("LOAD", 0x010CU, IKRMiniParamType.IMM, "load AC"),
     LOAD_DIR("LOAD", 0x020CU, IKRMiniParamType.DIR, "load AC"),
@@ -129,11 +128,11 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
     override val inCodeInfo: String? get() = description
     override val paramRule: Rule? get() = paramType.rule
 
-    override fun build(instr: ASNode.Instruction): ByteBuffer {
+    override fun resolve(builder: ELFBuilder, instr: ASNode.Instruction) {
         TODO("Not yet implemented")
     }
 
-    override fun lateEvaluation(instrDef: ELFBuilder.Section.InstrDef): ByteBuffer {
+    override fun lateEvaluation(builder: ELFBuilder, section: ELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
         TODO("Not yet implemented")
     }
 
