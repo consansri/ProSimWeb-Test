@@ -79,6 +79,16 @@ data object RVConst{
     const val FUNCT7_M = 0b0000001U
 
     /**
+     * Relocation Types
+     */
+
+    const val REL_TYPE_JAL = 1U
+    const val REL_TYPE_LA = 2U
+    const val REL_TYPE_CBRA = 3U
+    const val REL_TYPE_CALL_OR_TAIL = 4U
+
+
+    /**
      * MASKS
      */
 
@@ -95,11 +105,17 @@ data object RVConst{
      */
     fun UInt.bit(index: Int): UInt = (this shr (index - 1)) and 1U
 
+    fun UInt.lowest4(): UInt = this and 0b1111U
+    fun UInt.lowest6(): UInt = this and 0b111111U
     fun UInt.lowest8(): UInt = this and 0b11111111U
 
     fun UInt.lowest10(): UInt = this and 0b1111111111U
 
     fun UInt.mask20JalLayout(): UInt = (bit(20) shl 19) or (lowest10() shl 9) or (bit(11) shl 8) or (this shr 11).lowest8()
+
+    fun UInt.mask12CBraLayout7(): UInt = (bit(12) shl 6) or (this shr 4).lowest6()
+
+    fun UInt.mask12CBraLayout5(): UInt = (lowest4() shl 1) or bit(11)
 }
 
 

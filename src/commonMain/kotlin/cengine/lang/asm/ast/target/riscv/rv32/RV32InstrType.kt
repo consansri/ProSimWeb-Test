@@ -8,6 +8,8 @@ import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVConst
 import cengine.lang.asm.ast.target.riscv.RVConst.bit
+import cengine.lang.asm.ast.target.riscv.RVConst.mask12CBraLayout5
+import cengine.lang.asm.ast.target.riscv.RVConst.mask12CBraLayout7
 import cengine.lang.asm.ast.target.riscv.RVConst.mask12Hi7
 import cengine.lang.asm.ast.target.riscv.RVConst.mask12Lo5
 import cengine.lang.asm.ast.target.riscv.RVConst.mask20JalLayout
@@ -96,7 +98,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
     Blez("BLEZ", true, RV32ParamType.PS_RS1_JLBL, true),
     Bgez("BGEZ", true, RV32ParamType.PS_RS1_JLBL, true),
     Bltz("BLTZ", true, RV32ParamType.PS_RS1_JLBL, true),
-    BGTZ("BGTZ", true, RV32ParamType.PS_RS1_JLBL, true),
+    Bgtz("BGTZ", true, RV32ParamType.PS_RS1_JLBL, true),
     Bgt("BGT", true, RV32ParamType.RS1_RS2_LBL, true),
     Ble("BLE", true, RV32ParamType.RS1_RS2_LBL, true),
     Bgtu("BGTU", true, RV32ParamType.RS1_RS2_LBL, true),
@@ -120,9 +122,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
         val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVBaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) } }
         val exprs = instr.nodes.filterIsInstance<ASNode.NumericExpr>()
 
-        if (this.labelDependent) {
-            return builder.currentSection.queueLateInit(instr, bytesNeeded ?: 4)
-        }
+
 
         when (this.paramType) {
             RV32ParamType.RD_I20 -> {
@@ -504,6 +504,9 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             else -> {}
         }
 
+        if (this.labelDependent) {
+            return builder.currentSection.queueLateInit(instr, bytesNeeded ?: 4)
+        }
     }
 
     override fun lateEvaluation(builder: ELFBuilder, section: ELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
@@ -513,7 +516,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
         when (this) {
             JAL -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_JAL)
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }
@@ -525,7 +528,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                     expr.notations.add(Notation.error(expr, "$imm exceeds ${Size.Bit20}"))
                 }
 
-                val imm20 = imm.toBin().toUInt()?.mask20JalLayout() ?: 0U
+                val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20JalLayout() ?: 0U
 
                 val rd = regs[0].ordinal.toUInt()
                 val opcode = RVConst.OPC_JAL
@@ -534,15 +537,44 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 section.content[index] = bundle
             }
 
-            BEQ -> TODO()
-            BNE -> TODO()
-            BLT -> TODO()
-            BGE -> TODO()
-            BLTU -> TODO()
-            BGEU -> TODO()
+            BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
+                val expr = exprs[0]
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_CBRA)
+                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
+                }
+
+                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target.toInt() - index
+                val imm = result.toValue()
+                if (!imm.checkSizeSignedOrUnsigned(Size.Bit12)) {
+                    expr.notations.add(Notation.error(expr, "$imm exceeds ${Size.Bit12}"))
+                }
+
+                val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
+                val imm7 = imm12.mask12CBraLayout7()
+                val imm5 = imm12.mask12CBraLayout5()
+
+                val opcode = RVConst.OPC_CBRA
+                val funct3 = when (this) {
+                    BEQ -> RVConst.FUNCT3_CBRA_BEQ
+                    BNE -> RVConst.FUNCT3_CBRA_BNE
+                    BLT -> RVConst.FUNCT3_CBRA_BLT
+                    BGE -> RVConst.FUNCT3_CBRA_BGE
+                    BLTU -> RVConst.FUNCT3_CBRA_BLTU
+                    BGEU -> RVConst.FUNCT3_CBRA_BGEU
+                    else -> throw Exception("Implementation Error!")
+                }
+                val rs1 = regs[0].ordinal.toUInt()
+                val rs2 = regs[1].ordinal.toUInt()
+
+                val bundle = (imm7 shl 25) or (rs2 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (imm5 shl 7) or opcode
+                section.content[index] = bundle
+            }
+
             La -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_LA)
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }
@@ -554,7 +586,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 var hi20 = result.mask32Hi20()
 
                 if (lo12.bit(12) == 1U) {
-                     hi20 += 1U
+                    hi20 += 1U
                 }
 
                 val rd = regs[0].ordinal.toUInt()
@@ -569,20 +601,199 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 section.content[index + 4] = addiBundle
             }
 
-            Beqz -> TODO()
-            Bnez -> TODO()
-            Blez -> TODO()
-            Bgez -> TODO()
-            Bltz -> TODO()
-            BGTZ -> TODO()
-            Bgt -> TODO()
-            Ble -> TODO()
-            Bgtu -> TODO()
-            Bleu -> TODO()
-            J -> TODO()
-            JAL1 -> TODO()
-            Call -> TODO()
-            Tail -> TODO()
+            Beqz, Bnez, Blez, Bgez, Bltz, Bgtz -> {
+                // Comparisons with Zero
+                val expr = exprs[0]
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_CBRA)
+                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
+                }
+
+                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target.toInt() - index
+                val imm = result.toValue()
+                if (!imm.checkSizeSignedOrUnsigned(Size.Bit12)) {
+                    expr.notations.add(Notation.error(expr, "$imm exceeds ${Size.Bit12}"))
+                }
+
+                val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
+                val imm7 = imm12.mask12CBraLayout7()
+                val imm5 = imm12.mask12CBraLayout5()
+
+                val opcode = RVConst.OPC_CBRA
+                val funct3 = when (this) {
+                    Beqz -> RVConst.FUNCT3_CBRA_BEQ
+                    Bnez -> RVConst.FUNCT3_CBRA_BNE
+                    Blez -> RVConst.FUNCT3_CBRA_BGE
+                    Bgez -> RVConst.FUNCT3_CBRA_BGE
+                    Bltz -> RVConst.FUNCT3_CBRA_BLT
+                    Bgtz -> RVConst.FUNCT3_CBRA_BLT
+                    else -> throw Exception("Implementation Error!")
+                }
+
+                val rs2 = when (this) {
+                    Beqz -> RVBaseRegs.ZERO.ordinal.toUInt()
+                    Bnez -> RVBaseRegs.ZERO.ordinal.toUInt()
+                    Blez -> regs[0].ordinal.toUInt()
+                    Bgez -> RVBaseRegs.ZERO.ordinal.toUInt()
+                    Bltz -> RVBaseRegs.ZERO.ordinal.toUInt()
+                    Bgtz -> regs[0].ordinal.toUInt()
+                    else -> throw Exception("Implementation Error!")
+                }
+
+                val rs1 = when (this) {
+                    Beqz -> regs[0].ordinal.toUInt()
+                    Bnez -> regs[0].ordinal.toUInt()
+                    Blez -> RVBaseRegs.ZERO.ordinal.toUInt()
+                    Bgez -> regs[0].ordinal.toUInt()
+                    Bltz -> regs[0].ordinal.toUInt()
+                    Bgtz -> RVBaseRegs.ZERO.ordinal.toUInt()
+                    else -> throw Exception("Implementation Error!")
+                }
+
+                val bundle = (imm7 shl 25) or (rs2 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (imm5 shl 7) or opcode
+                section.content[index] = bundle
+            }
+            Bgt, Ble, Bgtu, Bleu -> {
+                // Swapping rs1 and rs2
+                val expr = exprs[0]
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_CBRA)
+                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
+                }
+
+                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target.toInt() - index
+                val imm = result.toValue()
+                if (!imm.checkSizeSignedOrUnsigned(Size.Bit12)) {
+                    expr.notations.add(Notation.error(expr, "$imm exceeds ${Size.Bit12}"))
+                }
+
+                val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
+                val imm7 = imm12.mask12CBraLayout7()
+                val imm5 = imm12.mask12CBraLayout5()
+
+                val opcode = RVConst.OPC_CBRA
+                val funct3 = when (this) {
+                    Bgt -> RVConst.FUNCT3_CBRA_BLT
+                    Ble -> RVConst.FUNCT3_CBRA_BGE
+                    Bgtu -> RVConst.FUNCT3_CBRA_BLTU
+                    Bleu -> RVConst.FUNCT3_CBRA_BGEU
+                    else -> throw Exception("Implementation Error!")
+                }
+
+                val rs2 = regs[0].ordinal.toUInt()
+                val rs1 = regs[1].ordinal.toUInt()
+
+                val bundle = (imm7 shl 25) or (rs2 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (imm5 shl 7) or opcode
+                section.content[index] = bundle
+            }
+            J -> {
+                val expr = exprs[0]
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_JAL)
+                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
+                }
+
+                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target.toInt() - index
+                val imm = result.toValue().toBin().shr(1).toDec()
+                if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
+                    expr.notations.add(Notation.error(expr, "$imm exceeds ${Size.Bit20}"))
+                }
+
+                val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20JalLayout() ?: 0U
+
+                val rd = RVBaseRegs.ZERO.ordinal.toUInt()
+                val opcode = RVConst.OPC_JAL
+
+                val bundle = (imm20 shl 12) or (rd shl 7) or opcode
+                section.content[index] = bundle
+            }
+
+            JAL1 -> {
+                val expr = exprs[0]
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_JAL)
+                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
+                }
+
+                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target.toInt() - index
+                val imm = result.toValue().toBin().shr(1).toDec()
+                if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
+                    expr.notations.add(Notation.error(expr, "$imm exceeds ${Size.Bit20}"))
+                }
+
+                val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20JalLayout() ?: 0U
+
+                val rd = RVBaseRegs.RA.ordinal.toUInt()
+                val opcode = RVConst.OPC_JAL
+
+                val bundle = (imm20 shl 12) or (rd shl 7) or opcode
+                section.content[index] = bundle
+            }
+
+            Call -> {
+                val expr = exprs[0]
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_LA)
+                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
+                }
+
+                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = (target.toInt() - index).toUInt()
+
+                val lo12 = result.mask32Lo12()
+                var hi20 = result.mask32Hi20()
+
+                if (lo12.bit(12) == 1U) {
+                    hi20 += 1U
+                }
+
+                val x6 = RVBaseRegs.T1.ordinal.toUInt()
+                val x1 = RVBaseRegs.RA.ordinal.toUInt()
+
+                val auipcOpcode = RVConst.OPC_AUIPC
+                val jalrOpcode = RVConst.OPC_JALR
+
+                val auipcBundle = (hi20 shl 12) or (x6 shl 7) or auipcOpcode
+                val jalrBundle = (lo12 shl 20) or (x6 shl 15) or (x1 shl 7) or jalrOpcode
+
+                section.content[index] = auipcBundle
+                section.content[index + 4] = jalrBundle
+            }
+
+            Tail -> {
+                val expr = exprs[0]
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_LA)
+                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
+                }
+
+                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = (target.toInt() - index).toUInt()
+
+                val lo12 = result.mask32Lo12()
+                var hi20 = result.mask32Hi20()
+
+                if (lo12.bit(12) == 1U) {
+                    hi20 += 1U
+                }
+
+                val x6 = RVBaseRegs.T1.ordinal.toUInt()
+                val x0 = RVBaseRegs.ZERO.ordinal.toUInt()
+
+                val auipcOpcode = RVConst.OPC_AUIPC
+                val jalrOpcode = RVConst.OPC_JALR
+
+                val auipcBundle = (hi20 shl 12) or (x6 shl 7) or auipcOpcode
+                val jalrBundle = (lo12 shl 20) or (x6 shl 15) or (x0 shl 7) or jalrOpcode
+
+                section.content[index] = auipcBundle
+                section.content[index + 4] = jalrBundle
+            }
+
             else -> {
                 // Nothing needs to be done
             }
