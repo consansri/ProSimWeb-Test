@@ -1,12 +1,13 @@
 package cengine.lang.asm.ast.target.ikrmini
 
-import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.elf.Elf_Byte
 import cengine.lang.asm.elf.Elf_Half
+import cengine.lang.asm.elf.Elf_Xword
 import cengine.util.integer.Size
 
 data object IKRMiniSpec: TargetSpec {
@@ -20,6 +21,10 @@ data object IKRMiniSpec: TargetSpec {
     override val ei_abiversion: Elf_Byte
         get() = TODO("Not yet implemented")
     override val e_machine: Elf_Half
+        get() = TODO("Not yet implemented")
+    override val e_text_addr: Elf_Xword
+        get() = TODO("Not yet implemented")
+    override val e_data_addr: Elf_Xword
         get() = TODO("Not yet implemented")
     override val memAddrSize: Size = Size.Bit16
     override val wordSize: Size = Size.Bit16

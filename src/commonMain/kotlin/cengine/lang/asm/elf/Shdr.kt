@@ -10,10 +10,30 @@ interface Shdr : BinaryProvider {
     var sh_link: Elf_Word
     var sh_info: Elf_Word
 
-    companion object {
+    fun setAddr(addr: Elf_Xword) {
+        when (this) {
+            is ELF32_Shdr -> this.sh_addr = addr.toUInt()
+            is ELF64_Shdr -> this.sh_addr = addr
+        }
+    }
 
-        fun size(ei_class: Elf_Byte): Elf_Half{
-            return when(ei_class){
+    fun setFlags(flags: Elf_Xword) {
+        when (this) {
+            is ELF32_Shdr -> this.sh_flags = flags.toUInt()
+            is ELF64_Shdr -> this.sh_flags = flags
+        }
+    }
+
+    fun setEntSize(entsize: Elf_Xword){
+        when(this){
+            is ELF32_Shdr -> this.sh_entsize = entsize.toUInt()
+            is ELF64_Shdr -> this.sh_entsize = entsize
+        }
+    }
+
+    companion object {
+        fun size(ei_class: Elf_Byte): Elf_Half {
+            return when (ei_class) {
                 E_IDENT.ELFCLASS32 -> 40U
                 E_IDENT.ELFCLASS64 -> 64U
                 else -> throw ELFBuilder.InvalidElfClassException(ei_class)

@@ -516,7 +516,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
         when (this) {
             JAL -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_JAL)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_JAL, withSection = section, withOffset = index.toUInt())
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }
@@ -539,7 +539,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_CBRA)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_CBRA, withSection = section, withOffset = index.toUInt())
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }
@@ -574,7 +574,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             La -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_LA)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_LA, withSection = section, withOffset = index.toUInt())
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }
@@ -604,7 +604,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             Beqz, Bnez, Blez, Bgez, Bltz, Bgtz -> {
                 // Comparisons with Zero
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_CBRA)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_CBRA, withSection = section, withOffset = index.toUInt())
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }
@@ -657,7 +657,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             Bgt, Ble, Bgtu, Bleu -> {
                 // Swapping rs1 and rs2
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_CBRA)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_CBRA, withSection = section, withOffset = index.toUInt())
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }
@@ -690,7 +690,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             }
             J -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_JAL)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_JAL, withSection = section, withOffset = index.toUInt())
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }
@@ -713,7 +713,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             JAL1 -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_JAL)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_JAL, withSection = section, withOffset = index.toUInt())
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }
@@ -736,7 +736,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             Call -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_LA)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_LA, withSection = section, withOffset = index.toUInt())
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }
@@ -766,7 +766,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             Tail -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_LA)
+                val absTarget = expr.evaluate(builder, true, RVConst.REL_TYPE_LA, withSection = section, withOffset = index.toUInt())
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
                     expr.notations.add(Notation.error(expr, "$absTarget exceeds ${Size.Bit32}"))
                 }

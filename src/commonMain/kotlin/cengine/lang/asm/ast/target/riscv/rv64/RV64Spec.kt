@@ -8,10 +8,7 @@ import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.asm.ast.target.riscv.RVDirType
-import cengine.lang.asm.elf.E_IDENT
-import cengine.lang.asm.elf.Ehdr
-import cengine.lang.asm.elf.Elf_Byte
-import cengine.lang.asm.elf.Elf_Half
+import cengine.lang.asm.elf.*
 import cengine.util.integer.Size
 
 data object RV64Spec : TargetSpec {
@@ -22,6 +19,8 @@ data object RV64Spec : TargetSpec {
     override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
     override val ei_abiversion: Elf_Byte = E_IDENT.ZERO
     override val e_machine: Elf_Half = Ehdr.EM_RISCV
+    override val e_text_addr: Elf_Xword = 0U
+    override val e_data_addr: Elf_Xword = 0x4000000000000000U
 
     override val memAddrSize: Size = Size.Bit64
     override val wordSize: Size = Size.Bit32

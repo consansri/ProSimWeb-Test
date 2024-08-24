@@ -28,10 +28,12 @@ class ELFBuilder(
     private val ei_abiversion: Elf_Byte,
     private val e_type: Elf_Half,
     private val e_machine: Elf_Half,
-    private var e_flags: Elf_Word
+    private var e_flags: Elf_Word,
+    private val text_start_addr: Elf_Xword = 0U,
+    private val data_start_addr: Elf_Xword = 0x40000000U
 ) {
 
-    constructor(spec: TargetSpec, type: Elf_Half, e_flags: Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, type, spec.e_machine, e_flags)
+    constructor(spec: TargetSpec, type: Elf_Half, e_flags: Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, type, spec.e_machine, e_flags, spec.e_text_addr, spec.e_data_addr)
 
     /**
      * ELF IDENTIFICATION & CLASSIFICATION
@@ -48,7 +50,7 @@ class ELFBuilder(
 
     private val phdrs: MutableList<Phdr> = mutableListOf()
 
-    private var entryPoint: ULong = 0x0UL
+    private var entryPoint: Elf_Xword = text_start_addr
 
     /**
      * Sections Stored in the following order.
@@ -96,31 +98,20 @@ class ELFBuilder(
     }
 
     val text = getOrCreateSection(".text", Shdr.SHT_text).apply {
-        when (val shdr = shdr) {
-            is ELF32_Shdr -> shdr.sh_flags = Shdr.SHF_text
-            is ELF64_Shdr -> shdr.sh_flags = Shdr.SHF_text.toULong()
-        }
+        shdr.setFlags(Shdr.SHF_text.toULong())
+        shdr.setAddr(text_start_addr)
     }
 
-    val rodata = createNewSection(".rodata", Shdr.SHT_rodata).apply {
-        when (val shdr = shdr) {
-            is ELF32_Shdr -> shdr.sh_flags = Shdr.SHF_rodata
-            is ELF64_Shdr -> shdr.sh_flags = Shdr.SHF_rodata.toULong()
-        }
+    val rodata = getOrCreateSection(".rodata", Shdr.SHT_rodata).apply {
+        shdr.setFlags(Shdr.SHF_rodata.toULong())
     }
 
-    val data = createNewSection(".data", Shdr.SHT_data).apply {
-        when (val shdr = shdr) {
-            is ELF32_Shdr -> shdr.sh_flags = Shdr.SHF_data
-            is ELF64_Shdr -> shdr.sh_flags = Shdr.SHF_data.toULong()
-        }
+    val data = getOrCreateSection(".data", Shdr.SHT_data).apply {
+        shdr.setFlags(Shdr.SHF_data.toULong())
     }
 
-    val bss = createNewSection(".bss", Shdr.SHT_bss).apply {
-        when (val shdr = shdr) {
-            is ELF32_Shdr -> shdr.sh_flags = Shdr.SHF_bss
-            is ELF64_Shdr -> shdr.sh_flags = Shdr.SHF_bss.toULong()
-        }
+    val bss = getOrCreateSection(".bss", Shdr.SHT_bss).apply {
+        shdr.setFlags(Shdr.SHF_bss.toULong())
     }
 
     //
@@ -181,6 +172,16 @@ class ELFBuilder(
         val shstrndx = sections.indexOf(shStrTab).toUShort()
         val phoff = totalEhdrBytes
         val shoff = totalEhdrBytes + totalPhdrBytes + totalSectionBytes
+
+        var dataAddr = data_start_addr
+        rodata.shdr.setAddr(dataAddr)
+        dataAddr += rodata.content.size.toULong()
+        data.shdr.setAddr(dataAddr)
+        dataAddr += data.content.size.toULong()
+        bss.shdr.setAddr(dataAddr)
+        dataAddr += bss.content.size.toULong()
+
+
 
         buffer.writeELFHeader(ehdr, shstrndx, phoff, shoff)
         buffer.writePHDRs()
@@ -268,7 +269,6 @@ class ELFBuilder(
                     shdr.sh_size = it.content.size.toULong()
                 }
             }
-
         }
     }
 
@@ -321,10 +321,7 @@ class ELFBuilder(
         init {
             shdr.sh_name = shStrTab.addString(name)
             shdr.sh_type = Shdr.SHT_SYMTAB
-            when (shdr) {
-                is ELF32_Shdr -> shdr.sh_entsize = Sym.size(ei_class).toUInt()
-                is ELF64_Shdr -> shdr.sh_entsize = Sym.size(ei_class).toULong()
-            }
+            shdr.setEntSize(Sym.size(ei_class).toULong())
         }
 
         fun search(identifier: String): Section.SymbolDef? = symbols.firstOrNull { strTab.getStringAt(it.symbol.st_name) == identifier }
@@ -334,6 +331,32 @@ class ELFBuilder(
             for (i in 0..<symbolSize.toInt()) {
                 content[symbolDef.offset.toInt() + i] = newContent[i]
             }
+        }
+
+        fun addUndefNumSymbol(identifier: String): Section.SymbolDef {
+            return addSymbol(
+                when (ei_class) {
+                    E_IDENT.ELFCLASS32 -> ELF32_Sym(
+                        strTab.addString(identifier),
+                        0U,
+                        0U,
+                        Sym.ELF_ST_INFO(Sym.STB_LOCAL, Sym.STT_NUM).toUByte(),
+                        0U,
+                        sections.indexOf(currentSection).toUShort()
+                    )
+
+                    E_IDENT.ELFCLASS64 -> ELF64_Sym(
+                        strTab.addString(identifier),
+                        0U,
+                        0U,
+                        Sym.ELF_ST_INFO(Sym.STB_LOCAL, Sym.STT_NUM).toUShort(),
+                        0U,
+                        sections.indexOf(currentSection).toULong()
+                    )
+
+                    else -> throw InvalidElfClassException(ei_class)
+                }
+            )
         }
 
         fun addUndefinedSymbol(identifier: String): Section.SymbolDef {
@@ -446,14 +469,11 @@ class ELFBuilder(
         init {
             shdr.sh_name = shStrTab.addString(name)
             shdr.sh_type = Shdr.SHT_REL
-            when (shdr) {
-                is ELF32_Shdr -> shdr.sh_entsize = Rel.size(ei_class).toUInt()
-                is ELF64_Shdr -> shdr.sh_entsize = Rel.size(ei_class).toULong()
-            }
+            shdr.setEntSize(Rel.size(ei_class).toULong())
         }
 
         fun addEntry(identifier: String, type: Elf_Word, section: Section, offset: UInt) {
-            val sym = symTab.search(identifier) ?: symTab.addUndefinedSymbol(identifier)
+            val sym = symTab.search(identifier) ?: symTab.addUndefNumSymbol(identifier)
 
             val rel = when (ei_class) {
                 E_IDENT.ELFCLASS32 -> {
@@ -489,14 +509,11 @@ class ELFBuilder(
         init {
             shdr.sh_name = shStrTab.addString(name)
             shdr.sh_type = Shdr.SHT_RELA
-            when (shdr) {
-                is ELF32_Shdr -> shdr.sh_entsize = Rela.size(ei_class).toUInt()
-                is ELF64_Shdr -> shdr.sh_entsize = Rela.size(ei_class).toULong()
-            }
+            shdr.setEntSize(Rela.size(ei_class).toULong())
         }
 
         fun addEntry(identifier: String, type: Elf_Word, addend: Elf_Sxword, section: Section, offset: UInt) {
-            val sym = symTab.search(identifier) ?: symTab.addUndefinedSymbol(identifier)
+            val sym = symTab.search(identifier) ?: symTab.addUndefNumSymbol(identifier)
 
             val rel = when (ei_class) {
                 E_IDENT.ELFCLASS32 -> {
