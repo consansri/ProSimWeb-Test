@@ -2,7 +2,7 @@ package prosim.uilib.resource
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
 
-class BenIcons : Icons {
+object BenIcons : Icons {
 
     override val name: String = "BenIcons"
 
