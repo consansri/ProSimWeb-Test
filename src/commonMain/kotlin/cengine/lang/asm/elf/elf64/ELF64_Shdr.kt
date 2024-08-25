@@ -45,6 +45,7 @@ data class ELF64_Shdr(
     }
 
     override fun byteSize(): Int = 64
+    override fun getEntSize(): Elf_Xword = sh_entsize
 
     override fun toString(): String = "$sh_name-${Shdr.getSectionType(sh_type)}-${Shdr.getSectionFlags(sh_flags)}"
 }

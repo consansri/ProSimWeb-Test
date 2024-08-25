@@ -2,7 +2,7 @@ package cengine.lang.asm.elf
 
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.elf.ELFBuilder.Section
+import cengine.lang.asm.elf.RelocatableELFBuilder.Section
 import cengine.lang.asm.elf.Shdr.Companion.SHF_ALLOC
 import cengine.lang.asm.elf.elf32.*
 import cengine.lang.asm.elf.elf64.*
@@ -21,19 +21,16 @@ import kotlin.experimental.*
  * 3. [Section]s
  * 4. [Shdr]s
  */
-class ELFBuilder(
-    private val ei_class: Elf_Byte,
-    private val ei_data: Elf_Byte,
-    private val ei_osabi: Elf_Byte,
-    private val ei_abiversion: Elf_Byte,
-    private val e_type: Elf_Half,
-    private val e_machine: Elf_Half,
-    private var e_flags: Elf_Word,
-    private val text_start_addr: Elf_Xword = 0U,
-    private val data_start_addr: Elf_Xword = 0x40000000U
+class RelocatableELFBuilder(
+    val ei_class: Elf_Byte,
+    val ei_data: Elf_Byte,
+    val ei_osabi: Elf_Byte,
+    val ei_abiversion: Elf_Byte,
+    val e_machine: Elf_Half,
+    var e_flags: Elf_Word
 ) {
 
-    constructor(spec: TargetSpec, type: Elf_Half, e_flags: Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, type, spec.e_machine, e_flags, spec.e_text_addr, spec.e_data_addr)
+    constructor(spec: TargetSpec, e_flags: Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, spec.e_machine, e_flags)
 
     /**
      * ELF IDENTIFICATION & CLASSIFICATION
@@ -50,7 +47,7 @@ class ELFBuilder(
 
     private val phdrs: MutableList<Phdr> = mutableListOf()
 
-    private var entryPoint: Elf_Xword = text_start_addr
+    private var entryPoint: Elf_Xword = 0U
 
     /**
      * Sections Stored in the following order.
@@ -66,40 +63,22 @@ class ELFBuilder(
      * 9. [shStrTab], [strTab], [symTab]: Section and symbol tables (for linking and debugging).
      */
     private val sections: MutableList<Section> = mutableListOf()
-    private var endingSections = 0
 
-    private val nullSec = createNewSection().also {
-        sections.add(it)
-    }
+    val shStrTab = SHStrTab()
 
-    val shStrTab = SHStrTab().also {
-        sections.add(it)
-        ++endingSections
-    }
+    val strTab = StrTab()
 
-    val strTab = StrTab().also {
-        sections.add(sections.size - endingSections, it)
-        ++endingSections
-    }
+    val symTab = SymTab()
 
-    val symTab = SymTab().also {
-        sections.add(sections.size - endingSections, it)
-        ++endingSections
-    }
+    val rels = mutableListOf<RelTab>()
+    val relas = mutableListOf<RelaTab>()
 
-    val relTab = RelTab().also {
-        sections.add(sections.size - endingSections, it)
-        ++endingSections
-    }
-
-    val relaTab = RelaTab().also {
-        sections.add(sections.size - endingSections, it)
-        ++endingSections
+    private val nullSec = createNewSection("").also {
+        sections.add(0, it)
     }
 
     val text = getOrCreateSection(".text", Shdr.SHT_text).apply {
         shdr.setFlags(Shdr.SHF_text.toULong())
-        shdr.setAddr(text_start_addr)
     }
 
     val rodata = getOrCreateSection(".rodata", Shdr.SHT_rodata).apply {
@@ -133,16 +112,33 @@ class ELFBuilder(
         return writeELFFile()
     }
 
+    fun addRelaEntry(identifier: String, type: Elf_Word, addend: Elf_Sxword, section: Section, offset: Elf_Word) {
+        val relaTab = getOrCreateRela(section)
+        relaTab.addEntry(identifier, type, addend, section, offset)
+    }
+
+    fun addRelEntry(identifier: String, type: Elf_Word, section: Section, offset: Elf_Word) {
+        val relTab = getOrCreateRel(section)
+        relTab.addEntry(identifier, type, section, offset)
+    }
+
     // PRIVATE METHODS
 
     private fun ASNode.Statement.execute() {
         if (this.label != null) {
+            val symIndex = symTab.getOrCreate(label.identifier, currentSection)
+            val sym = symTab[symIndex]
+            sym.setValue(currentSection.content.size.toULong())
+            sym.st_shndx = sections.indexOf(currentSection).toUShort()
+            val binding = Sym.ELF_ST_BIND(sym.st_info)
+            sym.st_info = Sym.ELF_ST_INFO(binding, Sym.STT_NOTYPE)
+            symTab.update(sym, symIndex)
             currentSection.addLabel(this.label)
         }
 
         when (this) {
             is ASNode.Statement.Dir -> {
-                this.dir.type.build(this@ELFBuilder, this.dir)
+                this.dir.type.build(this@RelocatableELFBuilder, this.dir)
             }
 
             is ASNode.Statement.Empty -> {}
@@ -151,7 +147,7 @@ class ELFBuilder(
                 instruction.nodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                     it.assign(symTab)
                 }
-                instruction.type.resolve(this@ELFBuilder, instruction)
+                instruction.type.resolve(this@RelocatableELFBuilder, instruction)
             }
 
             is ASNode.Statement.Unresolved -> {}
@@ -160,6 +156,12 @@ class ELFBuilder(
 
     private fun writeELFFile(): ByteArray {
         val buffer = ByteBuffer(endianness)
+
+        sections.addAll(rels)
+        sections.addAll(relas)
+        sections.add(symTab)
+        sections.add(strTab)
+        sections.add(shStrTab)
 
         val phdrSize = phdrs.firstOrNull()?.byteSize()?.toULong() ?: 0U
         val phdrCount = phdrs.size.toULong()
@@ -173,16 +175,6 @@ class ELFBuilder(
         val phoff = totalEhdrBytes
         val shoff = totalEhdrBytes + totalPhdrBytes + totalSectionBytes
 
-        var dataAddr = data_start_addr
-        rodata.shdr.setAddr(dataAddr)
-        dataAddr += rodata.content.size.toULong()
-        data.shdr.setAddr(dataAddr)
-        dataAddr += data.content.size.toULong()
-        bss.shdr.setAddr(dataAddr)
-        dataAddr += bss.content.size.toULong()
-
-
-
         buffer.writeELFHeader(ehdr, shstrndx, phoff, shoff)
         buffer.writePHDRs()
         buffer.writeSections()
@@ -195,7 +187,7 @@ class ELFBuilder(
         val ehdr = when (e_ident.ei_class) {
             E_IDENT.ELFCLASS32 -> ELF32_Ehdr(
                 e_ident = e_ident,
-                e_type = e_type,
+                e_type = Ehdr.ET_REL,
                 e_machine = e_machine,
                 e_flags = e_flags,
                 e_ehsize = 0U, // assign later
@@ -211,7 +203,7 @@ class ELFBuilder(
 
             E_IDENT.ELFCLASS64 -> ELF64_Ehdr(
                 e_ident = e_ident,
-                e_type = e_type,
+                e_type = Ehdr.ET_REL,
                 e_machine = e_machine,
                 e_flags = e_flags,
                 e_ehsize = 0U, // assign later
@@ -255,6 +247,14 @@ class ELFBuilder(
     }
 
     private fun ByteBuffer.writeSections() {
+        symTab.shdr.sh_link = sections.indexOf(strTab).toUInt()
+        relas.forEach {
+            it.shdr.sh_link = sections.indexOf(symTab).toUInt()
+        }
+        rels.forEach {
+            it.shdr.sh_link = sections.indexOf(symTab).toUInt()
+        }
+
         sections.forEach {
             val start = size
             putAll(it.content.toByteArray())
@@ -282,22 +282,39 @@ class ELFBuilder(
         val section = sections.firstOrNull { it.shdr.sh_name == shStrTab[name] }
         if (section != null) return section
         val created = createNewSection(name, type, link, info)
-        sections.add(sections.size - endingSections, created)
+        sections.add(created)
         return created
     }
 
-    private fun createNewSection(name: String? = null, type: Elf_Word? = null, link: Elf_Word? = null, info: String? = null): Section = object : Section {
+    private fun createNewSection(name: String, type: Elf_Word? = null, link: Elf_Word? = null, info: String? = null): Section = object : Section {
+        override val name: String = name
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
         override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
         override val labels: MutableSet<Section.LabelDef> = mutableSetOf()
 
         init {
-            if (name != null) shdr.sh_name = shStrTab.addString(name)
+            shdr.sh_name = shStrTab.addString(name)
             if (type != null) shdr.sh_type = type
             if (link != null) shdr.sh_link = link
             if (info != null) shdr.sh_info = strTab.addString(info)
         }
+    }
+
+    private fun getOrCreateRel(section: Section): RelTab {
+        val searched = rels.firstOrNull { it.relocatable == section }
+        if (searched != null) return searched
+        val rel = RelTab(section)
+        rels.add(rel)
+        return rel
+    }
+
+    private fun getOrCreateRela(section: Section): RelaTab {
+        val searched = relas.firstOrNull { it.relocatable == section }
+        if (searched != null) return searched
+        val rel = RelaTab(section)
+        relas.add(rel)
+        return rel
     }
 
     // CLASSES
@@ -309,88 +326,55 @@ class ELFBuilder(
      * will be off.
      */
     inner class SymTab : Section {
-        val name = ".symtab"
+        override val name = ".symtab"
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
         override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
         override val labels: MutableSet<Section.LabelDef> = mutableSetOf()
 
-        private val symbols: MutableList<Section.SymbolDef> = mutableListOf()
+        private val symbols: MutableList<Sym> = mutableListOf()
         val symbolSize = Sym.size(ei_class)
 
         init {
             shdr.sh_name = shStrTab.addString(name)
             shdr.sh_type = Shdr.SHT_SYMTAB
             shdr.setEntSize(Sym.size(ei_class).toULong())
+            addSymbol(Sym.createEmpty(ei_class, strTab.addString(""), 0U)) // Adding UND Symbol
         }
 
-        fun search(identifier: String): Section.SymbolDef? = symbols.firstOrNull { strTab.getStringAt(it.symbol.st_name) == identifier }
+        operator fun get(index: UInt): Sym = symbols.get(index.toInt())
 
-        fun update(symbolDef: Section.SymbolDef) {
-            val newContent = symbolDef.symbol.build(endianness)
+        fun getOrCreate(identifier: String, section: Section): UInt {
+            return search(identifier) ?: addSymbol(
+                Sym.createEmpty(
+                    ei_class,
+                    strTab.addString(identifier),
+                    sections.indexOf(section).toUShort(),
+                )
+            )
+        }
+
+        fun search(identifier: String): UInt? {
+            val index = symbols.indexOfFirst { strTab.getStringAt(it.st_name) == identifier }
+            if (index == -1) return null
+            return index.toUInt()
+        }
+
+        fun update(newSym: Sym, index: UInt) {
+            val newContent = newSym.build(endianness)
             for (i in 0..<symbolSize.toInt()) {
-                content[symbolDef.offset.toInt() + i] = newContent[i]
+                content[index.toInt() * shdr.getEntSize().toInt() + i] = newContent[i]
             }
         }
 
-        fun addUndefNumSymbol(identifier: String): Section.SymbolDef {
-            return addSymbol(
-                when (ei_class) {
-                    E_IDENT.ELFCLASS32 -> ELF32_Sym(
-                        strTab.addString(identifier),
-                        0U,
-                        0U,
-                        Sym.ELF_ST_INFO(Sym.STB_LOCAL, Sym.STT_NUM).toUByte(),
-                        0U,
-                        sections.indexOf(currentSection).toUShort()
-                    )
-
-                    E_IDENT.ELFCLASS64 -> ELF64_Sym(
-                        strTab.addString(identifier),
-                        0U,
-                        0U,
-                        Sym.ELF_ST_INFO(Sym.STB_LOCAL, Sym.STT_NUM).toUShort(),
-                        0U,
-                        sections.indexOf(currentSection).toULong()
-                    )
-
-                    else -> throw InvalidElfClassException(ei_class)
-                }
-            )
-        }
-
-        fun addUndefinedSymbol(identifier: String): Section.SymbolDef {
-            return addSymbol(
-                when (ei_class) {
-                    E_IDENT.ELFCLASS32 -> ELF32_Sym(
-                        strTab.addString(identifier),
-                        0U,
-                        0U,
-                        Sym.ELF_ST_INFO(Sym.STB_LOCAL, Sym.STT_NOTYPE).toUByte(),
-                        0U,
-                        sections.indexOf(currentSection).toUShort()
-                    )
-
-                    E_IDENT.ELFCLASS64 -> ELF64_Sym(
-                        strTab.addString(identifier),
-                        0U,
-                        0U,
-                        Sym.ELF_ST_INFO(Sym.STB_LOCAL, Sym.STT_NOTYPE).toUShort(),
-                        0U,
-                        sections.indexOf(currentSection).toULong()
-                    )
-
-                    else -> throw InvalidElfClassException(ei_class)
-                }
-            )
-        }
-
-        fun addSymbol(symbol: Sym): Section.SymbolDef {
-            val index = content.size.toUInt()
-            val symbolDef = Section.SymbolDef(symbol, index)
-            symbols.add(symbolDef)
+        fun addSymbol(symbol: Sym): UInt {
+            val index = symbols.size.toUInt()
+            if (Sym.ELF_ST_BIND(symbol.st_info) == Sym.STB_LOCAL) {
+                shdr.sh_info += 1U
+            }
+            symbols.add(symbol)
             content.putAll(symbol.build(endianness))
-            return symbolDef
+            return index
         }
     }
 
@@ -398,7 +382,7 @@ class ELFBuilder(
      * This section holds section names.
      */
     inner class SHStrTab : Section {
-        val name = ".shstrtab"
+        override val name = ".shstrtab"
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
         override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
@@ -432,7 +416,7 @@ class ELFBuilder(
      */
     inner class StrTab : Section {
 
-        val name = ".strtab"
+        override val name = ".strtab"
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
         override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
@@ -458,8 +442,8 @@ class ELFBuilder(
         fun getStringAt(index: UInt): String = content.getZeroTerminated(index.toInt()).toASCIIString()
     }
 
-    inner class RelTab : Section {
-        val name = ".rel"
+    inner class RelTab(val relocatable: Section) : Section {
+        override val name = ".rel" + relocatable.name
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
         override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
@@ -467,26 +451,33 @@ class ELFBuilder(
         val rels: MutableSet<Section.RelDef> = mutableSetOf()
 
         init {
-            shdr.sh_name = shStrTab.addString(name)
+            shdr.sh_name = shStrTab.get(name) ?: shStrTab.addString(name)
             shdr.sh_type = Shdr.SHT_REL
             shdr.setEntSize(Rel.size(ei_class).toULong())
+            shdr.sh_info = sections.indexOf(relocatable).toUInt()
         }
 
         fun addEntry(identifier: String, type: Elf_Word, section: Section, offset: UInt) {
-            val sym = symTab.search(identifier) ?: symTab.addUndefNumSymbol(identifier)
+            val symIndex = symTab.search(identifier) ?: symTab.addSymbol(
+                Sym.createEmpty(
+                    ei_class,
+                    strTab.addString(identifier),
+                    sections.indexOf(section).toUShort()
+                )
+            )
 
             val rel = when (ei_class) {
                 E_IDENT.ELFCLASS32 -> {
                     ELF32_Rel(
                         offset,
-                        ELF32_Rel.R_INFO(sym.offset, type)
+                        ELF32_Rel.R_INFO(symIndex, type)
                     )
                 }
 
                 E_IDENT.ELFCLASS64 -> {
                     ELF64_Rel(
                         offset.toULong(),
-                        ELF64_Rel.R_INFO(sym.offset.toULong(), type.toULong())
+                        ELF64_Rel.R_INFO(symIndex.toULong(), type.toULong())
                     )
                 }
 
@@ -498,8 +489,9 @@ class ELFBuilder(
         }
     }
 
-    inner class RelaTab : Section {
-        val name = ".rela"
+
+    inner class RelaTab(val relocatable: Section) : Section {
+        override val name = ".rela" + relocatable.name
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
         override val reservations: MutableList<Section.InstrReservation> = mutableListOf()
@@ -507,19 +499,26 @@ class ELFBuilder(
         val relas: MutableSet<Section.RelaDef> = mutableSetOf()
 
         init {
-            shdr.sh_name = shStrTab.addString(name)
+            shdr.sh_name = shStrTab.get(name) ?: shStrTab.addString(name)
             shdr.sh_type = Shdr.SHT_RELA
             shdr.setEntSize(Rela.size(ei_class).toULong())
+            shdr.sh_info = sections.indexOf(relocatable).toUInt()
         }
 
-        fun addEntry(identifier: String, type: Elf_Word, addend: Elf_Sxword, section: Section, offset: UInt) {
-            val sym = symTab.search(identifier) ?: symTab.addUndefNumSymbol(identifier)
+        fun addEntry(identifier: String, type: Elf_Word, addend: Elf_Sxword, section: Section, offset: Elf_Word) {
+            val sym = symTab.search(identifier) ?: symTab.addSymbol(
+                Sym.createEmpty(
+                    ei_class,
+                    strTab.addString(identifier),
+                    sections.indexOf(section).toUShort()
+                )
+            )
 
             val rel = when (ei_class) {
                 E_IDENT.ELFCLASS32 -> {
                     ELF32_Rela(
                         offset,
-                        ELF32_Rel.R_INFO(sym.offset, type),
+                        ELF32_Rel.R_INFO(sym, type),
                         addend.toInt()
                     )
                 }
@@ -527,7 +526,7 @@ class ELFBuilder(
                 E_IDENT.ELFCLASS64 -> {
                     ELF64_Rela(
                         offset.toULong(),
-                        ELF64_Rel.R_INFO(sym.offset.toULong(), type.toULong()),
+                        ELF64_Rel.R_INFO(sym.toULong(), type.toULong()),
                         addend
                     )
                 }
@@ -543,6 +542,7 @@ class ELFBuilder(
     // INTERFACES
 
     interface Section {
+        val name: String
         val shdr: Shdr
         val content: ByteBuffer
         val reservations: MutableList<InstrReservation>
@@ -557,7 +557,7 @@ class ELFBuilder(
             content.putAll(ByteArray(byteAmount) { 0 })
         }
 
-        fun resolveReservations(builder: ELFBuilder) {
+        fun resolveReservations(builder: RelocatableELFBuilder) {
             reservations.forEach { def ->
                 def.instr.nodes.filterIsInstance<ASNode.NumericExpr>().forEach { expr ->
                     expr.assign(this)
@@ -577,7 +577,6 @@ class ELFBuilder(
     // EXCEPTIONS
 
     open class ELFBuilderException(message: String) : Exception(message)
-
 
     class InvalidElfClassException(ei_class: Elf_Byte) : ELFBuilderException("Invalid ELF Class $ei_class.")
     class InvalidElfDataException(ei_data: Elf_Byte) : ELFBuilderException("Invalid ELF Data $ei_data type.")

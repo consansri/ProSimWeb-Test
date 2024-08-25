@@ -1,5 +1,6 @@
 package cengine.lang.asm.ast.impl
 
+import cengine.editor.CodeEditor
 import cengine.editor.annotation.Notation
 import cengine.editor.widgets.Widget
 import cengine.lang.asm.CodeStyle
@@ -12,9 +13,7 @@ import cengine.lang.asm.ast.impl.ASNode.*
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmToken
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.ELFBuilder
-import cengine.lang.asm.elf.Elf_Sxword
-import cengine.lang.asm.elf.Elf_Word
+import cengine.lang.asm.elf.RelocatableELFBuilder
 import cengine.lang.asm.elf.Sym
 import cengine.lang.asm.elf.elf32.ELF32_Sym
 import cengine.lang.asm.elf.elf64.ELF64_Sym
@@ -50,6 +49,18 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
     override val additionalInfo: String
         get() = ""
 
+    fun addError(message: String, execute: (CodeEditor) -> Unit = {}) {
+        notations.add(Notation.error(this, message, execute))
+    }
+
+    fun addWarn(message: String, execute: (CodeEditor) -> Unit = {}) {
+        notations.add(Notation.warn(this, message, execute))
+    }
+
+    fun addInfo(message: String, execute: (CodeEditor) -> Unit = {}) {
+        notations.add(Notation.info(this, message, execute))
+    }
+
     open fun getCodeStyle(position: Int): CodeStyle? {
         return children.firstOrNull {
             position in it.range
@@ -81,7 +92,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         }
 
         init {
-            notations.add(Notation.error(this, message))
+            addError(message)
         }
 
         override fun getFormatted(identSize: Int): String = tokens.joinToString(" ") { it.value }
@@ -374,7 +385,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             val content = lineTokens.joinToString("") { it.value } + lineBreak.value
 
             init {
-                notations.add(Notation.error(this, "Statement is unresolved!"))
+                addError( "Statement is unresolved!")
             }
 
             override fun getFormatted(identSize: Int): String = (label?.getFormatted(identSize) ?: "") + lineTokens.joinToString("") { it.value } + lineBreak.value
@@ -665,6 +676,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
      */
     sealed class NumericExpr(val brackets: List<AsmToken>, range: IntRange, vararg operands: NumericExpr) : ASNode(range, *operands) {
         abstract var evaluated: Dec?
+
         companion object {
             fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): ASNode? {
                 val initialPos = lexer.position
@@ -879,9 +891,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
          * @param builder is for storing relocation information.
          *
          */
-        abstract fun evaluate(builder: ELFBuilder, withRel: Boolean = false, withType: Elf_Word = 0U, withAddend: Elf_Sxword? = null, withSection: ELFBuilder.Section = builder.currentSection, withOffset: UInt = withSection.content.size.toUInt()): Dec
-        abstract fun assign(section: ELFBuilder.Section)
-        abstract fun assign(symTab: ELFBuilder.SymTab)
+        abstract fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit = {}): Dec
+        abstract fun assign(section: RelocatableELFBuilder.Section)
+        abstract fun assign(symTab: RelocatableELFBuilder.SymTab)
 
         /**
          * [Prefix]
@@ -899,22 +911,22 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
             override var evaluated: Dec? = null
 
-            override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?, withSection: ELFBuilder.Section, withOffset: UInt): Dec {
+            override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
                 return when (operator.type) {
-                    AsmTokenType.COMPLEMENT -> operand.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin().inv().toDec()
-                    AsmTokenType.MINUS -> (-operand.evaluate(builder, withRel, withType, withAddend, withSection, withOffset)).toDec()
-                    AsmTokenType.PLUS -> operand.evaluate(builder, withRel, withType, withAddend, withSection, withOffset)
+                    AsmTokenType.COMPLEMENT -> operand.evaluate(builder, createRelocations).toBin().inv().toDec()
+                    AsmTokenType.MINUS -> (-operand.evaluate(builder, createRelocations)).toDec()
+                    AsmTokenType.PLUS -> operand.evaluate(builder, createRelocations)
                     else -> {
                         throw PsiParser.NodeException(this, "$operator is not defined for this type of expression!")
                     }
                 }.also { evaluated = it }
             }
 
-            override fun assign(section: ELFBuilder.Section) {
+            override fun assign(section: RelocatableELFBuilder.Section) {
                 operand.assign(section)
             }
 
-            override fun assign(symTab: ELFBuilder.SymTab) {
+            override fun assign(symTab: RelocatableELFBuilder.SymTab) {
                 operand.assign(symTab)
             }
 
@@ -934,31 +946,39 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             override val pathName: String
                 get() = operator.value
 
-            override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?, withSection: ELFBuilder.Section, withOffset: UInt): Dec {
+            override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
                 return (when (operator.type) {
-                    AsmTokenType.MULT -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset) * operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset)
-                    AsmTokenType.DIV -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset) / operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset)
-                    AsmTokenType.REM -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset) % operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset)
-                    AsmTokenType.SHL -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin() shl (operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toUDec().toIntOrNull() ?: return operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset))
-                    AsmTokenType.SHR -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin() shl (operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toUDec().toIntOrNull() ?: return operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset))
-                    AsmTokenType.BITWISE_OR -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin() or operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin()
-                    AsmTokenType.BITWISE_AND -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin() and operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin()
-                    AsmTokenType.BITWISE_XOR -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin() xor operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin()
-                    AsmTokenType.BITWISE_ORNOT -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin() or operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset).toBin().inv()
-                    AsmTokenType.PLUS -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset) + operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset)
-                    AsmTokenType.MINUS -> operandA.evaluate(builder, withRel, withType, withAddend, withSection, withOffset) - operandB.evaluate(builder, withRel, withType, withAddend, withSection, withOffset)
+                    AsmTokenType.MULT -> operandA.evaluate(builder, createRelocations) * operandB.evaluate(builder, createRelocations)
+                    AsmTokenType.DIV -> operandA.evaluate(builder, createRelocations) / operandB.evaluate(builder, createRelocations)
+                    AsmTokenType.REM -> operandA.evaluate(builder, createRelocations) % operandB.evaluate(builder, createRelocations)
+                    AsmTokenType.SHL -> operandA.evaluate(builder, createRelocations).toBin() shl (operandB.evaluate(builder, createRelocations).toUDec().toIntOrNull() ?: return operandA.evaluate(
+                        builder,
+                        createRelocations
+                    ))
+
+                    AsmTokenType.SHR -> operandA.evaluate(builder, createRelocations).toBin() shl (operandB.evaluate(builder, createRelocations).toUDec().toIntOrNull() ?: return operandA.evaluate(
+                        builder,
+                        createRelocations
+                    ))
+
+                    AsmTokenType.BITWISE_OR -> operandA.evaluate(builder, createRelocations).toBin() or operandB.evaluate(builder, createRelocations).toBin()
+                    AsmTokenType.BITWISE_AND -> operandA.evaluate(builder, createRelocations).toBin() and operandB.evaluate(builder, createRelocations).toBin()
+                    AsmTokenType.BITWISE_XOR -> operandA.evaluate(builder, createRelocations).toBin() xor operandB.evaluate(builder, createRelocations).toBin()
+                    AsmTokenType.BITWISE_ORNOT -> operandA.evaluate(builder, createRelocations).toBin() or operandB.evaluate(builder, createRelocations).toBin().inv()
+                    AsmTokenType.PLUS -> operandA.evaluate(builder, createRelocations) + operandB.evaluate(builder, createRelocations)
+                    AsmTokenType.MINUS -> operandA.evaluate(builder, createRelocations) - operandB.evaluate(builder, createRelocations)
                     else -> {
                         throw PsiParser.NodeException(this, "$operator is not defined for this type of expression!")
                     }
                 }).toDec().also { evaluated = it }
             }
 
-            override fun assign(symTab: ELFBuilder.SymTab) {
+            override fun assign(symTab: RelocatableELFBuilder.SymTab) {
                 operandA.assign(symTab)
                 operandB.assign(symTab)
             }
 
-            override fun assign(section: ELFBuilder.Section) {
+            override fun assign(section: RelocatableELFBuilder.Section) {
                 operandA.assign(section)
                 operandB.assign(section)
             }
@@ -972,7 +992,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
             class Identifier(val symToken: AsmToken) : Operand(symToken, symToken.range), PsiReference {
                 private var symbol: Sym? = null
-                private var label: ELFBuilder.Section.LabelDef? = null
+                private var label: RelocatableELFBuilder.Section.LabelDef? = null
 
                 override val additionalInfo: String
                     get() = token.value
@@ -982,7 +1002,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
                 override fun getFormatted(identSize: Int): String = symToken.value
 
-                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?, withSection: ELFBuilder.Section, withOffset: UInt): Dec {
+                
+                
+                override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
                     val currSymbol = symbol
 
                     if (currSymbol != null) {
@@ -1000,26 +1022,22 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                         return (currLabel.offset.toInt() - builder.currentSection.content.size).toValue().also { evaluated = it }
                     }
 
-                    if (withRel) {
-                        if (withAddend != null) {
-                            builder.relaTab.addEntry(symToken.value, withType, withAddend, withSection, withOffset)
-                        } else {
-                            builder.relTab.addEntry(symToken.value, withType, withSection, withOffset)
-                        }
-                    } else {
-                        notations.add(Notation.error(this, "Unresolved Symbol ${symToken.value}!"))
-                    }
+                    createRelocations(symToken.value)
 
                     return 0.toValue().also { evaluated = it }
                 }
 
-                override fun assign(section: ELFBuilder.Section) {
+                override fun assign(section: RelocatableELFBuilder.Section) {
                     label = section.labels.firstOrNull { it.label.identifier == symToken.value }
                     if (label != null) symbol = null
                 }
 
-                override fun assign(symTab: ELFBuilder.SymTab) {
-                    symbol = symTab.search(symToken.value)?.symbol
+                override fun assign(symTab: RelocatableELFBuilder.SymTab) {
+                    val index = symTab.search(symToken.value)
+                    if (index != null) {
+                        symbol = symTab[index]
+                    }
+
                     if (symbol != null) label = null
                 }
 
@@ -1039,7 +1057,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     get() = number.value
                 override var evaluated: Dec? = null
 
-                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?, withSection: ELFBuilder.Section, withOffset: UInt): Dec {
+                override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
                     return (when (number.type) {
                         AsmTokenType.INT_DEC -> {
                             val auto = number.asNumber.asDec()
@@ -1088,9 +1106,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     }).also { evaluated = it }
                 }
 
-                override fun assign(section: ELFBuilder.Section) {}
+                override fun assign(section: RelocatableELFBuilder.Section) {}
 
-                override fun assign(symTab: ELFBuilder.SymTab) {}
+                override fun assign(symTab: RelocatableELFBuilder.SymTab) {}
 
                 override fun getFormatted(identSize: Int): String = number.value
                 override fun getCodeStyle(position: Int): CodeStyle? = number.type.style
@@ -1103,11 +1121,11 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     get() = char.value
 
                 override var evaluated: Dec? = null
-                override fun assign(symTab: ELFBuilder.SymTab) {}
+                override fun assign(symTab: RelocatableELFBuilder.SymTab) {}
 
-                override fun assign(section: ELFBuilder.Section) {}
+                override fun assign(section: RelocatableELFBuilder.Section) {}
 
-                override fun evaluate(builder: ELFBuilder, withRel: Boolean, withType: Elf_Word, withAddend: Elf_Sxword?, withSection: ELFBuilder.Section, withOffset: UInt): Dec {
+                override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
                     return char.getContentAsString().first().code.toValue().also { evaluated = it }
                 }
 

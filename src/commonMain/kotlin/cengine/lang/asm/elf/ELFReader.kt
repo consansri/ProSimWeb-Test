@@ -16,7 +16,7 @@ class ELFReader(val fileContent: ByteArray) {
     val endianess: Endianness = when (e_ident.ei_data) {
         E_IDENT.ELFDATA2MSB -> Endianness.BIG
         E_IDENT.ELFDATA2LSB -> Endianness.LITTLE
-        else -> throw ELFBuilder.InvalidElfDataException(e_ident.ei_data)
+        else -> throw RelocatableELFBuilder.InvalidElfDataException(e_ident.ei_data)
     }
     val buffer = ByteBuffer(endianess, fileContent)
 

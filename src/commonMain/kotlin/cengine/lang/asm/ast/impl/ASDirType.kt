@@ -7,7 +7,8 @@ import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.ELFBuilder
+import cengine.lang.asm.elf.RelocatableELFBuilder
+import cengine.lang.asm.elf.Sym
 import cengine.util.integer.Hex
 import cengine.util.integer.Size.*
 import cengine.util.integer.toByte
@@ -1055,7 +1056,7 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
         return null
     }
 
-    override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
+    override fun build(builder: RelocatableELFBuilder, dir: ASNode.Directive) {
         /**
          * Check Semantic
          */
@@ -1166,7 +1167,23 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             DIM -> TODO()
             DOUBLE -> TODO()
             EJECT -> TODO()
-            EQU -> TODO()
+            EQU -> {
+                val identifier = dir.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }?.value
+                if (identifier == null) {
+                    dir.addError("Identifier is missing!")
+                    return
+                }
+
+                val symbol = builder.symTab.search(identifier)
+                val expr = dir.additionalNodes.firstOrNull()
+
+
+
+                if (expr == null) {
+
+                }
+            }
+
             EQUIV -> TODO()
             EQV -> TODO()
             ERR -> TODO()
@@ -1178,8 +1195,24 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             FILL -> TODO()
             FLOAT -> TODO()
             FUNC -> TODO()
-            GLOBAL -> TODO()
-            GLOBL -> TODO()
+            GLOBAL -> {
+                val identifier = dir.allTokens.last { it.type == AsmTokenType.SYMBOL }.value
+                val index = builder.symTab.getOrCreate(identifier, builder.currentSection)
+                val sym = builder.symTab[index]
+                val type = Sym.ELF_ST_TYPE(sym.st_info)
+                sym.st_info = Sym.ELF_ST_INFO(Sym.STB_GLOBAL, type)
+                builder.symTab.update(sym, index)
+            }
+
+            GLOBL -> {
+                val identifier = dir.allTokens.last { it.type == AsmTokenType.SYMBOL }.value
+                val index = builder.symTab.getOrCreate(identifier, builder.currentSection)
+                val sym = builder.symTab[index]
+                val type = Sym.ELF_ST_TYPE(sym.st_info)
+                sym.st_info = Sym.ELF_ST_INFO(Sym.STB_GLOBAL, type)
+                builder.symTab.update(sym, index)
+            }
+
             GNU_ATTRIBUTE -> TODO()
             HIDDEN -> TODO()
             HWORD -> TODO()
@@ -1272,6 +1305,7 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                     }
                 }
             }
+
             ZERO -> TODO()
             _2BYTE -> TODO()
             _4BYTE -> TODO()

@@ -52,7 +52,7 @@ interface Phdr : BinaryProvider {
             return when(ei_class){
                 E_IDENT.ELFCLASS32 -> 32U
                 E_IDENT.ELFCLASS64 -> 56U
-                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
             }
         }
 

@@ -9,7 +9,7 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.ELFBuilder
+import cengine.lang.asm.elf.RelocatableELFBuilder
 import cengine.util.integer.Size
 import cengine.util.integer.toLong
 
@@ -121,7 +121,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
         return null
     }
 
-    override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
+    override fun build(builder: RelocatableELFBuilder, dir: ASNode.Directive) {
         /**
          * Check Semantic
          */

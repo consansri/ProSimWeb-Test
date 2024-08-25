@@ -5,18 +5,40 @@ import cengine.lang.asm.elf.elf64.ELF64_Sym
 
 interface Sym : BinaryProvider {
 
-    val st_name: Elf_Word
-    val st_info: Elf_Byte
-    val st_other: Elf_Byte
-    val st_shndx: Elf_Half
+    var st_name: Elf_Word
+    var st_info: Elf_Byte
+    var st_other: Elf_Byte
+    var st_shndx: Elf_Half
+
+    fun setValue(value: Elf_Xword) {
+        when (this) {
+            is ELF32_Sym -> st_value = value.toUInt()
+            is ELF64_Sym -> st_value = value
+        }
+    }
+
+    fun setSize(size: Elf_Xword) {
+        when (this) {
+            is ELF32_Sym -> st_size = size.toUInt()
+            is ELF64_Sym -> st_size = size
+        }
+    }
 
     companion object {
+
+        fun createEmpty(ei_class: Elf_Byte, st_name: Elf_Word, shndx: Elf_Half, type: Elf_Byte = STT_NOTYPE, binding: Elf_Byte = STB_LOCAL, visibility: Elf_Byte = STV_DEFAULT): Sym {
+            return when (ei_class) {
+                E_IDENT.ELFCLASS32 -> ELF32_Sym(st_name, st_shndx = shndx, st_info = ELF_ST_INFO(binding, type), st_other = ELF_ST_OTHER(visibility))
+                E_IDENT.ELFCLASS64 -> ELF64_Sym(st_name, st_shndx = shndx, st_info = ELF_ST_INFO(binding, type), st_other = ELF_ST_OTHER(visibility))
+                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
+            }
+        }
 
         fun size(ei_class: Elf_Byte): Elf_Half {
             return when (ei_class) {
                 E_IDENT.ELFCLASS32 -> 16U
                 E_IDENT.ELFCLASS64 -> 24U
-                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
             }
         }
 
@@ -113,8 +135,9 @@ interface Sym : BinaryProvider {
 
         fun ELF_ST_BIND(st_info: Elf_Byte): Elf_Byte = st_info.toUInt().shr(4).toUByte()
         fun ELF_ST_TYPE(st_info: Elf_Byte): Elf_Byte = st_info.and(0xfU)
-        fun ELF_ST_VISIBILITY(st_other: Elf_Byte): Elf_Byte = st_other and 0x03U
-        fun ELF_ST_INFO(b: Elf_Byte, t: Elf_Byte): Elf_Word = b.toUInt().shl(4) + t.and(0xfU)
+        fun ELF_ST_VISIBILITY(st_other: Elf_Byte): Elf_Byte = st_other and 0b11U
+        fun ELF_ST_INFO(b: Elf_Byte, t: Elf_Byte): Elf_Byte = (b.toUInt().shl(4) + t.and(0xfU)).toUByte()
+        fun ELF_ST_OTHER(st_visibility: Elf_Byte): Elf_Byte = (st_visibility and 0b11U)
 
         /**
          * Local symbols are not visible outside the object file containing their

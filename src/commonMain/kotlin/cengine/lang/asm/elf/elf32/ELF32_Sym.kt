@@ -35,9 +35,9 @@ import cengine.util.Endianness
  */
 data class ELF32_Sym(
     override var st_name: Elf_Word,
-    var st_value: Elf32_Addr,
-    var st_size: Elf_Word,
-    override var st_info: Elf_Byte,
+    var st_value: Elf32_Addr = 0U,
+    var st_size: Elf_Word = 0U,
+    override var st_info: Elf_Byte = 0U,
     override var st_other: Elf_Byte = 0U,
     override var st_shndx: Elf_Half
 ): Sym {

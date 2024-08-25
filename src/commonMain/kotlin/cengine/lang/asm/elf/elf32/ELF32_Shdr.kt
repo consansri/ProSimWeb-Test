@@ -1,9 +1,6 @@
 package cengine.lang.asm.elf.elf32
 
-import cengine.lang.asm.elf.Elf32_Addr
-import cengine.lang.asm.elf.Elf32_Off
-import cengine.lang.asm.elf.Elf_Word
-import cengine.lang.asm.elf.Shdr
+import cengine.lang.asm.elf.*
 import cengine.lang.asm.elf.Shdr.Companion.SHN_UNDEF
 import cengine.lang.asm.elf.Shdr.Companion.SHT_NULL
 import cengine.util.ByteBuffer
@@ -95,6 +92,7 @@ data class ELF32_Shdr(
     }
 
     override fun byteSize(): Int = 40
+    override fun getEntSize(): Elf_Xword = sh_entsize.toULong()
 
     override fun toString(): String = "$sh_name-${Shdr.getSectionType(sh_type)}-${Shdr.getSectionFlags(sh_flags.toULong())}"
 

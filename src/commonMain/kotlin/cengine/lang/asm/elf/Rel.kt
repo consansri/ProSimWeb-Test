@@ -11,7 +11,7 @@ interface Rel: BinaryProvider {
             return when(ei_class){
                 E_IDENT.ELFCLASS32 -> ELF32_Rel.SIZE.toUShort()
                 E_IDENT.ELFCLASS64 -> ELF64_Rel.SIZE.toUShort()
-                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
             }
         }
 

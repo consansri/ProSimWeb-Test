@@ -7,8 +7,7 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.impl.AsmFile
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.ELFBuilder
-import cengine.lang.asm.elf.Ehdr
+import cengine.lang.asm.elf.RelocatableELFBuilder
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
@@ -40,7 +39,7 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
 
         //nativeLog("AsmPsiParser parses file: $fileName!")
 
-        val builder = ELFBuilder(spec, Ehdr.ET_EXEC)
+        val builder = RelocatableELFBuilder(spec)
         builder.build(*program.getAllStatements().toTypedArray())
 
         val asmFile = AsmFile(file, languageService, program).apply {

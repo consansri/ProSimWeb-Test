@@ -31,19 +31,21 @@ interface Shdr : BinaryProvider {
         }
     }
 
+    fun getEntSize(): Elf_Xword
+
     companion object {
         fun size(ei_class: Elf_Byte): Elf_Half {
             return when (ei_class) {
                 E_IDENT.ELFCLASS32 -> 40U
                 E_IDENT.ELFCLASS64 -> 64U
-                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
             }
         }
 
         fun create(ei_class: Elf_Byte): Shdr = when (ei_class) {
             E_IDENT.ELFCLASS32 -> ELF32_Shdr()
             E_IDENT.ELFCLASS64 -> ELF64_Shdr()
-            else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+            else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
         }
 
         fun getSectionType(type: Elf_Word): String = when (type) {

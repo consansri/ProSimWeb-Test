@@ -80,12 +80,70 @@ data object RVConst{
 
     /**
      * Relocation Types
+     *
+     * See: https://github.com/riscv-non-isa/riscv-elf-psabi-doc/blob/master/riscv-elf.adoc
      */
 
-    const val REL_TYPE_JAL = 1U
-    const val REL_TYPE_LA = 2U
-    const val REL_TYPE_CBRA = 3U
-    const val REL_TYPE_CALL_OR_TAIL = 4U
+    const val R_RISCV_NONE = 0U
+    const val R_RISCV_32 = 1U
+    const val R_RISCV_64 = 2U
+    const val R_RISCV_BRANCH = 16U
+    const val R_RISCV_JAL = 17U
+    const val R_RISCV_CALL = 18U
+    const val R_RISCV_PCREL_HI20 = 23U
+    const val R_RISCV_PCREL_LO12_I = 24U
+    const val R_RISCV_PCREL_LO12_S = 25U
+    const val R_RISCV_HI20 = 26U
+    const val R_RISCV_LO12_I = 27U
+    const val R_RISCV_LO12_S = 28U
+
+    enum class RelocType{
+        R_RISCV_NONE,
+        R_RISCV_32,
+        R_RISCV_64,
+        R_RISCV_RELATIVE,
+        R_RISCV_COPY,
+        JUMP_SLOT,
+        TLS_DTPMOD32,
+        TLS_DTPMOD64,
+        TLS_DTPREL32,
+        TLS_DTPREL64,
+        TLS_TPREL32,
+        TLS_TPREL64,
+        TLS_DESC,
+        BRANCH,
+        JAL,
+        CALL,
+        CALL_PLT,
+        GOT_HI20,
+        TLS_GOT_HI20,
+        TLS_GD_HI20,
+        PCREL_LO12_I,
+        PCREL_LO12_S,
+        HI20,
+        LO12_I,
+        LO12_S,
+        TPREL_HI20,
+        TPREL_LO12_I,
+        TPREL_LO12_S,
+        TPREL_ADD,
+        ADD8,
+        ADD16,
+        ADD32,
+        ADD64,
+        SUB8,
+        SUB16,
+        SUB32,
+        SUB64,
+        GOT32_PCREL,
+        _Reserved0,
+        ALIGN,
+        RVC_BRANCH,
+        RVC_JUMP,
+
+
+
+    }
 
 
     /**
