@@ -1,7 +1,5 @@
 package prosim.uilib.scale.core
 
-import org.jetbrains.skia.Data
-import org.jetbrains.skia.Typeface
 import java.awt.*
 import java.io.IOException
 import java.io.InputStream
@@ -44,10 +42,6 @@ abstract class Scaling {
     lateinit var FONT_CODE_MEDIUM: Font
     lateinit var FONT_CODE_LARGE: Font
 
-    // TYPEFACES
-    lateinit var TF_TEXT: Typeface
-    lateinit var TF_CODE: Typeface
-
     // BORDERS
     val BORDER_INSET_SMALL: Border by lazy { BorderFactory.createEmptyBorder(SIZE_INSET_SMALL, SIZE_INSET_SMALL, SIZE_INSET_SMALL, SIZE_INSET_SMALL) }
     val BORDER_INSET_MEDIUM: Border by lazy { BorderFactory.createEmptyBorder(SIZE_INSET_MEDIUM, SIZE_INSET_MEDIUM, SIZE_INSET_MEDIUM, SIZE_INSET_MEDIUM) }
@@ -83,9 +77,6 @@ abstract class Scaling {
         FONT_CODE_SMALL = codeFont.deriveFont(FONTSCALE_SMALL)
         FONT_CODE_MEDIUM = codeFont.deriveFont(FONTSCALE_MEDIUM)
         FONT_CODE_LARGE = codeFont.deriveFont(FONTSCALE_LARGE)
-
-        TF_TEXT = loadSkiaTF(PATH_FONT_TEXT) ?: Typeface.makeDefault()
-        TF_CODE = loadSkiaTF(PATH_FONT_CODE) ?: Typeface.makeDefault()
     }
 
     companion object {
@@ -105,19 +96,6 @@ abstract class Scaling {
                     e.printStackTrace()
                 }
             }
-        }
-
-        fun loadSkiaTF(url: String): Typeface? {
-            try {
-                val resource = this::class.java.classLoader.getResourceAsStream(url)
-
-                if (resource != null) {
-                    return Typeface.makeFromData(Data.makeFromBytes(resource.readBytes()))
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            return null
         }
     }
 }

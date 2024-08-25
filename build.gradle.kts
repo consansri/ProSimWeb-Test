@@ -18,30 +18,6 @@ repositories {
     }
 }
 
-val osName = System.getProperty("os.name")
-val hostOs = when {
-    osName == "Mac OS X" -> "macos"
-    osName.startsWith("Win") -> "windows"
-    osName.startsWith("Linux") -> "linux"
-    else -> error("Unsupported OS: $osName")
-}
-
-val osArch = System.getProperty("os.arch")
-var hostArch = when (osArch) {
-    "x86_64", "amd64" -> "x64"
-    "aarch64" -> "arm64"
-    else -> error("Unsupported arch: $osArch")
-}
-
-val host = "${hostOs}-${hostArch}"
-
-val skikoVersion = "0.8.9"
-
-val resourcesDir = "$buildDir/resources"
-val skikoWasm by configurations.creating
-
-val isCompositeBuild = extra.properties.getOrDefault("skiko.composite.build", "") == "1"
-
 kotlin {
     js(IR) {
         binaries.executable()
@@ -64,8 +40,6 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                // implementation("org.jetbrains.skiko:skiko:$version") // multiplatform usage of skiko
-
                 //implementation(kotlin("reflect"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
@@ -92,7 +66,6 @@ kotlin {
                 implementation("com.formdev:flatlaf:3.4")
                 implementation("com.formdev:flatlaf-extras:3.4")
 
-                implementation("org.jetbrains.skiko:skiko-awt-runtime-$hostOs-$hostArch:$skikoVersion")  // replace with the latest version
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0")
             }
         }

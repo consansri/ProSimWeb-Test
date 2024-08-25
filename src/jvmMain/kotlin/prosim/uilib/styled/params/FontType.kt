@@ -20,23 +20,4 @@ enum class FontType {
         }
     }
 
-    fun getSkiaFont(): org.jetbrains.skia.Font {
-        val scale = UIStates.scale.get()
-        val tf = when (this) {
-            BASIC -> scale.TF_TEXT
-            CODE -> scale.TF_CODE
-            DATA -> scale.TF_CODE
-            TITLE -> scale.TF_TEXT
-            CODE_INFO -> scale.TF_CODE
-        }
-
-        val fontScale = when (this) {
-            BASIC -> scale.FONTSCALE_MEDIUM
-            CODE -> scale.FONTSCALE_MEDIUM
-            DATA -> scale.FONTSCALE_MEDIUM
-            TITLE -> scale.FONTSCALE_LARGE
-            CODE_INFO -> scale.FONTSCALE_SMALL * 0.002f
-        }
-        return org.jetbrains.skia.Font(tf, fontScale * 1.7f)
-    }
 }
