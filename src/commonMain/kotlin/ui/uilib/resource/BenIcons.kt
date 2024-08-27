@@ -1,5 +1,8 @@
 package ui.uilib.resource
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 object BenIcons : Icons {
 
     override val name: String = "BenIcons"

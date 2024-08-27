@@ -66,4 +66,5 @@ interface Icons {
     val asmFile: String
     val folderClosed: String
     val folderOpen: String
+
 }

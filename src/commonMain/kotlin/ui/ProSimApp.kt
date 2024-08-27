@@ -1,27 +1,24 @@
 package ui
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import ui.uilib.resource.BenIcons
-import ui.uilib.resource.Icons
+import ui.uilib.UIState
+import ui.uilib.button.CButton
+import ui.uilib.layout.BorderLayout
+import ui.uilib.layout.ResizableBorderPanels
+import ui.uilib.styled.CLabel
+import ui.uilib.text.CTextField
+import ui.uilib.theme.DarkTheme
 import ui.uilib.theme.LightTheme
-import ui.uilib.theme.Theme
 
 object ProSimApp {
 
     @Composable
     fun launch() {
-        val theme: Theme by remember { mutableStateOf<Theme>(LightTheme) }
-        val icons: Icons by remember { mutableStateOf<Icons>(BenIcons) }
-
         ProSimApp()
     }
 
@@ -38,9 +35,11 @@ object ProSimApp {
                     currentScreen = Screen.CreateNewProject
                 }
             )
+
             is Screen.ProjectView -> ProjectViewScreen(screen.projectPath) {
                 currentScreen = Screen.ProjectSelection
             }
+
             is Screen.CreateNewProject -> CreateNewProjectScreen(
                 onProjectCreated = { newProjectPath ->
                     currentScreen = Screen.ProjectView(newProjectPath)
@@ -56,97 +55,164 @@ object ProSimApp {
     fun ProjectSelectionScreen(onProjectSelected: (String) -> Unit, onCreateNewProject: () -> Unit) {
         val projects = listOf("/", "/projectA", "/projectB", "/projectC") // Example paths
 
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Select a Project:")
-            Spacer(modifier = Modifier.height(8.dp))
+        val theme = UIState.Theme.value
 
-            projects.forEach { project ->
-                Text(
-                    text = project,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clickable {
-                            onProjectSelected(project)
+        BorderLayout(
+            modifier = Modifier.background(theme.COLOR_BG_1),
+            topBg = theme.COLOR_BG_0,
+            topContent = {
+                Spacer(Modifier.weight(2.0f))
+                CButton(onClick = {
+                    if (theme == LightTheme) {
+                        UIState.Theme.value = DarkTheme
+                    } else {
+                        UIState.Theme.value = LightTheme
+                    }
+                }, "Theme ${theme.name}")
+            },
+            centerContent = {
+                Box(modifier = Modifier.align(Alignment.Center)) {
+                    Column(
+                        modifier = Modifier
+                            .padding(UIState.Scale.value.SIZE_INSET_MEDIUM)
+                    ) {
+                        CLabel("Select a Project:", modifier = Modifier.widthIn())
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        projects.forEach { project ->
+                            CButton(
+                                onClick = {
+                                    onProjectSelected(project)
+                                },
+                                text = project,
+                            )
                         }
-                )
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = onCreateNewProject) {
-                Text("Create New Project")
+                        CButton(onClick = onCreateNewProject, text = "Create New Project", modifier = Modifier.widthIn())
+                    }
+                }
             }
-        }
+        )
+
+
     }
 
     @Composable
     fun CreateNewProjectScreen(onProjectCreated: (String) -> Unit, onCancel: () -> Unit) {
-        var projectPath by remember { mutableStateOf("") }
-        var errorMessage by remember { mutableStateOf<String?>(null) }
+        var projectName by remember { mutableStateOf("") }
+        var invalidProjectName by remember { mutableStateOf<Boolean>(true) }
 
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Create New Project")
-            Spacer(modifier = Modifier.height(8.dp))
+        val theme = UIState.Theme.value
 
-            OutlinedTextField(
-                value = projectPath,
-                onValueChange = {
-                    projectPath = it
-                    errorMessage = if (it.isBlank()) "Path cannot be empty" else null
-                },
-                label = { Text("Enter project path") },
-                isError = errorMessage != null
-            )
+        BorderLayout(
+            modifier = Modifier.background(theme.COLOR_BG_1),
+            topBg = theme.COLOR_BG_0,
+            topContent = {
 
-            if (errorMessage != null) {
-                Text(text = errorMessage ?: "", color = MaterialTheme.colors.error)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row {
-                Button(onClick = {
-                    if (projectPath.isNotBlank()) {
-                        onProjectCreated(projectPath)
+                Spacer(Modifier.weight(2.0f))
+                CButton(onClick = {
+                    if (theme == LightTheme) {
+                        UIState.Theme.value = DarkTheme
                     } else {
-                        errorMessage = "Path cannot be empty"
+                        UIState.Theme.value = LightTheme
                     }
-                }) {
-                    Text("Create")
-                }
+                }, "Theme ${theme.name}")
+            },
+            centerContent = {
+                Box(modifier = Modifier.align(Alignment.Center).padding(UIState.Scale.value.SIZE_INSET_MEDIUM)) {
+                    Column(
+                        modifier = Modifier
+                            .widthIn(max = 250.dp)
+                    ) {
+                        CLabel("Create New Project", modifier = Modifier.fillMaxWidth())
+                        Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
-                Spacer(modifier = Modifier.width(8.dp))
+                        CTextField(
+                            value = projectName,
+                            modifier = Modifier.fillMaxWidth(),
+                            onValueChange = {
+                                projectName = it
+                                invalidProjectName = it.isBlank()
+                            },
+                            singleLine = true,
+                            error = invalidProjectName
+                        ) {
 
-                Button(onClick = onCancel) {
-                    Text("Cancel")
+                            Box(modifier = Modifier.padding(horizontal = UIState.Scale.value.SIZE_INSET_MEDIUM)) {
+                                it()
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
+
+
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            CButton(
+                                onClick = {
+                                    if (projectName.isNotBlank()) {
+                                        onProjectCreated(projectName)
+                                    }
+                                }, "Create",
+                                active = !invalidProjectName,
+                                modifier = Modifier.weight(1.0f)
+                            )
+
+                            Spacer(modifier = Modifier.width(UIState.Scale.value.SIZE_INSET_MEDIUM))
+
+                            CButton(onClick = onCancel, "Cancel", modifier = Modifier.weight(1.0f))
+                        }
+                    }
                 }
             }
-        }
+        )
     }
 
     @Composable
     fun ProjectViewScreen(projectId: String, onBack: () -> Unit) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Viewing $projectId")
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = onBack) {
-                Text("Back")
-            }
-        }
-    }
+        val theme = UIState.Theme.value
 
-    @Composable
-    fun Test() {
-        var clickCount by remember { mutableStateOf(0) }
+        BorderLayout(Modifier.fillMaxSize().background(theme.COLOR_BG_0),
+            topContent = {
+                CLabel("Viewing $projectId")
+                Spacer(modifier = Modifier.width(UIState.Scale.value.SIZE_INSET_MEDIUM))
+                CButton(onClick = onBack, "Close Project")
+                Spacer(modifier = Modifier.width(UIState.Scale.value.SIZE_INSET_MEDIUM))
+                CButton(onClick = {
+                    if (theme == LightTheme) {
+                        UIState.Theme.value = DarkTheme
+                    } else {
+                        UIState.Theme.value = LightTheme
+                    }
+                }, "Theme ${theme.name}")
+            },
+            centerContent = {
+                ResizableBorderPanels(
+                    Modifier.fillMaxSize(),
+                    leftContent = {
+                        Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_1)) {
+                            // Left content
+                        }
+                    },
+                    centerContent = {
+                        Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_0)) {
+                            // Center content
+                        }
+                    },
+                    rightContent = {
+                        Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_1)) {
+                            // Right content
+                        }
+                    },
+                    bottomContent = {
+                        Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_1)) {
+                            // Bottom content
+                        }
+                    },
+                )
+            })
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            Button(
-                onClick = { clickCount++ },
-                modifier = Modifier.align(Alignment.Center)
-            ) {
-                Text("Click: $clickCount")
-            }
-        }
     }
 
     sealed class Screen {
