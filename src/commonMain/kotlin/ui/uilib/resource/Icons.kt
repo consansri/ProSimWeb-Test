@@ -67,4 +67,8 @@ interface Icons {
     val folderClosed: String
     val folderOpen: String
 
+    fun icon(){
+
+    }
+
 }
