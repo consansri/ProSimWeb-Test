@@ -1,13 +1,13 @@
 package emulator.archs.riscv64
 
 import Settings
-import debug.DebugTools
-import emulator.archs.riscv64.RV64Syntax.InstrType
+import cengine.util.integer.Bin
+import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import cengine.util.integer.Size.*
 import cengine.util.integer.Value
-import cengine.util.integer.Bin
-import cengine.util.integer.Hex
+import debug.DebugTools
+import emulator.archs.riscv64.RV64Syntax.InstrType
 import emulator.kit.assembler.parser.Parser
 import emulator.kit.nativeWarn
 

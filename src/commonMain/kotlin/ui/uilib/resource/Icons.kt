@@ -1,10 +1,21 @@
 package ui.uilib.resource
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.painter.Painter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.jetbrains.skia.Data
+import org.jetbrains.skia.svg.SVGDOM
+import org.jetbrains.skiko.loadBytesFromPath
+
 
 interface Icons {
 
     val name: String
 
+    // Define Icons as strings representing the resource paths
     val appLogo: String
     val add: String
     val autoscroll: String
@@ -66,9 +77,38 @@ interface Icons {
     val asmFile: String
     val folderClosed: String
     val folderOpen: String
+    
+    companion object {
 
-    fun icon(){
+        val resourceLoadScope = CoroutineScope(Dispatchers.Default)
 
+        /**
+         * Converts a ByteArray containing SVG data to a Painter.
+         */
+        @Composable
+        fun loadSvgPainterFromBytes(bytes: ByteArray): Painter {
+            return remember {
+                val svg = try {
+                    SVGDOM(Data.makeFromBytes(bytes))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+                SvgPainter(svg)
+            }
+        }
+
+        /**
+         * Loads a file from a path into a ByteArray.
+         *
+         * @param path The path to the resource file.
+         * @return ByteArray of the file content.
+         */
+        suspend fun loadByteArray(path: String): ByteArray {
+            return withContext(Dispatchers.Default){
+                loadBytesFromPath(path)
+            }
+        }
     }
 
 }

@@ -1,6 +1,5 @@
 package emulator.kit.assembler.lexer
 
-import Settings
 import emulator.kit.assembler.AsmFile
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface

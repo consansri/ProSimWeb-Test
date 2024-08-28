@@ -1,5 +1,7 @@
 package ui.uilib.button
 
+import Add
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
@@ -21,7 +23,7 @@ import ui.uilib.UIState
 import ui.uilib.params.TextSize
 
 @Composable
-fun CButton(onClick: () -> Unit, text: String? = null, modifier: Modifier = Modifier, textAlign: TextAlign = TextAlign.Center, textSize: TextSize = TextSize.MEDIUM, active: Boolean = true, content: @Composable (RowScope.() -> Unit) = {}) {
+fun CButton(onClick: () -> Unit, iconPath: String? = null, text: String? = null, modifier: Modifier = Modifier, textAlign: TextAlign = TextAlign.Center, textSize: TextSize = TextSize.MEDIUM, active: Boolean = true, content: @Composable (RowScope.() -> Unit) = {}) {
 
     val scaling by UIState.Scale
     val theme by UIState.Theme
@@ -49,13 +51,18 @@ fun CButton(onClick: () -> Unit, text: String? = null, modifier: Modifier = Modi
             .padding(scaling.SIZE_INSET_MEDIUM)
     ) {
 
+        Image(
+            Add,
+            contentDescription = "Add Icon"
+        )
+
         if (text != null) {
             Text(
                 text,
+                Modifier.weight(1f),
                 textAlign = textAlign,
                 fontSize = textSize.get(),
                 color = if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0,
-
             )
         }
 
