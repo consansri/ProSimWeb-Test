@@ -1,14 +1,13 @@
 package ui.uilib.resource
 
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.painter.Painter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.jetbrains.skia.Data
-import org.jetbrains.skia.svg.SVGDOM
-import org.jetbrains.skiko.loadBytesFromPath
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
+import ui.uilib.UIState
 
 
 interface Icons {
@@ -16,97 +15,121 @@ interface Icons {
     val name: String
 
     // Define Icons as strings representing the resource paths
-    val appLogo: String
-    val add: String
-    val autoscroll: String
-    val backwards: String
-    val bars: String
-    val build: String
-    val cancel: String
-    val clearStorage: String
-    val combineCells: String
-    val continuousExe: String
-    val console: String
-    val darkmode: String
-    val deleteBlack: String
-    val deleteRed: String
-    val disassembler: String
-    val edit: String
-    val export: String
-    val fileCompiled: String
-    val fileNotCompiled: String
-    val forwards: String
-    val home: String
-    val import: String
-    val info: String
-    val lightmode: String
-    val logo: String
-    val pin: String
-    val processor: String
-    val processorBold: String
-    val processorLight: String
-    val recompile: String
-    val refresh: String
-    val reportBug: String
-    val returnSubroutine: String
-    val reverse: String
-    val settings: String
-    val singleExe: String
-    val splitCells: String
-    val statusError: String
-    val statusFine: String
-    val statusLoading: String
-    val stepInto: String
-    val stepMultiple: String
-    val stepOut: String
-    val stepOver: String
-    val tag: String
+    val appLogo: ImageVector
+    val add: ImageVector
+    val autoscroll: ImageVector
+    val backwards: ImageVector
+    val bars: ImageVector
+    val build: ImageVector
+    val cancel: ImageVector
+    val clearStorage: ImageVector
+    val combineCells: ImageVector
+    val continuousExe: ImageVector
+    val console: ImageVector
+    val darkmode: ImageVector
+    val deleteBlack: ImageVector
+    val deleteRed: ImageVector
+    val disassembler: ImageVector
+    val edit: ImageVector
+    val export: ImageVector
+    val fileCompiled: ImageVector
+    val fileNotCompiled: ImageVector
+    val forwards: ImageVector
+    val home: ImageVector
+    val import: ImageVector
+    val info: ImageVector
+    val lightmode: ImageVector
+    val logo: ImageVector
+    val pin: ImageVector
+    val processor: ImageVector
+    val processorBold: ImageVector
+    val processorLight: ImageVector
+    val recompile: ImageVector
+    val refresh: ImageVector
+    val reportBug: ImageVector
+    val returnSubroutine: ImageVector
+    val reverse: ImageVector
+    val settings: ImageVector
+    val singleExe: ImageVector
+    val splitCells: ImageVector
+    val statusError: ImageVector
+    val statusFine: ImageVector
+    val statusLoading: ImageVector
+    val stepInto: ImageVector
+    val stepMultiple: ImageVector
+    val stepOut: ImageVector
+    val stepOver: ImageVector
+    val tag: ImageVector
 
     // Controls
-    val switchOn: String
-    val switchOff: String
 
     // Window Decorations
-    val decrease: String
-    val increase: String
-    val close: String
+    val decrease: ImageVector
+    val increase: ImageVector
+    val close: ImageVector
 
     // File Tree Icons
-    val folder: String
-    val file: String
-    val asmFile: String
-    val folderClosed: String
-    val folderOpen: String
-    
+    val folder: ImageVector
+    val file: ImageVector
+    val asmFile: ImageVector
+    val chevronRight: ImageVector
+    val chevronDown: ImageVector
+
+    fun allIcons(): List<ImageVector> {
+        return listOf(
+            appLogo,
+            add,
+            autoscroll,
+            backwards,
+            bars,
+            build,
+            cancel,
+            clearStorage,
+            combineCells,
+            continuousExe,
+            console,
+            darkmode,
+            deleteBlack,
+            deleteRed,
+            disassembler,
+            edit,
+            export,
+            fileCompiled,
+            fileNotCompiled,
+            forwards,
+            home,
+            import,
+            info,
+            lightmode,
+            logo,
+            pin,
+            processor,
+            processorBold,
+            processorLight,
+            recompile,
+            refresh,
+            reportBug,
+            returnSubroutine,
+            reverse,
+            settings,
+            singleExe,
+            splitCells,
+            statusError,
+            statusFine,
+            statusLoading,
+            stepInto,
+            stepMultiple,
+            stepOut,
+            stepOver,
+            tag
+        )
+    }
+
     companion object {
-
-        val resourceLoadScope = CoroutineScope(Dispatchers.Default)
-
-        /**
-         * Converts a ByteArray containing SVG data to a Painter.
-         */
         @Composable
-        fun loadSvgPainterFromBytes(bytes: ByteArray): Painter {
-            return remember {
-                val svg = try {
-                    SVGDOM(Data.makeFromBytes(bytes))
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
-                }
-                SvgPainter(svg)
-            }
-        }
-
-        /**
-         * Loads a file from a path into a ByteArray.
-         *
-         * @param path The path to the resource file.
-         * @return ByteArray of the file content.
-         */
-        suspend fun loadByteArray(path: String): ByteArray {
-            return withContext(Dispatchers.Default){
-                loadBytesFromPath(path)
+        fun Icons(icons: List<ImageVector>) {
+            icons.forEachIndexed { index, it ->
+                Image(it, index.toString(), modifier = Modifier.size(UIState.Scale.value.SIZE_CONTROL_MEDIUM), colorFilter = ColorFilter.tint(UIState.Theme.value.COLOR_FG_0))
             }
         }
     }

@@ -1,17 +1,17 @@
 package ui.uilib.theme
 
-import Lightmode
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.Memory
+import ui.uilib.UIState
 
 @Immutable
 data object LightTheme: Theme {
 
     override val name: String = "light"
-    override val icon: ImageVector = Lightmode
+    override val icon: ImageVector get() = UIState.Icon.value.lightmode
     override val dark: Boolean = false
     override val COLOR_BG_0: Color = Color(0xFFFFFFFF)
     override val COLOR_BG_1: Color = Color(0xFFF0F2F5)

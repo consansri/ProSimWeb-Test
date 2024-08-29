@@ -10,6 +10,8 @@ import ui.uilib.UIState
 import ui.uilib.button.CButton
 import ui.uilib.layout.BorderLayout
 import ui.uilib.layout.ResizableBorderPanels
+import ui.uilib.layout.ScrollableColumn
+import ui.uilib.resource.Icons
 import ui.uilib.styled.CLabel
 import ui.uilib.text.CTextField
 import ui.uilib.theme.DarkTheme
@@ -92,6 +94,12 @@ object ProSimApp {
 
                         CButton(onClick = onCreateNewProject, text = "Create New Project", modifier = Modifier.widthIn())
                     }
+                }
+            },
+
+            leftContent = {
+                ScrollableColumn {
+                    Icons.Icons(UIState.Icon.value.allIcons())
                 }
             }
         )
