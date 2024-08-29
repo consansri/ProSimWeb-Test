@@ -12,7 +12,7 @@ import prosim.uilib.theme.themes.LightTheme
 
 data object UIResource {
     val icons = listOf(
-        BenIcons()
+        BenIcons
     )
 
     // List of available themes.

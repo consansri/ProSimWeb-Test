@@ -2,16 +2,27 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
+
+
 plugins {
     kotlin("multiplatform") version "2.0.20"
     id("org.jetbrains.dokka") version "1.9.20"
     kotlin("plugin.compose") version "2.0.20"
     id("org.jetbrains.compose") version "1.6.11"
+    kotlin("plugin.serialization") version "2.0.20"
     distribution
 }
 
 group = "prosim"
 version = "0.2.6"
+
+val dokkaVersion = "1.9.20"
+val kotlinVersion = "2.0.20"
+val composeVersion = "1.6.11"
+val coroutineVersion = "1.9.0-RC.2"
+val datetimeVersion = "0.6.1"
+val serializationVersion = "1.7.2"
+
 
 repositories {
     google()
@@ -58,8 +69,9 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 //implementation(kotlin("reflect"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetimeVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
 
 
                 // Compose
@@ -106,7 +118,7 @@ kotlin {
                 implementation("com.formdev:flatlaf:3.4")
                 implementation("com.formdev:flatlaf-extras:3.4")
 
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutineVersion")
             }
         }
     }

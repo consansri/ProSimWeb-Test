@@ -1,18 +1,12 @@
-package ui.uilib.button
+package ui.uilib.label
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.hoverable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,31 +17,14 @@ import ui.uilib.UIState
 import ui.uilib.params.TextSize
 
 @Composable
-fun CButton(onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVector? = null, text: String? = null, textAlign: TextAlign = TextAlign.Center, textSize: TextSize = TextSize.MEDIUM, active: Boolean = true) {
+fun CLabel(modifier: Modifier = Modifier, icon: ImageVector? = null, text: String? = null, textAlign: TextAlign = TextAlign.Center, textSize: TextSize = TextSize.MEDIUM, active: Boolean = true) {
 
     val scaling by UIState.Scale
     val theme by UIState.Theme
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val isHovered by interactionSource.collectIsHoveredAsState()
-
-    val backgroundColor = if (isPressed) {
-        theme.COLOR_ICON_BG_ACTIVE
-    } else if (isHovered) {
-        theme.COLOR_ICON_BG_HOVER
-    } else {
-        Color.Transparent
-    }
 
     Row(
         modifier.fillMaxWidth()
-            .background(backgroundColor, shape = RoundedCornerShape(scaling.SIZE_CORNER_RADIUS))
-            .clickable(interactionSource, indication = null, onClick = if (active) {
-                onClick
-            } else {
-                {}
-            })
-            .hoverable(interactionSource)
+            .background(Color.Transparent, shape = RoundedCornerShape(scaling.SIZE_CORNER_RADIUS))
             .padding(scaling.SIZE_INSET_MEDIUM),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
@@ -75,6 +52,4 @@ fun CButton(onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVecto
             )
         }
     }
-
-
 }

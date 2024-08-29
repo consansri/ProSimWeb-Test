@@ -12,7 +12,7 @@ import prosim.uilib.theme.core.Theme
 import prosim.uilib.theme.themes.LightTheme
 
 data object UIStates {
-    val icon = object : StateManager<Icons>(BenIcons()) {
+    val icon = object : StateManager<Icons>(BenIcons) {
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_ICONS)?.let { value ->
                 UIResource.icons.firstOrNull { it.name == value }?.let {
