@@ -68,7 +68,7 @@ object ProSimApp {
                     } else {
                         UIState.Theme.value = LightTheme
                     }
-                }, "Theme ${theme.name}")
+                }, icon = theme.icon)
             },
             centerContent = {
                 Box(modifier = Modifier.align(Alignment.Center)) {
@@ -118,7 +118,7 @@ object ProSimApp {
                     } else {
                         UIState.Theme.value = LightTheme
                     }
-                }, "Theme ${theme.name}")
+                }, icon = theme.icon)
             },
             centerContent = {
                 Box(modifier = Modifier.align(Alignment.Center).padding(UIState.Scale.value.SIZE_INSET_MEDIUM)) {
@@ -147,21 +147,20 @@ object ProSimApp {
 
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
-
                         Row(modifier = Modifier.fillMaxWidth()) {
                             CButton(
                                 onClick = {
                                     if (projectName.isNotBlank()) {
                                         onProjectCreated(projectName)
                                     }
-                                }, "Create",
+                                }, text = "Create",
                                 active = !invalidProjectName,
                                 modifier = Modifier.weight(1.0f)
                             )
 
                             Spacer(modifier = Modifier.width(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
-                            CButton(onClick = onCancel, "Cancel", modifier = Modifier.weight(1.0f))
+                            CButton(onClick = onCancel, text = "Cancel", modifier = Modifier.weight(1.0f))
                         }
                     }
                 }
@@ -177,7 +176,7 @@ object ProSimApp {
             topContent = {
                 CLabel("Viewing $projectId")
                 Spacer(modifier = Modifier.width(UIState.Scale.value.SIZE_INSET_MEDIUM))
-                CButton(onClick = onBack, "Close Project")
+                CButton(onClick = onBack, text = "Close Project")
                 Spacer(modifier = Modifier.width(UIState.Scale.value.SIZE_INSET_MEDIUM))
                 CButton(onClick = {
                     if (theme == LightTheme) {
@@ -185,7 +184,7 @@ object ProSimApp {
                     } else {
                         UIState.Theme.value = LightTheme
                     }
-                }, "Theme ${theme.name}")
+                }, icon = theme.icon)
             },
             centerContent = {
                 ResizableBorderPanels(

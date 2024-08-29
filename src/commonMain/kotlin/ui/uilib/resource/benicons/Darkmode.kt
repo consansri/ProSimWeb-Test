@@ -30,8 +30,6 @@ public val Darkmode: ImageVector
             group {
                 group {
                     path(
-                        fill = SolidColor(Color.Black),
-                        fillAlpha = 1.0f,
                         stroke = null,
                         strokeAlpha = 1.0f,
                         strokeLineWidth = 1.0f,
@@ -48,8 +46,6 @@ public val Darkmode: ImageVector
                         close()
                     }
                     path(
-                        fill = SolidColor(Color.Black),
-                        fillAlpha = 1.0f,
                         stroke = SolidColor(Color(0xFF000000)),
                         strokeAlpha = 1.0f,
                         strokeLineWidth = 6f,

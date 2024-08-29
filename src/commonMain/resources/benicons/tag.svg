@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71"><defs><style>.cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linejoin:round;stroke-width:6px;}</style></defs><g id="Ebene_2" ><g id="Ebene_1-2" ><rect id="Hintergrund" class="cls-1" width="90.71" height="90.71"/><path class="cls-2" d="M74.38,41,39,76.44a5.67,5.67,0,0,1-8,0L15.21,60.69a5.7,5.7,0,0,1,0-8l35.4-35.4H66.42l8,8Z"/><circle cx="59.76" cy="31.9" r="4.84"/></g></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71">
+    <defs>
+        <style>.cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linejoin:round;stroke-width:6px;}</style>
+    </defs>
+    <g id="Ebene_2">
+        <g id="Ebene_1-2">
+            <path class="cls-2" d="M74.38,41,39,76.44a5.67,5.67,0,0,1-8,0L15.21,60.69a5.7,5.7,0,0,1,0-8l35.4-35.4H66.42l8,8Z"/>
+            <circle cx="59.76" cy="31.9" r="4.84"/>
+        </g>
+    </g>
+</svg>

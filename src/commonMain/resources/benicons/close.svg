@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71"><defs><style>.cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:6px;}</style></defs><g id="Ebene_2" ><g id="Ebene_2-2" ><polyline id="Hintergrund" class="cls-1" points="90.71 0 90.71 90.71 0 90.71 0 0"/></g><g id="Ebene_1-2" ><line class="cls-2" x1="29.95" y1="29.95" x2="60.76" y2="60.76"/><line class="cls-2" x1="29.95" y1="60.76" x2="60.76" y2="29.95"/></g></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71">
+    <defs>
+        <style>.cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:6px;}</style>
+    </defs>
+    <g id="Ebene_2">
+        <g id="Ebene_1-2">
+            <line class="cls-2" x1="29.95" y1="29.95" x2="60.76" y2="60.76"/>
+            <line class="cls-2" x1="29.95" y1="60.76" x2="60.76" y2="29.95"/>
+        </g>
+    </g>
+</svg>

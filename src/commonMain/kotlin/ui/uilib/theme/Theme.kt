@@ -1,12 +1,13 @@
 package ui.uilib.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.Memory
 
 interface Theme {
     val name: String
-    val icon: String
+    val icon: ImageVector
     val dark: Boolean
 
     // COLORS (BASIC)

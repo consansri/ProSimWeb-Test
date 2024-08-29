@@ -1,15 +1,16 @@
 package ui.uilib.theme
 
+import Darkmode
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.Memory
-import ui.uilib.resource.BenIcons
 
 @Immutable
 data object DarkTheme: Theme {
     override val name: String = "dark"
-    override val icon: String = BenIcons.darkmode
+    override val icon: ImageVector = Darkmode
     override val dark: Boolean = true
     override val COLOR_BG_0: Color = Color(0xFF222222)
     override val COLOR_BG_1: Color = Color(0xFF373737)

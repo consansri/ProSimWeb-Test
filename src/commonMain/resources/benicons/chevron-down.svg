@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71"><defs><style>.cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:6px;}</style></defs><g id="Ebene_2" ><g id="Ebene_2-2" ><polyline id="Hintergrund" class="cls-1" points="90.71 0 90.71 90.71 0 90.71 0 0"/><polyline id="Hintergrund-2" data-name="Hintergrund" class="cls-1" points="90.71 0 90.71 90.71 0 90.71 0 0"/></g><g id="Ebene_1-2" ><polyline class="cls-2" points="32.72 40.04 45.35 52.67 57.99 40.04"/></g></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71">
+    <defs>
+        <style>.cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:6px;}</style>
+    </defs>
+    <g id="Ebene_2">
+        <g id="Ebene_1-2">
+            <polyline class="cls-2" points="32.72 40.04 45.35 52.67 57.99 40.04"/>
+        </g>
+    </g>
+</svg>

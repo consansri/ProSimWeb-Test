@@ -1,1 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71"><defs><style>.cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-miterlimit:10;stroke-width:6px;}</style></defs><g id="Ebene_2" ><g id="Ebene_2-2" ><polyline id="Hintergrund" class="cls-1" points="90.71 0 90.71 90.71 0 90.71 0 0"/></g><g id="Ebene_1-2" ><path class="cls-2" d="M66.35,20.85v49a5.67,5.67,0,0,1-5.67,5.67H30a5.67,5.67,0,0,1-5.67-5.67V34.19a5.67,5.67,0,0,1,1.66-4L39.35,16.84a5.67,5.67,0,0,1,4-1.66H60.68A5.67,5.67,0,0,1,66.35,20.85Z"/><line class="cls-2" x1="54.96" y1="29.78" x2="41.73" y2="29.78"/><line class="cls-2" x1="54.96" y1="43.89" x2="35.75" y2="43.89"/><line class="cls-2" x1="54.96" y1="58.01" x2="35.75" y2="58.01"/></g></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.71 90.71">
+    <defs>
+        <style>.cls-1,.cls-2{fill:none;}.cls-2{stroke:#000;stroke-linecap:round;stroke-miterlimit:10;stroke-width:6px;}</style>
+    </defs>
+    <g id="Ebene_2">
+        <g id="Ebene_1-2">
+            <path class="cls-2" d="M66.35,20.85v49a5.67,5.67,0,0,1-5.67,5.67H30a5.67,5.67,0,0,1-5.67-5.67V34.19a5.67,5.67,0,0,1,1.66-4L39.35,16.84a5.67,5.67,0,0,1,4-1.66H60.68A5.67,5.67,0,0,1,66.35,20.85Z"/>
+            <line class="cls-2" x1="54.96" y1="29.78" x2="41.73" y2="29.78"/>
+            <line class="cls-2" x1="54.96" y1="43.89" x2="35.75" y2="43.89"/>
+            <line class="cls-2" x1="54.96" y1="58.01" x2="35.75" y2="58.01"/>
+        </g>
+    </g>
+</svg>

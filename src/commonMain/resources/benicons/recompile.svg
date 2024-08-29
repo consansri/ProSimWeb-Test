@@ -3,9 +3,6 @@
         <style>.cls-1,.cls-2,.cls-3{fill:none;}.cls-2,.cls-3{stroke:#000;stroke-linecap:round;stroke-width:6px;}.cls-2{stroke-linejoin:round;}.cls-3{stroke-miterlimit:10;}</style>
     </defs>
     <g id="Ebene_2">
-        <g id="Ebene_2-2">
-            <polyline id="Hintergrund" class="cls-1" points="90.71 0 90.71 90.71 0 90.71 0 0"/>
-        </g>
         <g id="Ebene_1-2">
             <path class="cls-2" d="M54.23,70.71a28,28,0,1,0-28-28v6h0l-12-12,12,12,12-12"/>
             <line class="cls-3" x1="12.44" y1="57.46" x2="39.7" y2="57.46"/>
