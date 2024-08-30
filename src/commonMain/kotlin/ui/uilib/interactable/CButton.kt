@@ -1,4 +1,4 @@
-package ui.uilib.button
+package ui.uilib.interactable
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,7 +40,7 @@ fun CButton(onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVecto
     }
 
     Row(
-        modifier.fillMaxWidth()
+        modifier
             .background(backgroundColor, shape = RoundedCornerShape(scaling.SIZE_CORNER_RADIUS))
             .clickable(interactionSource, indication = null, onClick = if (active) {
                 onClick

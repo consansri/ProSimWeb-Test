@@ -14,7 +14,7 @@ interface VirtualFile {
     /**
      * The full path of the file or directory within the file system.
      */
-    val path: String
+    val path: FPath
 
     /**
      * Indicates whether this is a directory

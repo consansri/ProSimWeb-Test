@@ -4,6 +4,7 @@ import debug.DebugTools
 import emulator.kit.nativeLog
 import java.nio.file.*
 import kotlin.concurrent.thread
+import kotlin.io.path.pathString
 
 /**
  * JVM-specific implementation of [FileWatcher].
@@ -13,6 +14,7 @@ import kotlin.concurrent.thread
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class FileWatcher actual constructor(actual val vfs: VFileSystem) {
     private val watchService = FileSystems.getDefault().newWatchService()
+    private val separator = FileSystems.getDefault().separator
     private val watchKeys = mutableMapOf<WatchKey, Path>()
     private var watchThread: Thread? = null
     private var isWatching = false
@@ -38,28 +40,28 @@ actual class FileWatcher actual constructor(actual val vfs: VFileSystem) {
                 if (dir != null) {
                     for (event in key.pollEvents()) {
                         val kind = event.kind()
-                        val fileName = event.context() as? Path
+                        val fileName = event.context() as? FPath
                         if (fileName != null) {
-                            val fullPath = dir.resolve(fileName).normalize().toString().replace("\\", VFileSystem.DELIMITER).removePrefix(vfs.root.name)
+                            val relativePath = vfs.toRelative(dir.pathString.replace(separator, FPath.DELIMITER))
                             when (kind) {
                                 StandardWatchEventKinds.ENTRY_CREATE -> {
-                                    if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-CREATED")
-                                    vfs.findFileByAbsolute(fullPath)?.let {
+                                    if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$relativePath-CREATED")
+                                    vfs.findFile(relativePath)?.let {
                                         vfs.notifyFileCreated(it)
                                     }
                                 }
 
                                 StandardWatchEventKinds.ENTRY_DELETE -> {
-                                    if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-DELETED")
-                                    vfs.deleteFile(fullPath)
-                                    vfs.findFileByAbsolute(fullPath)?.let {
+                                    if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$relativePath-DELETED")
+                                    vfs.findFile(relativePath)?.let {
                                         vfs.notifyFileDeleted(it)
                                     }
+                                    vfs.deleteFile(relativePath)
                                 }
 
                                 StandardWatchEventKinds.ENTRY_MODIFY -> {
-                                    if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$fullPath-MODIFIED")
-                                    vfs.findFileByAbsolute(fullPath)?.let {
+                                    if (DebugTools.ENGINE_showFileWatcherInfo) nativeLog("FILE-$relativePath-MODIFIED")
+                                    vfs.findFile(relativePath)?.let {
                                         vfs.notifyFileChanged(it)
                                     }
                                 }

@@ -15,7 +15,7 @@ expect class ActualFileSystem(rootPath: String) {
      * @param path The relative path of the file to read.
      * @return The content of the file as ByteArray.
      */
-    fun readFile(path: String): ByteArray
+    fun readFile(path: FPath): ByteArray
 
     /**
      * Writes content to a file.
@@ -23,14 +23,14 @@ expect class ActualFileSystem(rootPath: String) {
      * @param path The relative path of the file to write.
      * @param content The content to write to the file.
      */
-    fun writeFile(path: String, content: ByteArray)
+    fun writeFile(path: FPath, content: ByteArray)
 
     /**
      * Deletes a file or directory.
      *
      * @param path The relative path of the file or directory to delete.
      */
-    fun deleteFile(path: String)
+    fun deleteFile(path: FPath)
 
     /**
      * Creates a file or directory.
@@ -38,7 +38,7 @@ expect class ActualFileSystem(rootPath: String) {
      * @param path The relative path of the file or directory to create.
      * @param isDirectory If the file is a directory.
      */
-    fun createFile(path: String, isDirectory: Boolean)
+    fun createFile(path: FPath, isDirectory: Boolean)
 
     /**
      * Lists the contents of a directory.
@@ -46,7 +46,7 @@ expect class ActualFileSystem(rootPath: String) {
      * @param path The relative path of the directory to list.
      * @return A list of names of files and directories in the given directory.
      */
-    fun listDirectory(path: String): List<String>
+    fun listDirectory(path: FPath): List<String>
 
     /**
      * Checks if a path represents a directory.
@@ -54,7 +54,7 @@ expect class ActualFileSystem(rootPath: String) {
      * @param path The relative path to check.
      * @return True if the path is a directory, false otherwise.
      */
-    fun isDirectory(path: String): Boolean
+    fun isDirectory(path: FPath): Boolean
 
     /**
      * Checks if a file or directory exists.
@@ -62,7 +62,7 @@ expect class ActualFileSystem(rootPath: String) {
      * @param path The relative path to check.
      * @return True if the file or directory exists, false otherwise.
      */
-    fun exists(path: String): Boolean
+    fun exists(path: FPath): Boolean
 
     /**
      * Converts a relative path to an absolute path using [rootPath].
@@ -70,5 +70,5 @@ expect class ActualFileSystem(rootPath: String) {
      * @param path The relative path to convert.
      * @return The absolute path.
      */
-    fun getAbsolutePath(path: String): String
+    fun getAbsolutePath(path: FPath): String
 }

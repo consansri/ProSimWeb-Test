@@ -14,7 +14,7 @@ object WindowManager {
 
     fun openProject(path: String, targetSpec: TargetSpec) {
         nativeLog("Open Project: $path ${targetSpec.name}")
-        val content = ProjectWindow(ProjectState(path, targetSpec))
+        val content = ProjectWindow(ProjectState(path, targetSpec.name))
         val frame = CFrame("$targetSpec - $path")
         frame.contentPane = content
         frame.size = Dimension(1920, 1080)

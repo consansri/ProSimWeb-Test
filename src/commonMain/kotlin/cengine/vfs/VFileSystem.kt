@@ -1,7 +1,5 @@
 package cengine.vfs
 
-import emulator.kit.nativeLog
-
 /**
  * Virtual File System (VFS)
  *
@@ -15,16 +13,12 @@ import emulator.kit.nativeLog
  * @property actualFileSystem The platform-specific file system implementation.
  */
 class VFileSystem(absRootPath: String) {
-    private val absRootPath = absRootPath.replace("\\", DELIMITER)
+    private val absRootPath = absRootPath.replace("\\", FPath.DELIMITER)
     private val actualFileSystem: ActualFileSystem = ActualFileSystem(absRootPath)
-    val root: VirtualFile = RootDirectory(absRootPath.split(DELIMITER).last())
-    private val fileCache = mutableMapOf<String, VirtualFile>()
+    val root: VirtualFile = RootDirectory(absRootPath.split(FPath.DELIMITER).last())
+    private val fileCache = mutableMapOf<FPath, VirtualFile>()
     private val changeListeners = mutableListOf<FileChangeListener>()
     private val fileWatcher: FileWatcher = FileWatcher(this)
-
-    companion object {
-        const val DELIMITER = "/"
-    }
 
     init {
         initializeFileWatcher()
@@ -35,16 +29,16 @@ class VFileSystem(absRootPath: String) {
      */
 
     private fun initializeFileWatcher() {
-        watchRecursively("")
+        watchRecursively(FPath())
         fileWatcher.startWatching()
     }
 
-    private fun watchRecursively(relativePath: String) {
+    private fun watchRecursively(relativePath: FPath) {
         if (!actualFileSystem.isDirectory(relativePath)) return
         fileWatcher.watchDirectory(actualFileSystem.getAbsolutePath(relativePath))
 
         actualFileSystem.listDirectory(relativePath).forEach { childName ->
-            val childPath = "$relativePath$DELIMITER$childName"
+            val childPath = relativePath + childName
             watchRecursively(childPath)
         }
     }
@@ -53,19 +47,7 @@ class VFileSystem(absRootPath: String) {
      * File System Modification
      */
 
-    /**
-     * Finds a file or directory in the virtual file system.
-     *
-     * Use [DELIMITER] inside the path!
-     *
-     * @param absolutePath The absolute path of the file or directory to find.
-     * @return The [VirtualFile] object if found, or null if not found.
-     */
-    fun findFileByAbsolute(absolutePath: String): VirtualFile? {
-        val relativePath = absolutePath.removePrefix(absRootPath)
-        //nativeLog("AbsRoot: $absRootPath, $relativePath -> {${fileCache.keys.joinToString(",")}}")
-        return fileCache[relativePath] ?: findFileInternal(relativePath)?.also { fileCache[relativePath] = it }
-    }
+    fun toRelative(absolutePath: String): FPath = FPath.of(this, *absolutePath.removePrefix(absRootPath).split(FPath.DELIMITER).filter { it.isNotEmpty() }.toTypedArray())
 
     /**
      * Finds a file or directory in the virtual file system.
@@ -75,8 +57,24 @@ class VFileSystem(absRootPath: String) {
      * @param relativePath The relative path of the file or directory to find.
      * @return The [VirtualFile] object if found, or null if not found.
      */
-    fun findFile(relativePath: String): VirtualFile? {
-        return fileCache[relativePath] ?: findFileInternal(relativePath)?.also { fileCache[relativePath] = it }
+    fun findFile(relativePath: FPath): VirtualFile? {
+        // nativeLog("FindFile")
+
+        if (relativePath.isEmpty()) return null
+
+        if (relativePath == root.path) return root
+
+        val fromCache = fileCache[relativePath]
+        if (fromCache != null) {
+            // nativeLog("FoundFile from Cache: $relativePath -> ${fromCache.path}")
+            return fromCache
+        }
+
+        if (actualFileSystem.exists(relativePath)) {
+            return getOrCreateFile(relativePath, findFile(relativePath.withoutLast()))
+        }
+
+        return null
     }
 
     /**
@@ -88,28 +86,24 @@ class VFileSystem(absRootPath: String) {
      * @param isDirectory Whether to create a directory (true) or a file (false).
      * @return The newly created [VirtualFile] object.
      */
-    fun createFile(relativePath: String, isDirectory: Boolean = false): VirtualFile {
+    fun createFile(relativePath: FPath, isDirectory: Boolean = false): VirtualFile {
 
+        // nativeLog("Create $relativePath")
         // Create Parent Directory if non-existent
 
-        val lastDeliIndex = relativePath.indexOfLast { it == DELIMITER.first() }
-        if (lastDeliIndex != -1) {
-            val remainingPath = relativePath.substring(0, relativePath.indexOfLast { it == DELIMITER.first() })
-            if (!actualFileSystem.exists(remainingPath)) {
-                actualFileSystem.createFile(remainingPath, true)
-            }
+        val parentPath = relativePath.withoutLast()
+
+        if (!actualFileSystem.exists(parentPath)) {
+            actualFileSystem.createFile(parentPath, true)
         }
+
+        val parent = findFile(parentPath)
 
         // Create File
 
         actualFileSystem.createFile(relativePath, isDirectory)
-        val parts = relativePath.split(DELIMITER).filter { it.isNotEmpty() }
-        var current: VirtualFile = root
-        for (i in 0 until parts.size - 1) {
-            val part = parts[i]
-            current = current.getChildren().find { it.name == part } ?: createFile("/${parts.slice(0..i).joinToString(DELIMITER)}", true)
-        }
-        val newFile = getOrCreateFile(relativePath, isDirectory)
+
+        val newFile = getOrCreateFile(relativePath, parent, isDirectory)
         fileCache[relativePath] = newFile
         notifyFileCreated(newFile)
         return newFile
@@ -122,7 +116,8 @@ class VFileSystem(absRootPath: String) {
      *
      * @param relativePath The relative path of the file or directory to delete.
      */
-    fun deleteFile(relativePath: String) {
+    fun deleteFile(relativePath: FPath) {
+        // nativeLog("DeleteFile $relativePath")
         val deletedFile = findFile(relativePath)
         actualFileSystem.deleteFile(relativePath)
         fileCache.remove(relativePath)
@@ -131,22 +126,20 @@ class VFileSystem(absRootPath: String) {
         }
     }
 
-    private fun findFileInternal(relativePath: String): VirtualFile? {
-        val parts = relativePath.split(DELIMITER).filter { it.isNotEmpty() }
-        var current: VirtualFile = root
-        for (part in parts) {
-            current = current.getChildren().find { it.name == part } ?: return null
-        }
-        return current
-    }
+    /**
+     * Should be called only if file exists!
+     */
+    private fun getOrCreateFile(relativePath: FPath, parent: VirtualFile?, isDirectory: Boolean = actualFileSystem.isDirectory(relativePath)): VirtualFile {
+        // nativeLog("GetOrCreateFile: $relativePath")
 
-    private fun getOrCreateFile(relativePath: String, isDirectory: Boolean = actualFileSystem.isDirectory(relativePath)): VirtualFile {
-        return fileCache.getOrPut(relativePath) {
-            val name = relativePath.split(DELIMITER).last()
-            val parent = findFile(relativePath.substringBeforeLast(DELIMITER, DELIMITER))
+        val created = fileCache.getOrPut(relativePath) {
+            val name = relativePath.last()
+
             val newFile = VirtualFileImpl(name, relativePath, isDirectory, parent)
             newFile
         }
+
+        return created
     }
 
     /**
@@ -173,7 +166,7 @@ class VFileSystem(absRootPath: String) {
 
     fun notifyFileChanged(file: VirtualFile) {
         file.hasChangedOnDisk()
-        nativeLog("Notify File Changed")
+        // nativeLog("Notify File Changed")
         changeListeners.forEach { it.onFileChanged(file) }
     }
 
@@ -190,13 +183,14 @@ class VFileSystem(absRootPath: String) {
     }
 
     inner class RootDirectory(override val name: String) : VirtualFile {
-        override val path: String = DELIMITER
+        override val path: FPath = FPath(name)
         override val isDirectory: Boolean = true
         override val parent: VirtualFile? = null
         override var onDiskChange: () -> Unit = {}
 
         override fun getChildren(): List<VirtualFile> {
-            return actualFileSystem.listDirectory(DELIMITER).map { getOrCreateFile("$DELIMITER$it") }
+            // nativeLog("getChildren($path)")
+            return actualFileSystem.listDirectory(path).map { getOrCreateFile(path + it, this) }
         }
 
         override fun getContent(): ByteArray = ByteArray(0)
@@ -210,15 +204,16 @@ class VFileSystem(absRootPath: String) {
 
     inner class VirtualFileImpl(
         override val name: String,
-        override val path: String,
+        override val path: FPath,
         override val isDirectory: Boolean,
         override val parent: VirtualFile?
     ) : VirtualFile {
         override var onDiskChange: () -> Unit = {}
 
         override fun getChildren(): List<VirtualFile> {
+            // nativeLog("getChildren($path)")
             return if (isDirectory) {
-                actualFileSystem.listDirectory(path).map { getOrCreateFile("$path$DELIMITER$it") }
+                actualFileSystem.listDirectory(path).map { getOrCreateFile(path + it, this) }
             } else {
                 emptyList()
             }

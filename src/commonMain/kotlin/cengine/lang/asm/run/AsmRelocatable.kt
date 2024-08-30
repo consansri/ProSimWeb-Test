@@ -7,6 +7,7 @@ import cengine.lang.asm.AsmLang
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.elf.RelocatableELFBuilder
 import cengine.psi.impl.PsiNotationCollector
+import cengine.vfs.FPath
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeError
@@ -25,7 +26,7 @@ class AsmRelocatable() : RunConfiguration.FileRun<LanguageService> {
         if (lang !is AsmLang) return
         val asmFile = lang.psiParser.parseFile(file, null)
 
-        val outputPath = "${AsmLang.OUTPUT_DIR}${VFileSystem.DELIMITER}$RELOCATABLE_SUB_DIR${VFileSystem.DELIMITER}${file.name.removeSuffix(lang.fileSuffix)}.o"
+        val outputPath = FPath.of(vfs, AsmLang.OUTPUT_DIR, RELOCATABLE_SUB_DIR, file.name.removeSuffix(lang.fileSuffix) +".o")
 
         vfs.deleteFile(outputPath)
         val outputFile = vfs.createFile(outputPath)

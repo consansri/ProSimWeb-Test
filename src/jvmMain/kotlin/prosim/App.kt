@@ -71,7 +71,7 @@ fun testMainAppWindow(){
 fun testNewEditor() {
     val frame = JFrame()
 
-    val project = Project(ProjectState("docs", RV32Spec), CownLang(), AsmLang(RV32Spec))
+    val project = Project(ProjectState("docs", RV32Spec.name), CownLang(), AsmLang(RV32Spec))
 
     val fileTree = FileTree(project)
 

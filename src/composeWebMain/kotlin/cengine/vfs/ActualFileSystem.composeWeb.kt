@@ -1,14 +1,15 @@
 package cengine.vfs
 
+import Keys
+import kotlinx.browser.localStorage
+
 /**
  * Platform-specific implementation of the actual file system operations.
  *
  * @property rootPath The root path of this file system.
  */
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-actual class ActualFileSystem actual constructor(rootPath: String) {
-    actual val rootPath: String
-        get() = TODO("Not yet implemented")
+actual class ActualFileSystem actual constructor(actual val rootPath: String) {
 
     /**
      * Reads the content of a file.
@@ -16,8 +17,10 @@ actual class ActualFileSystem actual constructor(rootPath: String) {
      * @param path The relative path of the file to read.
      * @return The content of the file as ByteArray.
      */
-    actual fun readFile(path: String): ByteArray {
-        TODO("Not yet implemented")
+    actual fun readFile(path: FPath): ByteArray {
+        val content = localStorage.getItem(getFileKey(path))?.encodeToByteArray() ?: ByteArray(0)
+        // nativeLog("ACTUAL ReadFile: $path ${content.size}")
+        return content
     }
 
     /**
@@ -26,7 +29,9 @@ actual class ActualFileSystem actual constructor(rootPath: String) {
      * @param path The relative path of the file to write.
      * @param content The content to write to the file.
      */
-    actual fun writeFile(path: String, content: ByteArray) {
+    actual fun writeFile(path: FPath, content: ByteArray) {
+        // nativeLog("ACTUAL WriteFile: $path ${content.size}")
+        localStorage.setItem(getFileKey(path), content.decodeToString())
     }
 
     /**
@@ -34,7 +39,9 @@ actual class ActualFileSystem actual constructor(rootPath: String) {
      *
      * @param path The relative path of the file or directory to delete.
      */
-    actual fun deleteFile(path: String) {
+    actual fun deleteFile(path: FPath) {
+        // nativeLog("ACTUAL DeleteFile: $path")
+        localStorage.removeItem(getFileKey(path))
     }
 
     /**
@@ -43,7 +50,13 @@ actual class ActualFileSystem actual constructor(rootPath: String) {
      * @param path The relative path of the file or directory to create.
      * @param isDirectory If the file is a directory.
      */
-    actual fun createFile(path: String, isDirectory: Boolean) {
+    actual fun createFile(path: FPath, isDirectory: Boolean) {
+        // nativeLog("ACTUAL CreateFile: $path isDirectory=$isDirectory")
+        if (isDirectory) {
+            // don't save!
+        } else {
+            localStorage.setItem(getFileKey(path), "")
+        }
     }
 
     /**
@@ -52,8 +65,17 @@ actual class ActualFileSystem actual constructor(rootPath: String) {
      * @param path The relative path of the directory to list.
      * @return A list of names of files and directories in the given directory.
      */
-    actual fun listDirectory(path: String): List<String> {
-        TODO("Not yet implemented")
+    actual fun listDirectory(path: FPath): List<String> {
+        val prefix = getDirPrefix(path)
+
+        val paths = getLocalStorageKeys()
+            .filter { it.startsWith(prefix) }
+            .map { it.removePrefix(prefix).split(FPath.DELIMITER).firstOrNull() ?: "" }
+            .filter { it.isNotEmpty() }
+            .distinct()
+
+        //nativeLog("ACTUAL ListDirectories: path=$path prefix=$prefix ->\n ${paths}")
+        return paths
     }
 
     /**
@@ -62,8 +84,9 @@ actual class ActualFileSystem actual constructor(rootPath: String) {
      * @param path The relative path to check.
      * @return True if the path is a directory, false otherwise.
      */
-    actual fun isDirectory(path: String): Boolean {
-        TODO("Not yet implemented")
+    actual fun isDirectory(path: FPath): Boolean {
+        val prefix = getDirPrefix(path)
+        return getLocalStorageKeys().any { it.startsWith(prefix) && it != getFileKey(path) }
     }
 
     /**
@@ -72,8 +95,18 @@ actual class ActualFileSystem actual constructor(rootPath: String) {
      * @param path The relative path to check.
      * @return True if the file or directory exists, false otherwise.
      */
-    actual fun exists(path: String): Boolean {
-        TODO("Not yet implemented")
+    actual fun exists(path: FPath): Boolean {
+        if (localStorage.getItem(getFileKey(path)) != null) {
+            // Exists as File
+            return true
+        }
+
+        if (getLocalStorageKeys().any { it.startsWith(getDirPrefix(path)) }) {
+            // Exists as Directory
+            return true
+        }
+
+        return false
     }
 
     /**
@@ -82,8 +115,17 @@ actual class ActualFileSystem actual constructor(rootPath: String) {
      * @param path The relative path to convert.
      * @return The absolute path.
      */
-    actual fun getAbsolutePath(path: String): String {
-        TODO("Not yet implemented")
+    actual fun getAbsolutePath(path: FPath): String = path.toAbsolute(rootPath)
+
+    private fun getFileKey(path: FPath): String = "${Keys.FILE_PREFIX}${getAbsolutePath(path)}"
+    private fun getDirPrefix(path: FPath): String = "${Keys.FILE_PREFIX}${getAbsolutePath(path)}${FPath.DELIMITER}"
+    private fun getLocalStorageKeys(): List<String> {
+        val keys = mutableListOf<String>()
+        for (i in 0 until localStorage.length) {
+            localStorage.key(i)?.let { keys.add(it) }
+        }
+        return keys
     }
+
 
 }

@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ui.uilib.UIState
-import ui.uilib.styled.CLabel
+import ui.uilib.label.CLabel
 
 @Composable
 fun DropDownMenu(
@@ -34,7 +34,7 @@ fun DropDownMenu(
             .padding(8.dp)
     ) {
         Column {
-            CLabel(selectedItem)
+            CLabel(text = selectedItem)
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },

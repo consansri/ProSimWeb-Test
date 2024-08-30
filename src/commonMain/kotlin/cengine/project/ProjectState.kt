@@ -1,8 +1,10 @@
 package cengine.project
 
-import cengine.lang.asm.ast.TargetSpec
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ProjectState(
+    val name: String,
     val absRootPath: String,
-    val targetSpec: TargetSpec
+    val target: String
 )

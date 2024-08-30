@@ -3,6 +3,7 @@ package cengine.psi
 import cengine.editor.text.TextModel
 import cengine.lang.LanguageService
 import cengine.psi.core.PsiFile
+import cengine.vfs.FPath
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
@@ -13,7 +14,7 @@ class PsiManager<T : LanguageService>(
     val lang: T
 ) {
     private var job: Job? = null
-    private val psiCache = mutableMapOf<String, PsiFile>()
+    private val psiCache = mutableMapOf<FPath, PsiFile>()
     private val psiUpdateScope = CoroutineScope(Dispatchers.Default)
     private val listener = VFSListener()
 

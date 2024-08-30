@@ -4,10 +4,7 @@ package cengine.vfs
  * Target specific implementation of FileWatcher which deletes/creates Files in the [vfs] or notifies the [vfs] when changes where recognized in the [watchDirectory].
  */
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-actual class FileWatcher actual constructor(vfs: VFileSystem) {
-    actual val vfs: VFileSystem
-        get() = TODO("Not yet implemented")
-
+actual class FileWatcher actual constructor(actual val vfs: VFileSystem) {
     /**
      * Stats watching a directory for changes.
      *

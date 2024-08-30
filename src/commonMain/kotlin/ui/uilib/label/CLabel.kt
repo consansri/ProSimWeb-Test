@@ -23,7 +23,7 @@ fun CLabel(modifier: Modifier = Modifier, icon: ImageVector? = null, text: Strin
     val theme by UIState.Theme
 
     Row(
-        modifier.fillMaxWidth()
+        modifier
             .background(Color.Transparent, shape = RoundedCornerShape(scaling.SIZE_CORNER_RADIUS))
             .padding(scaling.SIZE_INSET_MEDIUM),
         verticalAlignment = Alignment.CenterVertically,
