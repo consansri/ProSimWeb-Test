@@ -12,41 +12,67 @@ object ProjectStateManager {
 
     private val vfs = VFileSystem("Projects")
 
-    var projects: List<ProjectState> = loadProjectState()
+    var appState: AppState = loadState()
         set(value) {
             field = value
-            saveProjectState(value)
+            saveState(value)
         }
 
+    var projects: List<ProjectState>
+        set(value) {
+            appState = appState.copy(projectStates = value)
+        }
+        get() = appState.projectStates
+
+
     // Function to save the project state to a file
-    fun saveProjectState(list: List<ProjectState>): VirtualFile {
+    fun saveState(state: AppState): VirtualFile {
         // nativeLog("SaveProjectState")
         val file = vfs.findFile(FPath.of(vfs, projectsFileName)) ?: vfs.createFile(FPath.of(vfs, projectsFileName))
         // Serialize the ProjectState object to a JSON string
-        val jsonString = Json.encodeToString(list)
+        val jsonString = Json.encodeToString(state)
         // Write the JSON string to the file
         file.setAsUTF8String(jsonString)
         return file
     }
 
     // Function to load the project state from a file
-    fun loadProjectState(): List<ProjectState> {
+    fun loadState(): AppState {
         // nativeLog("LoadProjectState")
         val file = vfs.findFile(FPath.of(vfs, projectsFileName))
 
         if (file == null) {
-            val createdFile = saveProjectState(listOf())
+            val createdFile = saveState(AppState.initial)
 
             // Read the JSON string from the file
             val jsonString = createdFile.getAsUTF8String()
             // Deserialize the JSON string to a ProjectState object
-            return Json.decodeFromString<List<ProjectState>>(jsonString)
+            val appState = Json.decodeFromString<AppState>(jsonString)
+            return appState
         }
 
         // Read the JSON string from the file
         val jsonString = file.getAsUTF8String()
         // Deserialize the JSON string to a ProjectState object
-        return Json.decodeFromString<List<ProjectState>>(jsonString)
+        return Json.decodeFromString<AppState>(jsonString)
     }
+
+    fun createPath(path: String): FPath = FPath.of(vfs, *path.split(FPath.DELIMITER).toTypedArray())
+
+    fun isPathValid(path: FPath): Boolean {
+        if (path.isEmpty()) return false
+        if (path == vfs.root.path) return false
+
+        val fileAtPath = vfs.findFile(path)
+        if (fileAtPath != null && fileAtPath.isFile) return false
+
+        projects.forEach {
+            if (it.absRootPath == toAbsRootPath(path)) return false
+        }
+
+        return true
+    }
+
+    fun toAbsRootPath(path: FPath): String = path.toAbsolute(vfs.absRootPath)
 
 }

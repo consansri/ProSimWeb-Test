@@ -13,7 +13,7 @@ package cengine.vfs
  * @property actualFileSystem The platform-specific file system implementation.
  */
 class VFileSystem(absRootPath: String) {
-    private val absRootPath = absRootPath.replace("\\", FPath.DELIMITER)
+    val absRootPath = absRootPath.replace("\\", FPath.DELIMITER)
     private val actualFileSystem: ActualFileSystem = ActualFileSystem(absRootPath)
     val root: VirtualFile = RootDirectory(absRootPath.split(FPath.DELIMITER).last())
     private val fileCache = mutableMapOf<FPath, VirtualFile>()

@@ -7,6 +7,11 @@ import emulator.kit.memory.Memory
 import org.jetbrains.compose.resources.FontResource
 
 interface Theme {
+
+    companion object{
+        val all = setOf(LightTheme, DarkTheme)
+    }
+
     val name: String
     val icon: ImageVector
     val dark: Boolean

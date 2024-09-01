@@ -21,9 +21,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import ui.uilib.UIState
 import ui.uilib.params.FontType
+import ui.uilib.params.IconType
 
 @Composable
-fun CButton(onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVector? = null, text: String? = null, textAlign: TextAlign = TextAlign.Center, fontType: FontType = FontType.MEDIUM, active: Boolean = true) {
+fun CButton(onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVector? = null, text: String? = null, textAlign: TextAlign = TextAlign.Center, iconType: IconType = IconType.MEDIUM, fontType: FontType = FontType.MEDIUM, active: Boolean = true) {
 
     val scaling by UIState.Scale
     val theme by UIState.Theme
@@ -57,7 +58,7 @@ fun CButton(onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVecto
             Image(
                 icon,
                 colorFilter = ColorFilter.tint(theme.COLOR_FG_0),
-                modifier = Modifier.size(scaling.SIZE_CONTROL_MEDIUM),
+                modifier = Modifier.size(iconType.getSize()),
                 contentDescription = "Add Icon"
             )
         }
