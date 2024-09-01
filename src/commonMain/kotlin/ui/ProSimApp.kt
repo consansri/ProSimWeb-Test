@@ -81,7 +81,7 @@ object ProSimApp {
         BorderLayout(
             modifier = Modifier.background(theme.COLOR_BG_1),
             topBg = theme.COLOR_BG_0,
-            topContent = {
+            top = {
                 Spacer(Modifier.weight(2.0f))
                 CButton(onClick = {
                     if (theme == LightTheme) {
@@ -91,7 +91,7 @@ object ProSimApp {
                     }
                 }, icon = theme.icon)
             },
-            centerContent = {
+            center = {
                 Box(modifier = Modifier.align(Alignment.Center)) {
                     Column(
                         modifier = Modifier
@@ -133,7 +133,7 @@ object ProSimApp {
         BorderLayout(
             modifier = Modifier.background(theme.COLOR_BG_1),
             topBg = theme.COLOR_BG_0,
-            topContent = {
+            top = {
                 Spacer(Modifier.weight(2.0f))
                 CButton(onClick = {
                     if (theme == LightTheme) {
@@ -143,7 +143,7 @@ object ProSimApp {
                     }
                 }, icon = theme.icon)
             },
-            centerContent = {
+            center = {
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)

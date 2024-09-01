@@ -11,11 +11,11 @@ import ui.uilib.UIState
 @Composable
 fun BorderLayout(
     modifier: Modifier = Modifier,
-    topContent: (@Composable RowScope.() -> Unit)? = null,
-    leftContent: (@Composable ColumnScope.() -> Unit)? = null,
-    centerContent: @Composable BoxScope.() -> Unit,
-    rightContent: (@Composable ColumnScope.() -> Unit)? = null,
-    bottomContent: (@Composable RowScope.() -> Unit)? = null,
+    top: (@Composable RowScope.() -> Unit)? = null,
+    left: (@Composable ColumnScope.() -> Unit)? = null,
+    center: @Composable BoxScope.() -> Unit,
+    right: (@Composable ColumnScope.() -> Unit)? = null,
+    bottom: (@Composable RowScope.() -> Unit)? = null,
     topBg: Color = Color.Transparent,
     leftBg: Color = Color.Transparent,
     centerBg: Color = Color.Transparent,
@@ -26,7 +26,7 @@ fun BorderLayout(
     val scale = UIState.Scale.value
 
     Column(modifier = modifier) {
-        topContent?.let {
+        top?.let {
             Row (
                 modifier = Modifier
                     .fillMaxWidth()
@@ -43,7 +43,7 @@ fun BorderLayout(
         }
 
         Row(modifier = Modifier.weight(1f)) {
-            leftContent?.let {
+            left?.let {
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
@@ -65,10 +65,10 @@ fun BorderLayout(
                 .fillMaxHeight()
                 .background(centerBg)
             ) {
-                centerContent()
+                center()
             }
 
-            rightContent?.let {
+            right?.let {
                 Spacer(modifier = Modifier
                     .width(scale.SIZE_BORDER_THICKNESS)
                     .fillMaxHeight()
@@ -85,7 +85,7 @@ fun BorderLayout(
             }
         }
 
-        bottomContent?.let {
+        bottom?.let {
             Spacer(modifier = Modifier
                 .height(scale.SIZE_BORDER_THICKNESS)
                 .fillMaxWidth()

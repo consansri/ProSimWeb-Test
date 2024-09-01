@@ -4127,7 +4127,6 @@ object BenIcons : Icons {
                 group {
                     group {
                         path(
-
                             stroke = SolidColor(Color.Black),
                             strokeAlpha = 1.0f,
                             strokeLineWidth = 6f,
