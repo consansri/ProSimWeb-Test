@@ -124,6 +124,12 @@ kotlin {
     }
 }
 
+compose.resources {
+    publicResClass = true
+    //packageOfResClass = "prosim.resources"
+    generateResClass = always
+}
+
 distributions {
     main {
         distributionBaseName.set("ProSimJVM")

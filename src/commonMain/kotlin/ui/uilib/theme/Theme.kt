@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.Memory
+import org.jetbrains.compose.resources.FontResource
 
 interface Theme {
     val name: String
@@ -41,6 +42,11 @@ interface Theme {
     val COLOR_ICON_BG: Color
     val COLOR_ICON_BG_HOVER: Color
     val COLOR_ICON_BG_ACTIVE: Color
+
+    // FONTS
+
+    val FONT_BASIC: FontResource
+    val FONT_CODE: FontResource
 
     fun getColor(style: CodeStyle?): Color
     fun getColor(style: Memory.InstanceType): Color

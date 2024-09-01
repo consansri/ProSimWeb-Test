@@ -20,10 +20,10 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import ui.uilib.UIState
-import ui.uilib.params.TextSize
+import ui.uilib.params.FontType
 
 @Composable
-fun CButton(onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVector? = null, text: String? = null, textAlign: TextAlign = TextAlign.Center, textSize: TextSize = TextSize.MEDIUM, active: Boolean = true) {
+fun CButton(onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVector? = null, text: String? = null, textAlign: TextAlign = TextAlign.Center, fontType: FontType = FontType.MEDIUM, active: Boolean = true) {
 
     val scaling by UIState.Scale
     val theme by UIState.Theme
@@ -70,7 +70,8 @@ fun CButton(onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVecto
             Text(
                 text,
                 textAlign = textAlign,
-                fontSize = textSize.get(),
+                fontFamily = fontType.getFamily(),
+                fontSize = fontType.getSize(),
                 color = if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0,
             )
         }

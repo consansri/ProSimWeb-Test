@@ -5,6 +5,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.memory.Memory
+import org.jetbrains.compose.resources.FontResource
+import prosim.prosimweb_test.generated.resources.JetBrainsMono_Regular
+import prosim.prosimweb_test.generated.resources.Poppins_Regular
+import prosim.prosimweb_test.generated.resources.Res
 import ui.uilib.UIState
 
 @Immutable
@@ -33,6 +37,8 @@ data object LightTheme: Theme {
     override val COLOR_ICON_BG: Color = Color(0x00EFEFEF)
     override val COLOR_ICON_BG_HOVER: Color = Color(0x20777777)
     override val COLOR_ICON_BG_ACTIVE: Color = Color(0x50777777)
+    override val FONT_BASIC: FontResource = Res.font.Poppins_Regular
+    override val FONT_CODE: FontResource = Res.font.JetBrainsMono_Regular
 
     override fun getColor(style: CodeStyle?): Color {
         if (style == null) return Color(0xFF333333)

@@ -11,10 +11,6 @@ class Scaling(val scale: Float = 1f) {
 
     val name: String = "${(scale * 100).toInt()}%"
 
-    // SOURCE PATHS
-    val PATH_FONT_TEXT: String = "fonts/Roboto/Roboto-Regular.ttf"
-    val PATH_FONT_CODE: String = "fonts/JetBrainsMono/JetBrainsMono-Regular.ttf"
-
     // FONT SCALING
     val FONTSCALE_SMALL: TextUnit  = 0.7.em
         get() = (field * scale)
@@ -48,9 +44,6 @@ class Scaling(val scale: Float = 1f) {
 
     val SIZE_BORDER_THICKNESS_MARKED: Dp
         get() = SIZE_BORDER_THICKNESS * 4
-
-    // FONTS
-
 
     // BORDERS
 
