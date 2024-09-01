@@ -31,7 +31,7 @@ fun BorderLayout(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(topBg)
-                    .padding(UIState.Scale.value.SIZE_INSET_MEDIUM)
+
             ) {
                 it()
             }
