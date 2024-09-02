@@ -5,7 +5,7 @@ package cengine.vfs
  *
  * A flexible, platform-independent file system abstraction layer.
  * It provides a unified interface for file operations across different platforms,
- * allowing to work with files and directories in a consistent manner regardless of the
+ * allowing to work with files and directories consistently regardless of the
  * underlying storage mechanism.
  *
  * The main class that manages the virtual file system.
@@ -48,6 +48,22 @@ class VFileSystem(absRootPath: String) {
      */
 
     fun toRelative(absolutePath: String): FPath = FPath.of(this, *absolutePath.removePrefix(absRootPath).split(FPath.DELIMITER).filter { it.isNotEmpty() }.toTypedArray())
+
+    /**
+     * Rename a file using [createFile] and [deleteFile] methods.
+     */
+    fun renameFile(path: FPath, newName: String): Boolean {
+        val file = findFile(path) ?: return false
+        val content = file.getContent()
+        val isDirectory = file.isDirectory
+
+        val renamedFile = createFile(file.path.withoutLast() + newName, isDirectory)
+        if (content.isNotEmpty()) renamedFile.setContent(content)
+
+        deleteFile(file.path)
+
+        return true
+    }
 
     /**
      * Finds a file or directory in the virtual file system.

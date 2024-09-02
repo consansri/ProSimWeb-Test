@@ -19,5 +19,4 @@ object UIState {
     fun StateUpdater() {
         ProjectStateManager.appState = ProjectStateManager.appState.copy(scale = Scale.value.scale, theme = Theme.value.name)
     }
-
 }

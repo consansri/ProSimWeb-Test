@@ -20,4 +20,5 @@ fun ScrollableRow(leftContent: @Composable () -> Unit) {
     ) {
         leftContent() // This will display the passed content inside the scrollable Column
     }
+
 }

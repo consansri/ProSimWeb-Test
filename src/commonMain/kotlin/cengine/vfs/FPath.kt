@@ -10,15 +10,17 @@ class FPath(vararg val names: String) : Collection<String> {
 
         fun of(vfs: VFileSystem, vararg names: String): FPath = FPath(vfs.root.name, *names)
 
-    }
+        fun delimited(delimitedPath: String) = FPath(*delimitedPath.split(DELIMITER).toTypedArray())
 
-    constructor(path: String) : this(*path.replace("//", DELIMITER).split(DELIMITER).toTypedArray())
+    }
 
     operator fun get(index: Int) = names[index]
 
     fun toString(delimiter: String): String = names.joinToString(delimiter) { it }
 
     operator fun plus(name: String): FPath = FPath(*names, name)
+
+    operator fun plus(path: FPath): FPath = FPath(*names, *path.names)
 
     fun toAbsolute(absRootPath: String): String = absRootPath + withoutFirst().joinToString("") { DELIMITER + it }
 

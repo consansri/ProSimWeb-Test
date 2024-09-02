@@ -198,6 +198,7 @@ object ProSimApp {
                             CButton(
                                 onClick = {
                                     if (!invalidProjectPath) {
+                                        ProjectStateManager.assureDirectoryExists(path)
                                         val state = ProjectState(ProjectStateManager.toAbsRootPath(path), target.name)
                                         ProjectStateManager.projects += state
                                         onProjectCreated(state)

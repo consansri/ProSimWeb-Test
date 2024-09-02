@@ -14,9 +14,9 @@ class Scaling(val scale: Float = 1f) {
     // FONT SCALING
     val FONTSCALE_SMALL: TextUnit  = 0.7.em
         get() = (field * scale)
-    val FONTSCALE_MEDIUM: TextUnit = 1.0.em
+    val FONTSCALE_MEDIUM: TextUnit = 0.9.em
         get() = (field * scale)
-    val FONTSCALE_LARGE: TextUnit = 1.3.em
+    val FONTSCALE_LARGE: TextUnit = 1.1.em
         get() = (field * scale)
 
     // SIZES
@@ -24,7 +24,7 @@ class Scaling(val scale: Float = 1f) {
     val SIZE_CONTROL_SMALL: Dp = 18.dp
         get() = field * scale
 
-    val SIZE_CONTROL_MEDIUM: Dp = 28.dp
+    val SIZE_CONTROL_MEDIUM: Dp = 24.dp
         get() = field * scale
 
     val SIZE_INSET_SMALL: Dp = 2.dp

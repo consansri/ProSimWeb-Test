@@ -10,7 +10,7 @@ object ProjectStateManager {
 
     private const val projectsFileName = "projects.json"
 
-    private val vfs = VFileSystem("Projects")
+    private val vfs = VFileSystem("docs")
 
     var appState: AppState = loadState()
         set(value) {
@@ -74,5 +74,11 @@ object ProjectStateManager {
     }
 
     fun toAbsRootPath(path: FPath): String = path.toAbsolute(vfs.absRootPath)
+
+    fun assureDirectoryExists(path: FPath) {
+        if (vfs.findFile(path) == null) {
+            vfs.createFile(path, isDirectory = true)
+        }
+    }
 
 }

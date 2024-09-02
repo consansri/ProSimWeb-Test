@@ -1,5 +1,3 @@
 package cengine.system
 
-actual fun getSystemLineBreak(): String {
-    TODO("Not yet implemented")
-}
+actual fun getSystemLineBreak(): String = System.lineSeparator()

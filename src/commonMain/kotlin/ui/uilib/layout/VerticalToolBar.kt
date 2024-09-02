@@ -19,11 +19,12 @@ fun VerticalToolBar(
         Modifier
             .fillMaxHeight()
             .padding(scale.SIZE_INSET_MEDIUM),
+
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
 
-        Column {
+        Column{
             upper(this)
         }
 

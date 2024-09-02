@@ -6,13 +6,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,28 +21,20 @@ import ui.uilib.params.FontType
 import ui.uilib.params.IconType
 
 @Composable
-fun CButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
-    text: String? = null,
-    textAlign: TextAlign = TextAlign.Center,
-    iconType: IconType = IconType.MEDIUM,
-    fontType: FontType = FontType.MEDIUM,
-    withHoverBg: Boolean = true,
-    withPressedBg: Boolean = true,
-    active: Boolean = true
-) {
+fun CToggle(onClick: (toggled: Boolean) -> Unit, initialToggle: Boolean, modifier: Modifier = Modifier, icon: ImageVector? = null, text: String? = null, textAlign: TextAlign = TextAlign.Center, iconType: IconType = IconType.MEDIUM, fontType: FontType = FontType.MEDIUM, active: Boolean = true) {
 
     val scaling by UIState.Scale
     val theme by UIState.Theme
+
+    var toggleState by remember { mutableStateOf(initialToggle) }
+
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
+
     val isHovered by interactionSource.collectIsHoveredAsState()
 
-    val backgroundColor = if (isPressed && withPressedBg) {
+    val backgroundColor = if (toggleState) {
         theme.COLOR_ICON_BG_ACTIVE
-    } else if (isHovered && withHoverBg) {
+    } else if (isHovered) {
         theme.COLOR_ICON_BG_HOVER
     } else {
         Color.Transparent
@@ -55,7 +44,10 @@ fun CButton(
         modifier
             .background(backgroundColor, shape = RoundedCornerShape(scaling.SIZE_CORNER_RADIUS))
             .clickable(interactionSource, indication = null, onClick = if (active) {
-                onClick
+                {
+                    toggleState = !toggleState
+                    onClick(toggleState)
+                }
             } else {
                 {}
             })
