@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "prosim"
-version = "0.2.6"
+version = "0.3.0"
 
 val dokkaVersion = "1.9.20"
 val kotlinVersion = "2.0.20"

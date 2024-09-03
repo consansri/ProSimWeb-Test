@@ -17,6 +17,7 @@ import cengine.psi.PsiManager
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiFile
 import cengine.util.text.LineColumn
+import cengine.vfs.FPath
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter
@@ -100,7 +101,7 @@ class PerformantCodeEditor(
 
     override val icon: FlatSVGIcon? = psiManager?.lang?.getFileIcon()
     override val title: String get() = file.name
-    override val tooltip: String get() = file.path
+    override val tooltip: String get() = file.path.toString(FPath.DELIMITER)
 
     private val analytics: Analytics = Analytics(this)
 

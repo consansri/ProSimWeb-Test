@@ -1,6 +1,7 @@
 package prosim.ide.editor.objectfile
 
 import cengine.lang.asm.elf.ELFReader
+import cengine.vfs.FPath
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import prosim.ide.editor.EditorComponent
@@ -24,7 +25,7 @@ class ObjFileEditor(val file: VirtualFile) : EditorComponent() {
     override val component: Component = createScrollPane()
     override val title: String = file.name
     override val icon: FlatSVGIcon? = null
-    override val tooltip: String = file.path
+    override val tooltip: String = file.path.toString(FPath.DELIMITER)
     var chunkSize = 8
     val mode: Mode? = Mode.identify(file)
 

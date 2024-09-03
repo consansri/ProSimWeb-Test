@@ -3,6 +3,7 @@ package prosim.ide.filetree
 import cengine.lang.LanguageService
 import cengine.lang.RunConfiguration
 import cengine.project.Project
+import cengine.vfs.FPath
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
@@ -107,7 +108,7 @@ class FileTree(private val project: Project) : FileTreeUI {
         treeModel.reload()
     }
 
-    override fun expandNode(path: String) {
+    override fun expandNode(path: FPath) {
         val node = findNodeByPath(path)
         if (node != null) {
             val treePath = TreePath(node.path)
@@ -115,7 +116,7 @@ class FileTree(private val project: Project) : FileTreeUI {
         }
     }
 
-    override fun collapseNode(path: String) {
+    override fun collapseNode(path: FPath) {
         val node = findNodeByPath(path)
         if (node != null) {
             val treePath = TreePath(node.path)
@@ -123,7 +124,7 @@ class FileTree(private val project: Project) : FileTreeUI {
         }
     }
 
-    override fun selectNode(path: String) {
+    override fun selectNode(path: FPath) {
         val node = findNodeByPath(path)
         if (node != null) {
             val treePath = TreePath(node.path)
@@ -131,17 +132,17 @@ class FileTree(private val project: Project) : FileTreeUI {
         }
     }
 
-    override fun createNode(parentPath: String, name: String, isDirectory: Boolean) {
+    override fun createNode(parentPath: FPath, name: String, isDirectory: Boolean) {
         val parentNode = findNodeByPath(parentPath)
         if (parentNode != null) {
-            val newFile = vfs.createFile("$parentPath${VFileSystem.DELIMITER}$name", isDirectory)
+            val newFile = vfs.createFile(  parentPath + name, isDirectory)
             val newNode = DefaultMutableTreeNode(newFile)
             treeModel.insertNodeInto(newNode, parentNode, parentNode.childCount)
             listener?.onCreateRequest(parentNode.userObject as VirtualFile, name, isDirectory)
         }
     }
 
-    override fun deleteNode(path: String) {
+    override fun deleteNode(path: FPath) {
         val node = findNodeByPath(path)
         if (node != null) {
             treeModel.removeNodeFromParent(node)
@@ -150,11 +151,11 @@ class FileTree(private val project: Project) : FileTreeUI {
         }
     }
 
-    override fun renameNode(path: String, newName: String) {
+    override fun renameNode(path: FPath, newName: String) {
         val node = findNodeByPath(path)
         if (node != null) {
             val file = node.userObject as VirtualFile
-            val newPath = "${file.parent?.path ?: ""}${VFileSystem.DELIMITER}$newName"
+            val newPath = (file.parent?.path ?: FPath("")) + newName
             val newFile = vfs.createFile(newPath, file.isDirectory)
             if (!file.isDirectory) {
                 newFile.setContent(file.getContent())
@@ -166,7 +167,7 @@ class FileTree(private val project: Project) : FileTreeUI {
         }
     }
 
-    override fun openFile(path: String) {
+    override fun openFile(path: FPath) {
         val node = findNodeByPath(path)
         if (node != null) {
             listener?.onOpenRequest(node.userObject as VirtualFile)
@@ -193,7 +194,7 @@ class FileTree(private val project: Project) : FileTreeUI {
         }
     }
 
-    private fun findNodeByPath(path: String): DefaultMutableTreeNode? {
+    private fun findNodeByPath(path: FPath): DefaultMutableTreeNode? {
         fun search(node: DefaultMutableTreeNode): DefaultMutableTreeNode? {
             val uobj = node.userObject
             if (uobj is VirtualFile && uobj.path == path) return node
@@ -315,6 +316,10 @@ class FileTree(private val project: Project) : FileTreeUI {
                             }
                         }
                     }
+
+                    is RunConfiguration.ProjectRun ->{
+
+                    }
                 }
             }
         }
@@ -404,7 +409,7 @@ class FileTree(private val project: Project) : FileTreeUI {
 
     private class DummyFile : VirtualFile {
         override val name: String = PLACEHOLDER_LOADING
-        override val path: String = ""
+        override val path: FPath = FPath(PLACEHOLDER_LOADING)
         override val isDirectory: Boolean = false
         override val parent: VirtualFile? = null
         override var onDiskChange: () -> Unit = { }
