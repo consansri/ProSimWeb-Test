@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import ui.uilib.UIState
 import ui.uilib.params.FontType
 import ui.uilib.params.IconType
@@ -26,7 +27,8 @@ fun CLabel(modifier: Modifier = Modifier, icon: ImageVector? = null, text: Strin
     Row(
         modifier
             .background(Color.Transparent, shape = RoundedCornerShape(scaling.SIZE_CORNER_RADIUS))
-            .padding(scaling.SIZE_INSET_MEDIUM),
+            .padding(scaling.SIZE_INSET_MEDIUM)
+            .wrapContentWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
@@ -47,6 +49,7 @@ fun CLabel(modifier: Modifier = Modifier, icon: ImageVector? = null, text: Strin
         if (text != null) {
             Text(
                 text,
+                overflow = TextOverflow.Clip,
                 textAlign = textAlign,
                 fontFamily = fontType.getFamily(),
                 fontSize = fontType.getSize(),

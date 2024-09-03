@@ -14,9 +14,9 @@ import ui.uilib.text.CTextField
 
 
 @Composable
-fun InputDialog(title: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit, valid: (String) -> Boolean) {
+fun InputDialog(title: String, init: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit, valid: (String) -> Boolean) {
 
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf(init) }
 
     Dialog(onDismissRequest = {
         onDismiss()

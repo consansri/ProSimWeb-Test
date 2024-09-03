@@ -1,12 +1,15 @@
 package ui.uilib.filetree
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -14,7 +17,6 @@ import cengine.vfs.FPath
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.dialog.InputDialog
 import ui.uilib.interactable.CButton
@@ -24,7 +26,6 @@ import ui.uilib.params.IconType
 
 @Composable
 fun FileTree(vfs: VFileSystem) {
-
     val expandedItems = remember { mutableStateListOf<VirtualFile>() }
     var root by remember { mutableStateOf(vfs.root) }
 
@@ -33,7 +34,13 @@ fun FileTree(vfs: VFileSystem) {
     var contextMenuPosition by remember { mutableStateOf(Offset.Zero) }
     var showInputDialog by remember { mutableStateOf(false) }
     var dialogTitle by remember { mutableStateOf("") }
-    var onConfirm = remember { mutableStateOf<(String) -> Unit>({}) }
+    var dialogInitText by remember { mutableStateOf("") }
+    val onConfirm = remember { mutableStateOf<(String) -> Unit>({}) }
+
+
+    fun forceReload() {
+        root = vfs.root
+    }
 
     if (showMenu && selectedFile != null) {
         FileContextMenu(
@@ -42,25 +49,27 @@ fun FileTree(vfs: VFileSystem) {
             onDismiss = { showMenu = false },
             onRename = { file ->
                 dialogTitle = "Rename File"
+                dialogInitText = file.name
                 onConfirm.value = { newName ->
                     vfs.renameFile(file.path, newName)
-                    root = vfs.root // Force recomposition
+                    forceReload()
                     showInputDialog = false
                 }
                 showInputDialog = true
             },
             onCreate = { file, isDirectory ->
                 dialogTitle = if (isDirectory) "Create Directory" else "Create File"
+                dialogInitText = "new"
                 onConfirm.value = { newName ->
                     vfs.createFile(file.path + FPath.delimited(newName), isDirectory)
-                    root = vfs.root // Force recomposition
+                    forceReload()
                     showInputDialog = false
                 }
                 showInputDialog = true
             },
             onDelete = { file ->
                 vfs.deleteFile(file.path)
-                root = vfs.root // Force recomposition
+                forceReload()
                 showMenu = false
             }
         )
@@ -70,6 +79,7 @@ fun FileTree(vfs: VFileSystem) {
     if (showInputDialog) {
         InputDialog(
             dialogTitle,
+            dialogInitText,
             onConfirm.value,
             onDismiss = {
                 showInputDialog = false
@@ -81,11 +91,18 @@ fun FileTree(vfs: VFileSystem) {
         )
     }
 
-    LazyColumn {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Transparent)
+    ) {
         node(
             root,
             isExpanded = {
                 expandedItems.contains(it)
+            },
+            isSelected = {
+                selectedFile == it
             },
             toggleExpanded = {
                 if (expandedItems.contains(it)) {
@@ -94,8 +111,8 @@ fun FileTree(vfs: VFileSystem) {
                     expandedItems.add(it)
                 }
             },
-            onClick = {
-                nativeLog("Left Click ${it.name}")
+            onClick = { file ->
+                selectedFile = file
             },
             onRightClick = { file, offset ->
                 selectedFile = file
@@ -106,6 +123,7 @@ fun FileTree(vfs: VFileSystem) {
             expandWidth = IconType.SMALL.getSize() + UIState.Scale.value.SIZE_INSET_MEDIUM * 2
         )
     }
+
 
     LaunchedEffect(Unit) {
         vfs.addChangeListener(object : FileChangeListener {
@@ -127,6 +145,7 @@ fun FileTree(vfs: VFileSystem) {
 fun LazyListScope.nodes(
     nodes: List<VirtualFile>,
     isExpanded: (VirtualFile) -> Boolean,
+    isSelected: (VirtualFile) -> Boolean,
     toggleExpanded: (VirtualFile) -> Unit,
     onClick: (VirtualFile) -> Unit,
     onRightClick: (VirtualFile, Offset) -> Unit,
@@ -137,6 +156,7 @@ fun LazyListScope.nodes(
         node(
             it,
             isExpanded = isExpanded,
+            isSelected = isSelected,
             toggleExpanded = toggleExpanded,
             onClick = onClick,
             onRightClick = onRightClick,
@@ -152,6 +172,7 @@ fun LazyListScope.nodes(
 fun LazyListScope.node(
     file: VirtualFile,
     isExpanded: (VirtualFile) -> Boolean,
+    isSelected: (VirtualFile) -> Boolean,
     toggleExpanded: (VirtualFile) -> Unit,
     onClick: (VirtualFile) -> Unit,
     onRightClick: (VirtualFile, Offset) -> Unit,
@@ -164,6 +185,7 @@ fun LazyListScope.node(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(if (isSelected(file)) UIState.Theme.value.COLOR_SELECTION else Color.Transparent, RoundedCornerShape(UIState.Scale.value.SIZE_CORNER_RADIUS))
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {
@@ -213,6 +235,7 @@ fun LazyListScope.node(
         nodes(
             file.getChildren(),
             isExpanded,
+            isSelected,
             toggleExpanded,
             onClick,
             onRightClick,

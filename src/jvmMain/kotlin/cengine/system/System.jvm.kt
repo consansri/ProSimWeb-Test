@@ -9,3 +9,7 @@ actual fun getSystemLineBreak(): String {
         else -> "\n"
     }
 }
+
+actual fun isAbsolutePathValid(path: String): Boolean {
+    TODO("Not yet implemented")
+}

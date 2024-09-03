@@ -57,28 +57,4 @@ object ProjectStateManager {
         return Json.decodeFromString<AppState>(jsonString)
     }
 
-    fun createPath(path: String): FPath = FPath.of(vfs, *path.split(FPath.DELIMITER).toTypedArray())
-
-    fun isPathValid(path: FPath): Boolean {
-        if (path.isEmpty()) return false
-        if (path == vfs.root.path) return false
-
-        val fileAtPath = vfs.findFile(path)
-        if (fileAtPath != null && fileAtPath.isFile) return false
-
-        projects.forEach {
-            if (it.absRootPath == toAbsRootPath(path)) return false
-        }
-
-        return true
-    }
-
-    fun toAbsRootPath(path: FPath): String = path.toAbsolute(vfs.absRootPath)
-
-    fun assureDirectoryExists(path: FPath) {
-        if (vfs.findFile(path) == null) {
-            vfs.createFile(path, isDirectory = true)
-        }
-    }
-
 }

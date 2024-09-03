@@ -13,6 +13,7 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.project.ProjectState
 import cengine.project.ProjectStateManager
+import cengine.system.isAbsolutePathValid
 import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
@@ -122,10 +123,9 @@ object ProSimApp {
         var pathField by remember { mutableStateOf("New") }
         var target by remember { mutableStateOf<TargetSpec>(RV32Spec) }
 
-        val path = ProjectStateManager.createPath(pathField)
-        var invalidProjectPath = !ProjectStateManager.isPathValid(path)
+        var invalidProjectPath by remember { mutableStateOf(false) }
 
-        nativeLog("$pathField -> $path -> invalid=$invalidProjectPath")
+        nativeLog("$pathField -> invalid=$invalidProjectPath")
 
         val theme = UIState.Theme.value
         val scale = UIState.Scale.value
@@ -173,7 +173,7 @@ object ProSimApp {
                                 modifier = Modifier.weight(1.0f),
                                 onValueChange = {
                                     pathField = it
-                                    invalidProjectPath = !ProjectStateManager.isPathValid(path)
+                                    invalidProjectPath = !isAbsolutePathValid(it)
                                 },
                                 singleLine = true,
                                 error = invalidProjectPath
@@ -198,8 +198,7 @@ object ProSimApp {
                             CButton(
                                 onClick = {
                                     if (!invalidProjectPath) {
-                                        ProjectStateManager.assureDirectoryExists(path)
-                                        val state = ProjectState(ProjectStateManager.toAbsRootPath(path), target.name)
+                                        val state = ProjectState(pathField, target.name)
                                         ProjectStateManager.projects += state
                                         onProjectCreated(state)
                                     }

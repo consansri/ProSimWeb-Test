@@ -1,9 +1,13 @@
 package ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import cengine.lang.RunConfiguration
@@ -11,14 +15,12 @@ import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.project.ProjectState
 import ui.uilib.UIState
-import ui.uilib.interactable.CToggle
 import ui.uilib.filetree.FileTree
+import ui.uilib.interactable.CToggle
 import ui.uilib.layout.BorderLayout
 import ui.uilib.layout.HorizontalToolBar
 import ui.uilib.layout.ResizableBorderPanels
 import ui.uilib.layout.VerticalToolBar
-
-
 
 
 @Composable
@@ -31,7 +33,16 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
     val project = Project(state, CownLang())
 
     val fileTree: (@Composable BoxScope.() -> Unit) = {
-        Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_1)) {
+        val leftVScrollState = rememberScrollState()
+        val leftHScrollState = rememberScrollState()
+
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(UIState.Theme.value.COLOR_BG_1)
+            .padding(UIState.Scale.value.SIZE_INSET_MEDIUM)
+            .scrollable(leftHScrollState, Orientation.Horizontal)
+            .scrollable(leftVScrollState, Orientation.Vertical)
+        ) {
             // Left content
             FileTree(project.fileSystem)
         }
