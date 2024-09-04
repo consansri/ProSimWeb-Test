@@ -44,7 +44,6 @@ import javax.swing.SwingUtilities
 class PerformantCodeEditor(
     override val file: VirtualFile,
     project: Project
-
 ) : EditorComponent(), CodeEditor, CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob()), CToolView.View {
     companion object {
         const val CARET_SCROLL_LINE_PADDING = 2

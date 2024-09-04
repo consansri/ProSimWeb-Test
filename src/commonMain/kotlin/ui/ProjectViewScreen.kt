@@ -14,13 +14,12 @@ import cengine.lang.RunConfiguration
 import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.project.ProjectState
+import cengine.vfs.VirtualFile
 import ui.uilib.UIState
+import ui.uilib.editor.TextEditor
 import ui.uilib.filetree.FileTree
 import ui.uilib.interactable.CToggle
-import ui.uilib.layout.BorderLayout
-import ui.uilib.layout.HorizontalToolBar
-import ui.uilib.layout.ResizableBorderPanels
-import ui.uilib.layout.VerticalToolBar
+import ui.uilib.layout.*
 
 
 @Composable
@@ -28,6 +27,7 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
     val theme = UIState.Theme.value
     val icons = UIState.Icon.value
 
+    val fileEditors = remember { mutableStateListOf<TabItem<VirtualFile>>() }
     var leftContentType by remember { mutableStateOf<ToolContentType?>(null) }
 
     val project = Project(state, CownLang())
@@ -36,15 +36,26 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
         val leftVScrollState = rememberScrollState()
         val leftHScrollState = rememberScrollState()
 
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(UIState.Theme.value.COLOR_BG_1)
-            .padding(UIState.Scale.value.SIZE_INSET_MEDIUM)
-            .scrollable(leftHScrollState, Orientation.Horizontal)
-            .scrollable(leftVScrollState, Orientation.Vertical)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(UIState.Theme.value.COLOR_BG_1)
+                .padding(UIState.Scale.value.SIZE_INSET_MEDIUM)
+                .scrollable(leftHScrollState, Orientation.Horizontal)
+                .scrollable(leftVScrollState, Orientation.Vertical)
         ) {
             // Left content
-            FileTree(project.fileSystem)
+            FileTree(project.fileSystem) { file ->
+                if (file.isFile && !fileEditors.any { it.value == file }) {
+                    fileEditors.add(TabItem(file, icons.file, file.name) {
+                        // Display File Content
+                        TextEditor(
+                            file, modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    })
+                }
+            }
         }
     }
 
@@ -56,13 +67,16 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
         center = {
             ResizableBorderPanels(
                 Modifier.fillMaxSize(),
-                leftContent =  when(leftContentType){
+                leftContent = when (leftContentType) {
                     ToolContentType.FileTree -> fileTree
                     null -> null
                 },
                 centerContent = {
                     Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_0)) {
                         // Center content
+                        TabbedPane(fileEditors) {
+                            fileEditors.remove(it)
+                        }
                     }
                 },
                 rightContent = {
@@ -130,8 +144,6 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
         bottomBg = theme.COLOR_BG_1
     )
 }
-
-
 
 
 enum class ToolContentType {

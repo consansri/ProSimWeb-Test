@@ -45,7 +45,8 @@ fun AppBar(
     ) {
 
         // Title on the left
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
             .onGloballyPositioned {
                 val bounds = it.boundsInParent()
                 titleBounds = bounds
@@ -54,12 +55,16 @@ fun AppBar(
             CLabel(
                 icon = icon,
                 text = title,
-                modifier = Modifier.align(Alignment.CenterVertically),
+                modifier = Modifier
+                    .wrapContentSize()
+                    .align(Alignment.CenterVertically),
                 fontType = FontType.MEDIUM,
                 iconType = IconType.MEDIUM
             )
             if (name != null) {
                 CLabel(
+                    modifier = Modifier
+                        .wrapContentSize(),
                     icon = UIState.Icon.value.chevronRight,
                     text = name,
                     fontType = FontType.MEDIUM

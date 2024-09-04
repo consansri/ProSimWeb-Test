@@ -9,14 +9,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cengine.vfs.FPath
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
+import emulator.kit.nativeLog
+import kotlinx.datetime.Clock
 import ui.uilib.UIState
 import ui.uilib.dialog.InputDialog
 import ui.uilib.interactable.CButton
@@ -25,7 +30,10 @@ import ui.uilib.params.FontType
 import ui.uilib.params.IconType
 
 @Composable
-fun FileTree(vfs: VFileSystem) {
+fun FileTree(
+    vfs: VFileSystem,
+    onDoubleClick: (VirtualFile) -> Unit
+) {
     val expandedItems = remember { mutableStateListOf<VirtualFile>() }
     var root by remember { mutableStateOf(vfs.root) }
 
@@ -37,9 +45,14 @@ fun FileTree(vfs: VFileSystem) {
     var dialogInitText by remember { mutableStateOf("") }
     val onConfirm = remember { mutableStateOf<(String) -> Unit>({}) }
 
+    // Variables to keep track of clicks and timing
+    var lastClickTime = remember { 0L }
+    val doubleClickThreshold = 300L // milliseconds threshold for detecting double click
 
     fun forceReload() {
-        root = vfs.root
+        //root = vfs.root
+        expandedItems.remove(vfs.root)
+        expandedItems.add(vfs.root)
     }
 
     if (showMenu && selectedFile != null) {
@@ -98,12 +111,8 @@ fun FileTree(vfs: VFileSystem) {
     ) {
         node(
             root,
-            isExpanded = {
-                expandedItems.contains(it)
-            },
-            isSelected = {
-                selectedFile == it
-            },
+            expandedItems,
+            selectedFile,
             toggleExpanded = {
                 if (expandedItems.contains(it)) {
                     expandedItems.remove(it)
@@ -111,8 +120,17 @@ fun FileTree(vfs: VFileSystem) {
                     expandedItems.add(it)
                 }
             },
-            onClick = { file ->
+            onLeftClick = { file ->
                 selectedFile = file
+                nativeLog("Selecting: $file")
+                val currentTime = Clock.System.now().toEpochMilliseconds()
+
+                if (currentTime - lastClickTime < doubleClickThreshold) {
+                    onDoubleClick(file)
+                    lastClickTime = 0L
+                } else {
+                    lastClickTime = currentTime
+                }
             },
             onRightClick = { file, offset ->
                 selectedFile = file
@@ -144,10 +162,10 @@ fun FileTree(vfs: VFileSystem) {
 
 fun LazyListScope.nodes(
     nodes: List<VirtualFile>,
-    isExpanded: (VirtualFile) -> Boolean,
-    isSelected: (VirtualFile) -> Boolean,
+    expandedItems: List<VirtualFile>,
+    selectedItem: VirtualFile?,
     toggleExpanded: (VirtualFile) -> Unit,
-    onClick: (VirtualFile) -> Unit,
+    onLeftClick: (VirtualFile) -> Unit,
     onRightClick: (VirtualFile, Offset) -> Unit,
     depth: Dp,
     expandWidth: Dp
@@ -155,10 +173,10 @@ fun LazyListScope.nodes(
     nodes.forEach {
         node(
             it,
-            isExpanded = isExpanded,
-            isSelected = isSelected,
+            expandedItems = expandedItems,
+            selectedItem = selectedItem,
             toggleExpanded = toggleExpanded,
-            onClick = onClick,
+            onLeftClick = onLeftClick,
             onRightClick = onRightClick,
             depth = depth,
             expandWidth = expandWidth
@@ -166,26 +184,31 @@ fun LazyListScope.nodes(
     }
 }
 
-/**
- * @return the size of the expand button
- */
+
 fun LazyListScope.node(
     file: VirtualFile,
-    isExpanded: (VirtualFile) -> Boolean,
-    isSelected: (VirtualFile) -> Boolean,
+    expandedItems: List<VirtualFile>,
+    selectedItem: VirtualFile?,
     toggleExpanded: (VirtualFile) -> Unit,
-    onClick: (VirtualFile) -> Unit,
+    onLeftClick: (VirtualFile) -> Unit,
     onRightClick: (VirtualFile, Offset) -> Unit,
     depth: Dp,
     expandWidth: Dp
 ) {
     val icon = UIState.Icon.value
 
+
+
     item {
+        var itemPosition by remember { mutableStateOf(Rect.Zero) }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(if (isSelected(file)) UIState.Theme.value.COLOR_SELECTION else Color.Transparent, RoundedCornerShape(UIState.Scale.value.SIZE_CORNER_RADIUS))
+                .background(if (selectedItem == file) UIState.Theme.value.COLOR_SELECTION else Color.Transparent, RoundedCornerShape(UIState.Scale.value.SIZE_CORNER_RADIUS))
+                .onGloballyPositioned {
+                    itemPosition = it.boundsInParent()
+                }
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {
@@ -193,16 +216,20 @@ fun LazyListScope.node(
 
                             when {
                                 event.type == PointerEventType.Press && event.buttons.isSecondaryPressed -> {
-                                    val offset = event.changes.firstOrNull()?.position ?: Offset.Zero
+                                    val localOffset = event.changes.firstOrNull()?.position ?: Offset.Zero
+                                    val globalOffset = itemPosition.topLeft + localOffset
                                     event.changes.forEach { it.consume() }
-                                    onRightClick(file, offset)
+                                    onRightClick(file, globalOffset)
                                 }
 
                                 event.type == PointerEventType.Press && event.buttons.isPrimaryPressed -> {
+                                    val offset = event.changes.firstOrNull()?.position ?: Offset.Zero
+
                                     event.changes.forEach { it.consume() }
-                                    onClick(file)
+                                    onLeftClick(file)
                                 }
                             }
+
                         }
                     }
                 },
@@ -214,7 +241,7 @@ fun LazyListScope.node(
             if (file.isDirectory) {
                 CButton(onClick = {
                     toggleExpanded(file)
-                }, icon = if (isExpanded(file)) icon.chevronDown else icon.chevronRight, iconType = IconType.SMALL, withPressedBg = false, withHoverBg = false)
+                }, icon = if ( expandedItems.contains(file)) icon.chevronDown else icon.chevronRight, iconType = IconType.SMALL, withPressedBg = false, withHoverBg = false)
             } else {
                 Spacer(Modifier.width(expandWidth))
             }
@@ -231,13 +258,13 @@ fun LazyListScope.node(
             )
         }
     }
-    if (isExpanded(file)) {
+    if (expandedItems.contains(file)) {
         nodes(
             file.getChildren(),
-            isExpanded,
-            isSelected,
+            expandedItems,
+            selectedItem,
             toggleExpanded,
-            onClick,
+            onLeftClick,
             onRightClick,
             depth + expandWidth,
             expandWidth = expandWidth

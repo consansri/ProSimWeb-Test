@@ -30,8 +30,6 @@ interface CodeEditor : Editable {
         file.setAsUTF8String(textModel.toString())
         psiManager?.queueUpdate(file, textModel, ::slowFinish)
     }
-
-
     fun loadFromFile() {
         textModel.replaceAll(file.getAsUTF8String().replace("\t", "    "))
         psiManager?.queueUpdate(file, null, ::slowFinish)
