@@ -20,7 +20,6 @@ import cengine.vfs.FPath
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 import kotlinx.datetime.Clock
 import ui.uilib.UIState
 import ui.uilib.dialog.InputDialog
@@ -122,7 +121,6 @@ fun FileTree(
             },
             onLeftClick = { file ->
                 selectedFile = file
-                nativeLog("Selecting: $file")
                 val currentTime = Clock.System.now().toEpochMilliseconds()
 
                 if (currentTime - lastClickTime < doubleClickThreshold) {
