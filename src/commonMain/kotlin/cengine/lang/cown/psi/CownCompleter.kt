@@ -9,8 +9,8 @@ import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiFile
 
 class CownCompleter : CompletionProvider {
-    override fun fetchCompletions(prefix: String, psiElement: PsiElement?, psiFile: PsiFile?): List<Completion> {
-        return CownLexer.keywords.asCompletions(prefix, true, CompletionItemKind.KEYWORD)
+    override fun fetchCompletions(lineContentBefore: String, psiElement: PsiElement?, psiFile: PsiFile?): List<Completion> {
+        return CownLexer.keywords.asCompletions(lineContentBefore, true, CompletionItemKind.KEYWORD)
     }
 
     override fun buildCompletionSet(file: PsiFile) {

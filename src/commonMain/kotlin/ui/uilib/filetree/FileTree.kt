@@ -16,9 +16,9 @@ import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import cengine.project.Project
 import cengine.vfs.FPath
 import cengine.vfs.FileChangeListener
-import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
 import kotlinx.datetime.Clock
 import ui.uilib.UIState
@@ -30,10 +30,11 @@ import ui.uilib.params.IconType
 
 @Composable
 fun FileTree(
-    vfs: VFileSystem,
+    project: Project,
     onDoubleClick: (VirtualFile) -> Unit
 ) {
     val expandedItems = remember { mutableStateListOf<VirtualFile>() }
+    val vfs by remember { mutableStateOf(project.fileSystem)  }
     var root by remember { mutableStateOf(vfs.root) }
 
     var selectedFile by remember { mutableStateOf<VirtualFile?>(null) }
@@ -57,6 +58,7 @@ fun FileTree(
     if (showMenu && selectedFile != null) {
         FileContextMenu(
             file = selectedFile!!,
+            project = project,
             position = contextMenuPosition,
             onDismiss = { showMenu = false },
             onRename = { file ->
@@ -237,7 +239,7 @@ fun LazyListScope.node(
             if (file.isDirectory) {
                 CButton(onClick = {
                     toggleExpanded(file)
-                }, icon = if ( expandedItems.contains(file)) icon.chevronDown else icon.chevronRight, iconType = IconType.SMALL, withPressedBg = false, withHoverBg = false)
+                }, icon = if (expandedItems.contains(file)) icon.chevronDown else icon.chevronRight, iconType = IconType.SMALL, withPressedBg = false, withHoverBg = false)
             } else {
                 Spacer(Modifier.width(expandWidth))
             }

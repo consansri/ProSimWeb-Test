@@ -14,6 +14,8 @@ import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 
 class AsmCompleter(targetSpec: TargetSpec) : CompletionProvider {
+
+    val symbolRegex = targetSpec.prefices.symbol
     val directives: Set<String> = (ASDirType.entries + targetSpec.customDirs).map { "." + it.getDetectionString().lowercase() }.filter { it.isNotEmpty() }.toSet()
     val instructions: Set<String> = targetSpec.allInstrs.map { it.detectionName }.toSet()
     val cachedCompletions: MutableMap<PsiFile, CompletionSet> = mutableMapOf()
@@ -26,12 +28,15 @@ class AsmCompleter(targetSpec: TargetSpec) : CompletionProvider {
         fun asCompletions(prefix: String): List<Completion> = labels.asCompletions(prefix, false, CompletionItemKind.ENUM) + symbols.asCompletions(prefix, ignoreCase = false, CompletionItemKind.VARIABLE) + macros.asCompletions(prefix, ignoreCase = false, CompletionItemKind.FUNCTION)
     }
 
-    override fun fetchCompletions(prefix: String, psiElement: PsiElement?, psiFile: PsiFile?): List<Completion> {
+    override fun fetchCompletions(lineContentBefore: String, psiElement: PsiElement?, psiFile: PsiFile?): List<Completion> {
         val completionSet = cachedCompletions[psiFile]
+
+        val prefix = lineContentBefore.takeLastWhile { symbolRegex.matches(it.toString()) }
+
         val directives = directives.asCompletions(prefix, true, CompletionItemKind.KEYWORD)
         val instructions = instructions.asCompletions(prefix, true, CompletionItemKind.KEYWORD)
 
-        val completions = (completionSet?.asCompletions(prefix) ?: emptyList()) + instructions + directives
+        val completions = if (prefix.isNotEmpty()) (completionSet?.asCompletions(prefix) ?: emptyList()) + instructions + directives else emptyList()
 
         return completions
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -23,9 +24,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.toSize
 import cengine.editor.annotation.Annotation
 import cengine.editor.completion.Completion
-import cengine.editor.selection.Selector
 import cengine.lang.asm.CodeStyle
 import cengine.project.Project
+import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiFile
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeWarn
@@ -36,7 +37,7 @@ import ui.uilib.UIState
 import ui.uilib.params.FontType
 
 @Composable
-fun Editor(
+fun CodeEditor(
     modifier: Modifier,
     file: VirtualFile,
     project: Project
@@ -58,7 +59,6 @@ fun Editor(
     val scrollVertical = rememberScrollState()
     val scrollHorizontal = rememberScrollState()
     var viewSize by remember { mutableStateOf(Size.Zero) }
-    var imperativeRepaintState by remember { mutableStateOf(false) }
 
     val manager by remember { mutableStateOf(project.getManager(file)) }
     val lang = remember { manager?.lang }
@@ -71,6 +71,10 @@ fun Editor(
     var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
     var annotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
     var completions by remember { mutableStateOf<List<Completion>>(emptyList()) }
+    var isCompletionVisible by remember { mutableStateOf(false) }
+    var selectedCompletionIndex by remember { mutableStateOf(0) }
+    var caretOffset by remember { mutableStateOf<Offset>(Offset(0f, 0f)) }
+    var currentElement by remember { mutableStateOf<PsiElement?>(null) }
 
     suspend fun buildAnnotatedString(code: String, psiFile: PsiFile? = null): AnnotatedString {
         // Fast Lexing Highlighting
@@ -104,10 +108,19 @@ fun Editor(
         }
     }
 
+    suspend fun locatePSIElement() {
+        val caretPosition = textFieldValue.selection.start
+        val psiFile = manager?.getPsiFile(file)
+        currentElement = if (psiFile != null) {
+            lang?.psiService?.findElementAt(psiFile, caretPosition)
+        } else null
+    }
+
     suspend fun updatePSI(code: String) {
         file.setAsUTF8String(code)
         manager?.queueUpdate(file) {
             textFieldValue = textFieldValue.copy(annotatedString = buildAnnotatedString(code, it))
+            locatePSIElement()
         }
     }
 
@@ -121,14 +134,11 @@ fun Editor(
         }
     }
 
+    fun insertCompletion(completion: Completion) {
+        val start = textFieldValue.selection.start
+        val newText = textFieldValue.text.substring(0, start) + completion.insertion + textFieldValue.text.substring(start)
 
-    val state = remember {
-        EditorState(
-            file,
-            project.getManager(file),
-        ) {
-            imperativeRepaintState = !imperativeRepaintState
-        }
+        textFieldValue = textFieldValue.copy(text = newText, selection = TextRange(start + completion.insertion.length))
     }
 
     fun fetchCompletions(showIfPrefixIsEmpty: Boolean = false, onlyHide: Boolean = false) {
@@ -136,14 +146,21 @@ fun Editor(
 
         if (!onlyHide) {
             completionJob = coroutineScope.launch {
-                try {
-                    val prefixIndex = state.selector.indexOfWordStart(state.selector.caret.index, Selector.DEFAULT_SPACING_SET, false)
-                    val prefix = state.textModel.substring(prefixIndex, state.selector.caret.index)
-                    if (showIfPrefixIsEmpty || prefix.isNotEmpty()) {
-                        completions = state.lang?.completionProvider?.fetchCompletions(prefix, state.currentElement, state.psiManager?.getPsiFile(file)) ?: emptyList()
+                val layout = textLayout
+                if (layout != null) {
+                    try {
+                        val lineIndex = layout.getLineForOffset(textFieldValue.selection.start)
+                        val lineStart = layout.getLineStart(lineIndex)
+                        val lineContentBefore = textFieldValue.text.substring(lineStart, textFieldValue.selection.start)
+
+                        if (showIfPrefixIsEmpty || lineContentBefore.isNotEmpty()) {
+                            completions = lang?.completionProvider?.fetchCompletions(lineContentBefore, currentElement, manager?.getPsiFile(file)) ?: emptyList()
+                        } else {
+                            completions = emptyList()
+                        }
+                    } catch (e: Exception) {
+                        nativeWarn("Completion canceled by edit.")
                     }
-                } catch (e: Exception) {
-                    nativeWarn("Completion canceled by edit.")
                 }
             }
         }
@@ -221,8 +238,32 @@ fun Editor(
                                 }
 
                                 Key.Enter -> {
-                                    textFieldValue = insertNewlineAndIndent(textFieldValue, textLayout)
+                                    val completion = completions.getOrNull(selectedCompletionIndex)
+                                    if (isCompletionVisible && completion != null) {
+                                        insertCompletion(completion)
+                                    } else {
+                                        textFieldValue = insertNewlineAndIndent(textFieldValue, textLayout)
+                                    }
+
                                     true
+                                }
+
+                                Key.DirectionDown -> {
+                                    if (isCompletionVisible && selectedCompletionIndex < completions.size - 1) {
+                                        selectedCompletionIndex++
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                }
+
+                                Key.DirectionUp -> {
+                                    if (isCompletionVisible && selectedCompletionIndex > 0) {
+                                        selectedCompletionIndex--
+                                        true
+                                    } else {
+                                        false
+                                    }
                                 }
 
                                 else -> false
@@ -246,6 +287,22 @@ fun Editor(
                 }
             )
         }
+
+        if (isCompletionVisible) {
+            CompletionOverlay(
+                Modifier
+                    .offset(
+                        x = with(LocalDensity.current) {
+                            caretOffset.x.toDp() + rowHeaderWidth.toDp() + scale.SIZE_BORDER_THICKNESS
+                        },
+                        y = with(LocalDensity.current) {
+                            caretOffset.y.toDp()
+                        }
+                    ),
+                completions,
+                selectedCompletionIndex
+            )
+        }
     }
 
     ComposeTools.TrackStateChanges(textFieldValue) { oldValue, newValue ->
@@ -253,6 +310,17 @@ fun Editor(
             // Text was changed
             processTextFieldValue()
         }
+
+        coroutineScope.launch {
+            caretOffset = textLayout?.getCursorRect(newValue.selection.start)?.bottomCenter ?: Offset(0f, 0f)
+            locatePSIElement()
+            fetchCompletions()
+        }
+    }
+
+    LaunchedEffect(completions) {
+        isCompletionVisible = completions.isNotEmpty()
+        selectedCompletionIndex = 0
     }
 
     //processTextFieldValue()

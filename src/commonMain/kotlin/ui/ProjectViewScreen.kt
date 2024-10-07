@@ -17,7 +17,7 @@ import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
 import ui.uilib.UIState
-import ui.uilib.editor.Editor
+import ui.uilib.editor.CodeEditor
 import ui.uilib.filetree.FileTree
 import ui.uilib.interactable.CToggle
 import ui.uilib.layout.*
@@ -46,7 +46,7 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
                 .scrollable(leftVScrollState, Orientation.Vertical)
         ) {
             // Left content
-            FileTree(project.fileSystem) { file ->
+            FileTree(project) { file ->
                 if (file.isFile && !fileEditors.any { it.value == file }) {
                     fileEditors.add(TabItem(file, icons.file, file.name))
                 }
@@ -73,7 +73,7 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
                             // Display File Content
                             nativeLog("Displaying Editor for ${fileEditors[index].title}!")
                             key(fileEditors[index].value.path) {
-                                Editor(
+                                CodeEditor(
                                     Modifier,
                                     fileEditors[index].value,
                                     project

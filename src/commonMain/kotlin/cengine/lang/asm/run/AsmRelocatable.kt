@@ -14,7 +14,7 @@ import emulator.kit.nativeError
 import emulator.kit.nativeInfo
 import emulator.kit.nativeWarn
 
-class AsmRelocatable() : RunConfiguration.FileRun<LanguageService> {
+class AsmRelocatable : RunConfiguration.FileRun<LanguageService> {
     companion object {
         const val EXECUTABLE_SUB_DIR = "exec"
         const val RELOCATABLE_SUB_DIR = "reloc"
@@ -49,6 +49,4 @@ class AsmRelocatable() : RunConfiguration.FileRun<LanguageService> {
             outputFile.setContent(content)
         }
     }
-
-
 }
