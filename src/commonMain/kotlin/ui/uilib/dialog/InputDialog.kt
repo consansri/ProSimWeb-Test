@@ -34,7 +34,9 @@ fun InputDialog(title: String, init: String, onConfirm: (String) -> Unit, onDism
                 labelText = title
             ) {
                 CTextField(
-                    value = init,
+                    value = text,
+                    singleLine = true,
+                    readonly = false,
                     onValueChange = {
                         text = it
                     },
@@ -62,48 +64,7 @@ fun InputDialog(title: String, init: String, onConfirm: (String) -> Unit, onDism
                     modifier = Modifier.weight(1.0f)
                 )
             }
-
         }
-
-
-        /*   BoxWithConstraints {
-               Column(
-                   Modifier
-                       .wrapContentWidth()
-                       .background(UIState.Theme.value.COLOR_BG_OVERLAY, RoundedCornerShape(UIState.Scale.value.SIZE_CORNER_RADIUS))
-                       .padding(UIState.Scale.value.SIZE_INSET_MEDIUM)
-
-               ) {
-                   Row(
-                       Modifier.fillMaxWidth(),
-                       verticalAlignment = Alignment.CenterVertically,
-                       horizontalArrangement = Arrangement.Center
-                   ) {
-                       CLabel(text = title, fontType = FontType.MEDIUM, modifier = Modifier.fillMaxWidth())
-                   }
-
-                   Row(
-                       Modifier.fillMaxWidth(),
-                       verticalAlignment = Alignment.CenterVertically,
-                       horizontalArrangement = Arrangement.SpaceEvenly
-                   ) {
-                       CTextField(
-                           text,
-                           onValueChange = {
-                               text = it
-                           },
-                           modifier = Modifier.fillMaxWidth(),
-                           error = text.isEmpty()
-                       )
-                   }
-
-                   Spacer(Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
-
-
-               }
-           }*/
-
-
     }
 
 }

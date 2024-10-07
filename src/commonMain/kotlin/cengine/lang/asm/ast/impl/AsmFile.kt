@@ -1,8 +1,6 @@
 package cengine.lang.asm.ast.impl
 
-import cengine.editor.annotation.Notation
-import cengine.editor.text.TextModel
-import cengine.editor.widgets.Widget
+import cengine.editor.annotation.Annotation
 import cengine.lang.asm.AsmLang
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
@@ -10,17 +8,10 @@ import cengine.psi.core.PsiFile
 import cengine.vfs.VirtualFile
 
 class AsmFile(override val file: VirtualFile, override val lang: AsmLang, private var program: ASNode.Program) : PsiFile {
-    override var textModel: TextModel? = null
-    override val notations: List<Notation>
-        get() = program.notations
+    override val annotations: List<Annotation>
+        get() = program.annotations
     override val additionalInfo: String
         get() = program.additionalInfo
-
-    override val interlineWidgets: List<Widget>
-        get() = program.interlineWidgets
-
-    override val inlayWidgets: List<Widget>
-        get() = program.inlayWidgets
 
     override val parent: PsiElement?
         get() = program.parent
@@ -43,7 +34,7 @@ class AsmFile(override val file: VirtualFile, override val lang: AsmLang, privat
 
     override fun update() {
         // Reparse the file and update children
-        val newFile = lang.psiParser.parseFile(file, textModel)
+        val newFile = lang.psiParser.parse(file)
         program = newFile.program
         range = newFile.range
     }

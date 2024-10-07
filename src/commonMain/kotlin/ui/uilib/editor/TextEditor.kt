@@ -22,8 +22,6 @@ fun TextEditor(file: VirtualFile, modifier: Modifier = Modifier) {
     val fileScope = CoroutineScope(Dispatchers.Default)
 
 
-
-
     BasicTextField(
         value = textModel,
         onValueChange = {

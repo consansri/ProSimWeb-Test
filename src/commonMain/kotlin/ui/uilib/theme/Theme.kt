@@ -2,7 +2,7 @@ package ui.uilib.theme
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import emulator.kit.assembler.CodeStyle
+import cengine.lang.asm.CodeStyle
 import emulator.kit.memory.Memory
 import org.jetbrains.compose.resources.FontResource
 

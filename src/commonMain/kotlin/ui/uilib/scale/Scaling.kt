@@ -12,12 +12,14 @@ class Scaling(val scale: Float = 1f) {
     val name: String = "${(scale * 100).toInt()}%"
 
     // FONT SCALING
-    val FONTSCALE_SMALL: TextUnit  = 0.7.em
+    val FONTSCALE_SMALL: TextUnit = 0.7.em
         get() = (field * scale)
     val FONTSCALE_MEDIUM: TextUnit = 0.9.em
         get() = (field * scale)
     val FONTSCALE_LARGE: TextUnit = 1.1.em
         get() = (field * scale)
+
+    val FONTSCALE_LINE_HEIGHT_FACTOR: Double = 22.0
 
     // SIZES
 

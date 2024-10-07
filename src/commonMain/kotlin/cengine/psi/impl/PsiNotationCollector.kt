@@ -1,21 +1,21 @@
 package cengine.psi.impl
 
-import cengine.editor.annotation.Notation
+import cengine.editor.annotation.Annotation
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 
 class PsiNotationCollector(): PsiElementVisitor {
-    val notations = mutableListOf<Notation>()
+    val annotations = mutableListOf<Annotation>()
     override fun visitFile(file: PsiFile) {
-        notations.addAll(file.notations)
+        annotations.addAll(file.annotations)
         file.children.forEach {
             it.accept(this)
         }
     }
 
     override fun visitElement(element: PsiElement) {
-        notations.addAll(element.notations)
+        annotations.addAll(element.annotations)
         element.children.forEach {
             it.accept(this)
         }

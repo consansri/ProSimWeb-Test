@@ -1,22 +1,16 @@
 package cengine.ast.node
 
 import cengine.ast.ASTVisitor
-import cengine.editor.annotation.Notation
-import cengine.editor.widgets.Widget
+import cengine.editor.annotation.Annotation
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 
 sealed class Node : PsiElement {
     override val pathName: String = this::class.simpleName.toString()
     override var parent: PsiElement? = null
-    override val notations: MutableList<Notation> = mutableListOf()
+    override val annotations: MutableList<Annotation> = mutableListOf()
     override val children: MutableList<Node> = mutableListOf()
     override val additionalInfo: String = ""
-    override val inlayWidgets: List<Widget>
-        get() = emptyList()
-
-    override val interlineWidgets: List<Widget>
-        get() = emptyList()
 
     override fun accept(visitor: PsiElementVisitor) {
         visitor as? ASTVisitor<*> ?: return

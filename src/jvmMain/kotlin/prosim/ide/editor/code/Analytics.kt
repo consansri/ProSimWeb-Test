@@ -1,7 +1,7 @@
 package prosim.ide.editor.code
 
 import cengine.editor.CodeEditor
-import cengine.editor.annotation.Notation
+import cengine.editor.annotation.Annotation
 import cengine.editor.annotation.Severity
 import com.formdev.flatlaf.extras.FlatSVGIcon
 import emulator.kit.assembler.CodeStyle
@@ -26,23 +26,23 @@ import javax.swing.tree.DefaultTreeModel
 class Analytics(val editor: PerformantCodeEditor) : CScrollPane() {
 
     private val notationInformationProvider = NotationInformationProvider()
-    private val rootNotation = Notation(0..0, editor.file.name, Severity.INFO)
+    private val rootAnnotation = Annotation(0..0, editor.file.name, Severity.INFO)
 
     fun updateNotations() {
-        val root = DefaultMutableTreeNode(rootNotation)
-        editor.notations.forEach {
+        val root = DefaultMutableTreeNode(rootAnnotation)
+        editor.annotations.forEach {
             root.add(NotationNode(it, editor))
         }
 
         val treeModel = DefaultTreeModel(root)
-        setViewportView(CTree(treeModel, FontType.BASIC, notationInformationProvider, Notation::class).apply {
+        setViewportView(CTree(treeModel, FontType.BASIC, notationInformationProvider, Annotation::class).apply {
             addMouseListener(MouseListener())
         })
     }
 
-    inner class NotationInformationProvider : NodeInformationProvider<Notation> {
-        override fun getIcon(userObject: Notation): FlatSVGIcon? {
-            if (userObject == rootNotation) return null
+    inner class NotationInformationProvider : NodeInformationProvider<Annotation> {
+        override fun getIcon(userObject: Annotation): FlatSVGIcon? {
+            if (userObject == rootAnnotation) return null
             return when (userObject.severity) {
                 Severity.INFO -> UIStates.icon.get().info
                 Severity.WARNING -> null
@@ -50,8 +50,8 @@ class Analytics(val editor: PerformantCodeEditor) : CScrollPane() {
             }
         }
 
-        override fun getName(userObject: Notation): String {
-            if (userObject == rootNotation) return editor.file.name
+        override fun getName(userObject: Annotation): String {
+            if (userObject == rootAnnotation) return editor.file.name
             return when (userObject.severity) {
                 Severity.INFO -> "Info: ${userObject.message} :${editor.textModel.getLineAndColumn(userObject.range.first)}"
                 Severity.WARNING -> "Warning: ${userObject.message} :${editor.textModel.getLineAndColumn(userObject.range.first)}"
@@ -59,7 +59,7 @@ class Analytics(val editor: PerformantCodeEditor) : CScrollPane() {
             }
         }
 
-        override fun getFgColor(userObject: Notation): Color? {
+        override fun getFgColor(userObject: Annotation): Color? {
             return when (userObject.severity) {
                 Severity.WARNING -> UIStates.theme.get().getColor(CodeStyle.YELLOW)
                 Severity.ERROR -> UIStates.theme.get().getColor(CodeStyle.RED)
@@ -78,24 +78,24 @@ class Analytics(val editor: PerformantCodeEditor) : CScrollPane() {
             val tree = e.source as CTree<*>
             val path = tree.getPathForLocation(e.x, e.y) ?: return
             val node = path.lastPathComponent as DefaultMutableTreeNode
-            val notation = node.userObject as Notation
+            val annotation = node.userObject as Annotation
 
             if (e.clickCount == 2) {
-                editor.selector.moveCaretTo(notation.range.first, false)
+                editor.selector.moveCaretTo(annotation.range.first, false)
                 editor.repaint()
             }
 
             if (SwingUtilities.isRightMouseButton(e)) {
-                tree.selectionPaths?.let { paths -> showContextMenu(tree, e.x, e.y, notation) }
+                tree.selectionPaths?.let { paths -> showContextMenu(tree, e.x, e.y, annotation) }
             }
         }
 
-        private fun showContextMenu(component: Component, x: Int, y: Int, notation: Notation) {
+        private fun showContextMenu(component: Component, x: Int, y: Int, annotation: Annotation) {
             val menu = CPopupMenu()
 
             menu.add(CMenuItem("Locate").apply {
                 addActionListener {
-                    editor.selector.moveCaretTo(notation.range.first, false)
+                    editor.selector.moveCaretTo(annotation.range.first, false)
                     editor.repaint()
                     /*overlayScope.launch {
                         val newName = COptionPane.showInputDialog(component, "Rename File:").await()
@@ -111,6 +111,6 @@ class Analytics(val editor: PerformantCodeEditor) : CScrollPane() {
         }
     }
 
-    class NotationNode(val notation: Notation, val editor: CodeEditor) : DefaultMutableTreeNode(notation)
+    class NotationNode(val annotation: Annotation, val editor: CodeEditor) : DefaultMutableTreeNode(annotation)
 
 }

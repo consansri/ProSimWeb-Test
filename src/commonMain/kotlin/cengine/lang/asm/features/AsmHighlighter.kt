@@ -4,9 +4,6 @@ import cengine.editor.highlighting.HLInfo
 import cengine.editor.highlighting.HighlightProvider
 import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.TargetSpec
-import cengine.lang.asm.ast.impl.ASDirType
-import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.psi.core.Interval
 import cengine.psi.core.PsiElement
 
@@ -14,78 +11,6 @@ class AsmHighlighter(targetSpec: TargetSpec) : HighlightProvider {
     private val cache = mutableMapOf<PsiElement, List<HLInfo>>()
 
     private val lexer = targetSpec.createLexer("")
-
-    override fun getHighlights(element: PsiElement): List<HLInfo> {
-        if (element !is ASNode) return emptyList()
-        return cache.getOrPut(element) {
-            when (element) {
-                is ASNode.ArgDef.Named -> listOf(HL(element, CodeStyle.argument))
-                is ASNode.Argument.Basic -> listOf(HL(element, CodeStyle.argument))
-                is ASNode.Argument.DefaultValue -> listOf(HL(element, CodeStyle.argument))
-                is ASNode.Label -> listOf(HL(element, CodeStyle.label))
-                is ASNode.NumericExpr.Operand.Identifier -> {
-                    val ref = element.referencedElement
-                    if (ref != null && ref is ASNode.Label) {
-                        listOf(HL(element, CodeStyle.label))
-                    } else emptyList()
-                }
-                is ASNode.StringExpr.Operand.Identifier -> {
-                    val ref = element.referencedElement
-                    if (ref != null && ref is ASNode.Label) {
-                        listOf(HL(element, CodeStyle.label))
-                    } else emptyList()
-                }
-                is ASNode.NumericExpr.Operand.Char -> listOf(HL(element, CodeStyle.char))
-                is ASNode.NumericExpr.Operand.Number -> listOf(HL(element, CodeStyle.integer))
-                is ASNode.StringExpr.Operand.StringLiteral -> listOf(HL(element, CodeStyle.string))
-                is ASNode.Directive -> {
-                    when (element.type) {
-                        ASDirType.MACRO -> {
-                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
-                            identifier?.let {
-                                listOf(HL(identifier, CodeStyle.symbol))
-                            } ?: emptyList()
-                        }
-
-                        ASDirType.SET_ALT -> {
-                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
-                            identifier?.let {
-                                listOf(HL(identifier, CodeStyle.symbol))
-                            } ?: emptyList()
-                        }
-
-                        ASDirType.SET -> {
-                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
-                            identifier?.let {
-                                listOf(HL(identifier, CodeStyle.symbol))
-                            } ?: emptyList()
-                        }
-
-                        ASDirType.EQU -> {
-                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
-                            identifier?.let {
-                                listOf(HL(identifier, CodeStyle.symbol))
-                            } ?: emptyList()
-                        }
-
-                        ASDirType.EQV -> {
-                            val identifier = element.allTokens.firstOrNull { it.type == AsmTokenType.SYMBOL }
-                            identifier?.let {
-                                listOf(HL(identifier, CodeStyle.symbol))
-                            } ?: emptyList()
-                        }
-
-                        else -> emptyList()
-                    }
-                }
-
-                is ASNode.Comment -> listOf(HL(element, CodeStyle.comment))
-                else -> {
-                    emptyList()
-                }
-            }
-        }
-    }
 
     override fun fastHighlight(text: String): List<HLInfo> {
         lexer.reset(text)

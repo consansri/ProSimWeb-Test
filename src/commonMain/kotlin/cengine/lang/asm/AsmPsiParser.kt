@@ -1,7 +1,6 @@
 package cengine.lang.asm
 
-import cengine.editor.annotation.Notation
-import cengine.editor.text.TextModel
+import cengine.editor.annotation.Annotation
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
@@ -15,15 +14,12 @@ import cengine.psi.core.PsiParser
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
 
-class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiParser {
-    override fun parseFile(file: VirtualFile, textModel: TextModel?): AsmFile {
+class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiParser<AsmFile> {
+
+    override fun parse(file: VirtualFile): AsmFile {
         nativeLog("Parsing file ...")
 
-        val content = try {
-            textModel?.toString() ?: file.getAsUTF8String()
-        } catch (e: ConcurrentModificationException) {
-            textModel?.toString() ?: file.getAsUTF8String()
-        }
+        val content = file.getAsUTF8String()
 
         val lexer = spec.createLexer(content)
         lexer.reset(content)
@@ -42,13 +38,10 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
         val builder = RelocatableELFBuilder(spec)
         builder.build(*program.getAllStatements().toTypedArray())
 
-        val asmFile = AsmFile(file, languageService, program).apply {
-            this.textModel = textModel
-        }
+        val asmFile = AsmFile(file, languageService, program)
 
         return asmFile
     }
-
 
 
     fun reparseStatements(fromIndex: Int, toIndex: Int, asmFile: AsmFile): List<ASNode.Statement> {
@@ -140,7 +133,7 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
             when (element) {
                 is ASNode.Label -> {
                     if (labels.firstOrNull { it.type != ASNode.Label.Type.NUMERIC && it.identifier == element.identifier } != null) {
-                        element.notations.add(Notation.error(element, "Label is already defined!"))
+                        element.annotations.add(Annotation.error(element, "Label is already defined!"))
                         return
                     }
 

@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast.target.riscv
 
-import cengine.editor.annotation.Notation
+import cengine.editor.annotation.Annotation
 import cengine.lang.asm.ast.Component
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.Rule
@@ -135,7 +135,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
                 dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                     val evaluated = it.evaluate(builder)
                     if (!evaluated.checkSizeSignedOrUnsigned(Size.Bit64)) {
-                        dir.notations.add(Notation.error(dir, "$evaluated exceeds ${Size.Bit64}!"))
+                        dir.annotations.add(Annotation.error(dir, "$evaluated exceeds ${Size.Bit64}!"))
                     }
                 }
             }
@@ -159,7 +159,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
                     if (evaluated != null) {
                         builder.currentSection.content.put(evaluated)
                     } else {
-                        it.notations.add(Notation.error(it, "Couldn't evaluate Expression!"))
+                        it.annotations.add(Annotation.error(it, "Couldn't evaluate Expression!"))
                     }
                 }
             }

@@ -1,6 +1,5 @@
 package cengine.psi.core
 
-import cengine.editor.text.TextModel
 import cengine.lang.LanguageService
 import cengine.vfs.VirtualFile
 
@@ -10,7 +9,6 @@ import cengine.vfs.VirtualFile
 interface PsiFile : PsiElement {
     val lang: LanguageService?
     val file: VirtualFile
-    var textModel: TextModel?
 
     override val pathName: String
         get() = file.name

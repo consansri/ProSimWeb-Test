@@ -24,7 +24,7 @@ class AsmRelocatable() : RunConfiguration.FileRun<LanguageService> {
 
     override fun run(file: VirtualFile, lang: LanguageService, vfs: VFileSystem) {
         if (lang !is AsmLang) return
-        val asmFile = lang.psiParser.parseFile(file, null)
+        val asmFile = lang.psiParser.parse(file)
 
         val outputPath = FPath.of(vfs, AsmLang.OUTPUT_DIR, RELOCATABLE_SUB_DIR, file.name.removeSuffix(lang.fileSuffix) +".o")
 
@@ -37,7 +37,7 @@ class AsmRelocatable() : RunConfiguration.FileRun<LanguageService> {
         val collector = PsiNotationCollector()
         asmFile.accept(collector)
 
-        collector.notations.forEach {
+        collector.annotations.forEach {
             when (it.severity) {
                 Severity.INFO -> nativeInfo(it.createConsoleMessage(asmFile))
                 Severity.WARNING -> nativeWarn(it.createConsoleMessage(asmFile))
@@ -45,7 +45,7 @@ class AsmRelocatable() : RunConfiguration.FileRun<LanguageService> {
             }
         }
 
-        if (collector.notations.none { it.severity == Severity.ERROR }) {
+        if (collector.annotations.none { it.severity == Severity.ERROR }) {
             outputFile.setContent(content)
         }
     }

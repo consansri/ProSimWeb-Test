@@ -15,14 +15,18 @@ actual fun FileHandler.updateFiles(files: MutableList<FileHandler.File>, onlyCur
 actual fun FileHandler.loadFiles(files: MutableList<FileHandler.File>) {
 }
 
-actual fun nativeWarn(message: String) {
-}
-
 actual fun nativeLog(message: String) {
+    println("Log: $message")
 }
 
 actual fun nativeError(message: String) {
+    println("Error: $message")
+}
+
+actual fun nativeWarn(message: String) {
+    println("Warn: $message")
 }
 
 actual fun nativeInfo(message: String) {
+    println("Info: $message")
 }

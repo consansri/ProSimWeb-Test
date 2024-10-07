@@ -1,11 +1,15 @@
 package cengine.editor
 
-import cengine.editor.annotation.Notation
+import cengine.editor.annotation.Annotation
+import cengine.editor.indentation.BasicIndenation
 import cengine.editor.indentation.IndentationProvider
 import cengine.editor.selection.Selector
 import cengine.editor.text.Editable
+import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
+import cengine.lang.LanguageService
+import cengine.project.Project
 import cengine.psi.PsiManager
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiFile
@@ -17,6 +21,31 @@ import kotlinx.coroutines.withContext
  * This model is representing the state of the rendered code.
  */
 interface CodeEditor : Editable {
+
+    companion object {
+        fun create(file: VirtualFile, project: Project, invalidateContent: (CodeEditor) -> Unit, invalidateAnalytics: (CodeEditor) -> Unit): CodeEditor {
+            return object : CodeEditor {
+                override val psiManager: PsiManager<*>? = project.getManager(file)
+                override val file: VirtualFile = file
+                override val textModel: TextModel = RopeModel(file.getAsUTF8String())
+                override val selector: Selector = Selector(textModel)
+                override val textStateModel: TextStateModel = TextStateModel(this, textModel, selector)
+                override val indentationProvider: IndentationProvider = BasicIndenation(textStateModel, textModel)
+
+                override var currentElement: PsiElement? = null
+                override var annotations: Set<Annotation> = setOf()
+
+                override fun invalidateContent(editor: CodeEditor) {
+                    invalidateContent(editor)
+                }
+
+                override fun invalidateAnalytics(editor: CodeEditor) {
+                    invalidateAnalytics(editor)
+                }
+            }
+        }
+    }
+
     val psiManager: PsiManager<*>?
     val file: VirtualFile
     val textModel: TextModel
@@ -24,47 +53,50 @@ interface CodeEditor : Editable {
     val selector: Selector
     val indentationProvider: IndentationProvider
     var currentElement: PsiElement?
-    var notations: Set<Notation>
+    var annotations: Set<Annotation>
+    val lang: LanguageService? get() = psiManager?.lang
+    val psiFile: PsiFile? get() = psiManager?.getPsiFile(file)
 
     fun saveToFile() {
         file.setAsUTF8String(textModel.toString())
-        psiManager?.queueUpdate(file, textModel, ::slowFinish)
+        psiManager?.queueUpdate(file,  ::slowFinish)
     }
+
     fun loadFromFile() {
         textModel.replaceAll(file.getAsUTF8String().replace("\t", "    "))
-        psiManager?.queueUpdate(file, null, ::slowFinish)
+        psiManager?.queueUpdate(file,  ::slowFinish)
     }
 
     override fun insert(index: Int, new: String) {
         textModel.insert(index, new)
-        psiManager?.inserted(file, textModel, index, new, ::fastFinish)
+        psiManager?.inserted(file, index, new, ::fastFinish)
     }
 
     override fun delete(start: Int, end: Int) {
         textModel.delete(start, end)
-        psiManager?.deleted(file, textModel, start, end, ::fastFinish)
+        psiManager?.deleted(file,  start, end, ::fastFinish)
     }
 
     override fun replaceAll(new: String) {
         textModel.replaceAll(new)
-        psiManager?.queueUpdate(file, textModel, ::fastFinish)
+        psiManager?.queueUpdate(file,  ::fastFinish)
     }
 
-    private suspend fun fastFinish(psiFile: PsiFile){
-        withContext(Dispatchers.Main){
-            invalidateContent()
-        }
-    }
-
-    private suspend fun slowFinish(psiFile: PsiFile){
+    private suspend fun fastFinish(psiFile: PsiFile) {
         withContext(Dispatchers.Main) {
-            invalidateContent()
+            invalidateContent(this@CodeEditor)
         }
-        notations = psiManager?.lang?.psiService?.collectNotations(psiFile) ?: emptySet()
-        invalidateAnalytics()
     }
 
-    fun invalidateContent()
+    private suspend fun slowFinish(psiFile: PsiFile) {
+        withContext(Dispatchers.Main) {
+            invalidateContent(this@CodeEditor)
+        }
+        annotations = psiManager?.lang?.psiService?.collectNotations(psiFile) ?: emptySet()
+        invalidateAnalytics(this)
+    }
 
-    fun invalidateAnalytics()
+    fun invalidateContent(editor: CodeEditor)
+
+    fun invalidateAnalytics(editor: CodeEditor)
 }

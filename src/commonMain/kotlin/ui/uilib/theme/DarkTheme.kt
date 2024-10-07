@@ -3,7 +3,7 @@ package ui.uilib.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import emulator.kit.assembler.CodeStyle
+import cengine.lang.asm.CodeStyle
 import emulator.kit.memory.Memory
 import org.jetbrains.compose.resources.FontResource
 import prosim.prosimweb_test.generated.resources.JetBrainsMono_Regular
@@ -41,8 +41,8 @@ data object DarkTheme: Theme {
     override val FONT_CODE: FontResource = Res.font.JetBrainsMono_Regular
 
     override fun getColor(style: CodeStyle?): Color {
-        if (style == null) return Color(CodeStyle.baseColor.getDarkElseLight())
-        return Color(style.getDarkElseLight())
+        if (style == null) return Color(CodeStyle.baseColor.getDarkElseLight() or 0xFF000000.toInt())
+        return Color(style.getDarkElseLight() or 0xFF000000.toInt())
     }
 
     override fun getColor(style: Memory.InstanceType): Color {

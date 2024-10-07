@@ -4,10 +4,10 @@ import cengine.psi.core.*
 import cengine.vfs.VirtualFile
 
 class PsiServiceImpl(
-    private val parser: PsiParser
+    private val parser: PsiParser<*>
 ) : PsiService {
     override fun createFile(file: VirtualFile): PsiFile {
-        return parser.parseFile(file, null)
+        return parser.parse(file)
     }
 
     override fun findElementAt(file: PsiFile, offset: Int): PsiElement? {
@@ -16,7 +16,7 @@ class PsiServiceImpl(
 
             override fun visitFile(file: PsiFile) {
                 file.children.forEach {
-                    visitElement(it)
+                    it.accept(this)
                 }
             }
 
@@ -40,9 +40,10 @@ class PsiServiceImpl(
         class ReferenceFinder : PsiElementVisitor {
             override fun visitFile(file: PsiFile) {
                 file.children.forEach {
-                    visitElement(it)
+                    it.accept(this)
                 }
             }
+
             override fun visitElement(element: PsiElement) {
                 if (element is PsiReference && element.isReferenceTo(element)) {
                     references.add(element)

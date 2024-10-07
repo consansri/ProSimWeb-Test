@@ -16,7 +16,7 @@ import cengine.project.Project
 import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
 import ui.uilib.UIState
-import ui.uilib.editor.TextEditor
+import ui.uilib.editor.Editor
 import ui.uilib.filetree.FileTree
 import ui.uilib.interactable.CToggle
 import ui.uilib.layout.*
@@ -49,9 +49,9 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
                 if (file.isFile && !fileEditors.any { it.value == file }) {
                     fileEditors.add(TabItem(file, icons.file, file.name) {
                         // Display File Content
-                        TextEditor(
-                            file, modifier = Modifier
-                                .fillMaxSize()
+                        Editor(
+                            Modifier,
+                            file, project
                         )
                     })
                 }

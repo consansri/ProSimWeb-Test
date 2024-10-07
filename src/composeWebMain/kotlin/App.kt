@@ -5,9 +5,10 @@ import ui.ProSimApp
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main(){
-    CanvasBasedWindow(canvasElementId = "ComposeTarget") {
+
+
+    CanvasBasedWindow(title = Constants.TITLE,canvasElementId = "ComposeTarget") {
         ProSimApp.launch()
     }
-
 
 }

@@ -1,6 +1,5 @@
 package cengine.psi
 
-import cengine.editor.text.TextModel
 import cengine.lang.LanguageService
 import cengine.psi.core.PsiFile
 import cengine.vfs.FPath
@@ -22,37 +21,35 @@ class PsiManager<T : LanguageService>(
         vfs.addChangeListener(listener)
     }
 
-    fun queueUpdate(file: VirtualFile, textModel: TextModel?, onfinish: suspend (PsiFile) -> Unit = {}) {
+    fun queueUpdate(file: VirtualFile, onfinish: suspend (PsiFile) -> Unit = {}) {
         job?.cancel()
         job = psiUpdateScope.launch {
             delay(500L)
-            updatePsi(file, textModel, onfinish)
+            updatePsi(file, onfinish)
         }
     }
 
-    suspend fun updatePsi(file: VirtualFile, textModel: TextModel?, onfinish: suspend (PsiFile) -> Unit = {}) {
+    suspend fun updatePsi(file: VirtualFile, onfinish: suspend (PsiFile) -> Unit = {}) {
         val psiFile = psiCache[file.path]
         if (psiFile == null) {
-            val created = createPsiFile(file, textModel)
-            created.textModel = textModel
+            val created = createPsiFile(file)
             psiCache[file.path] = created
-            lang.updateAnalytics(created, textModel)
+            lang.updateAnalytics(created)
             onfinish(created)
         } else {
-            psiFile.textModel = textModel
             psiFile.update()
             psiCache.remove(file.path)
             psiCache[file.path] = psiFile
-            lang.updateAnalytics(psiFile, textModel)
+            lang.updateAnalytics(psiFile)
             onfinish(psiFile)
         }
     }
 
-    fun inserted(file: VirtualFile, textModel: TextModel?, index: Int, value: String, onfinish: suspend (PsiFile) -> Unit = {}) {
-        queueUpdate(file, textModel, onfinish)
+    fun inserted(file: VirtualFile, index: Int, value: String, onfinish: suspend (PsiFile) -> Unit = {}) {
+        queueUpdate(file, onfinish)
         psiUpdateScope.launch {
             val psiFile = psiCache[file.path] ?: run {
-                createPsiFile(file, textModel)
+                createPsiFile(file)
             }
             psiCache.remove(file.path)
             psiCache[file.path] = psiFile
@@ -63,11 +60,11 @@ class PsiManager<T : LanguageService>(
         }
     }
 
-    fun deleted(file: VirtualFile, textModel: TextModel?, start: Int, end: Int, onfinish: suspend (PsiFile) -> Unit = {}) {
-        queueUpdate(file, textModel, onfinish)
+    fun deleted(file: VirtualFile, start: Int, end: Int, onfinish: suspend (PsiFile) -> Unit = {}) {
+        queueUpdate(file,  onfinish)
         psiUpdateScope.launch {
             val psiFile = psiCache[file.path] ?: run {
-                createPsiFile(file, textModel)
+                createPsiFile(file)
             }
             psiCache.remove(file.path)
             psiCache[file.path] = psiFile
@@ -78,13 +75,12 @@ class PsiManager<T : LanguageService>(
         }
     }
 
-    private fun createPsi(file: VirtualFile, textModel: TextModel?, onfinish: suspend (PsiFile) -> Unit = {}) {
+    private fun createPsi(file: VirtualFile, onfinish: suspend (PsiFile) -> Unit = {}) {
         job?.cancel()
         job = psiUpdateScope.launch {
-            val psiFile = createPsiFile(file, textModel)
-            psiFile.textModel = textModel
+            val psiFile = createPsiFile(file)
             psiCache[file.path] = psiFile
-            lang.updateAnalytics(psiFile, null)
+            lang.updateAnalytics(psiFile)
             onfinish(psiFile)
         }
     }
@@ -93,9 +89,9 @@ class PsiManager<T : LanguageService>(
         psiCache.remove(file.path)
     }
 
-    private suspend fun createPsiFile(file: VirtualFile, textModel: TextModel?): PsiFile {
+    private suspend fun createPsiFile(file: VirtualFile): PsiFile {
         return withContext(Dispatchers.Default) {
-            lang.psiParser.parseFile(file, textModel)
+            lang.psiParser.parse(file)
         }
     }
 
@@ -105,11 +101,11 @@ class PsiManager<T : LanguageService>(
 
     inner class VFSListener : FileChangeListener {
         override fun onFileChanged(file: VirtualFile) {
-            if (file.name.endsWith(lang.fileSuffix)) queueUpdate(file, null)
+            if (file.name.endsWith(lang.fileSuffix)) queueUpdate(file)
         }
 
         override fun onFileCreated(file: VirtualFile) {
-            if (file.name.endsWith(lang.fileSuffix)) createPsi(file, null)
+            if (file.name.endsWith(lang.fileSuffix)) createPsi(file)
         }
 
         override fun onFileDeleted(file: VirtualFile) {

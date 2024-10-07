@@ -1,7 +1,8 @@
 package cengine.psi.core
 
-import cengine.editor.annotation.Notation
-import cengine.editor.widgets.Widget
+import cengine.editor.annotation.Annotation
+import cengine.lang.asm.CodeStyle
+import cengine.psi.feature.Highlightable
 import cengine.vfs.VirtualFile
 
 /**
@@ -12,18 +13,42 @@ interface PsiService {
     fun findElementAt(file: PsiFile, offset: Int): PsiElement?
     fun findReferences(element: PsiElement): List<PsiReference>
 
-    fun collectNotations(file: PsiFile): Set<Notation>{
-        class NotationCollector: PsiElementVisitor{
-            val notations = mutableSetOf<Notation>()
+    fun collectHighlights(file: PsiFile): List<Pair<IntRange, CodeStyle>> {
+        class HighlightCollector : PsiElementVisitor {
+            val highlights = mutableListOf<Pair<IntRange, CodeStyle>>()
             override fun visitFile(file: PsiFile) {
-                notations.addAll(file.notations)
                 file.children.forEach {
                     it.accept(this)
                 }
             }
 
             override fun visitElement(element: PsiElement) {
-                notations.addAll(element.notations)
+                if (element is Highlightable) {
+                    highlights.add(element.range to element.style)
+                }
+                element.children.forEach {
+                    it.accept(this)
+                }
+            }
+        }
+
+        val collector = HighlightCollector()
+        file.accept(collector)
+        return collector.highlights
+    }
+
+    fun collectNotations(file: PsiFile): Set<Annotation> {
+        class NotationCollector : PsiElementVisitor {
+            val annotations = mutableSetOf<Annotation>()
+            override fun visitFile(file: PsiFile) {
+                annotations.addAll(file.annotations)
+                file.children.forEach {
+                    it.accept(this)
+                }
+            }
+
+            override fun visitElement(element: PsiElement) {
+                annotations.addAll(element.annotations)
                 element.children.forEach {
                     it.accept(this)
                 }
@@ -32,82 +57,9 @@ interface PsiService {
 
         val collector = NotationCollector()
         file.accept(collector)
-        return collector.notations
+        return collector.annotations
     }
 
-    fun collectInterlineWidgetsInRange(file: PsiFile, range: IntRange): Set<Widget> {
-        class InterlineWidgetCollector() : PsiElementVisitor {
-            val interlineWidgets = mutableSetOf<Widget>()
-            override fun visitFile(file: PsiFile) {
-                interlineWidgets.addAll(file.interlineWidgets)
-                file.children.filter {
-                    when {
-                        it.range.first > range.last -> false
-                        it.range.last < range.first -> false
-                        else -> true
-                    }
-                }.forEach {
-                    it.accept(this)
-                }
-            }
-
-            override fun visitElement(element: PsiElement) {
-                interlineWidgets.addAll(element.interlineWidgets)
-                element.children.filter {
-                    when {
-                        it.range.first > range.last -> false
-                        it.range.last < range.first -> false
-                        else -> true
-                    }
-                }.forEach {
-                    it.accept(this)
-                }
-            }
-        }
-
-        val builder = InterlineWidgetCollector()
-        file.accept(builder)
-        return builder.interlineWidgets
-    }
-
-    fun collectInlayWidgetsInRange(file: PsiFile, range: IntRange): Set<Widget> {
-        class InlayWidgetCollector : PsiElementVisitor {
-            val inlayWidgets = mutableSetOf<Widget>()
-                get() {
-                    return field
-                }
-
-            override fun visitFile(file: PsiFile) {
-                inlayWidgets.addAll(file.inlayWidgets)
-                file.children.filter {
-                    when {
-                        it.range.first > range.last -> false
-                        it.range.last < range.first -> false
-                        else -> true
-                    }
-                }.forEach {
-                    it.accept(this)
-                }
-            }
-
-            override fun visitElement(element: PsiElement) {
-                inlayWidgets.addAll(element.inlayWidgets)
-                element.children.filter {
-                    when {
-                        it.range.first > range.last -> false
-                        it.range.last < range.first -> false
-                        else -> true
-                    }
-                }.forEach {
-                    it.accept(this)
-                }
-            }
-        }
-
-        val builder = InlayWidgetCollector()
-        file.accept(builder)
-        return builder.inlayWidgets
-    }
 
     fun path(of: PsiElement): List<PsiElement> {
 

@@ -122,7 +122,7 @@ class ModificationOverlay<T : EditorModification>(val editor: PerformantCodeEdit
         if (selectedValue != null) {
             selectedValue.execute(editor)
             makeInvisible()
-            editor.invalidateContent()
+            editor.invalidateContent(editor)
         }
     }
 

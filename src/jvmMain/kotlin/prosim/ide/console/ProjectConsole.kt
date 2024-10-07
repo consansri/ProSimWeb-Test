@@ -10,7 +10,7 @@ import prosim.uilib.styled.editor.CEditorArea
 class ProjectConsole: CConsole() {
 
     fun dump(codeEditor: CodeEditor){
-        val chars = codeEditor.notations.flatMap {
+        val chars = codeEditor.annotations.flatMap {
             val style = CEditorArea.Style(when(it.severity){
                 Severity.INFO -> null
                 Severity.WARNING -> UIStates.theme.get().getColor(CodeStyle.YELLOW)

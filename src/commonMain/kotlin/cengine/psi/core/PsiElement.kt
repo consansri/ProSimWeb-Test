@@ -1,7 +1,6 @@
 package cengine.psi.core
 
-import cengine.editor.annotation.Notation
-import cengine.editor.widgets.Widget
+import cengine.editor.annotation.Annotation
 
 /**
  * Base Element for all PSI elements
@@ -11,10 +10,8 @@ interface PsiElement : Interval {
     val pathName: String
     val parent: PsiElement?
     val children: List<PsiElement>
-    val notations: List<Notation>
+    val annotations: List<Annotation>
     val additionalInfo: String
-    val interlineWidgets: List<Widget>
-    val inlayWidgets: List<Widget>
 
     override var range: IntRange
 

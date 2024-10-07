@@ -1,8 +1,7 @@
 package cengine.lang.asm.ast.impl
 
 import cengine.editor.CodeEditor
-import cengine.editor.annotation.Notation
-import cengine.editor.widgets.Widget
+import cengine.editor.annotation.Annotation
 import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.DirTypeInterface
@@ -18,6 +17,7 @@ import cengine.lang.asm.elf.Sym
 import cengine.lang.asm.elf.elf32.ELF32_Sym
 import cengine.lang.asm.elf.elf64.ELF64_Sym
 import cengine.psi.core.*
+import cengine.psi.feature.Highlightable
 import cengine.psi.lexer.core.Token
 import cengine.util.integer.*
 import debug.DebugTools
@@ -42,29 +42,21 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
     override var parent: PsiElement? = null
 
     final override val children: MutableList<ASNode> = mutableListOf(*children)
-    final override val notations: MutableList<Notation> = mutableListOf()
-    override val inlayWidgets: MutableList<Widget> = mutableListOf()
-    override val interlineWidgets: MutableList<Widget> = mutableListOf()
+    final override val annotations: MutableList<Annotation> = mutableListOf()
 
     override val additionalInfo: String
         get() = ""
 
     fun addError(message: String, execute: (CodeEditor) -> Unit = {}) {
-        notations.add(Notation.error(this, message, execute))
+        annotations.add(Annotation.error(this, message, execute))
     }
 
     fun addWarn(message: String, execute: (CodeEditor) -> Unit = {}) {
-        notations.add(Notation.warn(this, message, execute))
+        annotations.add(Annotation.warn(this, message, execute))
     }
 
     fun addInfo(message: String, execute: (CodeEditor) -> Unit = {}) {
-        notations.add(Notation.info(this, message, execute))
-    }
-
-    open fun getCodeStyle(position: Int): CodeStyle? {
-        return children.firstOrNull {
-            position in it.range
-        }?.getCodeStyle(position)
+        annotations.add(Annotation.info(this, message, execute))
     }
 
     override fun accept(visitor: PsiElementVisitor) {
@@ -72,7 +64,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         visitor.visitElement(this)
     }
 
-    class Comment(val token: AsmToken) : ASNode(token.range) {
+    class Comment(val token: AsmToken) : ASNode(token.range), Highlightable {
+        override val style: CodeStyle
+            get() = CodeStyle.comment
         override val pathName: String
             get() = PATHNAME
 
@@ -83,9 +77,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         override fun getFormatted(identSize: Int): String = token.value
     }
 
-    class Error(val message: String, vararg val tokens: AsmToken) : ASNode(tokens.first().range.first..tokens.last().range.last) {
+    class Error(val message: String, vararg val tokens: AsmToken) : ASNode(tokens.first().range.first..tokens.last().range.last), Highlightable {
         override val pathName: String
             get() = PATHNAME
+
+        override val style: CodeStyle
+            get() = CodeStyle.error
 
         companion object {
             const val PATHNAME = "ERROR"
@@ -108,14 +105,14 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             when (gasNodeType) {
                 ASNodeType.PROGRAM -> {
                     val statements = mutableListOf<Statement>()
-                    val annotations = mutableListOf<Notation>()
+                    val annotations = mutableListOf<Annotation>()
 
                     while (lexer.hasMoreTokens()) {
                         val node = buildNode(ASNodeType.STATEMENT, lexer, targetSpec)
 
                         if (node == null) {
                             val token = lexer.consume(true)
-                            annotations.add(Notation.error(token, "Expected a Statement!"))
+                            annotations.add(Annotation.error(token, "Expected a Statement!"))
                             continue
                         }
 
@@ -132,7 +129,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     }
 
                     val node = Program(statements, lexer.ignored.map { Comment(it as AsmToken) })
-                    node.notations.addAll(annotations)
+                    node.annotations.addAll(annotations)
                     return node
                 }
 
@@ -144,7 +141,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
                             val node = Statement.Dir(label, directive, lineBreak)
-                            node.notations.add(Notation.error(lineBreak, "Linebreak is missing!"))
+                            node.annotations.add(Annotation.error(lineBreak, "Linebreak is missing!"))
                             return node
                         }
 
@@ -156,7 +153,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
                             val node = Statement.Instr(label, instruction, lineBreak)
-                            node.notations.add(Notation.error(lineBreak, "Linebreak is missing!"))
+                            node.annotations.add(Annotation.error(lineBreak, "Linebreak is missing!"))
                             return node
                         }
 
@@ -178,7 +175,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                             if (!lexer.hasMoreTokens()) {
                                 // TODO Error Handling
                                 val node = Statement.Unresolved(label, unresolvedTokens, token)
-                                node.notations.add(Notation.error(lineBreak, "Linebreak is missing!"))
+                                node.annotations.add(Annotation.error(lineBreak, "Linebreak is missing!"))
                                 return node
                             }
 
@@ -338,14 +335,6 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
     ) {
         override val pathName: String get() = PATHNAME
 
-        override fun getCodeStyle(position: Int): CodeStyle? {
-            if (label != null && position in label.range) {
-                return label.getCodeStyle(position)
-            }
-
-            return super.getCodeStyle(position)
-        }
-
         init {
             if (label != null) {
                 children.add(label)
@@ -358,7 +347,6 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         }
 
         class Dir(label: Label?, val dir: Directive, lineBreak: AsmToken) : Statement(label, lineBreak, null, dir) {
-            override val interlineWidgets: MutableList<Widget> = mutableListOf(Widget("directive", dir.type.typeName, Widget.Type.INTERLINE, { this.range.first }))
             override fun getFormatted(identSize: Int): String {
                 return if (label != null) {
                     label.getFormatted(identSize) + " ".repeat(identSize - label.range.count() % identSize) + dir.getFormatted(identSize) + lineBreak.value
@@ -368,7 +356,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             }
         }
 
-        class Instr(label: Label?, val instruction: Instruction, lineBreak: AsmToken) : Statement(label, lineBreak, null, instruction) {
+        class Instr(label: Label?, val instruction: Instruction, lineBreak: AsmToken) : Statement(label, lineBreak, null, instruction), Highlightable {
+            override val style: CodeStyle get() = CodeStyle.keyWordInstr
+
             override fun getFormatted(identSize: Int): String {
                 return if (label != null) {
                     label.getFormatted(identSize) + " ".repeat(identSize - label.range.count() % identSize) + instruction.getFormatted(identSize) + lineBreak.value
@@ -403,14 +393,14 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         }
     }
 
-    class Label(val nameToken: AsmToken, val colon: AsmToken) : ASNode(nameToken.start..<colon.end) {
+    class Label(val nameToken: AsmToken, val colon: AsmToken) : ASNode(nameToken.start..<colon.end), Highlightable {
         override val pathName get() = nameToken.value + colon.value
         val type = if (nameToken.type == AsmTokenType.INT_DEC) Type.NUMERIC else Type.ALPHANUMERIC
         val identifier = nameToken.value
+        override val style: CodeStyle
+            get() = CodeStyle.label
 
         override fun getFormatted(identSize: Int): String = "${nameToken.value}${colon.value}"
-
-        override fun getCodeStyle(position: Int): CodeStyle = CodeStyle.label
 
         enum class Type {
             NUMERIC,
@@ -424,9 +414,10 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
     class Directive(val type: DirTypeInterface, val optionalIdentificationToken: AsmToken?, val allTokens: List<AsmToken> = listOf(), val additionalNodes: List<ASNode> = listOf()) : ASNode(
         (optionalIdentificationToken?.range?.start ?: allTokens.first().range.first)..maxOf(allTokens.lastOrNull()?.range?.start ?: 0, additionalNodes.lastOrNull()?.range?.last ?: 0),
         *additionalNodes.toTypedArray()
-    ) {
+    ), Highlightable {
         override val pathName: String get() = type.typeName
-
+        override val style: CodeStyle
+            get() = CodeStyle.keyWordDir
         override val additionalInfo: String
             get() = type.typeName + " " + optionalIdentificationToken
 
@@ -441,14 +432,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         }
     }
 
-    sealed class Argument(val argName: AsmToken, range: IntRange) : ASNode(range) {
+    sealed class Argument(val argName: AsmToken, range: IntRange) : ASNode(range), Highlightable {
         override val pathName: String
             get() = argName.value
 
-        override fun getCodeStyle(position: Int): CodeStyle? {
-            if (position in argName.range) return CodeStyle.argument
-            return super.getCodeStyle(position)
-        }
+        override val style: CodeStyle
+            get() = CodeStyle.argument
 
         abstract fun getDefaultValue(): String
 
@@ -465,21 +454,16 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 }
             }
 
-            override fun getCodeStyle(position: Int): CodeStyle? {
-                if (position in argName.range || position in assignment.range) {
-                    return CodeStyle.argument
-                }
-
-                return super.getCodeStyle(position)
-            }
-
             override fun getDefaultValue(): String = expression?.getFormatted(identSize = 4) ?: ""
 
             override fun getFormatted(identSize: Int): String = "${argName.value} ${assignment.value}${if (expression != null) " ${expression.getFormatted(identSize)}" else ""}"
         }
     }
 
-    sealed class ArgDef(val content: List<AsmToken>, range: IntRange) : ASNode(range) {
+    sealed class ArgDef(val content: List<AsmToken>, range: IntRange) : ASNode(range), Highlightable {
+
+        override val style: CodeStyle
+            get() = CodeStyle.argument
 
         class Positional(content: List<AsmToken>) : ArgDef(content, content.first().range.first..content.last().range.last) {
             override val pathName: String
@@ -515,21 +499,16 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 }
             }
 
-            override fun getCodeStyle(position: Int): CodeStyle? {
-                if (position in nameToken.range || position in assignment.range) {
-                    return CodeStyle.argument
-                }
-
-                return super.getCodeStyle(position)
-            }
-
             override fun getFormatted(identSize: Int): String = "${nameToken.value} ${assignment.value} ${content.joinToString("") { it.value }}"
         }
     }
 
-    class Instruction(val type: InstrTypeInterface, val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
+    class Instruction(val type: InstrTypeInterface, val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()), Highlightable {
         override val pathName: String
             get() = instrName.value
+
+        override val style: CodeStyle
+            get() = CodeStyle.keyWordInstr
 
         override fun getFormatted(identSize: Int): String = "${instrName.value} ${
             (tokens + nodes).sortedBy { it.range.first }.joinToString("") {
@@ -540,26 +519,6 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 }
             }
         }"
-
-        override fun getCodeStyle(position: Int): CodeStyle? {
-            if (position in instrName.range) {
-                return CodeStyle.keyWordInstr
-            }
-
-            tokens.firstOrNull {
-                position in it.range
-            }?.let {
-                return it.type.style
-            }
-
-            nodes.firstOrNull {
-                position in it.range
-            }?.let {
-                return it.getCodeStyle(position)
-            }
-
-            return super.getCodeStyle(position)
-        }
     }
 
     class TokenExpr(val token: AsmToken) : ASNode(token.range) {
@@ -573,7 +532,10 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         override fun getFormatted(identSize: Int): String = token.value
     }
 
-    sealed class StringExpr(range: IntRange, vararg operands: StringExpr) : ASNode(range, *operands) {
+    sealed class StringExpr(range: IntRange, vararg operands: StringExpr) : ASNode(range, *operands), Highlightable {
+
+        override val style: CodeStyle
+            get() = CodeStyle.string
 
         abstract fun evaluate(printErrors: Boolean): String
 
@@ -596,12 +558,8 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 override val element: PsiElement = this
                 override var referencedElement: PsiElement? = null
 
-                override fun getCodeStyle(position: Int): CodeStyle? {
-                    if (expr != null) {
-                        return CodeStyle.symbol
-                    }
-                    return null
-                }
+                override val style: CodeStyle
+                    get() = CodeStyle.symbol
 
                 override fun evaluate(printErrors: Boolean): String {
                     val currExpr = expr
@@ -718,7 +676,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                         val unusedTokens = (relevantTokens - postFixTokens).filter { !it.type.isBasicBracket() }
                         if (unusedTokens.isNotEmpty()) {
                             unusedTokens.forEach {
-                                expression.notations.add(Notation.error(it, "Invalid Token $it for Numeric Expression!"))
+                                expression.annotations.add(Annotation.error(it, "Invalid Token $it for Numeric Expression!"))
                             }
                         }
                     }
@@ -990,7 +948,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             override val pathName: String
                 get() = additionalInfo
 
-            class Identifier(val symToken: AsmToken) : Operand(symToken, symToken.range), PsiReference {
+            class Identifier(val symToken: AsmToken) : Operand(symToken, symToken.range), PsiReference, Highlightable {
                 private var symbol: Sym? = null
                 private var label: RelocatableELFBuilder.Section.LabelDef? = null
 
@@ -1002,7 +960,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
                 override fun getFormatted(identSize: Int): String = symToken.value
 
-                
+                override val style: CodeStyle
+                    get() = when{
+                        symbol != null -> CodeStyle.symbol
+                        label != null -> CodeStyle.label
+                        else -> CodeStyle.error
+                    }
                 
                 override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
                     val currSymbol = symbol
@@ -1041,18 +1004,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     if (symbol != null) label = null
                 }
 
-                override fun getCodeStyle(position: Int): CodeStyle? {
-                    if (symbol != null) return CodeStyle.symbol
-                    if (label != null) return CodeStyle.label
-                    return null
-                }
-
                 override fun resolve(): PsiElement? = referencedElement
 
                 override fun isReferenceTo(element: PsiElement): Boolean = referencedElement == element
             }
 
-            class Number(val number: AsmToken) : Operand(number, number.range) {
+            class Number(val number: AsmToken) : Operand(number, number.range), Highlightable {
                 override val additionalInfo: String
                     get() = number.value
                 override var evaluated: Dec? = null
@@ -1111,10 +1068,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 override fun assign(symTab: RelocatableELFBuilder.SymTab) {}
 
                 override fun getFormatted(identSize: Int): String = number.value
-                override fun getCodeStyle(position: Int): CodeStyle? = number.type.style
+
+                override val style: CodeStyle
+                    get() = number.type.style ?: CodeStyle.integer
             }
 
-            class Char(val char: AsmToken) : Operand(char, char.range) {
+            class Char(val char: AsmToken) : Operand(char, char.range), Highlightable {
 
                 val value: Byte = char.getContentAsString().encodeToByteArray().first()
                 override val additionalInfo: String
@@ -1131,7 +1090,8 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
                 override fun getFormatted(identSize: Int): String = char.value
 
-                override fun getCodeStyle(position: Int): CodeStyle? = char.type.style
+                override val style: CodeStyle
+                    get() = CodeStyle.char
             }
         }
     }

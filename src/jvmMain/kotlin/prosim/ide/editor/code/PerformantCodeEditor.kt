@@ -2,7 +2,7 @@ package prosim.ide.editor.code
 
 import cengine.editor.CodeEditor
 import cengine.editor.EditorModification
-import cengine.editor.annotation.Notation
+import cengine.editor.annotation.Annotation
 import cengine.editor.folding.LineIndicator
 import cengine.editor.indentation.BasicIndenation
 import cengine.editor.indentation.IndentationProvider
@@ -11,7 +11,6 @@ import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
 import cengine.editor.widgets.Widget
-import cengine.lang.LanguageService
 import cengine.project.Project
 import cengine.psi.PsiManager
 import cengine.psi.core.PsiElement
@@ -55,7 +54,7 @@ class PerformantCodeEditor(
             if (value != null) nativeLog("Path: ${lang?.psiService?.path(value)?.joinToString(" > ") { it.pathName }}")
         }
 
-    override var notations: Set<Notation> = emptySet()
+    var annotations: Set<Annotation> = emptySet()
     override val psiManager: PsiManager<*>? = project.getManager(file)
 
     override val textModel: TextModel = RopeModel(file.getAsUTF8String())
@@ -63,8 +62,6 @@ class PerformantCodeEditor(
 
     override val textStateModel: TextStateModel = TextStateModel(this, textModel, selector)
     override val indentationProvider: IndentationProvider = BasicIndenation(textStateModel, textModel)
-
-    val lang: LanguageService? get() = psiManager?.lang
 
     private var scrollPane: CScrollPane? = null
 
@@ -131,7 +128,7 @@ class PerformantCodeEditor(
         addMouseMotionListener(mouseHandler)
         addKeyListener(keyHandler)
 
-        invalidateContent()
+        invalidateContent(this)
     }
 
     fun createScrollPane(): CScrollPane {
@@ -166,17 +163,17 @@ class PerformantCodeEditor(
         return vLayout.getDocumentSize()
     }
 
-    override fun invalidateContent() {
+    override fun invalidateAnalytics(editor: CodeEditor) {
+        analytics.updateNotations()
+    }
+
+    override fun invalidateContent(editor: CodeEditor) {
         updateJob.getAndSet(launch {
             psiManager?.getPsiFile(file)?.let {
                 currentElement = psiManager.lang.psiService.findElementAt(it, selector.caret.index)
             }
             updateContent()
         })?.cancel()
-    }
-
-    override fun invalidateAnalytics() {
-        analytics.updateNotations()
     }
 
     private suspend fun updateContent() {
@@ -565,7 +562,7 @@ class PerformantCodeEditor(
                 drawString(char.toString(), internalXOffset, yOffset + fmCode.ascent + vLayout.linePadding)
 
                 // Draw Underline
-                psiElement?.notations?.minByOrNull { it.severity }?.let {
+                psiElement?.annotations?.minByOrNull { it.severity }?.let {
                     color = it.severity.toColor().toColor()
                     drawLine(internalXOffset, yOffset + vLayout.lineHeight - vLayout.linePadding, internalXOffset + charWidth, yOffset + vLayout.lineHeight - vLayout.linePadding)
                 }
@@ -681,7 +678,7 @@ class PerformantCodeEditor(
                     val index = textModel.indexOf(line.line, line.column)
                     selector.selectCurrentWord(index, Selector.DEFAULT_SYMBOL_CHARS, true)
                 }
-                invalidateContent()
+                invalidateContent(this@PerformantCodeEditor)
             }
         }
 
@@ -731,7 +728,7 @@ class PerformantCodeEditor(
                 val index = textModel.indexOf(line, column)
                 val psiFile = psiManager?.getPsiFile(file)
                 if (psiFile != null) {
-                    val annotations = lang?.psiService?.findElementAt(psiFile, index)?.notations ?: emptyList()
+                    val annotations = lang?.psiService?.findElementAt(psiFile, index)?.annotations ?: emptyList()
                     if (annotations.isNotEmpty()) {
                         SwingUtilities.invokeLater {
                             modificationOverlay.showOverlay(annotations.sortedBy { it.severity }, e.x, e.y, this@PerformantCodeEditor)
@@ -759,7 +756,7 @@ class PerformantCodeEditor(
             }
             scrollToCaret()
             fetchCompletions()
-            invalidateContent()
+            invalidateContent(this@PerformantCodeEditor)
             e.consume()
         }
 
@@ -920,7 +917,7 @@ class PerformantCodeEditor(
             }
             scrollToCaret()
             fetchCompletions(onlyHide = true)
-            invalidateContent()
+            invalidateContent(this@PerformantCodeEditor)
             e.consume()
         }
 

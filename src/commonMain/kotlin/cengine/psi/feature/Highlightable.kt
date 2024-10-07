@@ -1,14 +1,10 @@
-package cengine.editor.highlighting
+package cengine.psi.feature
 
 import cengine.lang.asm.CodeStyle
-import cengine.psi.core.Interval
 
-data class Highlight(val element: Interval, val type: Type): HLInfo {
-    override val range: IntRange
-        get() = element.range
+interface Highlightable {
+    val style: CodeStyle
 
-    override val color: Int
-        get() = type.style.getDarkElseLight()
 
     enum class Type(val style: CodeStyle) {
         KEYWORD(CodeStyle.ORANGE),

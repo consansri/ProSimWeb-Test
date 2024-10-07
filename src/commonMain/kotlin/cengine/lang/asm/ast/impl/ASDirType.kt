@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast.impl
 
-import cengine.editor.annotation.Notation
+import cengine.editor.annotation.Annotation
 import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.Rule
@@ -1064,56 +1064,56 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit8) && !value.checkSizeUnsigned(Bit8)) {
-                    it.notations.add(Notation.error(it, "$value exceeds ${Bit8}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit8}."))
                 }
             }
 
             HWORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit16) && !value.checkSizeUnsigned(Bit16)) {
-                    it.notations.add(Notation.error(it, "$value exceeds ${Bit16}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit16}."))
                 }
             }
 
             INT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit32) && !value.checkSizeUnsigned(Bit32)) {
-                    it.notations.add(Notation.error(it, "$value exceeds ${Bit32}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit32}."))
                 }
             }
 
             SHORT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit16) && !value.checkSizeUnsigned(Bit16)) {
-                    it.notations.add(Notation.error(it, "$value exceeds ${Bit16}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit16}."))
                 }
             }
 
             WORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit32) && !value.checkSizeUnsigned(Bit32)) {
-                    it.notations.add(Notation.error(it, "$value exceeds ${Bit32}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit32}."))
                 }
             }
 
             _2BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit16) && !value.checkSizeUnsigned(Bit16)) {
-                    it.notations.add(Notation.error(it, "$value exceeds ${Bit16}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit16}."))
                 }
             }
 
             _4BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit32) && !value.checkSizeUnsigned(Bit32)) {
-                    it.notations.add(Notation.error(it, "$value exceeds ${Bit32}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit32}."))
                 }
             }
 
             _8BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.checkSizeSigned(Bit64) && !value.checkSizeUnsigned(Bit64)) {
-                    it.notations.add(Notation.error(it, "$value exceeds ${Bit64}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit64}."))
                 }
             }
 
@@ -1150,12 +1150,12 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                     try {
                         val byte = expr.evaluate(builder).toByte()
                         if (byte == null) {
-                            expr.notations.add(Notation.error(expr, "${expr.evaluated} exceeds ${Bit8}!"))
+                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit8}!"))
                             continue
                         }
                         builder.currentSection.content.put(byte)
                     } catch (e: Exception) {
-                        expr.notations.add(Notation.error(expr, "Evaluation Error: " + e.message))
+                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
                     }
                 }
             }
@@ -1296,12 +1296,12 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                     try {
                         val uint32 = expr.evaluate(builder).toHex().toUInt()
                         if (uint32 == null) {
-                            expr.notations.add(Notation.error(expr, "${expr.evaluated} exceeds ${Bit32}!"))
+                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit32}!"))
                             continue
                         }
                         builder.currentSection.content.put(uint32)
                     } catch (e: Exception) {
-                        expr.notations.add(Notation.error(expr, "Evaluation Error: " + e.message))
+                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
                     }
                 }
             }
@@ -1310,7 +1310,7 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             _2BYTE -> TODO()
             _4BYTE -> TODO()
             _8BYTE -> TODO()
-            else -> dir.notations.add(Notation.warn(dir, "Not $this yet implemented."))
+            else -> dir.annotations.add(Annotation.warn(dir, "Not $this yet implemented."))
         }
     }
 
