@@ -197,9 +197,7 @@ fun LazyListScope.node(
 ) {
     val icon = UIState.Icon.value
 
-
-
-    item {
+    item(file.path) {
         var itemPosition by remember { mutableStateOf(Rect.Zero) }
 
         Row(

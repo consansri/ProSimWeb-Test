@@ -18,13 +18,13 @@ import ui.uilib.params.FontType
 data class TabItem<T : Any>(
     val value: T,
     val icon: ImageVector,
-    val title: String,
-    val content: @Composable () -> Unit
+    val title: String
 )
 
 @Composable
 fun <T : Any> TabbedPane(
     tabs: List<TabItem<T>>,
+    content: @Composable (Int) -> Unit,
     modifier: Modifier = Modifier,
     onCloseTab: (TabItem<T>) -> Unit
 ) {
@@ -45,7 +45,9 @@ fun <T : Any> TabbedPane(
                 Column(
                     Modifier
                         .weight(1f)
-                        .clickable { selectedTabIndex = index }
+                        .clickable {
+                            selectedTabIndex = index
+                        }
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -86,14 +88,14 @@ fun <T : Any> TabbedPane(
                 .background(UIState.Theme.value.COLOR_BORDER)
         )
 
-        // Display the content of the selected tab
-        if (tabs.isNotEmpty()) {
+        if (selectedTabIndex in tabs.indices) {
+            // Display the content of the selected tab
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                tabs[selectedTabIndex.coerceAtMost(tabs.lastIndex)].content()
+                content(selectedTabIndex)
             }
         } else {
             // Display a message when no tabs are open
@@ -110,7 +112,5 @@ fun <T : Any> TabbedPane(
                 )
             }
         }
-
     }
-
 }

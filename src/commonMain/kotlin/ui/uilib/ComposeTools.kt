@@ -1,5 +1,6 @@
 package ui.uilib
 
+import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -19,6 +20,21 @@ object ComposeTools {
             sum += reducer(it)
         }
         return sum
+    }
+
+    @Composable
+    fun <T> TrackStateChanges(
+        state: T,
+        onStateChanged: (oldValue: T, newValue: T) -> Unit
+    ) {
+        var previousState by remember { mutableStateOf(state) }
+
+        LaunchedEffect(state) {
+            if (previousState != state) {
+                onStateChanged(previousState, state)
+                previousState = state
+            }
+        }
     }
 
 

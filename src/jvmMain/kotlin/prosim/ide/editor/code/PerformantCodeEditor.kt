@@ -3,14 +3,12 @@ package prosim.ide.editor.code
 import cengine.editor.CodeEditor
 import cengine.editor.EditorModification
 import cengine.editor.annotation.Annotation
-import cengine.editor.folding.LineIndicator
 import cengine.editor.indentation.BasicIndenation
 import cengine.editor.indentation.IndentationProvider
 import cengine.editor.selection.Selector
 import cengine.editor.text.RopeModel
 import cengine.editor.text.TextModel
 import cengine.editor.text.state.TextStateModel
-import cengine.editor.widgets.Widget
 import cengine.project.Project
 import cengine.psi.PsiManager
 import cengine.psi.core.PsiElement
@@ -53,8 +51,8 @@ class PerformantCodeEditor(
             field = value
             if (value != null) nativeLog("Path: ${lang?.psiService?.path(value)?.joinToString(" > ") { it.pathName }}")
         }
+    override var annotations: Set<Annotation> = emptySet()
 
-    var annotations: Set<Annotation> = emptySet()
     override val psiManager: PsiManager<*>? = project.getManager(file)
 
     override val textModel: TextModel = RopeModel(file.getAsUTF8String())

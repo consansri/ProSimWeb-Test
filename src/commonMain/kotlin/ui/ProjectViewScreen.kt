@@ -15,6 +15,7 @@ import cengine.lang.cown.CownLang
 import cengine.project.Project
 import cengine.project.ProjectState
 import cengine.vfs.VirtualFile
+import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.editor.Editor
 import ui.uilib.filetree.FileTree
@@ -47,13 +48,7 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
             // Left content
             FileTree(project.fileSystem) { file ->
                 if (file.isFile && !fileEditors.any { it.value == file }) {
-                    fileEditors.add(TabItem(file, icons.file, file.name) {
-                        // Display File Content
-                        Editor(
-                            Modifier,
-                            file, project
-                        )
-                    })
+                    fileEditors.add(TabItem(file, icons.file, file.name))
                 }
             }
         }
@@ -74,7 +69,18 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
                 centerContent = {
                     Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_0)) {
                         // Center content
-                        TabbedPane(fileEditors) {
+                        TabbedPane(fileEditors, content = { index ->
+                            // Display File Content
+                            nativeLog("Displaying Editor for ${fileEditors[index].title}!")
+                            key(fileEditors[index].value.path) {
+                                Editor(
+                                    Modifier,
+                                    fileEditors[index].value,
+                                    project
+                                )
+                            }
+
+                        }) {
                             fileEditors.remove(it)
                         }
                     }
@@ -148,5 +154,4 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
 
 enum class ToolContentType {
     FileTree;
-
 }

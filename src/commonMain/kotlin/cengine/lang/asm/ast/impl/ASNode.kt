@@ -356,9 +356,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             }
         }
 
-        class Instr(label: Label?, val instruction: Instruction, lineBreak: AsmToken) : Statement(label, lineBreak, null, instruction), Highlightable {
-            override val style: CodeStyle get() = CodeStyle.keyWordInstr
-
+        class Instr(label: Label?, val instruction: Instruction, lineBreak: AsmToken) : Statement(label, lineBreak, null, instruction) {
             override fun getFormatted(identSize: Int): String {
                 return if (label != null) {
                     label.getFormatted(identSize) + " ".repeat(identSize - label.range.count() % identSize) + instruction.getFormatted(identSize) + lineBreak.value
@@ -414,10 +412,8 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
     class Directive(val type: DirTypeInterface, val optionalIdentificationToken: AsmToken?, val allTokens: List<AsmToken> = listOf(), val additionalNodes: List<ASNode> = listOf()) : ASNode(
         (optionalIdentificationToken?.range?.start ?: allTokens.first().range.first)..maxOf(allTokens.lastOrNull()?.range?.start ?: 0, additionalNodes.lastOrNull()?.range?.last ?: 0),
         *additionalNodes.toTypedArray()
-    ), Highlightable {
+    ) {
         override val pathName: String get() = type.typeName
-        override val style: CodeStyle
-            get() = CodeStyle.keyWordDir
         override val additionalInfo: String
             get() = type.typeName + " " + optionalIdentificationToken
 
@@ -503,12 +499,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         }
     }
 
-    class Instruction(val type: InstrTypeInterface, val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()), Highlightable {
+    class Instruction(val type: InstrTypeInterface, val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
         override val pathName: String
             get() = instrName.value
-
-        override val style: CodeStyle
-            get() = CodeStyle.keyWordInstr
 
         override fun getFormatted(identSize: Int): String = "${instrName.value} ${
             (tokens + nodes).sortedBy { it.range.first }.joinToString("") {
