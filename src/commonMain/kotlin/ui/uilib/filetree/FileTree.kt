@@ -34,7 +34,7 @@ fun FileTree(
     onDoubleClick: (VirtualFile) -> Unit
 ) {
     val expandedItems = remember { mutableStateListOf<VirtualFile>() }
-    val vfs by remember { mutableStateOf(project.fileSystem)  }
+    val vfs by remember { mutableStateOf(project.fileSystem) }
     var root by remember { mutableStateOf(vfs.root) }
 
     var selectedFile by remember { mutableStateOf<VirtualFile?>(null) }
@@ -170,7 +170,7 @@ fun LazyListScope.nodes(
     depth: Dp,
     expandWidth: Dp
 ) {
-    nodes.forEach {
+    nodes.sortedBy { it.name }.forEach {
         node(
             it,
             expandedItems = expandedItems,
@@ -227,7 +227,6 @@ fun LazyListScope.node(
                                     onLeftClick(file)
                                 }
                             }
-
                         }
                     }
                 },

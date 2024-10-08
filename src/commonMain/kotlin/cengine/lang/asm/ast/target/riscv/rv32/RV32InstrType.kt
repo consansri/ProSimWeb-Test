@@ -121,8 +121,6 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
         val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVBaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) } }
         val exprs = instr.nodes.filterIsInstance<ASNode.NumericExpr>()
 
-
-
         when (this.paramType) {
             RV32ParamType.RD_I20 -> {
                 val expr = exprs[0]
@@ -312,9 +310,9 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
                 val opcode = RVConst.OPC_CSR
                 val funct3 = when (this) {
-                    CSRRWI -> RVConst.FUNCT3_CSR_RW
-                    CSRRSI -> RVConst.FUNCT3_CSR_RS
-                    CSRRCI -> RVConst.FUNCT3_CSR_RC
+                    CSRRWI -> RVConst.FUNCT3_CSR_RWI
+                    CSRRSI -> RVConst.FUNCT3_CSR_RSI
+                    CSRRCI -> RVConst.FUNCT3_CSR_RCI
                     else -> 0U
                 }
 
@@ -500,7 +498,10 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 }
             }
 
-            else -> {}
+            RV32ParamType.RS1_RS2_LBL -> {} // Will be evaluated later
+            RV32ParamType.PS_RS1_JLBL -> {} // Will be evaluated later
+            RV32ParamType.PS_RD_ALBL -> {} // Will be evaluated later
+            RV32ParamType.PS_JLBL -> {} // Will be evaluated later
         }
 
         if (this.labelDependent) {
@@ -730,7 +731,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             JAL1 -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder){ identifier ->
+                val absTarget = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_JAL, section, index.toUInt())
                 }
                 if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
@@ -755,7 +756,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             Call -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder){identifier ->
+                val absTarget = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_HI20, section, index.toUInt())
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_LO12_I, section, index.toUInt() + 4U)
                 }
@@ -788,7 +789,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             Tail -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder){identifier ->
+                val absTarget = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_HI20, section, index.toUInt())
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_LO12_I, section, index.toUInt() + 4U)
                 }
