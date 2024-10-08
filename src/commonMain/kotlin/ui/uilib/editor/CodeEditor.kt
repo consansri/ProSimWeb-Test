@@ -38,9 +38,9 @@ import ui.uilib.params.FontType
 
 @Composable
 fun CodeEditor(
-    modifier: Modifier,
     file: VirtualFile,
-    project: Project
+    project: Project,
+    modifier: Modifier = Modifier
 ) {
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value

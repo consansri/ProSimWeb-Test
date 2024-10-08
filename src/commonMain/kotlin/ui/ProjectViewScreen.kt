@@ -18,6 +18,7 @@ import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.editor.CodeEditor
+import ui.uilib.editor.ObjectEditor
 import ui.uilib.filetree.FileTree
 import ui.uilib.interactable.CToggle
 import ui.uilib.layout.*
@@ -73,11 +74,20 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
                             // Display File Content
                             nativeLog("Displaying Editor for ${fileEditors[index].title}!")
                             key(fileEditors[index].value.path) {
-                                CodeEditor(
-                                    Modifier,
-                                    fileEditors[index].value,
-                                    project
-                                )
+                                when{
+                                    fileEditors[index].value.name.endsWith(".o") -> {
+                                        ObjectEditor(
+                                            fileEditors[index].value,
+                                            project
+                                        )
+                                    }
+                                    else -> {
+                                        CodeEditor(
+                                            fileEditors[index].value,
+                                            project
+                                        )
+                                    }
+                                }
                             }
 
                         }) {

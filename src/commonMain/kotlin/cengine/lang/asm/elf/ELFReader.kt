@@ -30,17 +30,11 @@ class ELFReader(val fileContent: ByteArray) {
 
     init {
         sectionHeaders = readSectionHeaders()
-
         programHeaders = readProgramHeaders()
-
         symbolTable = readSymbolTable()
-
         dynamicSection = readDynamicSection()
-
         relocationTables = readRelocationTables()
-
         relocationTablesWithAddend = readRelocationTablesWithAddend()
-
         noteHeaders = readNoteHeaders()
     }
 

@@ -92,8 +92,7 @@ fun <T : Any> TabbedPane(
             // Display the content of the selected tab
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+                    .fillMaxSize()
             ) {
                 content(selectedTabIndex)
             }
