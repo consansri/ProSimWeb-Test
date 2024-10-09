@@ -2,6 +2,8 @@ package cengine.vfs
 
 import Keys
 import kotlinx.browser.localStorage
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * Platform-specific implementation of the actual file system operations.
@@ -17,8 +19,9 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
      * @param path The relative path of the file to read.
      * @return The content of the file as ByteArray.
      */
+    @OptIn(ExperimentalEncodingApi::class)
     actual fun readFile(path: FPath): ByteArray {
-        val content = localStorage.getItem(getFileKey(path))?.encodeToByteArray() ?: ByteArray(0)
+        val content = Base64.decode(localStorage.getItem(getFileKey(path)) ?: "")
         // nativeLog("ACTUAL ReadFile: $path ${content.size}")
         return content
     }
@@ -29,9 +32,10 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
      * @param path The relative path of the file to write.
      * @param content The content to write to the file.
      */
+    @OptIn(ExperimentalEncodingApi::class)
     actual fun writeFile(path: FPath, content: ByteArray) {
         // nativeLog("ACTUAL WriteFile: $path ${content.size}")
-        localStorage.setItem(getFileKey(path), content.decodeToString())
+        localStorage.setItem(getFileKey(path), Base64.encode(content))
     }
 
     /**
@@ -50,12 +54,13 @@ actual class ActualFileSystem actual constructor(actual val rootPath: String) {
      * @param path The relative path of the file or directory to create.
      * @param isDirectory If the file is a directory.
      */
+    @OptIn(ExperimentalEncodingApi::class)
     actual fun createFile(path: FPath, isDirectory: Boolean) {
         // nativeLog("ACTUAL CreateFile: $path isDirectory=$isDirectory")
         if (isDirectory) {
             // don't save!
         } else {
-            localStorage.setItem(getFileKey(path), "")
+            localStorage.setItem(getFileKey(path), Base64.encode(ByteArray(0)))
         }
     }
 

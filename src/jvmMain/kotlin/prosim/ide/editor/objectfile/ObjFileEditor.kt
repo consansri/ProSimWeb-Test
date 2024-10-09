@@ -39,7 +39,6 @@ class ObjFileEditor(val file: VirtualFile) : EditorComponent() {
     }
 
     private fun formatContent() {
-
         when (mode) {
             Mode.ELF -> {
                 val content = file.getContent().toList().chunked(chunkSize).mapIndexed { index, bytes -> index to bytes }

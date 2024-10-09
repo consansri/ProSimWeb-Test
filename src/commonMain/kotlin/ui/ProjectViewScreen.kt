@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import cengine.lang.RunConfiguration
 import cengine.lang.cown.CownLang
 import cengine.project.Project
@@ -31,6 +32,8 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
 
     val fileEditors = remember { mutableStateListOf<TabItem<VirtualFile>>() }
     var leftContentType by remember { mutableStateOf<ToolContentType?>(null) }
+    var rightContentType by remember { mutableStateOf<ToolContentType?>(null) }
+    var bottomContentType by remember { mutableStateOf<ToolContentType?>(null) }
 
     val project = Project(state, CownLang())
 
@@ -63,6 +66,9 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
         center = {
             ResizableBorderPanels(
                 Modifier.fillMaxSize(),
+                initialLeftWidth = 200.dp,
+                initialBottomHeight = 200.dp,
+                initialRightWidth = 200.dp,
                 leftContent = when (leftContentType) {
                     ToolContentType.FileTree -> fileTree
                     null -> null
@@ -95,16 +101,13 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
                         }
                     }
                 },
-                rightContent = {
-                    Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_1)) {
-                        // Right content
-
-                    }
+                rightContent = when (rightContentType) {
+                    ToolContentType.FileTree -> fileTree
+                    null -> null
                 },
-                bottomContent = {
-                    Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_1)) {
-                        // Bottom content
-                    }
+                bottomContent = when (bottomContentType) {
+                    ToolContentType.FileTree -> fileTree
+                    null -> null
                 }
             )
         },
