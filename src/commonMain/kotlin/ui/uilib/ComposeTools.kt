@@ -1,6 +1,11 @@
 package ui.uilib
 
 import androidx.compose.runtime.*
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.PointerInputScope
+import androidx.compose.ui.input.pointer.changedToDown
+import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -35,6 +40,22 @@ object ComposeTools {
                 previousState = state
             }
         }
+    }
+
+    suspend fun PointerInputScope.detectHover(onHover: (Offset) -> Unit){
+        awaitPointerEventScope {
+            while(true){
+                val event = awaitPointerEvent()
+                val position = event.changes.first().position
+                if(event.changes.first().changedToHovered()){
+                    onHover(position)
+                }
+            }
+        }
+    }
+
+    private fun PointerInputChange.changedToHovered(): Boolean{
+        return changedToDown() || changedToUp()
     }
 
 

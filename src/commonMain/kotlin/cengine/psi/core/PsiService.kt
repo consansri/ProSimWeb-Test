@@ -37,20 +37,39 @@ interface PsiService {
         return collector.highlights
     }
 
-    fun collectNotations(file: PsiFile): Set<Annotation> {
+
+    fun collectNotations(file: PsiFile, index: Int? = null): Set<Annotation> {
         class NotationCollector : PsiElementVisitor {
             val annotations = mutableSetOf<Annotation>()
             override fun visitFile(file: PsiFile) {
                 annotations.addAll(file.annotations)
-                file.children.forEach {
-                    it.accept(this)
+                if (index != null) {
+                    file.children.filter {
+                        index in it.range
+                    }.forEach {
+                        it.accept(this)
+                    }
+                } else {
+                    file.children.forEach {
+                        it.accept(this)
+                    }
                 }
+
             }
 
             override fun visitElement(element: PsiElement) {
                 annotations.addAll(element.annotations)
-                element.children.forEach {
-                    it.accept(this)
+
+                if (index != null) {
+                    element.children.filter {
+                        index in it.range
+                    }.forEach {
+                        it.accept(this)
+                    }
+                } else {
+                    element.children.forEach {
+                        it.accept(this)
+                    }
                 }
             }
         }

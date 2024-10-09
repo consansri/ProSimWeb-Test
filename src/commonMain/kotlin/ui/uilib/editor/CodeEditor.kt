@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.*
@@ -31,6 +33,7 @@ import cengine.psi.core.PsiFile
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ui.uilib.ComposeTools
 import ui.uilib.UIState
@@ -69,10 +72,19 @@ fun CodeEditor(
 
     var textFieldValue by remember { mutableStateOf(TextFieldValue(file.getAsUTF8String())) }
     var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
-    var annotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
+
+    var allAnnotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
+
+    var annotationOverlayJob by remember { mutableStateOf<Job?>(null) }
+    var hoverPosition by remember { mutableStateOf<Offset?>(null) }
+
+    var localAnnotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
+    var isAnnotationVisible by remember { mutableStateOf(false) }
+
     var completions by remember { mutableStateOf<List<Completion>>(emptyList()) }
     var isCompletionVisible by remember { mutableStateOf(false) }
     var selectedCompletionIndex by remember { mutableStateOf(0) }
+
     var caretOffset by remember { mutableStateOf<Offset>(Offset(0f, 0f)) }
     var currentElement by remember { mutableStateOf<PsiElement?>(null) }
 
@@ -87,8 +99,8 @@ fun CodeEditor(
 
         if (service != null && psiFile != null) {
             // Complete Highlighting
-            annotations = service.collectNotations(psiFile)
-            val annotationStyles = annotations.mapNotNull {
+            allAnnotations = service.collectNotations(psiFile)
+            val annotationStyles = allAnnotations.mapNotNull {
                 val annoCodeStyle = it.severity.color ?: CodeStyle.BASE0
                 val style = SpanStyle(textDecoration = TextDecoration.Underline, color = theme.getColor(annoCodeStyle))
                 if (!it.range.isEmpty()) {
@@ -173,6 +185,24 @@ fun CodeEditor(
             .horizontalScroll(scrollHorizontal)
             .onGloballyPositioned {
                 viewSize = it.size.toSize()
+            }
+            .pointerInput(Unit) {
+
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        if (event.type == PointerEventType.Move) {
+                            val position = event.changes.first().position
+
+                            hoverPosition = null
+                            annotationOverlayJob?.cancel()
+                            annotationOverlayJob = coroutineScope.launch {
+                                delay(500)
+                                hoverPosition = position
+                            }
+                        }
+                    }
+                }
             }
 
     ) {
@@ -303,6 +333,22 @@ fun CodeEditor(
                 selectedCompletionIndex
             )
         }
+
+        if (isAnnotationVisible) {
+            hoverPosition?.let {
+                AnnotationOverlay(
+                    Modifier.offset(
+                        with(LocalDensity.current) {
+                            it.x.toDp() + rowHeaderWidth.toDp()
+                        },
+                        with(LocalDensity.current) {
+                            it.y.toDp()
+                        }
+                    ),
+                    localAnnotations,
+                )
+            }
+        }
     }
 
     ComposeTools.TrackStateChanges(textFieldValue) { oldValue, newValue ->
@@ -321,6 +367,22 @@ fun CodeEditor(
     LaunchedEffect(completions) {
         isCompletionVisible = completions.isNotEmpty()
         selectedCompletionIndex = 0
+    }
+
+    LaunchedEffect(hoverPosition) {
+
+        isAnnotationVisible = false
+
+        hoverPosition?.let { hoverPosition ->
+            val inCodePosition = Offset(hoverPosition.x - rowHeaderWidth, hoverPosition.y)
+            val index = textLayout?.getOffsetForPosition(inCodePosition) ?: return@let
+            val psiFile = manager?.getPsiFile(file) ?: return@let
+            localAnnotations = service?.collectNotations(psiFile, index) ?: return@let
+        }
+    }
+
+    LaunchedEffect(localAnnotations){
+        isAnnotationVisible = localAnnotations.isNotEmpty()
     }
 
     //processTextFieldValue()
