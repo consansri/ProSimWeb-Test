@@ -8,6 +8,7 @@ import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
 
 object ComposeTools {
 
@@ -30,7 +31,7 @@ object ComposeTools {
     @Composable
     fun <T> TrackStateChanges(
         state: T,
-        onStateChanged: (oldValue: T, newValue: T) -> Unit
+        onStateChanged: CoroutineScope.(oldValue: T, newValue: T) -> Unit
     ) {
         var previousState by remember { mutableStateOf(state) }
 

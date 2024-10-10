@@ -142,7 +142,6 @@ fun FileTree(
         )
     }
 
-
     LaunchedEffect(Unit) {
         vfs.addChangeListener(object : FileChangeListener {
             override fun onFileChanged(file: VirtualFile) {

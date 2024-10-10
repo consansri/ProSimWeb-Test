@@ -45,6 +45,7 @@ fun CodeEditor(
     project: Project,
     modifier: Modifier = Modifier
 ) {
+
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
 
@@ -53,8 +54,11 @@ fun CodeEditor(
     val baseStyle = FontType.SMALL.getStyle()
     val textMeasurer = rememberTextMeasurer()
 
+    var lineNumberLabelingBounds by remember { mutableStateOf<Size>(Size.Zero) }
     val (lineCount, setLineCount) = remember { mutableStateOf(0) }
     val (lineHeight, setLineHeight) = remember { mutableStateOf(0f) }
+
+
     var currentLine by remember { mutableStateOf(0) }
     var rowHeaderWidth by remember { mutableStateOf<Float>(0f) }
 
@@ -68,29 +72,9 @@ fun CodeEditor(
     val manager by remember { mutableStateOf(project.getManager(file)) }
     val lang = remember { manager?.lang }
     val service = remember { lang?.psiService }
-
-    val coroutineScope = rememberCoroutineScope()
-    var processJob by remember { mutableStateOf<Job?>(null) }
-
-    var textFieldValue by remember { mutableStateOf(TextFieldValue(file.getAsUTF8String())) }
-    var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
-
     var allAnnotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
 
-    var annotationOverlayJob by remember { mutableStateOf<Job?>(null) }
-    var hoverPosition by remember { mutableStateOf<Offset?>(null) }
-
-    var localAnnotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
-    var isAnnotationVisible by remember { mutableStateOf(false) }
-
-    var completions by remember { mutableStateOf<List<Completion>>(emptyList()) }
-    var isCompletionVisible by remember { mutableStateOf(false) }
-    var selectedCompletionIndex by remember { mutableStateOf(0) }
-
-    var caretOffset by remember { mutableStateOf<Offset>(Offset(0f, 0f)) }
-    var currentElement by remember { mutableStateOf<PsiElement?>(null) }
-
-    suspend fun buildAnnotatedString(code: String, psiFile: PsiFile? = null): AnnotatedString {
+    fun buildAnnotatedString(code: String, psiFile: PsiFile? = null): AnnotatedString {
         // Fast Lexing Highlighting
         val hls = lang?.highlightProvider?.fastHighlight(code) ?: emptyList()
         val styles = hls.mapNotNull {
@@ -122,6 +106,29 @@ fun CodeEditor(
         }
     }
 
+    val coroutineScope = rememberCoroutineScope()
+    var processJob by remember { mutableStateOf<Job?>(null) }
+
+    var textFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(buildAnnotatedString(file.getAsUTF8String(), manager?.getPsiFile(file)))
+        )
+    }
+    var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+
+    var annotationOverlayJob by remember { mutableStateOf<Job?>(null) }
+    var hoverPosition by remember { mutableStateOf<Offset?>(null) }
+
+    var localAnnotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
+    var isAnnotationVisible by remember { mutableStateOf(false) }
+
+    var completions by remember { mutableStateOf<List<Completion>>(emptyList()) }
+    var isCompletionVisible by remember { mutableStateOf(false) }
+    var selectedCompletionIndex by remember { mutableStateOf(0) }
+
+    var caretOffset by remember { mutableStateOf<Offset>(Offset(0f, 0f)) }
+    var currentElement by remember { mutableStateOf<PsiElement?>(null) }
+
     suspend fun locatePSIElement() {
         val caretPosition = textFieldValue.selection.start
         val psiFile = manager?.getPsiFile(file)
@@ -139,6 +146,7 @@ fun CodeEditor(
     }
 
     fun processTextFieldValue() {
+        nativeLog("Process TextFieldValue!")
         processJob?.cancel()
         processJob = coroutineScope.launch {
             val newCode = textFieldValue.text
@@ -180,217 +188,176 @@ fun CodeEditor(
         }
     }
 
-    Box(
-        modifier
-            .fillMaxSize()
-            .verticalScroll(scrollVertical)
-            .horizontalScroll(scrollHorizontal)
-            .onGloballyPositioned {
-                viewSize = it.size.toSize()
-            }
-            .pointerInput(Unit) {
-
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        if (event.type == PointerEventType.Move) {
-                            val position = event.changes.first().position
-
-                            hoverPosition = null
-                            annotationOverlayJob?.cancel()
-                            annotationOverlayJob = coroutineScope.launch {
-                                delay(500)
-                                hoverPosition = position
-                            }
-                        }
-                    }
-                }
-            }
-
-    ) {
-
-        // Add a light blue background for the current line
-        textLayout?.let { layout ->
-            val lineTop = layout.getLineTop(currentLine)
-            val lineBottom = layout.getLineBottom(currentLine)
-            Box(
-                modifier = Modifier
-                    .offset(y = with(LocalDensity.current) { lineTop.toDp() })
-                    .height(with(LocalDensity.current) { (lineBottom - lineTop).toDp() })
-                    .width(with(LocalDensity.current) {
-                        contentSize.width.toDp()
-                    })
-                    .background(theme.COLOR_SELECTION.copy(alpha = 0.10f))  // Light blue with 10% opacity
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .sizeIn(minWidth = with(LocalDensity.current) {
-                    viewSize.width.toDp()
-                }, minHeight = with(LocalDensity.current) {
-                    viewSize.height.toDp()
-                })
+    with(LocalDensity.current) {
+        Box(
+            modifier
+                .fillMaxSize()
+                .verticalScroll(scrollVertical)
+                .horizontalScroll(scrollHorizontal)
                 .onGloballyPositioned {
-                    contentSize = it.size.toSize()
+                    viewSize = it.size.toSize()
                 }
-        ) {
-            val lineNumberLabelingBounds = with(LocalDensity.current) {
-                textMeasurer.measure(lineCount.toString(), codeSmallStyle).size.toSize().toDpSize()
-            }
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = scale.SIZE_INSET_MEDIUM).onGloballyPositioned {
-                        rowHeaderWidth = it.size.toSize().width
-                    }.width(lineNumberLabelingBounds.width)
-            ) {
-                repeat(lineCount) { line ->
-                    val thisLineContent = (line + 1).toString()
-                    val thisLineTop = textLayout?.multiParagraph?.getLineTop(line) ?: (lineHeight * line)
-                    Text(
-                        modifier = Modifier
-                            .width(lineNumberLabelingBounds.width)
-                            .height(
-                                with(LocalDensity.current) {
-                                    lineHeight.toDp()
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            if (event.type == PointerEventType.Move) {
+                                val position = event.changes.first().position
+
+                                hoverPosition = null
+                                annotationOverlayJob?.cancel()
+                                annotationOverlayJob = coroutineScope.launch {
+                                    delay(500)
+                                    hoverPosition = position
                                 }
-                            ).offset(y = with(LocalDensity.current) {
-                                (thisLineTop).toDp() + (lineHeight.toDp() - lineNumberLabelingBounds.height) / 2
-                            }),
-                        textAlign = TextAlign.Right,
-                        text = thisLineContent,
-                        color = theme.COLOR_FG_1,
-                        style = codeSmallStyle
-                    )
-                }
-            }
-
-            Box(modifier = Modifier
-                .height(
-                    with(LocalDensity.current) {
-                        contentSize.height.toDp()
-                    }
-                )
-                .width(scale.SIZE_BORDER_THICKNESS)
-                .background(theme.COLOR_BORDER))
-
-            BasicTextField(
-                modifier = Modifier
-                    .sizeIn(
-                        minWidth = with(LocalDensity.current) {
-                            viewSize.width.toDp() - rowHeaderWidth.toDp()
-                        },
-                        minHeight = with(LocalDensity.current) {
-                            viewSize.height.toDp()
-                        }
-                    )
-                    .onPreviewKeyEvent { keyEvent ->
-                        if (keyEvent.type == KeyEventType.KeyDown) {
-                            when (keyEvent.key) {
-                                Key.Tab -> {
-
-                                    textFieldValue = if (keyEvent.isShiftPressed) {
-                                        if (textFieldValue.selection.length == 0) {
-                                            removeIndentation(textFieldValue, textLayout)
-                                        } else {
-                                            removeIndentationForSelectedLines(textFieldValue, textLayout)
-                                        }
-                                    } else {
-                                        if (textFieldValue.selection.length == 0) {
-                                            insertIndentation(textFieldValue)
-                                        } else {
-                                            insertIndentationForSelectedLines(textFieldValue, textLayout)
-                                        }
-                                    }
-                                    true
-                                }
-
-                                Key.Enter -> {
-                                    val completion = completions.getOrNull(selectedCompletionIndex)
-                                    if (isCompletionVisible && completion != null) {
-                                        insertCompletion(completion)
-                                    } else {
-                                        textFieldValue = insertNewlineAndIndent(textFieldValue, textLayout)
-                                    }
-
-                                    true
-                                }
-
-                                Key.DirectionDown -> {
-                                    if (isCompletionVisible && selectedCompletionIndex < completions.size - 1) {
-                                        selectedCompletionIndex++
-                                        true
-                                    } else {
-                                        false
-                                    }
-                                }
-
-                                Key.DirectionUp -> {
-                                    if (isCompletionVisible && selectedCompletionIndex > 0) {
-                                        selectedCompletionIndex--
-                                        true
-                                    } else {
-                                        false
-                                    }
-                                }
-
-                                else -> false
                             }
-                        } else {
-                            false
                         }
-                    },
-                value = textFieldValue,
-                cursorBrush = SolidColor(theme.COLOR_FG_0),
-                textStyle = codeStyle.copy(
-                    color = theme.COLOR_FG_0
-                ),
-                onValueChange = { newValue ->
-                    textFieldValue = newValue
-                    // Update the current line when the text changes
-                    textLayout?.let { layout ->
-                        currentLine = layout.getLineForOffset(newValue.selection.start)
                     }
-                },
-                onTextLayout = { result ->
-                    textLayout = result
-                    setLineCount(result.lineCount)
-                    setLineHeight(result.multiParagraph.height / result.lineCount)
-                    // Update the current line when the layout changes
-                    currentLine = result.getLineForOffset(textFieldValue.selection.start)
                 }
-            )
-        }
 
-        if (isCompletionVisible) {
-            CompletionOverlay(
-                Modifier
-                    .offset(
-                        x = with(LocalDensity.current) {
-                            caretOffset.x.toDp() + rowHeaderWidth.toDp() + scale.SIZE_BORDER_THICKNESS
-                        },
-                        y = with(LocalDensity.current) {
-                            caretOffset.y.toDp()
-                        }
-                    ),
-                completions,
-                selectedCompletionIndex
-            )
-        }
+        ) {
 
-        if (isAnnotationVisible) {
-            hoverPosition?.let {
-                AnnotationOverlay(
-                    Modifier.offset(
-                        with(LocalDensity.current) {
-                            it.x.toDp() + rowHeaderWidth.toDp()
-                        },
-                        with(LocalDensity.current) {
-                            it.y.toDp()
-                        }
-                    ),
-                    localAnnotations,
+            // Add a light blue background for the current line
+            textLayout?.let { layout ->
+                val lineTop = layout.getLineTop(currentLine)
+                val lineBottom = layout.getLineBottom(currentLine)
+                Box(
+                    modifier = Modifier
+                        .offset(y = lineTop.toDp())
+                        .height((lineBottom - lineTop).toDp())
+                        .width(contentSize.width.toDp())
+                        .background(theme.COLOR_SELECTION.copy(alpha = 0.10f))  // Light blue with 10% opacity
                 )
+            }
+
+            Row(
+                modifier = Modifier
+                    .sizeIn(minWidth = viewSize.width.toDp(), minHeight = viewSize.height.toDp())
+                    .onGloballyPositioned {
+                        contentSize = it.size.toSize()
+                    }
+            ) {
+
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = scale.SIZE_INSET_MEDIUM)
+                        .onGloballyPositioned {
+                            rowHeaderWidth = it.size.toSize().width
+                        }.width(lineNumberLabelingBounds.width.toDp())
+                ) {
+                    repeat(lineCount) { line ->
+                        val thisLineContent = (line + 1).toString()
+                        val thisLineTop = textLayout?.multiParagraph?.getLineTop(line) ?: (lineHeight * line)
+                        Text(
+                            modifier = Modifier
+                                .width(lineNumberLabelingBounds.width.toDp())
+                                .height(lineHeight.toDp()).offset(y = (thisLineTop).toDp() + (lineHeight.toDp() - lineNumberLabelingBounds.height.toDp()) / 2),
+                            textAlign = TextAlign.Right,
+                            text = thisLineContent,
+                            color = theme.COLOR_FG_1,
+                            style = codeSmallStyle
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .height(contentSize.height.toDp())
+                        .width(scale.SIZE_BORDER_THICKNESS)
+                        .background(theme.COLOR_BORDER)
+                )
+
+                BasicTextField(
+                    modifier = Modifier
+                        .sizeIn(minWidth = viewSize.width.toDp() - rowHeaderWidth.toDp(), minHeight = viewSize.height.toDp())
+                        .onPreviewKeyEvent { keyEvent ->
+                            if (keyEvent.type == KeyEventType.KeyDown) {
+                                when (keyEvent.key) {
+                                    Key.Tab -> {
+
+                                        textFieldValue = if (keyEvent.isShiftPressed) {
+                                            if (textFieldValue.selection.length == 0) {
+                                                removeIndentation(textFieldValue, textLayout)
+                                            } else {
+                                                removeIndentationForSelectedLines(textFieldValue, textLayout)
+                                            }
+                                        } else {
+                                            if (textFieldValue.selection.length == 0) {
+                                                insertIndentation(textFieldValue)
+                                            } else {
+                                                insertIndentationForSelectedLines(textFieldValue, textLayout)
+                                            }
+                                        }
+                                        true
+                                    }
+
+                                    Key.Enter -> {
+                                        val completion = completions.getOrNull(selectedCompletionIndex)
+                                        if (isCompletionVisible && completion != null) {
+                                            insertCompletion(completion)
+                                        } else {
+                                            textFieldValue = insertNewlineAndIndent(textFieldValue, textLayout)
+                                        }
+
+                                        true
+                                    }
+
+                                    Key.DirectionDown -> {
+                                        if (isCompletionVisible && selectedCompletionIndex < completions.size - 1) {
+                                            selectedCompletionIndex++
+                                            true
+                                        } else {
+                                            false
+                                        }
+                                    }
+
+                                    Key.DirectionUp -> {
+                                        if (isCompletionVisible && selectedCompletionIndex > 0) {
+                                            selectedCompletionIndex--
+                                            true
+                                        } else {
+                                            false
+                                        }
+                                    }
+
+                                    else -> false
+                                }
+                            } else {
+                                false
+                            }
+                        },
+                    value = textFieldValue,
+                    cursorBrush = SolidColor(theme.COLOR_FG_0),
+                    textStyle = codeStyle.copy(
+                        color = theme.COLOR_FG_0
+                    ),
+                    onValueChange = { newValue ->
+                        textFieldValue = newValue
+                    },
+                    onTextLayout = { result ->
+                        textLayout = result
+                        setLineCount(result.lineCount)
+                        setLineHeight(result.multiParagraph.height / result.lineCount)
+                    }
+                )
+            }
+
+            if (isCompletionVisible) {
+                CompletionOverlay(
+                    Modifier
+                        .offset(x = caretOffset.x.toDp() + rowHeaderWidth.toDp() + scale.SIZE_BORDER_THICKNESS, y = caretOffset.y.toDp()),
+                    completions,
+                    selectedCompletionIndex
+                )
+            }
+
+            if (isAnnotationVisible) {
+                hoverPosition?.let {
+                    AnnotationOverlay(
+                        Modifier.offset(it.x.toDp() + rowHeaderWidth.toDp(), it.y.toDp()),
+                        localAnnotations,
+                    )
+                }
             }
         }
     }
@@ -403,9 +370,15 @@ fun CodeEditor(
 
         coroutineScope.launch {
             caretOffset = textLayout?.getCursorRect(newValue.selection.start)?.bottomCenter ?: Offset(0f, 0f)
+            // Update the current line when the text changes
+            currentLine = textLayout?.getLineForOffset(newValue.selection.start) ?: -1
             locatePSIElement()
             fetchCompletions()
         }
+    }
+
+    LaunchedEffect(lineCount) {
+        lineNumberLabelingBounds = textMeasurer.measure(lineCount.toString(), codeSmallStyle).size.toSize()
     }
 
     LaunchedEffect(completions) {
@@ -415,12 +388,14 @@ fun CodeEditor(
 
     LaunchedEffect(hoverPosition) {
         isAnnotationVisible = false
+        localAnnotations = emptySet()
 
         hoverPosition?.let { hoverPosition ->
             val inCodePosition = Offset(hoverPosition.x - rowHeaderWidth, hoverPosition.y)
             val index = textLayout?.getOffsetForPosition(inCodePosition) ?: return@let
             val psiFile = manager?.getPsiFile(file) ?: return@let
-            localAnnotations = service?.collectNotations(psiFile, index) ?: return@let
+            val annotations = service?.collectNotations(psiFile, index) ?: return@let
+            localAnnotations = annotations
         }
     }
 
