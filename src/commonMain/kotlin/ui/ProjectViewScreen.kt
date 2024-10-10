@@ -18,7 +18,7 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
 
     val project = Project(state, CownLang())
 
-    val viewType = remember { mutableStateOf(state.viewType) }
+    val viewType = remember { mutableStateOf(ProjectStateManager.appState.viewType) }
 
     when (viewType.value) {
         ViewType.IDE -> IDEView(project, viewType, close)
@@ -26,7 +26,7 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
     }
 
     LaunchedEffect(viewType.value) {
-        ProjectStateManager.projects = ProjectStateManager.projects.filter { it != state } + ProjectState(state.absRootPath, state.target, viewType.value)
+        ProjectStateManager.saveState(ProjectStateManager.appState.copy(viewType = viewType.value))
     }
 }
 
