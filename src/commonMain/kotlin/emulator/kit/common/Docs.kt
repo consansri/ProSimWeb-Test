@@ -17,6 +17,15 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
         DocFile.DefinedFile(
             "Current: Version - ${Constants.VERSION}",
             Chapter(
+              "Version - 0.2.7",
+                Section(
+                    "Fixed",
+                    UnlinkedList(
+                        Text("KIT: Assembler expressions consuming to many brackets.")
+                    )
+                )
+            ),
+            Chapter(
               "Version - 0.2.6",
                 Section(
                     "Fixed",

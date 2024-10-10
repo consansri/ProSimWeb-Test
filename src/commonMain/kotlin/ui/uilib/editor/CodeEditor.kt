@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -31,6 +30,7 @@ import cengine.project.Project
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiFile
 import cengine.vfs.VirtualFile
+import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -55,6 +55,7 @@ fun CodeEditor(
 
     val (lineCount, setLineCount) = remember { mutableStateOf(0) }
     val (lineHeight, setLineHeight) = remember { mutableStateOf(0f) }
+    var currentLine by remember { mutableStateOf(0) }
     var rowHeaderWidth by remember { mutableStateOf<Float>(0f) }
 
     var completionJob by remember { mutableStateOf<Job?>(null) }
@@ -62,6 +63,7 @@ fun CodeEditor(
     val scrollVertical = rememberScrollState()
     val scrollHorizontal = rememberScrollState()
     var viewSize by remember { mutableStateOf(Size.Zero) }
+    var contentSize by remember { mutableStateOf(Size.Zero) }
 
     val manager by remember { mutableStateOf(project.getManager(file)) }
     val lang = remember { manager?.lang }
@@ -206,28 +208,54 @@ fun CodeEditor(
             }
 
     ) {
+
+        // Add a light blue background for the current line
+        textLayout?.let { layout ->
+            val lineTop = layout.getLineTop(currentLine)
+            val lineBottom = layout.getLineBottom(currentLine)
+            Box(
+                modifier = Modifier
+                    .offset(y = with(LocalDensity.current) { lineTop.toDp() })
+                    .height(with(LocalDensity.current) { (lineBottom - lineTop).toDp() })
+                    .width(with(LocalDensity.current) {
+                        contentSize.width.toDp()
+                    })
+                    .background(theme.COLOR_SELECTION.copy(alpha = 0.10f))  // Light blue with 10% opacity
+            )
+        }
+
         Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Box(modifier = Modifier
-                .padding(horizontal = scale.SIZE_INSET_MEDIUM).onGloballyPositioned {
-                    rowHeaderWidth = it.size.toSize().width
-                }.width(with(LocalDensity.current) {
-                    textMeasurer.measure(lineCount.toString(), codeSmallStyle).size.toSize().width.toDp()
+            modifier = Modifier
+                .sizeIn(minWidth = with(LocalDensity.current) {
+                    viewSize.width.toDp()
+                }, minHeight = with(LocalDensity.current) {
+                    viewSize.height.toDp()
                 })
+                .onGloballyPositioned {
+                    contentSize = it.size.toSize()
+                }
+        ) {
+            val lineNumberLabelingBounds = with(LocalDensity.current) {
+                textMeasurer.measure(lineCount.toString(), codeSmallStyle).size.toSize().toDpSize()
+            }
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = scale.SIZE_INSET_MEDIUM).onGloballyPositioned {
+                        rowHeaderWidth = it.size.toSize().width
+                    }.width(lineNumberLabelingBounds.width)
             ) {
                 repeat(lineCount) { line ->
                     val thisLineContent = (line + 1).toString()
                     val thisLineTop = textLayout?.multiParagraph?.getLineTop(line) ?: (lineHeight * line)
                     Text(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .width(lineNumberLabelingBounds.width)
                             .height(
                                 with(LocalDensity.current) {
                                     lineHeight.toDp()
                                 }
                             ).offset(y = with(LocalDensity.current) {
-                                (thisLineTop).toDp()
+                                (thisLineTop).toDp() + (lineHeight.toDp() - lineNumberLabelingBounds.height) / 2
                             }),
                         textAlign = TextAlign.Right,
                         text = thisLineContent,
@@ -237,15 +265,25 @@ fun CodeEditor(
                 }
             }
 
-            Spacer(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(scale.SIZE_BORDER_THICKNESS)
-                    .background(theme.COLOR_FG_1, RectangleShape)
-            )
+            Box(modifier = Modifier
+                .height(
+                    with(LocalDensity.current) {
+                        contentSize.height.toDp()
+                    }
+                )
+                .width(scale.SIZE_BORDER_THICKNESS)
+                .background(theme.COLOR_BORDER))
 
             BasicTextField(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .sizeIn(
+                        minWidth = with(LocalDensity.current) {
+                            viewSize.width.toDp() - rowHeaderWidth.toDp()
+                        },
+                        minHeight = with(LocalDensity.current) {
+                            viewSize.height.toDp()
+                        }
+                    )
                     .onPreviewKeyEvent { keyEvent ->
                         if (keyEvent.type == KeyEventType.KeyDown) {
                             when (keyEvent.key) {
@@ -309,11 +347,17 @@ fun CodeEditor(
                 ),
                 onValueChange = { newValue ->
                     textFieldValue = newValue
+                    // Update the current line when the text changes
+                    textLayout?.let { layout ->
+                        currentLine = layout.getLineForOffset(newValue.selection.start)
+                    }
                 },
                 onTextLayout = { result ->
                     textLayout = result
                     setLineCount(result.lineCount)
                     setLineHeight(result.multiParagraph.height / result.lineCount)
+                    // Update the current line when the layout changes
+                    currentLine = result.getLineForOffset(textFieldValue.selection.start)
                 }
             )
         }
@@ -370,7 +414,6 @@ fun CodeEditor(
     }
 
     LaunchedEffect(hoverPosition) {
-
         isAnnotationVisible = false
 
         hoverPosition?.let { hoverPosition ->
@@ -381,11 +424,16 @@ fun CodeEditor(
         }
     }
 
-    LaunchedEffect(localAnnotations){
-        isAnnotationVisible = localAnnotations.isNotEmpty()
+    LaunchedEffect(allAnnotations) {
+        val psiFile = manager?.getPsiFile(file) ?: return@LaunchedEffect
+        allAnnotations.forEach {
+            nativeLog(it.createConsoleMessage(psiFile))
+        }
     }
 
-    //processTextFieldValue()
+    LaunchedEffect(localAnnotations) {
+        isAnnotationVisible = localAnnotations.isNotEmpty()
+    }
 }
 
 fun insertIndentationForSelectedLines(value: TextFieldValue, layoutResult: TextLayoutResult?): TextFieldValue {

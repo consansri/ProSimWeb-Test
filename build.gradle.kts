@@ -166,4 +166,4 @@ val copyDistZipToJsDistribution by tasks.registering(Copy::class){
     into("build/dist/js/productionExecutable")
 }
 
-tasks.getByName("jsBrowserDistribution").dependsOn(copyDistZipToJsDistribution)
+//tasks.getByName("jsBrowserDistribution").dependsOn(copyDistZipToJsDistribution)

@@ -10,6 +10,12 @@ fun main() {
     }
     val root = document.getElementById("root") ?: error("Couldn't find root container!")
 
+    val composeTarget = document.getElementById("ComposeTarget")
+
+    composeTarget?.let {
+        document.body.removeChild(it)
+    }
+
     val app = App.create()
 
     document.title = "${Constants.NAME} ${Constants.VERSION}"
