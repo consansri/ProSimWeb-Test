@@ -508,6 +508,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                 val relevantTokens = takeRelevantTokens(tokens, allowSymbolsAsOperands).toMutableList()
                 val spaces = relevantTokens.filter { it.type == Token.Type.WHITESPACE }
                 if (relevantTokens.lastOrNull()?.type?.isOpeningBracket == true) relevantTokens.removeLast()
+
                 relevantTokens.removeAll(spaces)
                 markPrefixes(relevantTokens)
                 if (relevantTokens.isEmpty()) return null
@@ -626,10 +627,39 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
             }
 
             private fun takeRelevantTokens(tokens: List<Token>, allowSymbolsAsOperands: Boolean): List<Token> {
+                var openingBrackets = 0
+                var closingBrackets = 0
+
                 return if (allowSymbolsAsOperands) {
-                    tokens.takeWhile { it.type.isOperator || it.type.isLinkableSymbol() || it.type.isNumberLiteral || it.type.isCharLiteral || it.type.isBasicBracket() || it.type == Token.Type.WHITESPACE }
+                    tokens.takeWhile {
+                        if (it.type.isBasicBracket()) {
+                            if (it.type.isClosingBracket) {
+                                closingBrackets++
+                                return@takeWhile closingBrackets <= openingBrackets
+                            } else {
+                                openingBrackets++
+                            }
+                        }
+
+                        it.type.isOperator
+                                || it.type.isLinkableSymbol()
+                                || it.type.isNumberLiteral
+                                || it.type.isCharLiteral
+                                || it.type == Token.Type.WHITESPACE
+                    }
                 } else {
-                    tokens.takeWhile { it.type.isOperator || it.type.isNumberLiteral || it.type.isCharLiteral || it.type.isBasicBracket() || it.type == Token.Type.WHITESPACE }
+                    tokens.takeWhile {
+                        if (it.type.isBasicBracket()) {
+                            if (it.type.isClosingBracket) {
+                                closingBrackets++
+                                return@takeWhile closingBrackets <= openingBrackets
+                            } else {
+                                openingBrackets++
+                            }
+                        }
+
+                        it.type.isOperator || it.type.isNumberLiteral || it.type.isCharLiteral || it.type == Token.Type.WHITESPACE
+                    }
                 }
             }
 
