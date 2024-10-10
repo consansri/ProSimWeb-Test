@@ -198,7 +198,7 @@ object ProSimApp {
                             CButton(
                                 onClick = {
                                     if (!invalidProjectPath) {
-                                        val state = ProjectState(pathField, target.name)
+                                        val state = ProjectState(pathField, target.name, ViewType.IDE)
                                         ProjectStateManager.projects += state
                                         onProjectCreated(state)
                                     }

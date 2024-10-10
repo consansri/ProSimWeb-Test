@@ -146,7 +146,6 @@ fun CodeEditor(
     }
 
     fun processTextFieldValue() {
-        nativeLog("Process TextFieldValue!")
         processJob?.cancel()
         processJob = coroutineScope.launch {
             val newCode = textFieldValue.text

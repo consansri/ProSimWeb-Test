@@ -16,6 +16,7 @@ import ui.uilib.theme.LightTheme
 @Composable
 fun TopBar(
     project: Project,
+    viewType: MutableState<ViewType>,
     onClose: () -> Unit,
     runConfigurations: List<RunConfiguration.ProjectRun<*>>
 ){
@@ -28,7 +29,7 @@ fun TopBar(
         icon = icons.appLogo,
         title = project.projectState.target,
         name = project.projectState.absRootPath,
-
+        type = viewType.value.name,
         actions = {
 
             // Run Configurations Menu
@@ -56,6 +57,10 @@ fun TopBar(
                     UIState.Theme.value = LightTheme
                 }
             }, icon = theme.icon)
+
+            CButton(onClick = {
+                viewType.component2()(viewType.value.next())
+            }, icon = viewType.value.next().icon)
 
             // Close Button
             CButton(onClick = onClose, icon = icons.close)

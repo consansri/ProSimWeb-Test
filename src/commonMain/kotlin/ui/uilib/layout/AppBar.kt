@@ -21,6 +21,7 @@ fun AppBar(
     icon: ImageVector,
     title: String,
     name: String? = null,
+    type: String? = null,
     actions: @Composable (RowScope) -> Unit
 ) {
     val theme = UIState.Theme.value
@@ -47,10 +48,10 @@ fun AppBar(
         // Title on the left
         Row(verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-            .onGloballyPositioned {
-                val bounds = it.boundsInParent()
-                titleBounds = bounds
-            }
+                .onGloballyPositioned {
+                    val bounds = it.boundsInParent()
+                    titleBounds = bounds
+                }
         ) {
             CLabel(
                 icon = icon,
@@ -67,6 +68,16 @@ fun AppBar(
                         .wrapContentSize(),
                     icon = UIState.Icon.value.chevronRight,
                     text = name,
+                    fontType = FontType.MEDIUM
+                )
+            }
+
+            if (type != null) {
+                CLabel(
+                    modifier = Modifier
+                        .wrapContentSize(),
+                    icon = UIState.Icon.value.chevronRight,
+                    text = type,
                     fontType = FontType.MEDIUM
                 )
             }
