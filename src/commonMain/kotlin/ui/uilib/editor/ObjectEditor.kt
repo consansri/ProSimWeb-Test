@@ -39,9 +39,9 @@ fun ObjectEditor(
     }
 
     var elfReader by remember {
-        mutableStateOf<ELFReader?>(
+        mutableStateOf(
             try {
-                ELFReader(fileContent)
+                ELFReader(file.name, fileContent)
             } catch (e: Exception) {
                 null
             }
@@ -80,7 +80,7 @@ fun ObjectEditor(
 
     LaunchedEffect(fileContent) {
         elfReader = try {
-            ELFReader(fileContent)
+            ELFReader(file.name, fileContent)
         } catch (e: Exception) {
             null
         }

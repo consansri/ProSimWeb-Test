@@ -62,7 +62,7 @@ class Hex(hexString: String, size: Size) : Value(size) {
     override fun checkSizeSigned(other: Size): Boolean = toDec().checkSizeSigned(other)
     override fun checkSizeUnsigned(other: Size): Boolean = toBin().checkSizeUnsigned(other)
     override fun toBin(): Bin = getBinary()
-    override fun toOct(): Oct =  getBinary().getOct()
+    override fun toOct(): Oct = getBinary().getOct()
     override fun toDec(): Dec = getBinary().getDec()
     override fun toUDec(): UDec = getBinary().getUDec()
     override fun toASCII(): String = getASCII()

@@ -240,9 +240,10 @@ fun CodeEditor(
                 Box(
                     modifier = Modifier
                         .padding(horizontal = scale.SIZE_INSET_MEDIUM)
+                        .width(lineNumberLabelingBounds.width.toDp())
                         .onGloballyPositioned {
                             rowHeaderWidth = it.size.toSize().width
-                        }.width(lineNumberLabelingBounds.width.toDp())
+                        }
                 ) {
                     repeat(lineCount) { line ->
                         val thisLineContent = (line + 1).toString()

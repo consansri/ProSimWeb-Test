@@ -6,51 +6,45 @@ import cengine.lang.asm.elf.elf64.ELF64_Ehdr
 import cengine.lang.asm.elf.elf64.ELF64_Shdr
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
+import cengine.vfs.VirtualFile
 
 /**
  * Throws Exception if the file is not matching the ELF Format.
  */
-class ELFReader(val fileContent: ByteArray) {
-    val e_ident: E_IDENT = E_IDENT.extractFrom(fileContent)
-    val ehdr: Ehdr = Ehdr.extractFrom(fileContent, e_ident)
+open class ELFReader(override val name: String, private val fileContentSnapShot: ByteArray): ELFFile {
+
+    constructor(file: VirtualFile): this(file.name, file.getContent())
+
+    override val e_ident: E_IDENT = E_IDENT.extractFrom(fileContentSnapShot)
+    override val ehdr: Ehdr = Ehdr.extractFrom(fileContentSnapShot, e_ident)
     val endianess: Endianness = when (e_ident.ei_data) {
         E_IDENT.ELFDATA2MSB -> Endianness.BIG
         E_IDENT.ELFDATA2LSB -> Endianness.LITTLE
         else -> throw RelocatableELFBuilder.InvalidElfDataException(e_ident.ei_data)
     }
-    val buffer = ByteBuffer(endianess, fileContent)
+    val buffer = ByteBuffer(endianess, fileContentSnapShot)
 
-    val sectionHeaders: List<Shdr>
-    val programHeaders: List<Phdr>
-    val symbolTable: List<Sym>?
-    val dynamicSection: List<Dyn>?
-    val relocationTables: Map<String, List<Rel>>
-    val relocationTablesWithAddend: Map<String, List<Rela>>
-    val noteHeaders: List<Nhdr>?
-
-    init {
-        sectionHeaders = readSectionHeaders()
-        programHeaders = readProgramHeaders()
-        symbolTable = readSymbolTable()
-        dynamicSection = readDynamicSection()
-        relocationTables = readRelocationTables()
-        relocationTablesWithAddend = readRelocationTablesWithAddend()
-        noteHeaders = readNoteHeaders()
-    }
+    override val sectionHeaders: List<Shdr> = readSectionHeaders()
+    override val programHeaders: List<Phdr> = readProgramHeaders()
+    override val symbolTable: List<Sym>? = readSymbolTable()
+    override val dynamicSection: List<Dyn>? = readDynamicSection()
+    override val relocationTables: Map<String, List<Rel>> = readRelocationTables()
+    override val relocationTablesWithAddend: Map<String, List<Rela>> = readRelocationTablesWithAddend()
+    override val noteHeaders: List<Nhdr>? = readNoteHeaders()
 
     private fun readSectionHeaders(): List<Shdr> {
         return when (e_ident.ei_class) {
             E_IDENT.ELFCLASS32 -> {
                 val offset = (ehdr as ELF32_Ehdr).e_shoff.toInt()
                 List(ehdr.e_shnum.toInt()) { index ->
-                    Shdr.extractFrom(fileContent, e_ident, offset + index * ehdr.e_shentsize.toInt())
+                    Shdr.extractFrom(fileContentSnapShot, e_ident, offset + index * ehdr.e_shentsize.toInt())
                 }
             }
 
             E_IDENT.ELFCLASS64 -> {
                 val offset = (ehdr as ELF64_Ehdr).e_shoff.toInt()
                 List(ehdr.e_shnum.toInt()) { index ->
-                    Shdr.extractFrom(fileContent, e_ident, offset + index * ehdr.e_shentsize.toInt())
+                    Shdr.extractFrom(fileContentSnapShot, e_ident, offset + index * ehdr.e_shentsize.toInt())
                 }
             }
 
@@ -63,14 +57,14 @@ class ELFReader(val fileContent: ByteArray) {
             E_IDENT.ELFCLASS32 -> {
                 val offset = (ehdr as ELF32_Ehdr).e_phoff.toInt()
                 List(ehdr.e_phnum.toInt()) { index ->
-                    Phdr.extractFrom(fileContent, e_ident, offset + index * ehdr.e_phentsize.toInt())
+                    Phdr.extractFrom(fileContentSnapShot, e_ident, offset + index * ehdr.e_phentsize.toInt())
                 }
             }
 
             E_IDENT.ELFCLASS64 -> {
                 val offset = (ehdr as ELF64_Ehdr).e_phoff.toInt()
                 List(ehdr.e_phnum.toInt()) { index ->
-                    Phdr.extractFrom(fileContent, e_ident, offset + index * ehdr.e_phentsize.toInt())
+                    Phdr.extractFrom(fileContentSnapShot, e_ident, offset + index * ehdr.e_phentsize.toInt())
                 }
             }
 
@@ -85,14 +79,14 @@ class ELFReader(val fileContent: ByteArray) {
                 E_IDENT.ELFCLASS32 -> {
                     val offset = (it as ELF32_Shdr).sh_offset.toInt()
                     List(it.sh_size.toInt() / it.sh_entsize.toInt()) { index ->
-                        Sym.extractFrom(fileContent, e_ident, offset + index * it.sh_entsize.toInt())
+                        Sym.extractFrom(fileContentSnapShot, e_ident, offset + index * it.sh_entsize.toInt())
                     }
                 }
 
                 E_IDENT.ELFCLASS64 -> {
                     val offset = (it as ELF64_Shdr).sh_offset.toInt()
                     List(it.sh_size.toInt() / it.sh_entsize.toInt()) { index ->
-                        Sym.extractFrom(fileContent, e_ident, offset + index * it.sh_entsize.toInt())
+                        Sym.extractFrom(fileContentSnapShot, e_ident, offset + index * it.sh_entsize.toInt())
                     }
                 }
 
@@ -108,14 +102,14 @@ class ELFReader(val fileContent: ByteArray) {
                 E_IDENT.ELFCLASS32 -> {
                     val offset = (it as ELF32_Shdr).sh_offset.toInt()
                     List(it.sh_size.toInt() / it.sh_entsize.toInt()) { index ->
-                        Dyn.extractFrom(fileContent, e_ident, offset + index * it.sh_entsize.toInt())
+                        Dyn.extractFrom(fileContentSnapShot, e_ident, offset + index * it.sh_entsize.toInt())
                     }
                 }
 
                 E_IDENT.ELFCLASS64 -> {
                     val offset = (it as ELF64_Shdr).sh_offset.toInt()
                     List(it.sh_size.toInt() / it.sh_entsize.toInt()) { index ->
-                        Dyn.extractFrom(fileContent, e_ident, offset + index * it.sh_entsize.toInt())
+                        Dyn.extractFrom(fileContentSnapShot, e_ident, offset + index * it.sh_entsize.toInt())
                     }
                 }
 
@@ -133,7 +127,7 @@ class ELFReader(val fileContent: ByteArray) {
                         val sectionName = getSectionName(section)
                         val offset = (section as ELF32_Shdr).sh_offset.toInt()
                         val relEntries = List(section.sh_size.toInt() / section.sh_entsize.toInt()) { index ->
-                            Rel.extractFrom(fileContent, e_ident, offset + index * section.sh_entsize.toInt())
+                            Rel.extractFrom(fileContentSnapShot, e_ident, offset + index * section.sh_entsize.toInt())
                         }
                         sectionName to relEntries
                     }
@@ -145,7 +139,7 @@ class ELFReader(val fileContent: ByteArray) {
                         val sectionName = getSectionName(section)
                         val offset = (section as ELF64_Shdr).sh_offset.toInt()
                         val relEntries = List(section.sh_size.toInt() / section.sh_entsize.toInt()) { index ->
-                            Rel.extractFrom(fileContent, e_ident, offset + index * section.sh_entsize.toInt())
+                            Rel.extractFrom(fileContentSnapShot, e_ident, offset + index * section.sh_entsize.toInt())
                         }
                         sectionName to relEntries
                     }
@@ -163,7 +157,7 @@ class ELFReader(val fileContent: ByteArray) {
                         val sectionName = getSectionName(section)
                         val offset = (section as ELF32_Shdr).sh_offset.toInt()
                         val relaEntries = List(section.sh_size.toInt() / section.sh_entsize.toInt()) { index ->
-                            Rela.extractFrom(fileContent, e_ident, offset + index * section.sh_entsize.toInt())
+                            Rela.extractFrom(fileContentSnapShot, e_ident, offset + index * section.sh_entsize.toInt())
                         }
                         sectionName to relaEntries
                     }
@@ -175,7 +169,7 @@ class ELFReader(val fileContent: ByteArray) {
                         val sectionName = getSectionName(section)
                         val offset = (section as ELF64_Shdr).sh_offset.toInt()
                         val relaEntries = List(section.sh_size.toInt() / section.sh_entsize.toInt()) { index ->
-                            Rela.extractFrom(fileContent, e_ident, offset + index * section.sh_entsize.toInt())
+                            Rela.extractFrom(fileContentSnapShot, e_ident, offset + index * section.sh_entsize.toInt())
                         }
                         sectionName to relaEntries
                     }
@@ -192,14 +186,14 @@ class ELFReader(val fileContent: ByteArray) {
                 E_IDENT.ELFCLASS32 -> {
                     val offset = (it as ELF32_Shdr).sh_offset.toInt()
                     List(it.sh_size.toInt() / it.sh_entsize.toInt()) { index ->
-                        Nhdr.extractFrom(fileContent, e_ident, offset + index * it.sh_entsize.toInt())
+                        Nhdr.extractFrom(fileContentSnapShot, e_ident, offset + index * it.sh_entsize.toInt())
                     }
                 }
 
                 E_IDENT.ELFCLASS64 -> {
                     val offset = (it as ELF64_Shdr).sh_offset.toInt()
                     List(it.sh_size.toInt() / it.sh_entsize.toInt()) { index ->
-                        Nhdr.extractFrom(fileContent, e_ident, offset + index * it.sh_entsize.toInt())
+                        Nhdr.extractFrom(fileContentSnapShot, e_ident, offset + index * it.sh_entsize.toInt())
                     }
                 }
 
@@ -214,7 +208,7 @@ class ELFReader(val fileContent: ByteArray) {
             E_IDENT.ELFCLASS32 -> {
                 val stringTableOffset = (stringTableSection as ELF32_Shdr).sh_offset.toInt()
                 val nameOffset = section.sh_name.toInt()
-                return fileContent.sliceArray(stringTableOffset + nameOffset until fileContent.size)
+                return fileContentSnapShot.sliceArray(stringTableOffset + nameOffset until fileContentSnapShot.size)
                     .takeWhile { it != 0.toByte() }
                     .toByteArray()
                     .decodeToString()
@@ -223,7 +217,7 @@ class ELFReader(val fileContent: ByteArray) {
             E_IDENT.ELFCLASS64 -> {
                 val stringTableOffset = (stringTableSection as ELF64_Shdr).sh_offset.toInt()
                 val nameOffset = section.sh_name.toInt()
-                return fileContent.sliceArray(stringTableOffset + nameOffset until fileContent.size)
+                return fileContentSnapShot.sliceArray(stringTableOffset + nameOffset until fileContentSnapShot.size)
                     .takeWhile { it != 0.toByte() }
                     .toByteArray()
                     .decodeToString()
