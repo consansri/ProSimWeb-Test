@@ -1,16 +1,11 @@
-package cengine.lang.asm.elf.elf64
+package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.Elf64_Addr
-import cengine.lang.asm.elf.Elf_Xword
-import cengine.lang.asm.elf.Rel
-import cengine.lang.asm.elf.elf64.ELF64_Rel.Companion.R_SYM
-import cengine.lang.asm.elf.elf64.ELF64_Rel.Companion.R_TYPE
+import cengine.lang.asm.elf.*
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
 
-
 /**
- * ELF Relocation Entry
+ * ELF Relocation Entry (with addend)
  *
  * Relocation is the process of connecting symbolic references with symbolic definitions. For
  * example, when a program calls a function, the associated call instruction must transfer control
@@ -33,20 +28,20 @@ import cengine.util.Endianness
  * processor-specific; descriptions of their behavior appear in the processor
  * supplement. When the text in the processor supplement refers to a
  * relocation entry's relocation type or symbol table index, it means the result
- * of applying [R_TYPE] or  [R_SYM], respectively, to the
+ * of applying [Rel.ELF32_R_TYPE] or  [Rel.ELF32_R_SYM], respectively, to the
  * entry's [r_info] member.
  *
+ * @param r_addend This member specifies a constant addend used to compute the value to be
+ * stored into the relocatable field.
+ *
  */
-data class ELF64_Rel(
-    var r_offset: Elf64_Addr,
-    var r_info: Elf_Xword
-): Rel {
-
+data class ELF32_Rela(
+    var r_offset: Elf32_Addr,
+    var r_info: Elf_Word,
+    var r_addend: Elf_Sword
+): Rela {
     companion object{
-        const val SIZE = 16
-        fun R_SYM(i: Elf_Xword) = i.shr(32)
-        fun R_TYPE(i: Elf_Xword) = i.and(0xffffffffUL)
-        fun R_INFO(s: Elf_Xword, t: Elf_Xword) = s.shl(32) + t.and(0xffffffffUL)
+        const val SIZE = 12
     }
 
     override fun build(endianness: Endianness): ByteArray {
@@ -54,9 +49,11 @@ data class ELF64_Rel(
 
         b.put(r_offset)
         b.put(r_info)
+        b.put(r_addend)
 
         return b.toByteArray()
     }
 
     override fun byteSize(): Int = SIZE
+
 }

@@ -1,6 +1,5 @@
-package cengine.lang.asm.elf.elf64
+package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.*
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
 
@@ -15,7 +14,7 @@ data class ELF64_Shdr(
     override var sh_info: Elf_Word = 0U,
     var sh_addralign: Elf_Xword = 0U,
     var sh_entsize: Elf_Xword = 0U
-) : Shdr {
+) : Shdr() {
 
     companion object {
         fun create(nameIndex: Elf_Word, type: Elf_Word, flags: Elf_Xword): ELF64_Shdr {

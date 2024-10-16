@@ -4,8 +4,7 @@ import cengine.editor.annotation.Severity
 import cengine.lang.LanguageService
 import cengine.lang.RunConfiguration
 import cengine.lang.asm.AsmLang
-import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.elf.BinaryBuilder
+import cengine.lang.asm.mif.MifBuilder
 import cengine.psi.impl.PsiNotationCollector
 import cengine.vfs.FPath
 import cengine.vfs.VFileSystem
@@ -14,18 +13,19 @@ import emulator.kit.nativeError
 import emulator.kit.nativeInfo
 import emulator.kit.nativeWarn
 
-class AsmBinary: RunConfiguration.FileRun<LanguageService> {
+class AsmMif: RunConfiguration.FileRun<LanguageService> {
     override fun run(file: VirtualFile, lang: LanguageService, vfs: VFileSystem) {
         if (lang !is AsmLang) return
         val asmFile = lang.psiParser.parse(file)
 
-        val outputPath = FPath.of(vfs, AsmLang.OUTPUT_DIR, AsmRelocatable.RELOCATABLE_SUB_DIR, file.name.removeSuffix(lang.fileSuffix) +".o")
+        val outputPath = FPath.of(vfs, AsmLang.OUTPUT_DIR, AsmRelocatable.RELOCATABLE_SUB_DIR, file.name.removeSuffix(lang.fileSuffix) +".mif")
 
         vfs.deleteFile(outputPath)
         val outputFile = vfs.createFile(outputPath)
 
-        val builder = BinaryBuilder(lang.spec)
-        val content = builder.build(*asmFile.children.filterIsInstance<ASNode.Statement>().toTypedArray())
+        val builder = MifBuilder(lang.spec.wordSize, lang.spec.memAddrSize)
+
+        // TODO: Parse AST to Binary
 
         val collector = PsiNotationCollector()
         asmFile.accept(collector)
@@ -39,9 +39,9 @@ class AsmBinary: RunConfiguration.FileRun<LanguageService> {
         }
 
         if (collector.annotations.none { it.severity == Severity.ERROR }) {
-            outputFile.setContent(content)
+            outputFile.setAsUTF8String(builder.build())
         }
     }
 
-    override val name: String = "Binary"
+    override val name: String = "MIF"
 }

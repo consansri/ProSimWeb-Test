@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf.elf32
+package cengine.lang.asm.elf
 
 import cengine.lang.asm.elf.*
 import cengine.lang.asm.elf.Ehdr.Companion.EV_CURRENT

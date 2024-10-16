@@ -10,14 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import cengine.lang.asm.elf.ELFReader
-import cengine.lang.asm.elf.E_IDENT
-import cengine.lang.asm.elf.Ehdr
-import cengine.lang.asm.elf.Shdr
-import cengine.lang.asm.elf.elf32.ELF32_Ehdr
-import cengine.lang.asm.elf.elf32.ELF32_Shdr
-import cengine.lang.asm.elf.elf64.ELF64_Ehdr
-import cengine.lang.asm.elf.elf64.ELF64_Shdr
+import cengine.lang.asm.elf.*
 import cengine.project.Project
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
@@ -38,15 +31,7 @@ fun ObjectEditor(
         mutableStateOf(file.getContent())
     }
 
-    var elfReader by remember {
-        mutableStateOf(
-            try {
-                ELFReader(file.name, fileContent)
-            } catch (e: Exception) {
-                null
-            }
-        )
-    }
+    var elfReader by remember { mutableStateOf(ELFFile.parse(file.name, fileContent)) }
 
     val scrollVertical = rememberScrollState()
     val scrollHorizontal = rememberScrollState()
@@ -79,16 +64,12 @@ fun ObjectEditor(
     }
 
     LaunchedEffect(fileContent) {
-        elfReader = try {
-            ELFReader(file.name, fileContent)
-        } catch (e: Exception) {
-            null
-        }
+        elfReader = ELFFile.parse(file.name, fileContent)
     }
 }
 
 @Composable
-fun ELFHeaderInfos(elfReader: ELFReader, fileContent: ByteArray) {
+fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArray) {
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
 
@@ -582,7 +563,7 @@ fun ELFHeaderInfos(elfReader: ELFReader, fileContent: ByteArray) {
 }
 
 @Composable
-fun ELFSectionInfos(elfReader: ELFReader, fileContent: ByteArray) {
+fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArray) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
@@ -591,7 +572,7 @@ fun ELFSectionInfos(elfReader: ELFReader, fileContent: ByteArray) {
 
     nativeLog("SectionHeaders: ${elfReader.sectionHeaders}")
 
-    elfReader.sectionHeaders.forEach {
+    elfReader.sectionHeaders.forEachIndexed { index, section ->
         Spacer(
             Modifier.height(scale.SIZE_INSET_MEDIUM)
         )
@@ -602,13 +583,12 @@ fun ELFSectionInfos(elfReader: ELFReader, fileContent: ByteArray) {
                 .background(theme.COLOR_BG_1, RoundedCornerShape(scale.SIZE_CORNER_RADIUS))
         ) {
 
-            val name = elfReader.getSectionName(it)
-            val type = Shdr.getSectionType(it.sh_type)
+            val name = elfReader.nameOfSection(index)
+            val type = Shdr.getSectionType(section.sh_type)
             val flags = Shdr.getSectionFlags(
-                when (it) {
-                    is ELF32_Shdr -> it.sh_flags.toULong()
-                    is ELF64_Shdr -> it.sh_flags
-                    else -> 0U
+                when (section) {
+                    is ELF32_Shdr -> section.sh_flags.toULong()
+                    is ELF64_Shdr -> section.sh_flags
                 }
             )
 
@@ -627,19 +607,17 @@ fun ELFSectionInfos(elfReader: ELFReader, fileContent: ByteArray) {
                 )
             }
 
-            val range = when (it) {
+            val range = when (section) {
                 is ELF32_Shdr -> {
-                    it.sh_offset.toInt()..<(it.sh_offset + it.sh_size).toInt()
+                    section.sh_offset.toInt()..<(section.sh_offset + section.sh_size).toInt()
                 }
 
                 is ELF64_Shdr -> {
-                    it.sh_offset.toInt()..<(it.sh_offset + it.sh_size).toInt()
+                    section.sh_offset.toInt()..<(section.sh_offset + section.sh_size).toInt()
                 }
-
-                else -> null
             }
 
-            if (range != null) {
+            if (!range.isEmpty()) {
 
                 Box(
                     Modifier

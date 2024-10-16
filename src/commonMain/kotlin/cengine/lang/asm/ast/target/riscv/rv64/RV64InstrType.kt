@@ -16,7 +16,7 @@ import cengine.lang.asm.ast.target.riscv.RVConst.mask20JalLayout
 import cengine.lang.asm.ast.target.riscv.RVConst.mask32Hi20
 import cengine.lang.asm.ast.target.riscv.RVConst.mask32Lo12
 import cengine.lang.asm.ast.target.riscv.RVCsr
-import cengine.lang.asm.elf.RelocatableELFBuilder
+import cengine.lang.asm.elf.ELFBuilder
 import cengine.util.integer.Bin
 import cengine.util.integer.Size
 import cengine.util.integer.toUInt
@@ -141,7 +141,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
     override val typeName: String = name
 
-    override fun resolve(builder: RelocatableELFBuilder, instr: ASNode.Instruction) {
+    override fun resolve(builder: ELFBuilder, instr: ASNode.Instruction) {
         val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVBaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) } }
         val exprs = instr.nodes.filterIsInstance<ASNode.NumericExpr>()
 
@@ -705,7 +705,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
         }
     }
 
-    override fun lateEvaluation(builder: RelocatableELFBuilder, section: RelocatableELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
+    override fun lateEvaluation(builder: ELFBuilder, section: ELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
         val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVBaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) } }
         val exprs = instr.nodes.filterIsInstance<ASNode.NumericExpr>()
 

@@ -1,9 +1,5 @@
-package cengine.lang.asm.elf.elf32
+package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.Elf32_Addr
-import cengine.lang.asm.elf.Elf32_Off
-import cengine.lang.asm.elf.Elf_Word
-import cengine.lang.asm.elf.Phdr
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
 
@@ -48,11 +44,11 @@ import cengine.util.Endianness
  */
 data class ELF32_Phdr(
     override var p_type: Elf_Word,
-    var p_offset: Elf32_Off,
-    var p_vaddr: Elf32_Addr,
-    var p_paddr: Elf32_Addr,
-    var p_filesz: Elf_Word,
-    var p_memsz: Elf_Word,
+    var p_offset: Elf32_Off = 0U,
+    var p_vaddr: Elf32_Addr = 0U,
+    var p_paddr: Elf32_Addr = 0U,
+    var p_filesz: Elf_Word = 0U,
+    var p_memsz: Elf_Word = 0U,
     override var p_flags: Elf_Word,
     var p_align: Elf_Word
 ) : Phdr {

@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf.elf64
+package cengine.lang.asm.elf
 
 import cengine.lang.asm.elf.*
 import cengine.util.ByteBuffer

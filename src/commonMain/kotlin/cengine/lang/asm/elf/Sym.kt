@@ -1,9 +1,6 @@
 package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.elf32.ELF32_Sym
-import cengine.lang.asm.elf.elf64.ELF64_Sym
-
-interface Sym : BinaryProvider {
+sealed interface Sym : BinaryProvider {
 
     var st_name: Elf_Word
     var st_info: Elf_Byte
@@ -30,7 +27,7 @@ interface Sym : BinaryProvider {
             return when (ei_class) {
                 E_IDENT.ELFCLASS32 -> ELF32_Sym(st_name, st_shndx = shndx, st_info = ELF_ST_INFO(binding, type), st_other = ELF_ST_OTHER(visibility))
                 E_IDENT.ELFCLASS64 -> ELF64_Sym(st_name, st_shndx = shndx, st_info = ELF_ST_INFO(binding, type), st_other = ELF_ST_OTHER(visibility))
-                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
             }
         }
 
@@ -38,7 +35,7 @@ interface Sym : BinaryProvider {
             return when (ei_class) {
                 E_IDENT.ELFCLASS32 -> 16U
                 E_IDENT.ELFCLASS64 -> 24U
-                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
             }
         }
 

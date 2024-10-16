@@ -7,7 +7,7 @@ import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.RelocatableELFBuilder
+import cengine.lang.asm.elf.ELFBuilder
 import cengine.lang.asm.elf.Sym
 import cengine.util.integer.Hex
 import cengine.util.integer.Size.*
@@ -1056,7 +1056,7 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
         return null
     }
 
-    override fun build(builder: RelocatableELFBuilder, dir: ASNode.Directive) {
+    override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
         /**
          * Check Semantic
          */

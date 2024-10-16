@@ -1,8 +1,5 @@
 package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.elf32.ELF32_Phdr
-import cengine.lang.asm.elf.elf64.ELF64_Phdr
-
 /**
  * ELF Program Header
  *
@@ -42,7 +39,7 @@ import cengine.lang.asm.elf.elf64.ELF64_Phdr
  *
  *
  */
-interface Phdr : BinaryProvider {
+sealed interface Phdr : BinaryProvider {
 
     var p_type: Elf_Word
     var p_flags: Elf_Word
@@ -52,7 +49,7 @@ interface Phdr : BinaryProvider {
             return when(ei_class){
                 E_IDENT.ELFCLASS32 -> 32U
                 E_IDENT.ELFCLASS64 -> 56U
-                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
             }
         }
 

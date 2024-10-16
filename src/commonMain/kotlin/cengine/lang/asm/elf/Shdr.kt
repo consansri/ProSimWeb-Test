@@ -1,14 +1,11 @@
 package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.elf32.ELF32_Shdr
-import cengine.lang.asm.elf.elf64.ELF64_Shdr
+sealed class Shdr : BinaryProvider {
 
-interface Shdr : BinaryProvider {
-
-    var sh_name: Elf_Word
-    var sh_type: Elf_Word
-    var sh_link: Elf_Word
-    var sh_info: Elf_Word
+    abstract var sh_name: Elf_Word
+    abstract var sh_type: Elf_Word
+    abstract var sh_link: Elf_Word
+    abstract var sh_info: Elf_Word
 
     fun setAddr(addr: Elf_Xword) {
         when (this) {
@@ -31,21 +28,21 @@ interface Shdr : BinaryProvider {
         }
     }
 
-    fun getEntSize(): Elf_Xword
+    abstract fun getEntSize(): Elf_Xword
 
     companion object {
         fun size(ei_class: Elf_Byte): Elf_Half {
             return when (ei_class) {
                 E_IDENT.ELFCLASS32 -> 40U
                 E_IDENT.ELFCLASS64 -> 64U
-                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
             }
         }
 
         fun create(ei_class: Elf_Byte): Shdr = when (ei_class) {
             E_IDENT.ELFCLASS32 -> ELF32_Shdr()
             E_IDENT.ELFCLASS64 -> ELF64_Shdr()
-            else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
+            else -> throw ELFBuilder.InvalidElfClassException(ei_class)
         }
 
         fun getSectionType(type: Elf_Word): String = when (type) {
@@ -405,5 +402,5 @@ interface Shdr : BinaryProvider {
         val SHF_text = SHF_ALLOC + SHF_EXECINSTR
     }
 
-    override fun toString(): String
+    abstract override fun toString(): String
 }

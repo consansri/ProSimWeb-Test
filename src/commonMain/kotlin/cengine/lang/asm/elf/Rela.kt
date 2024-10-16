@@ -1,16 +1,13 @@
 package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.elf32.ELF32_Rela
-import cengine.lang.asm.elf.elf64.ELF64_Rela
-
-interface Rela : BinaryProvider {
+sealed interface Rela : BinaryProvider {
 
     companion object {
         fun size(ei_class: Elf_Byte): Elf_Half{
             return when(ei_class){
                 E_IDENT.ELFCLASS32 -> ELF32_Rela.SIZE.toUShort()
                 E_IDENT.ELFCLASS64 -> ELF64_Rela.SIZE.toUShort()
-                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
             }
         }
 

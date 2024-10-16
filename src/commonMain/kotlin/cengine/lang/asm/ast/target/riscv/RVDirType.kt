@@ -9,7 +9,7 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.RelocatableELFBuilder
+import cengine.lang.asm.elf.ELFBuilder
 import cengine.util.integer.Size
 import cengine.util.integer.toLong
 
@@ -121,7 +121,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
         return null
     }
 
-    override fun build(builder: RelocatableELFBuilder, dir: ASNode.Directive) {
+    override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
         /**
          * Check Semantic
          */
@@ -159,7 +159,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
                     if (evaluated != null) {
                         builder.currentSection.content.put(evaluated)
                     } else {
-                        it.annotations.add(Annotation.error(it, "Couldn't evaluate Expression!"))
+                        it.annotations.add(Annotation.error(it, "Couldn't evaluate Expression: ${it.print("")}!"))
                     }
                 }
             }

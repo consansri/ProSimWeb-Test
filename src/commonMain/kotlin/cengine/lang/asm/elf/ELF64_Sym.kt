@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf.elf32
+package cengine.lang.asm.elf
 
 import cengine.lang.asm.elf.*
 import cengine.util.ByteBuffer
@@ -33,27 +33,25 @@ import cengine.util.Endianness
  * some section indexes indicate special meanings.
  *
  */
-data class ELF32_Sym(
+data class ELF64_Sym(
     override var st_name: Elf_Word,
-    var st_value: Elf32_Addr = 0U,
-    var st_size: Elf_Word = 0U,
-    override var st_info: Elf_Byte = 0U,
+    override var st_info: Elf_Byte,
     override var st_other: Elf_Byte = 0U,
-    override var st_shndx: Elf_Half
+    override var st_shndx: Elf_Half,
+    var st_value: Elf_Xword = 0U,
+    var st_size: Elf_Xword = 0U,
 ): Sym {
     override fun build(endianness: Endianness): ByteArray {
         val b = ByteBuffer(endianness)
 
         b.put(st_name)
-        b.put(st_value)
-        b.put(st_size)
         b.put(st_info)
         b.put(st_other)
         b.put(st_shndx)
+        b.put(st_value)
+        b.put(st_size)
 
         return b.toByteArray()
     }
-
-    override fun byteSize(): Int = 16
-
+    override fun byteSize(): Int = 24
 }

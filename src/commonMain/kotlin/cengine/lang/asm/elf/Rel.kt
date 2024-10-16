@@ -1,9 +1,6 @@
 package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.elf32.ELF32_Rel
-import cengine.lang.asm.elf.elf64.ELF64_Rel
-
-interface Rel: BinaryProvider {
+sealed interface Rel: BinaryProvider {
 
     companion object {
 
@@ -11,7 +8,7 @@ interface Rel: BinaryProvider {
             return when(ei_class){
                 E_IDENT.ELFCLASS32 -> ELF32_Rel.SIZE.toUShort()
                 E_IDENT.ELFCLASS64 -> ELF64_Rel.SIZE.toUShort()
-                else -> throw RelocatableELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
             }
         }
 

@@ -12,10 +12,7 @@ import cengine.lang.asm.ast.impl.ASNode.*
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmToken
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.RelocatableELFBuilder
-import cengine.lang.asm.elf.Sym
-import cengine.lang.asm.elf.elf32.ELF32_Sym
-import cengine.lang.asm.elf.elf64.ELF64_Sym
+import cengine.lang.asm.elf.*
 import cengine.psi.core.*
 import cengine.psi.feature.Highlightable
 import cengine.psi.lexer.core.Token
@@ -842,9 +839,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
          * @param builder is for storing relocation information.
          *
          */
-        abstract fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit = {}): Dec
-        abstract fun assign(section: RelocatableELFBuilder.Section)
-        abstract fun assign(symTab: RelocatableELFBuilder.SymTab)
+        abstract fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit = {}): Dec
+        abstract fun assign(section: ELFBuilder.Section)
+        abstract fun assign(symTab: ELFBuilder.SymTab)
 
         /**
          * [Prefix]
@@ -862,7 +859,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
             override var evaluated: Dec? = null
 
-            override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
+            override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
                 return when (operator.type) {
                     AsmTokenType.COMPLEMENT -> operand.evaluate(builder, createRelocations).toBin().inv().toDec()
                     AsmTokenType.MINUS -> (-operand.evaluate(builder, createRelocations)).toDec()
@@ -873,11 +870,11 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 }.also { evaluated = it }
             }
 
-            override fun assign(section: RelocatableELFBuilder.Section) {
+            override fun assign(section: ELFBuilder.Section) {
                 operand.assign(section)
             }
 
-            override fun assign(symTab: RelocatableELFBuilder.SymTab) {
+            override fun assign(symTab: ELFBuilder.SymTab) {
                 operand.assign(symTab)
             }
 
@@ -897,7 +894,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             override val pathName: String
                 get() = operator.value
 
-            override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
+            override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
                 return (when (operator.type) {
                     AsmTokenType.MULT -> operandA.evaluate(builder, createRelocations) * operandB.evaluate(builder, createRelocations)
                     AsmTokenType.DIV -> operandA.evaluate(builder, createRelocations) / operandB.evaluate(builder, createRelocations)
@@ -924,12 +921,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 }).toDec().also { evaluated = it }
             }
 
-            override fun assign(symTab: RelocatableELFBuilder.SymTab) {
+            override fun assign(symTab: ELFBuilder.SymTab) {
                 operandA.assign(symTab)
                 operandB.assign(symTab)
             }
 
-            override fun assign(section: RelocatableELFBuilder.Section) {
+            override fun assign(section: ELFBuilder.Section) {
                 operandA.assign(section)
                 operandB.assign(section)
             }
@@ -943,7 +940,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
             class Identifier(val symToken: AsmToken) : Operand(symToken, symToken.range), PsiReference, Highlightable {
                 private var symbol: Sym? = null
-                private var label: RelocatableELFBuilder.Section.LabelDef? = null
+                private var label: ELFBuilder.Section.LabelDef? = null
 
                 override val additionalInfo: String
                     get() = token.value
@@ -957,19 +954,16 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     get() = when{
                         symbol != null -> CodeStyle.symbol
                         label != null -> CodeStyle.label
-                        else -> CodeStyle.error
+                        else -> CodeStyle.BASE0
                     }
                 
-                override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
+                override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
                     val currSymbol = symbol
 
                     if (currSymbol != null) {
                         return when (currSymbol) {
                             is ELF32_Sym -> currSymbol.st_value.toValue().toDec().also { evaluated = it }
                             is ELF64_Sym -> currSymbol.st_value.toValue().toDec().also { evaluated = it }
-                            else -> {
-                                throw PsiParser.NodeException(this, "Symbol ${currSymbol::class.simpleName} is not expected!")
-                            }
                         }
                     }
 
@@ -983,12 +977,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     return 0.toValue().also { evaluated = it }
                 }
 
-                override fun assign(section: RelocatableELFBuilder.Section) {
+                override fun assign(section: ELFBuilder.Section) {
                     label = section.labels.firstOrNull { it.label.identifier == symToken.value }
                     if (label != null) symbol = null
                 }
 
-                override fun assign(symTab: RelocatableELFBuilder.SymTab) {
+                override fun assign(symTab: ELFBuilder.SymTab) {
                     val index = symTab.search(symToken.value)
                     if (index != null) {
                         symbol = symTab[index]
@@ -1006,8 +1000,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 override val additionalInfo: String
                     get() = number.value
                 override var evaluated: Dec? = null
+                    set(value) {
+                        field = value
+                        //nativeLog("Operand.evaluate(): $value with Size ${value?.size}") // For DEBUGGING
+                    }
 
-                override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
+                override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
                     return (when (number.type) {
                         AsmTokenType.INT_DEC -> {
                             val auto = number.asNumber.asDec()
@@ -1056,9 +1054,9 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     }).also { evaluated = it }
                 }
 
-                override fun assign(section: RelocatableELFBuilder.Section) {}
+                override fun assign(section: ELFBuilder.Section) {}
 
-                override fun assign(symTab: RelocatableELFBuilder.SymTab) {}
+                override fun assign(symTab: ELFBuilder.SymTab) {}
 
                 override fun getFormatted(identSize: Int): String = number.value
 
@@ -1073,11 +1071,11 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                     get() = char.value
 
                 override var evaluated: Dec? = null
-                override fun assign(symTab: RelocatableELFBuilder.SymTab) {}
+                override fun assign(symTab: ELFBuilder.SymTab) {}
 
-                override fun assign(section: RelocatableELFBuilder.Section) {}
+                override fun assign(section: ELFBuilder.Section) {}
 
-                override fun evaluate(builder: RelocatableELFBuilder, createRelocations: (String) -> Unit): Dec {
+                override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
                     return char.getContentAsString().first().code.toValue().also { evaluated = it }
                 }
 

@@ -1,9 +1,9 @@
-package cengine.lang.asm.elf.elf64
+package cengine.lang.asm.elf
 
 import cengine.lang.asm.elf.Dyn
-import cengine.lang.asm.elf.Elf64_Addr
-import cengine.lang.asm.elf.Elf_Sxword
-import cengine.lang.asm.elf.Elf_Xword
+import cengine.lang.asm.elf.Elf32_Addr
+import cengine.lang.asm.elf.Elf_Sword
+import cengine.lang.asm.elf.Elf_Word
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
 
@@ -14,10 +14,10 @@ import cengine.util.Endianness
  * @property d_val The integer value associated with the dynamic table entry.
  * @property d_ptr The address associated with the dynamic table entry.
  */
-data class ELF64_Dyn(
-    var d_tag: Elf_Sxword,
-    var d_val: Elf_Xword,
-    var d_ptr: Elf64_Addr
+data class ELF32_Dyn(
+    var d_tag: Elf_Sword,
+    var d_val: Elf_Word,
+    var d_ptr: Elf32_Addr
 ): Dyn{
     override fun build(endianness: Endianness): ByteArray {
         val b = ByteBuffer(endianness)
@@ -29,5 +29,5 @@ data class ELF64_Dyn(
         return b.toByteArray()
     }
 
-    override fun byteSize(): Int = 24
+    override fun byteSize(): Int = 12
 }

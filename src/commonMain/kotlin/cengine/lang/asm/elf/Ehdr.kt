@@ -1,8 +1,5 @@
 package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.elf32.ELF32_Ehdr
-import cengine.lang.asm.elf.elf64.ELF64_Ehdr
-
 /**
  * ELF Header
  *
@@ -34,7 +31,7 @@ import cengine.lang.asm.elf.elf64.ELF64_Ehdr
  * information.
  *
  */
-interface Ehdr : BinaryProvider {
+sealed interface Ehdr : BinaryProvider {
 
     var e_ident: E_IDENT
     var e_type: Elf_Half

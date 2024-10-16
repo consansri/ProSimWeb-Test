@@ -1,16 +1,71 @@
 package cengine.lang.asm.elf
 
-object ELFTool {
+import cengine.util.ByteBuffer
 
-    init {
+sealed class ELFLinker<ELFFILE : ELFFile<*, *, *, *, *, *, *>>(private val inputFiles: List<ELFFILE>) {
+
+    class ELF32Linker(files: List<Pair<String, ByteArray>>) : ELFLinker<ELF32File>(
+        files.mapNotNull { (name, content) ->
+            ELFFile.parse(name, content) as? ELF32File
+        }
+    )
+
+    class ELF64Linker(files: List<Pair<String, ByteArray>>) : ELFLinker<ELF64File>(
+        files.mapNotNull { (name, content) ->
+            ELFFile.parse(name, content) as? ELF64File
+        }
+    )
+
+    private val outputBuffer: ByteBuffer = TODO()
+
+    private val symbols = mutableMapOf<String, Sym>()
+    private val sections = mutableMapOf<String, MutableList<ByteArray>>()
+
+    private val mergedSections = mutableMapOf<String, ByteArray>()
+    private val currentAddress = 0x08048000
+
+    fun linkFiles(): ByteArray {
+        TODO()
+    }
+
+    fun readAndParseInputFiles() {
 
     }
 
-    fun linkRelToExe(elfReader: ELFReader): ByteArray {
-        if (elfReader.ehdr.e_type != Ehdr.ET_REL) throw ELFLinkerException("Expected Relocatable ELF file! (received: ${Ehdr.getELFType(elfReader.ehdr.e_type)})")
+    fun performSymbolResolution() {
 
+    }
 
-        return ByteArray(0)
+    fun performSectionMerging() {
+
+    }
+
+    fun layoutOutputFile() {
+
+    }
+
+    fun performRelocation() {
+
+    }
+
+    fun createExecutableHeader() {
+
+    }
+
+    fun createProgramHeaderTable() {
+
+    }
+
+    fun createSectionHeaderTable() {
+
+    }
+
+    fun writeOutputFile() {
+
+    }
+
+    fun postProcess() {
+
     }
 
     class ELFLinkerException(message: String) : Exception(message)

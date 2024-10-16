@@ -3,7 +3,7 @@ package cengine.lang.asm.ast.target.t6502
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.elf.RelocatableELFBuilder
+import cengine.lang.asm.elf.ELFBuilder
 
 enum class T6502InstrType(override val detectionName: String, val opCode: UByte, val aMode: T6502ParamType, val description: String, val labelDependent: Boolean = false) : InstrTypeInterface {
     // Load, store, interregister transfer
@@ -208,11 +208,11 @@ enum class T6502InstrType(override val detectionName: String, val opCode: UByte,
     override val paramRule: Rule?
         get() = aMode.rule
 
-    override fun resolve(builder: RelocatableELFBuilder, instr: ASNode.Instruction) {
+    override fun resolve(builder: ELFBuilder, instr: ASNode.Instruction) {
         TODO("Not yet implemented")
     }
 
-    override fun lateEvaluation(builder: RelocatableELFBuilder, section: RelocatableELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
+    override fun lateEvaluation(builder: ELFBuilder, section: ELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
         TODO("Not yet implemented")
     }
 }

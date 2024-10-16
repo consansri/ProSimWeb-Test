@@ -1,12 +1,10 @@
-package cengine.lang.asm.elf.elf32
+package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.Elf32_Addr
-import cengine.lang.asm.elf.Elf_Word
-import cengine.lang.asm.elf.Rel
-import cengine.lang.asm.elf.elf32.ELF32_Rel.Companion.R_SYM
-import cengine.lang.asm.elf.elf32.ELF32_Rel.Companion.R_TYPE
+import cengine.lang.asm.elf.ELF64_Rel.Companion.R_SYM
+import cengine.lang.asm.elf.ELF64_Rel.Companion.R_TYPE
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
+
 
 /**
  * ELF Relocation Entry
@@ -36,17 +34,16 @@ import cengine.util.Endianness
  * entry's [r_info] member.
  *
  */
-data class ELF32_Rel(
-    var r_offset: Elf32_Addr,
-    var r_info: Elf_Word
+data class ELF64_Rel(
+    var r_offset: Elf64_Addr,
+    var r_info: Elf_Xword
 ): Rel {
 
     companion object{
-        const val SIZE = 8
-
-        fun R_SYM(i: Elf_Word) = i.shr(8)
-        fun R_TYPE(i: Elf_Word) = i.toUByte()
-        fun R_INFO(s: Elf_Word, t: Elf_Word) = s.shl(8) + t.toUByte()
+        const val SIZE = 16
+        fun R_SYM(i: Elf_Xword) = i.shr(32)
+        fun R_TYPE(i: Elf_Xword) = i.and(0xffffffffUL)
+        fun R_INFO(s: Elf_Xword, t: Elf_Xword) = s.shl(32) + t.and(0xffffffffUL)
     }
 
     override fun build(endianness: Endianness): ByteArray {

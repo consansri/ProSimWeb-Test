@@ -1,8 +1,5 @@
 package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.elf32.ELF32_Dyn
-import cengine.lang.asm.elf.elf64.ELF64_Dyn
-
 /**
  * Data class representing the Elf32_Dyn structure in the ELF format.
  *
@@ -10,7 +7,7 @@ import cengine.lang.asm.elf.elf64.ELF64_Dyn
  * @property d_val The integer value associated with the dynamic table entry.
  * @property d_ptr The address associated with the dynamic table entry.
  */
-interface Dyn : BinaryProvider {
+sealed interface Dyn : BinaryProvider {
 
     companion object {
         fun getDynamicType(tag: Elf_Sxword): String = when (tag) {

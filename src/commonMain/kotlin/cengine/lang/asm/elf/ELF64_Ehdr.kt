@@ -1,6 +1,5 @@
-package cengine.lang.asm.elf.elf64
+package cengine.lang.asm.elf
 
-import cengine.lang.asm.elf.*
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
 import cengine.util.string.hexDump

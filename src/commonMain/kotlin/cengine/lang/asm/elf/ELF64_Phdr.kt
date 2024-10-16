@@ -1,4 +1,4 @@
-package cengine.lang.asm.elf.elf64
+package cengine.lang.asm.elf
 
 import cengine.lang.asm.elf.*
 import cengine.util.ByteBuffer
@@ -46,11 +46,11 @@ import cengine.util.Endianness
 data class ELF64_Phdr(
     override var p_type: Elf_Word,
     override var p_flags: Elf_Word,
-    var p_offset: Elf64_Off,
-    var p_vaddr: Elf64_Addr,
-    var p_paddr: Elf64_Addr,
-    var p_filesz: Elf_Xword,
-    var p_memsz: Elf_Xword,
+    var p_offset: Elf64_Off = 0U,
+    var p_vaddr: Elf64_Addr = 0U,
+    var p_paddr: Elf64_Addr = 0U,
+    var p_filesz: Elf_Xword = 0U,
+    var p_memsz: Elf_Xword = 0U,
     var p_align: Elf_Xword
 ) : Phdr {
     override fun build(endianness: Endianness): ByteArray {
