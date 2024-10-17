@@ -13,7 +13,6 @@ import androidx.compose.ui.text.style.TextAlign
 import cengine.lang.asm.elf.*
 import cengine.project.Project
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 import kotlinx.coroutines.Job
 import ui.uilib.UIState
 import ui.uilib.interactable.CToggle
@@ -119,6 +118,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 fontFamily = codeStyle
             )
 
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
             Text(
                 E_IDENT.getElfClass(e_ident.ei_class),
                 textAlign = TextAlign.Left,
@@ -141,6 +142,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 color = theme.COLOR_FG_1,
                 fontFamily = codeStyle
             )
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
             Text(
                 E_IDENT.getElfData(e_ident.ei_data),
@@ -165,6 +168,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 fontFamily = codeStyle
             )
 
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
             Text(
                 e_ident.ei_version.toString(),
                 textAlign = TextAlign.Left,
@@ -187,6 +192,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 color = theme.COLOR_FG_1,
                 fontFamily = codeStyle
             )
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
             Text(
                 E_IDENT.getOsAbi(e_ident.ei_osabi),
@@ -211,6 +218,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 fontFamily = codeStyle
             )
 
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
             Text(
                 e_ident.ei_abiversion.toString(),
                 textAlign = TextAlign.Left,
@@ -233,6 +242,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 color = theme.COLOR_FG_1,
                 fontFamily = codeStyle
             )
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
             Text(
                 Ehdr.getELFType(ehdr.e_type),
@@ -257,6 +268,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 fontFamily = codeStyle
             )
 
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
             Text(
                 Ehdr.getELFMachine(ehdr.e_machine),
                 textAlign = TextAlign.Left,
@@ -280,6 +293,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 fontFamily = codeStyle
             )
 
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
             Text(
                 ehdr.e_version.toString(),
                 textAlign = TextAlign.Left,
@@ -302,6 +317,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 color = theme.COLOR_FG_1,
                 fontFamily = codeStyle
             )
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
             Text(
                 when (ehdr) {
@@ -330,6 +347,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 fontFamily = codeStyle
             )
 
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
             Text(
                 when (ehdr) {
                     is ELF32_Ehdr -> "0x" + ehdr.e_phoff.toString(16)
@@ -356,6 +375,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 color = theme.COLOR_FG_1,
                 fontFamily = codeStyle
             )
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
             Text(
                 when (ehdr) {
@@ -384,6 +405,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 fontFamily = codeStyle
             )
 
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
             Text(
                 "0x" + ehdr.e_flags.toString(16),
                 textAlign = TextAlign.Left,
@@ -406,6 +429,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 color = theme.COLOR_FG_1,
                 fontFamily = codeStyle
             )
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
             Text(
                 ehdr.e_ehsize.toString() + " (bytes)",
@@ -430,6 +455,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 fontFamily = codeStyle
             )
 
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
             Text(
                 ehdr.e_phentsize.toString() + " (bytes)",
                 textAlign = TextAlign.Left,
@@ -452,6 +479,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 color = theme.COLOR_FG_1,
                 fontFamily = codeStyle
             )
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
             Text(
                 ehdr.e_phnum.toString(),
@@ -476,6 +505,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 fontFamily = codeStyle
             )
 
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
             Text(
                 ehdr.e_shentsize.toString() + " (bytes)",
                 textAlign = TextAlign.Left,
@@ -499,6 +530,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 fontFamily = codeStyle
             )
 
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
             Text(
                 ehdr.e_phnum.toString(),
                 textAlign = TextAlign.Left,
@@ -521,6 +554,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 color = theme.COLOR_FG_1,
                 fontFamily = codeStyle
             )
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
             Text(
                 "0x" + ehdr.e_shstrndx.toString(16),
@@ -570,66 +605,224 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
     val codeStyle = FontType.CODE.getFamily()
     val baseStyle = FontType.MEDIUM.getFamily()
 
-    nativeLog("SectionHeaders: ${elfReader.sectionHeaders}")
+    elfReader.segmentToSectionGroup.forEach { group ->
 
-    elfReader.sectionHeaders.forEachIndexed { index, section ->
         Spacer(
             Modifier.height(scale.SIZE_INSET_MEDIUM)
         )
 
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .background(theme.COLOR_BG_1, RoundedCornerShape(scale.SIZE_CORNER_RADIUS))
-        ) {
+        when (group) {
+            is ELFFile<*, *, *, *, *, *, *>.Section -> {
+                val section = group.section
+                val index = group.index
 
-            val name = elfReader.nameOfSection(index)
-            val type = Shdr.getSectionType(section.sh_type)
-            val flags = Shdr.getSectionFlags(
-                when (section) {
-                    is ELF32_Shdr -> section.sh_flags.toULong()
-                    is ELF64_Shdr -> section.sh_flags
-                }
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "$name - $type - $flags",
-                    color = theme.COLOR_FG_0,
-                    fontFamily = baseStyle,
-                    modifier = Modifier
-                        .padding(scale.SIZE_INSET_MEDIUM),
-                )
-            }
-
-            val range = when (section) {
-                is ELF32_Shdr -> {
-                    section.sh_offset.toInt()..<(section.sh_offset + section.sh_size).toInt()
-                }
-
-                is ELF64_Shdr -> {
-                    section.sh_offset.toInt()..<(section.sh_offset + section.sh_size).toInt()
-                }
-            }
-
-            if (!range.isEmpty()) {
-
-                Box(
+                Column(
                     Modifier
-                        .background(theme.COLOR_BORDER)
                         .fillMaxWidth()
-                        .height(scale.SIZE_BORDER_THICKNESS)
-                )
+                        .background(theme.COLOR_BG_1, RoundedCornerShape(scale.SIZE_CORNER_RADIUS))
+                ) {
 
-                ByteRange(fileContent, range, 16)
+                    val name = elfReader.nameOfSection(index)
+                    val type = Shdr.getSectionType(section.sh_type)
+                    val flags = Shdr.getSectionFlags(
+                        when (section) {
+                            is ELF32_Shdr -> section.sh_flags.toULong()
+                            is ELF64_Shdr -> section.sh_flags
+                        }
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "$name - $type - $flags",
+                            color = theme.COLOR_FG_0,
+                            fontFamily = baseStyle,
+                            modifier = Modifier
+                                .padding(scale.SIZE_INSET_MEDIUM),
+                        )
+                    }
+
+                    val range = when (section) {
+                        is ELF32_Shdr -> {
+                            section.sh_offset.toInt()..<(section.sh_offset + section.sh_size).toInt()
+                        }
+
+                        is ELF64_Shdr -> {
+                            section.sh_offset.toInt()..<(section.sh_offset + section.sh_size).toInt()
+                        }
+                    }
+
+                    if (!range.isEmpty()) {
+
+                        Box(
+                            Modifier
+                                .background(theme.COLOR_BORDER)
+                                .fillMaxWidth()
+                                .height(scale.SIZE_BORDER_THICKNESS)
+                        )
+
+                        ByteRange(fileContent, range, 16)
+                    }
+                }
+            }
+
+            is ELFFile<*, *, *, *, *, *, *>.Segment -> {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val phdr = group.phdr
+                    Column(
+                        Modifier
+                            .background(theme.COLOR_SELECTION, RoundedCornerShape(scale.SIZE_CORNER_RADIUS))
+                            .padding(scale.SIZE_INSET_MEDIUM),
+                        verticalArrangement = Arrangement.Center
+
+                    ) {
+                        Text(
+                            "${Phdr.getProgramHeaderType(phdr.p_type)} - ${Phdr.getProgramHeaderFlags(phdr.p_flags)}",
+                            color = theme.COLOR_FG_0,
+                            fontFamily = baseStyle
+                        )
+                        Text(
+                            "offset: 0x${
+                                when (phdr) {
+                                    is ELF32_Phdr -> phdr.p_offset.toString(16)
+                                    is ELF64_Phdr -> phdr.p_offset.toString(16)
+                                }
+                            }",
+                            color = theme.COLOR_FG_0,
+                            fontFamily = codeStyle
+                        )
+                        Text(
+                            "vaddr: 0x${
+                                when (phdr) {
+                                    is ELF32_Phdr -> phdr.p_vaddr.toString(16)
+                                    is ELF64_Phdr -> phdr.p_vaddr.toString(16)
+                                }
+                            }",
+                            color = theme.COLOR_FG_0,
+                            fontFamily = codeStyle
+                        )
+                        Text(
+                            "paddr: 0x${
+                                when (phdr) {
+                                    is ELF32_Phdr -> phdr.p_paddr.toString(16)
+                                    is ELF64_Phdr -> phdr.p_paddr.toString(16)
+                                }
+                            }",
+                            color = theme.COLOR_FG_0,
+                            fontFamily = codeStyle
+                        )
+                        Text(
+                            "filesz: ${
+                                when (phdr) {
+                                    is ELF32_Phdr -> phdr.p_filesz
+                                    is ELF64_Phdr -> phdr.p_filesz
+                                }
+                            }",
+                            color = theme.COLOR_FG_0,
+                            fontFamily = codeStyle
+                        )
+                        Text(
+                            "memsz: ${
+                                when (phdr) {
+                                    is ELF32_Phdr -> phdr.p_memsz
+                                    is ELF64_Phdr -> phdr.p_memsz
+                                }
+                            }",
+                            color = theme.COLOR_FG_0,
+                            fontFamily = codeStyle
+                        )
+
+                        Text(
+                            "align: 0x${
+                                when (phdr) {
+                                    is ELF32_Phdr -> phdr.p_align.toString(16)
+                                    is ELF64_Phdr -> phdr.p_align.toString(16)
+                                }
+                            }",
+                            color = theme.COLOR_FG_0,
+                            fontFamily = codeStyle
+                        )
+                    }
+
+                    Spacer(
+                        Modifier.width(scale.SIZE_INSET_MEDIUM)
+                    )
+
+                    Column(
+                        Modifier.weight(0.9f),
+                    ) {
+                        group.sections.forEach { section ->
+                            val index = elfReader.sectionHeaders.indexOf(section)
+
+                            Column(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .background(theme.COLOR_BG_1, RoundedCornerShape(scale.SIZE_CORNER_RADIUS))
+                            ) {
+
+                                val name = elfReader.nameOfSection(index)
+                                val type = Shdr.getSectionType(section.sh_type)
+                                val flags = Shdr.getSectionFlags(
+                                    when (section) {
+                                        is ELF32_Shdr -> section.sh_flags.toULong()
+                                        is ELF64_Shdr -> section.sh_flags
+                                    }
+                                )
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "$name - $type - $flags",
+                                        color = theme.COLOR_FG_0,
+                                        fontFamily = baseStyle,
+                                        modifier = Modifier
+                                            .padding(scale.SIZE_INSET_MEDIUM),
+                                    )
+                                }
+
+                                val range = when (section) {
+                                    is ELF32_Shdr -> {
+                                        section.sh_offset.toInt()..<(section.sh_offset + section.sh_size).toInt()
+                                    }
+
+                                    is ELF64_Shdr -> {
+                                        section.sh_offset.toInt()..<(section.sh_offset + section.sh_size).toInt()
+                                    }
+                                }
+
+                                if (!range.isEmpty()) {
+
+                                    Box(
+                                        Modifier
+                                            .background(theme.COLOR_BORDER)
+                                            .fillMaxWidth()
+                                            .height(scale.SIZE_BORDER_THICKNESS)
+                                    )
+
+                                    ByteRange(fileContent, range, 16)
+                                }
+                            }
+                        }
+                    }
+
+
+                }
             }
         }
     }
+
+
 }
 
 @Composable
@@ -684,3 +877,5 @@ fun ByteRange(byteArray: ByteArray, range: IntRange, chunkSize: Int) {
         }
     }
 }
+
+

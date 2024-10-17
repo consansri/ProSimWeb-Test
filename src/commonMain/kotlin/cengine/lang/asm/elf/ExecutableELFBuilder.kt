@@ -3,6 +3,8 @@ package cengine.lang.asm.elf
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.psi.core.*
+import cengine.util.integer.toULong
+import emulator.kit.nativeLog
 import kotlin.experimental.*
 
 /**
@@ -36,6 +38,8 @@ class ExecutableELFBuilder(
     private val rodataSegment = createAndAddSegment(p_type = Phdr.PT_LOAD, p_flags = Phdr.PF_R, p_align = segAlign)
 
     override fun build(vararg statements: ASNode.Statement): ByteArray {
+
+        nativeLog("segAlign: ${segAlign.toString(16)}")
         statements.forEach {
             it.execute()
         }
@@ -50,18 +54,33 @@ class ExecutableELFBuilder(
             sections.removeAll(it.sections)
         }
         var currentMemoryAddress = 0UL
-        segments.forEach {
-            sections.addAll(it.sections)
+        segments.forEach { segment ->
+            sections.addAll(segment.sections)
             // apply padding
-            if (currentMemoryAddress % it.p_align != 0UL) {
-                val padding = it.p_align - (currentMemoryAddress % it.p_align)
+            if (currentMemoryAddress % segment.p_align != 0UL) {
+                val padding = segment.p_align - (currentMemoryAddress % segment.p_align)
                 currentMemoryAddress += padding
+                nativeLog("addr: ${currentMemoryAddress.toString(16)}, padding: $padding, align: ${segment.p_align.toString(16)}")
             }
 
             // Assign Segment Address
-            it.p_vaddr = currentMemoryAddress
-            currentMemoryAddress += it.p_memsz
+            segment.p_vaddr = currentMemoryAddress
+            segment.p_paddr = currentMemoryAddress
+            currentMemoryAddress += segment.p_memsz
         }
+
+        linkerScript.textStart?.toULong()?.let {
+            textSegment.p_vaddr = it
+        }
+
+        linkerScript.dataStart?.toULong()?.let {
+            dataSegment.p_vaddr = it
+        }
+
+        linkerScript.rodataStart?.toULong()?.let {
+            rodataSegment.p_vaddr = it
+        }
+
         // Set Entry Point
         entryPoint = textSegment.p_vaddr
 

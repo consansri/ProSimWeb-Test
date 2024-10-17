@@ -1,5 +1,7 @@
 package cengine.lang.asm.elf
 
+import cengine.util.Endianness
+
 typealias Elf32_Addr = UInt
 typealias Elf64_Addr = ULong
 
@@ -27,45 +29,45 @@ fun ByteArray.loadUByte(index: Int): UByte = this[index].toUByte()
 
 fun ByteArray.loadByte(index: Int): Byte = this[index]
 
-fun ByteArray.loadUShort(e_ident: E_IDENT, index: Int): UShort {
-    val bigEndian = e_ident.ei_data == E_IDENT.ELFDATA2MSB
-
+fun ByteArray.loadUShort(endianness: Endianness, index: Int): UShort{
     val bytes = this.copyOfRange(index, index + UShort.SIZE_BYTES)
-    val result = if (bigEndian) {
-        bytes.joinToString("") { it.toUByte().toString(16) }.toUShort(16)
+    val result = if (endianness == Endianness.BIG) {
+        bytes.joinToString("") { it.toUByte().toString(16).padStart(2,'0') }.toUShort(16)
     } else {
-        bytes.reversed().joinToString("") { it.toUByte().toString(16) }.toUShort(16)
+        bytes.reversed().joinToString("") { it.toUByte().toString(16).padStart(2,'0') }.toUShort(16)
     }
     return result
 }
 
-fun ByteArray.loadShort(e_ident: E_IDENT, index: Int): Short = this.loadUShort(e_ident, index).toShort()
+fun ByteArray.loadUShort(e_ident: E_IDENT, index: Int): UShort = loadUShort(e_ident.endianness, index)
 
-fun ByteArray.loadUInt(e_ident: E_IDENT, index: Int): UInt {
-    val bigEndian = e_ident.ei_data == E_IDENT.ELFDATA2MSB
+fun ByteArray.loadShort(e_ident: E_IDENT, index: Int): Short = loadUShort(e_ident, index).toShort()
 
+fun ByteArray.loadUInt(endianness: Endianness, index: Int): UInt {
     val bytes = this.copyOfRange(index, index + UInt.SIZE_BYTES)
-    val result = if (bigEndian) {
-        bytes.joinToString("") { it.toUByte().toString(16) }.toUInt(16)
+    val result = if (endianness == Endianness.BIG) {
+        bytes.joinToString("") { it.toUByte().toString(16).padStart(2,'0') }.toUInt(16)
     } else {
-        bytes.reversed().joinToString("") { it.toUByte().toString(16) }.toUInt(16)
+        bytes.reversed().joinToString("") { it.toUByte().toString(16).padStart(2,'0') }.toUInt(16)
     }
     return result
 }
+
+fun ByteArray.loadUInt(e_ident: E_IDENT, index: Int): UInt = loadUInt(e_ident.endianness, index)
 
 fun ByteArray.loadInt(e_ident: E_IDENT, index: Int): Int = this.loadUInt(e_ident, index).toInt()
 
-fun ByteArray.loadULong(e_ident: E_IDENT, index: Int): ULong {
-    val bigEndian = e_ident.ei_data == E_IDENT.ELFDATA2MSB
-
+fun ByteArray.loadULong(endianness: Endianness, index: Int): ULong {
     val bytes = this.copyOfRange(index, index + ULong.SIZE_BYTES)
-    val result = if (bigEndian) {
-        bytes.joinToString("") { it.toUByte().toString(16) }.toULong(16)
+    val result = if (endianness == Endianness.BIG) {
+        bytes.joinToString("") { it.toUByte().toString(16).padStart(2,'0') }.toULong(16)
     } else {
-        bytes.reversed().joinToString("") { it.toUByte().toString(16) }.toULong(16)
+        bytes.reversed().joinToString("") { it.toUByte().toString(16).padStart(2,'0') }.toULong(16)
     }
     return result
 }
+
+fun ByteArray.loadULong(e_ident: E_IDENT, index: Int): ULong = loadULong(e_ident.endianness, index)
 
 fun ByteArray.loadLong(e_ident: E_IDENT, index: Int): Long = loadULong(e_ident, index).toLong()
 

@@ -590,6 +590,18 @@ abstract class ELFBuilder(
                 is ELF64_Phdr -> phdr.p_vaddr
             }
 
+        var p_paddr: Elf_Xword
+            set(value) {
+                when (phdr) {
+                    is ELF32_Phdr -> phdr.p_paddr = value.toUInt()
+                    is ELF64_Phdr -> phdr.p_paddr = value
+                }
+            }
+            get() = when (phdr) {
+                is ELF32_Phdr -> phdr.p_paddr.toULong()
+                is ELF64_Phdr -> phdr.p_paddr
+            }
+
         val p_align: Elf_Xword
             get() = when (phdr) {
                 is ELF32_Phdr -> phdr.p_align.toULong()
@@ -599,8 +611,8 @@ abstract class ELFBuilder(
         var p_filesz: Elf_Xword
             set(value) {
                 when (phdr) {
-                    is ELF32_Phdr -> phdr.p_memsz = value.toUInt()
-                    is ELF64_Phdr -> phdr.p_memsz = value
+                    is ELF32_Phdr -> phdr.p_filesz = value.toUInt()
+                    is ELF64_Phdr -> phdr.p_filesz = value
                 }
             }
             get() = when (phdr) {

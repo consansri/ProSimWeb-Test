@@ -2,6 +2,7 @@ package cengine.lang.asm.elf
 
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
+import emulator.kit.nativeLog
 
 /**
  * ELF Program Header
@@ -57,6 +58,8 @@ data class ELF32_Phdr(
     override fun build(endianness: Endianness): ByteArray {
         val b = ByteBuffer(endianness)
 
+        nativeLog("p_align: $p_align, p_memsz: $p_memsz")
+
         b.put(p_type)
         b.put(p_offset)
         b.put(p_vaddr)
@@ -66,7 +69,13 @@ data class ELF32_Phdr(
         b.put(p_flags)
         b.put(p_align)
 
-        return b.toByteArray()
+        val array = b.toByteArray()
+
+        nativeLog("Store: align: ${p_align.toString(16)}")
+        nativeLog("ByteArray $endianness: ${array.joinToString(" ") { it.toUByte().toString(16).padStart(2, '0') }}")
+        nativeLog("Load: align: ${array.loadUInt(endianness, 28).toString(16)}")
+
+        return array
     }
 
     override fun byteSize(): Int = 32

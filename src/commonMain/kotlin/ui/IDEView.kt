@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import cengine.lang.RunConfiguration
 import cengine.project.Project
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.editor.CodeEditor
 import ui.uilib.editor.ObjectEditor
@@ -73,7 +72,6 @@ fun IDEView(project: Project, viewType: MutableState<ViewType>, close: () -> Uni
                         // Center content
                         TabbedPane(fileEditors, content = { index ->
                             // Display File Content
-                            nativeLog("Displaying Editor for ${fileEditors[index].title}!")
                             key(fileEditors[index].value.path) {
                                 when {
                                     fileEditors[index].value.name.endsWith(".o") -> {

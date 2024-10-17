@@ -30,6 +30,12 @@ data class E_IDENT(
     val ei_pad: Elf_Byte = ZERO,
     val ei_nident: Elf_Byte = EI_NIDENT
 ) : BinaryProvider {
+
+    val endianness: Endianness get() = when(ei_data){
+        ELFDATA2MSB -> Endianness.BIG
+        else -> Endianness.LITTLE
+    }
+
     companion object {
 
         fun getOsAbi(ei_osabi: Elf_Byte): String{

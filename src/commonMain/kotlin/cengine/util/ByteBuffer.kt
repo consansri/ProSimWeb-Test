@@ -1,17 +1,16 @@
 package cengine.util
 
-class ByteBuffer(private var endianness: Endianness, initial: ByteArray = byteArrayOf()) {
+class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
     private val data = initial.toMutableList()
+
+    var endianness: Endianness = endianness
+        private set
 
     val size: Int get() = data.size
 
     companion object {
         fun String.toASCIIByteArray(): ByteArray = this.encodeToByteArray()
         fun ByteArray.toASCIIString(): String = this.decodeToString()
-    }
-
-    fun setEndianess(newEndianess: Endianness) {
-        endianness = newEndianess
     }
 
     // BYTE

@@ -1,5 +1,7 @@
 package cengine.lang.asm.elf
 
+import emulator.kit.nativeLog
+
 sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn, REL : Rel, RELA : Rela>(val name: String, val content: ByteArray) {
 
     companion object {
@@ -31,6 +33,12 @@ sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn
     val relocationTables: Map<String, List<REL>> = readRelocationTables()
     val relocationTablesWithAddend: Map<String, List<RELA>> = readRelocationTablesWithAddend()
     val noteHeaders: List<Nhdr>? = readNoteHeaders()
+    val segmentToSectionGroup: List<Group> = groupSectionsBySegment()
+
+    init {
+        nativeLog(programHeaders.toString())
+    }
+
 
     private fun readSectionHeaders(): List<SHDR> {
         return when (ehdr) {
@@ -221,10 +229,47 @@ sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn
         return ""
     }
 
+    private fun groupSectionsBySegment(): List<Group> {
+        val segments = programHeaders.map { phdr ->
+            val start = when (phdr) {
+                is ELF32_Phdr -> phdr.p_offset.toULong()
+                is ELF64_Phdr -> phdr.p_offset
+                else -> throw ELFBuilder.InvalidElfClassException(e_ident.ei_class)
+            }
+            val size = when (phdr) {
+                is ELF32_Phdr -> phdr.p_filesz.toULong()
+                is ELF64_Phdr -> phdr.p_filesz
+                else -> throw ELFBuilder.InvalidElfClassException(e_ident.ei_class)
+            }
+
+            val fileIndexRange = start..<(start + size)
+
+            val sections = sectionHeaders.filter { shdr ->
+                when (shdr) {
+                    is ELF32_Shdr -> shdr.sh_offset in fileIndexRange
+                    is ELF64_Shdr -> shdr.sh_offset in fileIndexRange
+                    else -> throw ELFBuilder.InvalidElfClassException(e_ident.ei_class)
+                }
+
+            }
+
+            Segment(phdr, sections)
+        }
+        val unmatched = (sectionHeaders - segments.flatMap { it.sections }.toSet()).map {
+            Section(it)
+        }
+        return (segments + unmatched).sortedBy { it.index }
+    }
+
     fun nameOfSection(index: Int): String {
         val section = sectionHeaders.getOrNull(index) ?: return ""
         return getSectionName(section)
     }
+
+
+    sealed class Group(val index: Int)
+    inner class Segment(val phdr: PHDR, val sections: List<SHDR>) : Group(sectionHeaders.indexOf(sections.firstOrNull()))
+    inner class Section(val section: SHDR) : Group(sectionHeaders.indexOf(section))
 
     fun eIdent(byteArray: ByteArray): E_IDENT = E_IDENT.extractFrom(byteArray)
 
