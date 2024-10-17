@@ -370,7 +370,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             val content = lineTokens.joinToString("") { it.value } + lineBreak.value
 
             init {
-                addError( "Statement is unresolved!")
+                addError("Statement is unresolved!")
             }
 
             override fun getFormatted(identSize: Int): String = (label?.getFormatted(identSize) ?: "") + lineTokens.joinToString("") { it.value } + lineBreak.value
@@ -940,7 +940,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
             class Identifier(val symToken: AsmToken) : Operand(symToken, symToken.range), PsiReference, Highlightable {
                 private var symbol: Sym? = null
-                private var label: ELFBuilder.Section.LabelDef? = null
+                private var label: Pair<ELFBuilder.Section, ELFBuilder.Section.LabelDef>? = null
 
                 override val additionalInfo: String
                     get() = token.value
@@ -951,12 +951,12 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 override fun getFormatted(identSize: Int): String = symToken.value
 
                 override val style: CodeStyle
-                    get() = when{
+                    get() = when {
                         symbol != null -> CodeStyle.symbol
                         label != null -> CodeStyle.label
                         else -> CodeStyle.BASE0
                     }
-                
+
                 override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
                     val currSymbol = symbol
 
@@ -967,20 +967,27 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                         }
                     }
 
-                    val currLabel = label
-                    if (currLabel != null) {
-                        return (currLabel.offset.toInt() - builder.currentSection.content.size).toValue().also { evaluated = it }
+                    val lblPair = label
+                    if (lblPair != null) {
+                        val (lblSection, lbl) = lblPair
+                        val lblAddr = when (val shdr = lblSection.shdr) {
+                            is ELF32_Shdr -> shdr.sh_addr.toULong() + lbl.offset
+                            is ELF64_Shdr -> shdr.sh_addr + lbl.offset
+                        }
+
+                        return lblAddr.toValue().toDec().also { evaluated = it }
                     }
 
                     createRelocations(symToken.value)
-
-                    annotations.add(Annotation.warn(this,"Wasn't linked to any label! -> returning 0"))
 
                     return 0.toValue().also { evaluated = it }
                 }
 
                 override fun assign(section: ELFBuilder.Section) {
-                    label = section.labels.firstOrNull { it.label.identifier == symToken.value }
+                    section.labels.firstOrNull { it.label.identifier == symToken.value }?.let { labelDef ->
+                        label = section to labelDef
+                    }
+
                     if (label != null) symbol = null
                 }
 

@@ -15,6 +15,8 @@ import cengine.lang.asm.ast.target.riscv.RVConst.mask20JalLayout
 import cengine.lang.asm.ast.target.riscv.RVConst.mask32Hi20
 import cengine.lang.asm.ast.target.riscv.RVConst.mask32Lo12
 import cengine.lang.asm.ast.target.riscv.RVCsr
+import cengine.lang.asm.elf.ELF32_Shdr
+import cengine.lang.asm.elf.ELF64_Shdr
 import cengine.lang.asm.elf.ELFBuilder
 import cengine.util.integer.Size
 import cengine.util.integer.toUInt
@@ -516,16 +518,22 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
         when (this) {
             JAL -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder) { identifier ->
+                val targetAddr = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_JAL, section, index.toUInt())
                 }
 
-                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$absTarget exceeds ${Size.Bit32}")
+                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
                 }
 
-                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
-                val result = target.toInt() - index
+                val shdr = section.shdr
+                val thisAddr = when (shdr) {
+                    is ELF32_Shdr -> shdr.sh_addr + index.toUInt()
+                    is ELF64_Shdr -> shdr.sh_addr.toUInt() + index.toUInt()
+                }
+                val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target - thisAddr
+
                 val imm = result.toValue().toBin().shr(1).toDec()
                 if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
                     expr.addError("$imm exceeds ${Size.Bit20}")
@@ -542,16 +550,22 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder) { identifier ->
+                val targetAddr = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_BRANCH, section, index.toUInt())
                 }
-                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$absTarget exceeds ${Size.Bit32}")
+                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
                 }
 
-                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
-                val result = target.toInt() - index
-                val imm = result.toValue()
+                val shdr = section.shdr
+                val thisAddr = when (shdr) {
+                    is ELF32_Shdr -> shdr.sh_addr + index.toUInt()
+                    is ELF64_Shdr -> shdr.sh_addr.toUInt() + index.toUInt()
+                }
+                val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target - thisAddr
+
+                val imm = result.toValue().toDec()
                 if (!imm.checkSizeSignedOrUnsigned(Size.Bit12)) {
                     expr.addError("$imm exceeds ${Size.Bit12}")
                 }
@@ -579,17 +593,16 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             La -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder) { identifier ->
+                val targetAddr = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_HI20, section, index.toUInt())
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_LO12_I, section, index.toUInt() + 4U)
                 }
 
-                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$absTarget exceeds ${Size.Bit32}")
+                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
                 }
 
-                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
-                val result = (target.toInt() - index).toUInt()
+                val result = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
 
                 val lo12 = result.mask32Lo12()
                 var hi20 = result.mask32Hi20()
@@ -613,17 +626,23 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             Beqz, Bnez, Blez, Bgez, Bltz, Bgtz -> {
                 // Comparisons with Zero
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder) { identifier ->
+                val targetAddr = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_BRANCH, section, index.toUInt())
                 }
 
-                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$absTarget exceeds ${Size.Bit32}")
+                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
                 }
 
-                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
-                val result = target.toInt() - index
-                val imm = result.toValue()
+                val shdr = section.shdr
+                val thisAddr = when (shdr) {
+                    is ELF32_Shdr -> shdr.sh_addr + index.toUInt()
+                    is ELF64_Shdr -> shdr.sh_addr.toUInt() + index.toUInt()
+                }
+                val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target - thisAddr
+
+                val imm = result.toValue().toDec()
                 if (!imm.checkSizeSignedOrUnsigned(Size.Bit12)) {
                     expr.addError("$imm exceeds ${Size.Bit12}")
                 }
@@ -670,16 +689,22 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             Bgt, Ble, Bgtu, Bleu -> {
                 // Swapping rs1 and rs2
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder) { identifier ->
+                val targetAddr = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_BRANCH, section, index.toUInt())
                 }
-                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$absTarget exceeds ${Size.Bit32}")
+                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
                 }
 
-                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
-                val result = target.toInt() - index
-                val imm = result.toValue()
+                val shdr = section.shdr
+                val thisAddr = when (shdr) {
+                    is ELF32_Shdr -> shdr.sh_addr + index.toUInt()
+                    is ELF64_Shdr -> shdr.sh_addr.toUInt() + index.toUInt()
+                }
+                val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target - thisAddr
+
+                val imm = result.toValue().toDec()
                 if (!imm.checkSizeSignedOrUnsigned(Size.Bit12)) {
                     expr.addError("$imm exceeds ${Size.Bit12}")
                 }
@@ -706,15 +731,21 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             J -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder) { identifier ->
+                val targetAddr = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_JAL, section, index.toUInt())
                 }
-                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$absTarget exceeds ${Size.Bit32}")
+                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
                 }
 
-                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
-                val result = target.toInt() - index
+                val shdr = section.shdr
+                val thisAddr = when (shdr) {
+                    is ELF32_Shdr -> shdr.sh_addr + index.toUInt()
+                    is ELF64_Shdr -> shdr.sh_addr.toUInt() + index.toUInt()
+                }
+                val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target - thisAddr
+
                 val imm = result.toValue().toBin().shr(1).toDec()
                 if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
                     expr.addError("$imm exceeds ${Size.Bit20}")
@@ -731,15 +762,21 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             JAL1 -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder) { identifier ->
+                val targetAddr = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_JAL, section, index.toUInt())
                 }
-                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$absTarget exceeds ${Size.Bit32}")
+                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
                 }
 
-                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
-                val result = target.toInt() - index
+                val shdr = section.shdr
+                val thisAddr = when (shdr) {
+                    is ELF32_Shdr -> shdr.sh_addr + index.toUInt()
+                    is ELF64_Shdr -> shdr.sh_addr.toUInt() + index.toUInt()
+                }
+                val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = target - thisAddr
+
                 val imm = result.toValue().toBin().shr(1).toDec()
                 if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
                     expr.addError("$imm exceeds ${Size.Bit20}")
@@ -756,16 +793,21 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             Call -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder) { identifier ->
+                val targetAddr = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_HI20, section, index.toUInt())
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_LO12_I, section, index.toUInt() + 4U)
                 }
-                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$absTarget exceeds ${Size.Bit32}")
+                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
                 }
 
-                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
-                val result = (target.toInt() - index).toUInt()
+                val shdr = section.shdr
+                val thisAddr = when (shdr) {
+                    is ELF32_Shdr -> shdr.sh_addr + index.toUInt()
+                    is ELF64_Shdr -> shdr.sh_addr.toUInt() + index.toUInt()
+                }
+                val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = (target - thisAddr)
 
                 val lo12 = result.mask32Lo12()
                 var hi20 = result.mask32Hi20()
@@ -789,16 +831,21 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             Tail -> {
                 val expr = exprs[0]
-                val absTarget = expr.evaluate(builder) { identifier ->
+                val targetAddr = expr.evaluate(builder) { identifier ->
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_HI20, section, index.toUInt())
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_LO12_I, section, index.toUInt() + 4U)
                 }
-                if (!absTarget.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$absTarget exceeds ${Size.Bit32}")
+                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
                 }
 
-                val target = absTarget.getResized(Size.Bit32).toBin().toUInt() ?: 0U
-                val result = (target.toInt() - index).toUInt()
+                val shdr = section.shdr
+                val thisAddr = when (shdr) {
+                    is ELF32_Shdr -> shdr.sh_addr + index.toUInt()
+                    is ELF64_Shdr -> shdr.sh_addr.toUInt() + index.toUInt()
+                }
+                val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val result = (target - thisAddr)
 
                 val lo12 = result.mask32Lo12()
                 var hi20 = result.mask32Hi20()
