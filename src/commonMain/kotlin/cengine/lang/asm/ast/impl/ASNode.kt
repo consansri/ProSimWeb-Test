@@ -974,6 +974,8 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
                     createRelocations(symToken.value)
 
+                    annotations.add(Annotation.warn(this,"Wasn't linked to any label! -> returning 0"))
+
                     return 0.toValue().also { evaluated = it }
                 }
 

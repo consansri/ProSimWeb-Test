@@ -8,6 +8,8 @@ import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.elf.Elf_Byte
 import cengine.lang.asm.elf.Elf_Half
 import cengine.lang.asm.elf.Elf_Xword
+import cengine.lang.asm.elf.LinkerScript
+import cengine.util.integer.Hex
 import cengine.util.integer.Size
 
 object T6502Spec : TargetSpec {
@@ -26,6 +28,12 @@ object T6502Spec : TargetSpec {
         get() = TODO("Not yet implemented")
     override val e_data_addr: Elf_Xword
         get() = TODO("Not yet implemented")
+    override val linkerScript: LinkerScript = object : LinkerScript {
+        override val textStart: Hex = Hex("0", Size.Bit16)
+        override val dataStart: Hex? = null
+        override val rodataStart: Hex? = null
+        override val segmentAlign: UInt = 0x4000U
+    }
     override val memAddrSize: Size = Size.Bit16
     override val wordSize: Size = Size.Bit16
     override val detectRegistersByName: Boolean = false

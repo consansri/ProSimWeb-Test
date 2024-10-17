@@ -8,6 +8,7 @@ import cengine.util.ByteBuffer.Companion.toASCIIString
 import cengine.util.Endianness
 
 abstract class ELFBuilder(
+    val e_type: Elf_Half,
     val ei_class: Elf_Byte,
     val ei_data: Elf_Byte,
     val ei_osabi: Elf_Byte,
@@ -32,7 +33,7 @@ abstract class ELFBuilder(
     protected var entryPoint: Elf_Xword = 0U
 
 
-    abstract val segments: List<Phdr>
+    protected val segments: MutableList<Segment> = mutableListOf()
 
     /**
      * Sections Stored in the following order.
@@ -80,8 +81,9 @@ abstract class ELFBuilder(
 
     var currentSection: Section = text
 
-
     abstract fun build(vararg statements: ASNode.Statement): ByteArray
+
+    protected abstract fun Section.resolveReservations()
 
     protected fun writeELFFile(): ByteArray {
         val buffer = ByteBuffer(endianness)
@@ -92,7 +94,7 @@ abstract class ELFBuilder(
         sections.add(strTab)
         sections.add(shStrTab)
 
-        val phdrSize = segments.firstOrNull()?.byteSize()?.toULong() ?: 0U
+        val phdrSize = segments.firstOrNull()?.phdr?.byteSize()?.toULong() ?: 0U
         val phdrCount = segments.size.toULong()
 
         val ehdr = createELFHeader()
@@ -105,7 +107,7 @@ abstract class ELFBuilder(
         val shoff = totalEhdrBytes + totalPhdrBytes + totalSectionBytes
 
         buffer.writeELFHeader(ehdr, shstrndx, phoff, shoff)
-        buffer.writePHDRs()
+        buffer.writePHDRs(totalEhdrBytes + totalPhdrBytes)
         buffer.writeSections()
         buffer.writeSHDRs()
 
@@ -116,7 +118,7 @@ abstract class ELFBuilder(
         val ehdr = when (e_ident.ei_class) {
             E_IDENT.ELFCLASS32 -> ELF32_Ehdr(
                 e_ident = e_ident,
-                e_type = Ehdr.ET_REL,
+                e_type = e_type,
                 e_machine = e_machine,
                 e_flags = e_flags,
                 e_ehsize = 0U, // assign later
@@ -132,7 +134,7 @@ abstract class ELFBuilder(
 
             E_IDENT.ELFCLASS64 -> ELF64_Ehdr(
                 e_ident = e_ident,
-                e_type = Ehdr.ET_REL,
+                e_type = e_type,
                 e_machine = e_machine,
                 e_flags = e_flags,
                 e_ehsize = 0U, // assign later
@@ -171,10 +173,16 @@ abstract class ELFBuilder(
         putAll(ehdr.build(endianness))
     }
 
-    private fun ByteBuffer.writePHDRs() {
-        segments.forEach { phdr ->
-            // Serialize the program header (Phdr) into the byte buffer
-            putAll(phdr.build(endianness))
+    private fun ByteBuffer.writePHDRs(fileIndexOfDataStart: ULong) {
+        // Serialize the program header (Phdr) into the byte buffer
+        segments.forEach { segment ->
+            // Set FileOffset of Segment Start
+            val firstSection = segment.sections.firstOrNull()
+            segment.p_offset = if (firstSection != null) {
+                fileIndexOfDataStart + sections.takeWhile { it != firstSection }.sumOf { it.content.size.toULong() }
+            } else fileIndexOfDataStart
+
+            putAll(segment.phdr.build(endianness))
         }
     }
 
@@ -210,8 +218,8 @@ abstract class ELFBuilder(
         }
     }
 
-    protected fun createNewSegment(p_type: Elf_Word, p_flags: Elf_Word, p_align: ULong = 1U): Phdr {
-        return when (ei_class) {
+    protected fun createAndAddSegment(p_type: Elf_Word, p_flags: Elf_Word, p_align: ULong = 1U): Segment {
+        val phdr = when (ei_class) {
             E_IDENT.ELFCLASS32 -> {
                 ELF32_Phdr(
                     p_type = p_type,
@@ -229,6 +237,9 @@ abstract class ELFBuilder(
             }
 
             else -> throw InvalidElfClassException(ei_class)
+        }
+        return Segment(phdr).also { segment ->
+            segments.add(segment)
         }
     }
 
@@ -453,7 +464,6 @@ abstract class ELFBuilder(
         }
     }
 
-
     inner class RelaTab(val relocatable: Section) : Section {
         override val name = ".rela" + relocatable.name
         override val shdr: Shdr = Shdr.create(ei_class)
@@ -503,7 +513,6 @@ abstract class ELFBuilder(
         }
     }
 
-
     // INTERFACES
 
     interface Section {
@@ -512,6 +521,30 @@ abstract class ELFBuilder(
         val content: ByteBuffer
         val reservations: MutableList<InstrReservation>
         val labels: MutableSet<LabelDef>
+
+        fun isText(): Boolean {
+            val shdr = shdr
+            return shdr.sh_type == Shdr.SHT_PROGBITS && when (shdr) {
+                is ELF32_Shdr -> shdr.sh_flags and Shdr.SHF_EXECINSTR != 0U
+                is ELF64_Shdr -> shdr.sh_flags.toUInt() and Shdr.SHF_EXECINSTR != 0U
+            }
+        }
+
+        fun isData(): Boolean {
+            val shdr = shdr
+            return (shdr.sh_type == Shdr.SHT_PROGBITS) || ((shdr.sh_type == Shdr.SHT_NOBITS)) && when (shdr) {
+                is ELF32_Shdr -> shdr.sh_flags and (SHF_ALLOC + Shdr.SHF_WRITE) != 0U
+                is ELF64_Shdr -> shdr.sh_flags.toUInt() and (SHF_ALLOC + Shdr.SHF_WRITE) != 0U
+            }
+        }
+
+        fun isRoData(): Boolean {
+            val shdr = shdr
+            return shdr.sh_type == Shdr.SHT_PROGBITS && when (shdr) {
+                is ELF32_Shdr -> shdr.sh_flags and SHF_ALLOC != 0U
+                is ELF64_Shdr -> shdr.sh_flags.toUInt() and SHF_ALLOC != 0U
+            }
+        }
 
         fun addLabel(label: ASNode.Label) {
             labels.add(LabelDef(label, content.size.toUInt()))
@@ -522,21 +555,94 @@ abstract class ELFBuilder(
             content.putAll(ByteArray(byteAmount) { 0 })
         }
 
-        fun resolveReservations(builder: ELFBuilder) {
-            reservations.forEach { def ->
-                def.instr.nodes.filterIsInstance<ASNode.NumericExpr>().forEach { expr ->
-                    expr.assign(this)
-                }
-                def.instr.type.lateEvaluation(builder, this, def.instr, def.offset.toInt())
-            }
-            reservations.clear()
-        }
-
         data class LabelDef(val label: ASNode.Label, val offset: Elf_Word)
         data class InstrReservation(val instr: ASNode.Instruction, val offset: Elf_Word)
         data class SymbolDef(val symbol: Sym, val offset: Elf_Word)
         data class RelDef(val rel: Rel, val section: Section, val offset: Elf_Word)
         data class RelaDef(val rela: Rela, val section: Section, val offset: Elf_Word)
+    }
+
+    class Segment(val phdr: Phdr) {
+        val sections: MutableList<Section> = mutableListOf()
+
+        var p_offset: Elf_Xword
+            set(value) {
+                when (phdr) {
+                    is ELF32_Phdr -> phdr.p_offset = value.toUInt()
+                    is ELF64_Phdr -> phdr.p_offset = value
+                }
+            }
+            get() = when (phdr) {
+                is ELF32_Phdr -> phdr.p_offset.toULong()
+                is ELF64_Phdr -> phdr.p_offset
+            }
+
+        var p_vaddr: Elf_Xword
+            set(value) {
+                when (phdr) {
+                    is ELF32_Phdr -> phdr.p_vaddr = value.toUInt()
+                    is ELF64_Phdr -> phdr.p_vaddr = value
+                }
+                calculateSectionAddresses()
+            }
+            get() = when (phdr) {
+                is ELF32_Phdr -> phdr.p_vaddr.toULong()
+                is ELF64_Phdr -> phdr.p_vaddr
+            }
+
+        val p_align: Elf_Xword
+            get() = when (phdr) {
+                is ELF32_Phdr -> phdr.p_align.toULong()
+                is ELF64_Phdr -> phdr.p_align
+            }
+
+        var p_filesz: Elf_Xword
+            set(value) {
+                when (phdr) {
+                    is ELF32_Phdr -> phdr.p_memsz = value.toUInt()
+                    is ELF64_Phdr -> phdr.p_memsz = value
+                }
+            }
+            get() = when (phdr) {
+                is ELF32_Phdr -> phdr.p_filesz.toULong()
+                is ELF64_Phdr -> phdr.p_filesz
+            }
+
+        var p_memsz: Elf_Xword
+            set(value) {
+                when (phdr) {
+                    is ELF32_Phdr -> phdr.p_memsz = value.toUInt()
+                    is ELF64_Phdr -> phdr.p_memsz = value
+                }
+            }
+            get() = when (phdr) {
+                is ELF32_Phdr -> phdr.p_memsz.toULong()
+                is ELF64_Phdr -> phdr.p_memsz
+            }
+
+        // Adds a section to this segment
+        fun addSection(section: Section) {
+            sections.add(section)
+            calculateSegmentSize()
+            calculateSectionAddresses()
+        }
+
+        // Calculates the size of the segment based on the sections added
+        private fun calculateSegmentSize() {
+            val size = sections.sumOf { it.content.size.toULong() }
+            p_filesz = size
+            p_memsz = size
+        }
+
+        // Sets the addresses of each section within the segment based on the segment's start address
+        private fun calculateSectionAddresses() {
+            var currentAddress = p_vaddr
+            sections.forEach { section ->
+                section.shdr.setAddr(currentAddress)
+                currentAddress += section.content.size.toULong()
+            }
+        }
+
     }
 
     // EXCEPTIONS

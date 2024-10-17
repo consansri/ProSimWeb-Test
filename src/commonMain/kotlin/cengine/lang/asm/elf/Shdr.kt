@@ -356,7 +356,6 @@ sealed class Shdr : BinaryProvider {
          */
         val SHT_debug = SHT_PROGBITS
 
-
         /**
          * (DYNAMIC) This section holds dynamic linking information and has attributes such as
          * [SHF_ALLOC] and [SHF_WRITE]. Whether the [SHF_WRITE] bit is set is

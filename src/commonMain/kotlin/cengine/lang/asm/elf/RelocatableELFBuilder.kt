@@ -19,11 +19,9 @@ class RelocatableELFBuilder(
     ei_abiversion: Elf_Byte,
     e_machine: Elf_Half,
     e_flags: Elf_Word
-): ELFBuilder(ei_class, ei_data, ei_osabi, ei_abiversion, e_machine, e_flags) {
+) : ELFBuilder(Ehdr.ET_REL, ei_class, ei_data, ei_osabi, ei_abiversion, e_machine, e_flags) {
 
     constructor(spec: TargetSpec, e_flags: Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, spec.e_machine, e_flags)
-
-    override val segments: List<Phdr> = listOf()
 
     // PUBLIC METHODS
 
@@ -33,13 +31,23 @@ class RelocatableELFBuilder(
         }
 
         sections.forEach {
-            it.resolveReservations(this)
+            it.resolveReservations()
         }
 
         return writeELFFile()
     }
 
     // PRIVATE METHODS
+
+    override fun Section.resolveReservations() {
+        reservations.forEach { def ->
+            def.instr.nodes.filterIsInstance<ASNode.NumericExpr>().forEach { expr ->
+                expr.assign(this)
+            }
+            def.instr.type.lateEvaluation(this@RelocatableELFBuilder, this, def.instr, def.offset.toInt())
+        }
+        reservations.clear()
+    }
 
     private fun ASNode.Statement.execute() {
         if (this.label != null) {
@@ -70,10 +78,6 @@ class RelocatableELFBuilder(
             is ASNode.Statement.Unresolved -> {}
         }
     }
-
-
-
-
 
 
 }

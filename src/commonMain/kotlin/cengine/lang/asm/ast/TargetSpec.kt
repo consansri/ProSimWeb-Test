@@ -9,6 +9,7 @@ import cengine.lang.asm.ast.target.t6502.T6502Spec
 import cengine.lang.asm.elf.Elf_Byte
 import cengine.lang.asm.elf.Elf_Half
 import cengine.lang.asm.elf.Elf_Xword
+import cengine.lang.asm.elf.LinkerScript
 import cengine.util.integer.Size
 
 /**
@@ -32,6 +33,7 @@ interface TargetSpec {
     val e_machine: Elf_Half
     val e_text_addr: Elf_Xword
     val e_data_addr: Elf_Xword
+    val linkerScript: LinkerScript
 
     /** The size of memory addresses. */
     val memAddrSize: Size

@@ -5,7 +5,7 @@ import cengine.lang.LanguageService
 import cengine.lang.RunConfiguration
 import cengine.lang.asm.AsmLang
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.elf.RelocatableELFBuilder
+import cengine.lang.asm.elf.ExecutableELFBuilder
 import cengine.psi.impl.PsiNotationCollector
 import cengine.vfs.FPath
 import cengine.vfs.VFileSystem
@@ -14,23 +14,23 @@ import emulator.kit.nativeError
 import emulator.kit.nativeInfo
 import emulator.kit.nativeWarn
 
-class AsmRelocatable : RunConfiguration.FileRun<LanguageService> {
+class AsmExecutable : RunConfiguration.FileRun<LanguageService> {
     companion object {
-        const val RELOCATABLE_SUB_DIR = "reloc"
+        const val EXECUTABLE_SUB_DIR = "exec"
     }
 
-    override val name: String = "ELF Relocatable"
+    override val name: String = "ELF Executable"
 
     override fun run(file: VirtualFile, lang: LanguageService, vfs: VFileSystem) {
         if (lang !is AsmLang) return
         val asmFile = lang.psiParser.parse(file)
 
-        val outputPath = FPath.of(vfs, AsmLang.OUTPUT_DIR, RELOCATABLE_SUB_DIR, file.name.removeSuffix(lang.fileSuffix) +".o")
+        val outputPath = FPath.of(vfs, AsmLang.OUTPUT_DIR, EXECUTABLE_SUB_DIR, file.name.removeSuffix(lang.fileSuffix) +".o")
 
         vfs.deleteFile(outputPath)
         val outputFile = vfs.createFile(outputPath)
 
-        val builder = RelocatableELFBuilder(lang.spec)
+        val builder = ExecutableELFBuilder(lang.spec)
         val content = builder.build(*asmFile.children.filterIsInstance<ASNode.Statement>().toTypedArray())
 
         val collector = PsiNotationCollector()
