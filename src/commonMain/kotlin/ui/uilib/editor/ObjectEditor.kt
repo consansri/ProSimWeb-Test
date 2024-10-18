@@ -822,7 +822,6 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
         }
     }
 
-
 }
 
 @Composable

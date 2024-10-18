@@ -5,24 +5,19 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
-import cengine.lang.asm.elf.Elf_Byte
-import cengine.lang.asm.elf.Elf_Half
-import cengine.lang.asm.elf.LinkerScript
+import cengine.lang.asm.elf.*
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 
 object T6502Spec : TargetSpec {
     override val name: String = "6502 MOS"
-    override val ei_class: Elf_Byte
-        get() = TODO("Not yet implemented")
-    override val ei_data: Elf_Byte
-        get() = TODO("Not yet implemented")
-    override val ei_osabi: Elf_Byte
-        get() = TODO("Not yet implemented")
-    override val ei_abiversion: Elf_Byte
-        get() = TODO("Not yet implemented")
-    override val e_machine: Elf_Half
-        get() = TODO("Not yet implemented")
+
+    override val ei_class: Elf_Byte = E_IDENT.ELFCLASS32
+    override val ei_data: Elf_Byte = E_IDENT.ELFDATA2LSB
+    override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
+    override val ei_abiversion: Elf_Byte = Ehdr.EV_CURRENT.toUByte()
+    override val e_machine: Elf_Half = Ehdr.EM_CUSTOM_T6502
+
     override val linkerScript: LinkerScript = object : LinkerScript {
         override val textStart: Hex = Hex("0", Size.Bit16)
         override val dataStart: Hex? = null

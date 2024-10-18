@@ -251,9 +251,14 @@ sealed interface Ehdr : BinaryProvider {
 
         // ...
 
-        /**
-         * [e_machine]
-         */
+        // FREE TO USE MACHINE TYPES 0xFF00 - 0xFFFF
+
+        const val EM_CUSTOM_IKRRISC2: Elf_Half = 0xFF00U
+
+        const val EM_CUSTOM_IKRMINI: Elf_Half = 0xFF01U
+
+        const val EM_CUSTOM_T6502: Elf_Half = 0xFF02U
+
 
         /**
          * Invalid version
