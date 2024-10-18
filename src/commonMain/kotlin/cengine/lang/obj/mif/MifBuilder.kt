@@ -90,6 +90,7 @@ class MifBuilder(val wordSize: Size, val addrSize: Size) {
 
     fun addContent(startAddr: Hex, data: List<Hex>): MifBuilder {
         // Find the range where the new content starts and modify accordingly
+        if (data.isEmpty()) return this
         val newEnd = startAddr + (data.size - 1).toValue(addrSize)
         val modifiedRanges = mutableListOf<Range>()
 
