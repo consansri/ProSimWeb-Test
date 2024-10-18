@@ -1,6 +1,6 @@
 package prosim.ide.editor.objectfile
 
-import cengine.lang.asm.elf.ELFReader
+import cengine.lang.obj.elf.ELFReader
 import cengine.vfs.FPath
 import cengine.vfs.VirtualFile
 import com.formdev.flatlaf.extras.FlatSVGIcon

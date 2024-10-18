@@ -8,18 +8,18 @@ import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.asm.ast.target.riscv.RVDirType
-import cengine.lang.asm.elf.*
+import cengine.lang.obj.elf.*
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 
 data object RV32Spec : TargetSpec {
     override val name: String = "RISC-V 32 Bit"
 
-    override val ei_class: Elf_Byte = E_IDENT.ELFCLASS32
-    override val ei_data: Elf_Byte = E_IDENT.ELFDATA2LSB
-    override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
-    override val ei_abiversion: Elf_Byte = E_IDENT.ZERO
-    override val e_machine: Elf_Half = Ehdr.EM_RISCV
+    override val ei_class: cengine.lang.obj.elf.Elf_Byte = E_IDENT.ELFCLASS32
+    override val ei_data: cengine.lang.obj.elf.Elf_Byte = E_IDENT.ELFDATA2LSB
+    override val ei_osabi: cengine.lang.obj.elf.Elf_Byte = E_IDENT.ELFOSABI_SYSV
+    override val ei_abiversion: cengine.lang.obj.elf.Elf_Byte = E_IDENT.ZERO
+    override val e_machine: cengine.lang.obj.elf.Elf_Half = Ehdr.EM_RISCV
     override val linkerScript: LinkerScript = object : LinkerScript{
         override val textStart: Hex = Hex("0", Size.Bit32)
         override val dataStart: Hex? = null

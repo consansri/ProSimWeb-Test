@@ -2,7 +2,7 @@ package cengine.lang.asm.ast
 
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.lexer.AsmLexer
-import cengine.lang.asm.elf.ELFBuilder
+import cengine.lang.obj.elf.ELFBuilder
 
 interface DirTypeInterface {
 

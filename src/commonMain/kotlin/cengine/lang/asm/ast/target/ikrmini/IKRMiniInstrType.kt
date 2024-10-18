@@ -3,7 +3,7 @@ package cengine.lang.asm.ast.target.ikrmini
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.elf.ELFBuilder
+import cengine.lang.obj.elf.ELFBuilder
 
 enum class IKRMiniInstrType(override val detectionName: String, val opCode: UShort, val paramType: IKRMiniParamType, val description: String, val labelDependent: Boolean = false) : InstrTypeInterface {
     // Data Transport

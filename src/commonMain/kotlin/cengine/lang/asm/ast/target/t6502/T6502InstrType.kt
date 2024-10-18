@@ -3,7 +3,7 @@ package cengine.lang.asm.ast.target.t6502
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.elf.ELFBuilder
+import cengine.lang.obj.elf.ELFBuilder
 
 enum class T6502InstrType(override val detectionName: String, val opCode: UByte, val aMode: T6502ParamType, val description: String, val labelDependent: Boolean = false) : InstrTypeInterface {
     // Load, store, interregister transfer

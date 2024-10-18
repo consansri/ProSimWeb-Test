@@ -12,7 +12,7 @@ import cengine.lang.asm.ast.impl.ASNode.*
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmToken
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.*
+import cengine.lang.obj.elf.*
 import cengine.psi.core.*
 import cengine.psi.feature.Highlightable
 import cengine.psi.lexer.core.Token
@@ -630,13 +630,28 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
                 val initialPos = lexer.position
                 val relevantTokens = mutableListOf<AsmToken>()
 
+                var openingBracketCount = 0
+                var closingBracketCount = 0
+
                 while (true) {
                     val token = lexer.consume(true)
                     when {
                         token.type.isOperator -> relevantTokens.add(token)
                         token.type.isNumberLiteral -> relevantTokens.add(token)
                         token.type.isCharLiteral -> relevantTokens.add(token)
-                        token.type.isBasicBracket() -> relevantTokens.add(token)
+                        token.type.isBasicBracket() -> {
+                            if (token.type.isOpeningBracket) {
+                                openingBracketCount++
+                                relevantTokens.add(token)
+                            } else {
+                                if (openingBracketCount <= closingBracketCount) {
+                                    break
+                                }
+                                closingBracketCount++
+                                relevantTokens.add(token)
+                            }
+                        }
+
                         allowSymbolsAsOperands && token.type.isLinkableSymbol() -> relevantTokens.add(token)
                         else -> {
                             lexer.position = token.start

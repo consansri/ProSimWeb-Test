@@ -13,7 +13,6 @@ import cengine.lang.asm.features.AsmCompleter
 import cengine.lang.asm.features.AsmFormatter
 import cengine.lang.asm.features.AsmHighlighter
 import cengine.lang.asm.run.AsmExecutable
-import cengine.lang.asm.run.AsmMif
 import cengine.lang.asm.run.AsmRelocatable
 import cengine.psi.core.PsiService
 import cengine.psi.impl.PsiServiceImpl
@@ -34,7 +33,7 @@ class AsmLang(spec: TargetSpec) : LanguageService {
             annotations.clear()
         }
 
-    override var runConfigurations: Set<RunConfiguration<LanguageService>> = setOf(AsmExecutable(), AsmRelocatable(), AsmMif())
+    override var runConfigurations: Set<RunConfiguration<LanguageService>> = setOf(AsmExecutable, AsmRelocatable)
 
     override val name: String = "Assembly"
     override val fileSuffix: String = ".s"

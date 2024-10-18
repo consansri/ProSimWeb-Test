@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import cengine.lang.cown.CownLang
+import cengine.lang.obj.ObjLang
 import cengine.project.Project
 import cengine.project.ProjectState
 import cengine.project.ProjectStateManager
@@ -16,7 +17,7 @@ import ui.uilib.UIState
 @Composable
 fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
 
-    val project = Project(state, CownLang())
+    val project = Project(state, ObjLang(), CownLang())
 
     val viewType = remember { mutableStateOf(ProjectStateManager.appState.viewType) }
 

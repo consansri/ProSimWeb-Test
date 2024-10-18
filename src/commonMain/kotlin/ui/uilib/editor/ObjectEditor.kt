@@ -10,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import cengine.lang.asm.elf.*
+import cengine.lang.obj.elf.*
 import cengine.project.Project
 import cengine.vfs.VirtualFile
 import kotlinx.coroutines.Job

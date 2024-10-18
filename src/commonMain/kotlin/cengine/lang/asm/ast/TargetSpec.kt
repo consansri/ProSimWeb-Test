@@ -6,9 +6,7 @@ import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Spec
 import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.lang.asm.ast.target.riscv.rv64.RV64Spec
 import cengine.lang.asm.ast.target.t6502.T6502Spec
-import cengine.lang.asm.elf.Elf_Byte
-import cengine.lang.asm.elf.Elf_Half
-import cengine.lang.asm.elf.LinkerScript
+import cengine.lang.obj.elf.LinkerScript
 import cengine.util.integer.Size
 
 /**
@@ -25,11 +23,11 @@ interface TargetSpec {
      * ELF Information
      */
 
-    val ei_class: Elf_Byte
-    val ei_data: Elf_Byte
-    val ei_osabi: Elf_Byte
-    val ei_abiversion: Elf_Byte
-    val e_machine: Elf_Half
+    val ei_class: cengine.lang.obj.elf.Elf_Byte
+    val ei_data: cengine.lang.obj.elf.Elf_Byte
+    val ei_osabi: cengine.lang.obj.elf.Elf_Byte
+    val ei_abiversion: cengine.lang.obj.elf.Elf_Byte
+    val e_machine: cengine.lang.obj.elf.Elf_Half
     val linkerScript: LinkerScript
 
     /** The size of memory addresses. */

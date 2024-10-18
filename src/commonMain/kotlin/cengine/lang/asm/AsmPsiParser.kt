@@ -6,7 +6,7 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.impl.AsmFile
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.ExecutableELFBuilder
+import cengine.lang.obj.elf.ExecutableELFBuilder
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile

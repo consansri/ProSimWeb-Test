@@ -7,8 +7,8 @@ import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.ELFBuilder
-import cengine.lang.asm.elf.Sym
+import cengine.lang.obj.elf.ELFBuilder
+import cengine.lang.obj.elf.Sym
 import cengine.util.integer.Hex
 import cengine.util.integer.Size.*
 import cengine.util.integer.toByte

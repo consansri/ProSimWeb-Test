@@ -9,7 +9,7 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.asm.elf.ELFBuilder
+import cengine.lang.obj.elf.ELFBuilder
 import cengine.util.integer.Size
 import cengine.util.integer.toLong
 

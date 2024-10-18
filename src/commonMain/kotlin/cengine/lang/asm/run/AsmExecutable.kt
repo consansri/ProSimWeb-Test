@@ -5,7 +5,7 @@ import cengine.lang.LanguageService
 import cengine.lang.RunConfiguration
 import cengine.lang.asm.AsmLang
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.asm.elf.ExecutableELFBuilder
+import cengine.lang.obj.elf.ExecutableELFBuilder
 import cengine.psi.impl.PsiNotationCollector
 import cengine.vfs.FPath
 import cengine.vfs.VFileSystem
@@ -14,10 +14,9 @@ import emulator.kit.nativeError
 import emulator.kit.nativeInfo
 import emulator.kit.nativeWarn
 
-class AsmExecutable : RunConfiguration.FileRun<LanguageService> {
-    companion object {
-        const val EXECUTABLE_SUB_DIR = "exec"
-    }
+object AsmExecutable : RunConfiguration.FileRun<LanguageService> {
+
+    const val EXECUTABLE_SUB_DIR = "exec"
 
     override val name: String = "ELF Executable"
 
@@ -25,7 +24,7 @@ class AsmExecutable : RunConfiguration.FileRun<LanguageService> {
         if (lang !is AsmLang) return
         val asmFile = lang.psiParser.parse(file)
 
-        val outputPath = FPath.of(vfs, AsmLang.OUTPUT_DIR, EXECUTABLE_SUB_DIR, file.name.removeSuffix(lang.fileSuffix) +".o")
+        val outputPath = FPath.of(vfs, AsmLang.OUTPUT_DIR, EXECUTABLE_SUB_DIR, file.name.removeSuffix(lang.fileSuffix) + ".o")
 
         vfs.deleteFile(outputPath)
         val outputFile = vfs.createFile(outputPath)

@@ -15,9 +15,9 @@ import cengine.lang.asm.ast.target.riscv.RVConst.mask20JalLayout
 import cengine.lang.asm.ast.target.riscv.RVConst.mask32Hi20
 import cengine.lang.asm.ast.target.riscv.RVConst.mask32Lo12
 import cengine.lang.asm.ast.target.riscv.RVCsr
-import cengine.lang.asm.elf.ELF32_Shdr
-import cengine.lang.asm.elf.ELF64_Shdr
-import cengine.lang.asm.elf.ELFBuilder
+import cengine.lang.obj.elf.ELF32_Shdr
+import cengine.lang.obj.elf.ELF64_Shdr
+import cengine.lang.obj.elf.ELFBuilder
 import cengine.util.integer.Size
 import cengine.util.integer.toUInt
 import cengine.util.integer.toValue
