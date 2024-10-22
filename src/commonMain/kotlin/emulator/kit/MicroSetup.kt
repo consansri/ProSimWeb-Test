@@ -1,5 +1,6 @@
 package emulator.kit
 
+import androidx.compose.runtime.mutableStateListOf
 import emulator.kit.memory.Memory
 
 /**
@@ -8,7 +9,7 @@ import emulator.kit.memory.Memory
  * This Object will be setup by each arch through [Architecture.setupMicroArch].
  */
 object MicroSetup {
-    private val memory = mutableListOf<Memory>()
+    val memory = mutableStateListOf<Memory>()
 
     fun getMemoryInstances(): List<Memory> = memory
 

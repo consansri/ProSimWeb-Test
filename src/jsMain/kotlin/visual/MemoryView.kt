@@ -172,7 +172,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
             select {
 
-                defaultValue = props.archState.component1().memory.endianess.name
+                defaultValue = props.archState.component1().memory.endianness.name
 
                 for (entry in Memory.Endianess.entries) {
                     option {
@@ -436,7 +436,7 @@ val MemoryView = FC<MemViewProps> { props ->
 
     useEffect(memEndianess) {
         memEndianess?.let {
-            props.archState.component1().memory.endianess = it
+            props.archState.component1().memory.endianness = it
         }
     }
 

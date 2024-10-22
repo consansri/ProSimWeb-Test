@@ -136,16 +136,16 @@ fun IDEView(project: Project, viewType: MutableState<ViewType>, close: () -> Uni
                         leftContentType = if (leftContentType != ToolContentType.FileTree) {
                             ToolContentType.FileTree
                         } else null
-                    }, initialToggle = false, icon = icons.folder)
+                    }, value = leftContentType == ToolContentType.FileTree, icon = icons.folder)
                 },
                 lower = {
                     CToggle(onClick = {
 
-                    }, initialToggle = false, icon = icons.statusError)
+                    }, value = false, icon = icons.statusError)
 
                     CToggle(onClick = {
 
-                    }, initialToggle = false, icon = icons.console)
+                    }, value = false, icon = icons.console)
 
                 }
             )

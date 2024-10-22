@@ -127,7 +127,7 @@ data object IKRRisc2 {
             pcSize = WORD_WIDTH,
             standardRegFileName
         ),
-        MainMemory(WORD_WIDTH, WORD_WIDTH, endianess = Memory.Endianess.BigEndian, entrysInRow = 4),
+        MainMemory(WORD_WIDTH, WORD_WIDTH, endianness = Memory.Endianess.BigEndian, entrysInRow = 4),
         settings
     )
 

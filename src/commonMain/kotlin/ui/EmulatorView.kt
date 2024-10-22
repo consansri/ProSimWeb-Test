@@ -13,11 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import cengine.project.Project
+import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import cengine.util.integer.toValue
 import emulator.EmuLink
 import ui.uilib.UIState
 import ui.uilib.emulator.ArchitectureOverview
+import ui.uilib.emulator.MemView
 import ui.uilib.emulator.RegView
 import ui.uilib.filetree.FileTree
 import ui.uilib.interactable.CButton
@@ -43,6 +45,18 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
 
     val archOverview: (@Composable BoxScope.() -> Unit) = {
         ArchitectureOverview(architecture)
+    }
+
+    val memView: (@Composable BoxScope.() -> Unit) = {
+        if (architecture != null) {
+            MemView()
+        } else {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                CLabel(text = "No Architecture Selected!")
+            }
+        }
     }
 
     val regView: (@Composable BoxScope.() -> Unit) = {
@@ -93,6 +107,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                     EmulatorContentView.ObjFileSelection -> objFileSelector
                     EmulatorContentView.ArchOverview -> archOverview
                     EmulatorContentView.RegView -> regView
+                    EmulatorContentView.MemView -> memView
                     null -> null
                 },
                 centerContent = {
@@ -104,12 +119,14 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                     EmulatorContentView.ObjFileSelection -> objFileSelector
                     EmulatorContentView.ArchOverview -> archOverview
                     EmulatorContentView.RegView -> regView
+                    EmulatorContentView.MemView -> memView
                     null -> null
                 },
                 bottomContent = when (bottomContentType) {
                     EmulatorContentView.ObjFileSelection -> objFileSelector
                     EmulatorContentView.ArchOverview -> archOverview
                     EmulatorContentView.RegView -> regView
+                    EmulatorContentView.MemView -> memView
                     null -> null
                 }
             )
@@ -121,14 +138,19 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                         leftContentType = if (leftContentType != EmulatorContentView.ObjFileSelection) {
                             EmulatorContentView.ObjFileSelection
                         } else null
-                    }, initialToggle = false, icon = icons.folder)
+                    }, value = bottomContentType == EmulatorContentView.ObjFileSelection, icon = icons.folder)
                 },
                 lower = {
                     CToggle(onClick = {
-                        bottomContentType = if (bottomContentType != EmulatorContentView.ArchOverview) {
+                        bottomContentType = if (it && bottomContentType != EmulatorContentView.ArchOverview) {
                             EmulatorContentView.ArchOverview
                         } else null
-                    }, initialToggle = false, icon = icons.processor)
+                    }, value = bottomContentType == EmulatorContentView.ArchOverview, icon = icons.processor)
+                    CToggle(onClick = {
+                        bottomContentType = if (it && bottomContentType != EmulatorContentView.MemView) {
+                            EmulatorContentView.MemView
+                        } else null
+                    }, value = bottomContentType == EmulatorContentView.MemView, icon = icons.bars)
                 }
             )
         },
@@ -141,6 +163,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                     })
                     CButton(icon = icons.continuousExe, onClick = {
                         architecture?.exeContinuous()
+                        architecture?.memory?.store(Hex("8000", Size.Bit32), 5.toValue(Size.Bit8))
                     })
                     CButton(icon = icons.stepMultiple, text = stepCount.toString(), onClick = {
                         architecture?.exeMultiStep(stepCount.toLong())
@@ -157,10 +180,10 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                 },
                 lower = {
                     CToggle(onClick = {
-                        rightContentType = if (rightContentType != EmulatorContentView.RegView) {
+                        rightContentType = if (it && rightContentType != EmulatorContentView.RegView) {
                             EmulatorContentView.RegView
                         } else null
-                    }, initialToggle = false, icon = icons.processorBold)
+                    }, value = rightContentType == EmulatorContentView.RegView, icon = icons.processorBold)
                 }
             )
         },
@@ -185,5 +208,6 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
 enum class EmulatorContentView {
     ObjFileSelection,
     ArchOverview,
-    RegView
+    RegView,
+    MemView
 }

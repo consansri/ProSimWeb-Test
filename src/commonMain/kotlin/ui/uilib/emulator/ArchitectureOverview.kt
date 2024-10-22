@@ -11,8 +11,10 @@ import ui.uilib.label.CLabel
 @Composable
 fun ArchitectureOverview(arch: Architecture?) {
 
-
     if (arch != null) {
+
+
+
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center

@@ -1,12 +1,7 @@
 package ui.uilib.emulator
 
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,7 +71,7 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
                         sortByAddress = it
                     },
                     softWrap = false,
-                    initialToggle = sortByAddress
+                    value = sortByAddress
                 )
             }
 
@@ -102,14 +97,17 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
                 } else Modifier,
                 contentAlignment = Alignment.Center
             ) {
-                CToggle(text = if (showDescription) "Description" else "+", initialToggle = showDescription, onClick = {
+                CToggle(text = if (showDescription) "Description" else "+", value = showDescription, onClick = {
                     showDescription = it
                 })
             }
         }
 
-        LazyColumn(Modifier.fillMaxSize()) {
-            items(regs){reg ->
+        Column(
+            Modifier.fillMaxSize()
+                .verticalScroll(vScrollState)
+        ) {
+            regs.forEach { reg ->
                 key("reg:${reg.names + reg.aliases}:$numberFormat") {
                     RegRow(reg, numberFormat, valueHScroll, showDescription)
                 }
@@ -129,8 +127,6 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
 
 @Composable
 fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: ScrollState, showDescription: Boolean) {
-
-
     val regState by reg.variable.state
 
     fun getRegString(): String {
@@ -170,7 +166,7 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
                 onValueChange = { newVal ->
                     regValue = newVal
                 },
-                onFocusLost = {newVal ->
+                onFocusLost = { newVal ->
                     when (numberFormat) {
                         Value.Types.Bin -> reg.variable.setBin(newVal.text)
                         Value.Types.Hex -> reg.variable.setHex(newVal.text)

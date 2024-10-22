@@ -577,7 +577,7 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
             modifier = Modifier.fillMaxWidth(),
             onClick = {
                 showBytes = it
-            }, initialToggle = showBytes, icon = if (showBytes) {
+            }, value = showBytes, icon = if (showBytes) {
                 UIState.Icon.value.close
             } else {
                 UIState.Icon.value.add

@@ -1,22 +1,23 @@
 package emulator.kit.memory
 
+import androidx.compose.runtime.mutableStateListOf
+import cengine.util.integer.Hex
 import cengine.util.integer.Size
+import cengine.util.integer.Size.Bit8
 import cengine.util.integer.Value
+import cengine.util.integer.Variable
 import debug.DebugTools
 import emulator.kit.nativeWarn
-import cengine.util.integer.Size.Bit8
-import cengine.util.integer.Hex
-import cengine.util.integer.Variable
 
 /**
  * Represents the main memory of a system.
  *
  * @property addressSize The size of the memory addresses.
  * @property instanceSize The size of each memory instance.
- * @property endianess The endianess of the memory.
+ * @property endianness The endianess of the memory.
  * @property name The name of the memory.
  * @property initHex The initial binary value for the memory.
- * @property endianess The endianess of the memory.
+ * @property endianness The endianess of the memory.
  * @property memList The list of memory instances.
  * @property editableValues The list of editable memory values.
  * @property ioBounds The input/output bounds of the memory.
@@ -26,15 +27,15 @@ import cengine.util.integer.Variable
  *
  * @param addressSize The size of the memory addresses.
  * @param instanceSize The size of each memory instance.
- * @param endianess The endianess of the memory.
+ * @param endianness The endianess of the memory.
  * @param name The name of the memory.
  */
-class MainMemory(override val addressSize: Size, override val instanceSize: Size, endianess: Endianess, override val name: String = "Memory", entrysInRow: Int = 16) : Memory() {
+class MainMemory(override val addressSize: Size, override val instanceSize: Size, endianness: Endianess, override val name: String = "Memory", entrysInRow: Int = 16) : Memory() {
     override val initHex: String = "0"
 
     val addrIncByOne = Hex("1", addressSize)
-    var endianess: Endianess = Endianess.BigEndian
-    var memList: MutableList<MemInstance> = mutableListOf()
+    var endianness: Endianess = Endianess.BigEndian
+    val memList = mutableStateListOf<MemInstance>()
     private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
     var ioBounds: IOBounds? = null
         set(value) {
@@ -45,14 +46,14 @@ class MainMemory(override val addressSize: Size, override val instanceSize: Size
     var entrysInRow: Int = entrysInRow
         set(value) {
             field = value
-            getAllInstances().forEach { it.reMap(value) }
+            memList.forEach { it.reMap(value) }
         }
 
     init {
-        this.endianess = endianess
+        this.endianness = endianness
     }
 
-    override fun globalEndianess(): Endianess = endianess
+    override fun globalEndianess(): Endianess = endianness
 
     override fun load(address: Hex, amount: Int, tracker: AccessTracker, endianess: Endianess): Hex {
         val hexValues = mutableListOf<String>()
@@ -105,10 +106,8 @@ class MainMemory(override val addressSize: Size, override val instanceSize: Size
         }
     }
 
-    fun getAllInstances(): List<MemInstance> = memList
-
     override fun clear() {
-        this.memList.clear()
+        memList.clear()
         resetEditSection()
     }
 
