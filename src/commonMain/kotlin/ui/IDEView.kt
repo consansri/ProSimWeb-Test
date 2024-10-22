@@ -70,7 +70,7 @@ fun IDEView(project: Project, viewType: MutableState<ViewType>, close: () -> Uni
                 centerContent = {
                     Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_0)) {
                         // Center content
-                        TabbedPane(fileEditors, content = { index ->
+                        TabbedPane(fileEditors, closeable = true, content = { index ->
                             // Display File Content
                             key(fileEditors[index].value.path) {
                                 when {

@@ -1,6 +1,6 @@
 package prosim.ui
 
-import emulator.Link
+import emulator.EmuLink
 import emulator.kit.Architecture
 import emulator.kit.optional.SetupSetting
 import kotlinx.coroutines.CoroutineScope
@@ -30,16 +30,16 @@ object States {
         }
     }
 
-    val arch = object : StateManager<Architecture>(Link.RV32I.load()) {
+    val arch = object : StateManager<Architecture>(EmuLink.RV32I.load()) {
         init {
             get().loadArchSettings()
         }
 
         override fun loadFromConfig(wsConfig: WSConfig) {
             wsConfig.get(Keys.IDE, Keys.IDE_ARCH)?.let { value ->
-                setConfigNotChanged(Link.entries.firstOrNull {
+                setConfigNotChanged(EmuLink.entries.firstOrNull {
                     it.classType.simpleName.toString() == value
-                }?.load() ?: Link.RV32I.load())
+                }?.load() ?: EmuLink.RV32I.load())
             }
         }
 

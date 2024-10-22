@@ -5,9 +5,12 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
-import cengine.lang.obj.elf.*
+import cengine.lang.obj.elf.E_IDENT
+import cengine.lang.obj.elf.Ehdr
+import cengine.lang.obj.elf.LinkerScript
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
+import emulator.EmuLink
 
 data object IKRMiniSpec: TargetSpec {
     override val name: String = "IKR Mini"
@@ -16,6 +19,7 @@ data object IKRMiniSpec: TargetSpec {
     override val ei_osabi: cengine.lang.obj.elf.Elf_Byte = E_IDENT.ELFOSABI_SYSV
     override val ei_abiversion: cengine.lang.obj.elf.Elf_Byte = Ehdr.EV_CURRENT.toUByte()
     override val e_machine: cengine.lang.obj.elf.Elf_Half = Ehdr.EM_CUSTOM_IKRMINI
+    override val emuLink: EmuLink = EmuLink.IKRMINI
 
     override val linkerScript: LinkerScript = object : LinkerScript {
         override val textStart: Hex = Hex("0", Size.Bit16)

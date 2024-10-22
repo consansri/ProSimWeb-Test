@@ -17,16 +17,17 @@ import ui.uilib.params.FontType
 
 data class TabItem<T : Any>(
     val value: T,
-    val icon: ImageVector,
+    val icon: ImageVector? = null,
     val title: String
 )
 
 @Composable
 fun <T : Any> TabbedPane(
     tabs: List<TabItem<T>>,
+    closeable: Boolean = false,
     content: @Composable (Int) -> Unit,
     modifier: Modifier = Modifier,
-    onCloseTab: (TabItem<T>) -> Unit
+    onCloseTab: (TabItem<T>) -> Unit = {}
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
 
@@ -58,17 +59,19 @@ fun <T : Any> TabbedPane(
                             text = tabItem.title
                         )
 
-                        CButton(
-                            icon = UIState.Icon.value.close,
-                            onClick = {
-                                onCloseTab(tabItem)
+                        if (closeable) {
+                            CButton(
+                                icon = UIState.Icon.value.close,
+                                onClick = {
+                                    onCloseTab(tabItem)
 
-                                // If closing the selected tab, adjust selected index
-                                if (index == selectedTabIndex) {
-                                    selectedTabIndex = (selectedTabIndex - 1).coerceAtLeast(0)
+                                    // If closing the selected tab, adjust the selected index
+                                    if (index == selectedTabIndex) {
+                                        selectedTabIndex = (selectedTabIndex - 1).coerceAtLeast(0)
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
 
                     Spacer(

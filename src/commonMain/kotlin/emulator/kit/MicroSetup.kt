@@ -10,10 +10,9 @@ import emulator.kit.memory.Memory
 object MicroSetup {
     private val memory = mutableListOf<Memory>()
 
-
     fun getMemoryInstances(): List<Memory> = memory
 
-    fun append(mem: Memory){
+    fun append(mem: Memory) {
         memory.add(mem)
     }
 

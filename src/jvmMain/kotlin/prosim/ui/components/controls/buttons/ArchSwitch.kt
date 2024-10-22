@@ -1,7 +1,7 @@
 package prosim.ui.components.controls.buttons
 
 
-import emulator.Link
+import emulator.EmuLink
 import emulator.kit.Architecture
 import prosim.ui.States
 import prosim.uilib.state.StateListener
@@ -12,7 +12,7 @@ import prosim.uilib.styled.params.FontType
  * This class represents a combo box used for selecting and switching between different architectures within the application.
  * It retrieves available architectures from the provided MainManager instance through the `Link.entries` property.
  */
-class ArchSwitch : CChooser<Link>(Model(Link.entries, Link.RV32I, "Architecture"), FontType.TITLE, {
+class ArchSwitch : CChooser<EmuLink>(Model(EmuLink.entries, EmuLink.RV32I, "Architecture"), FontType.TITLE, {
     States.arch.set(it.load())
 }), StateListener<Architecture> {
     init {
@@ -20,8 +20,8 @@ class ArchSwitch : CChooser<Link>(Model(Link.entries, Link.RV32I, "Architecture"
     }
 
     override suspend fun onStateChange(newVal: Architecture) {
-        value = Link.entries.firstOrNull {
+        value = EmuLink.entries.firstOrNull {
             it.classType.isInstance(States.arch.get())
-        } ?: Link.RV32I
+        } ?: EmuLink.RV32I
     }
 }

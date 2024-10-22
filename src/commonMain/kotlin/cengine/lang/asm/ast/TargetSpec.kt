@@ -8,6 +8,7 @@ import cengine.lang.asm.ast.target.riscv.rv64.RV64Spec
 import cengine.lang.asm.ast.target.t6502.T6502Spec
 import cengine.lang.obj.elf.LinkerScript
 import cengine.util.integer.Size
+import emulator.EmuLink
 
 /**
  * Interface representing a defined assembly configuration.
@@ -18,6 +19,7 @@ interface TargetSpec {
     }
 
     val name: String
+    val emuLink: EmuLink?
 
     /**
      * ELF Information

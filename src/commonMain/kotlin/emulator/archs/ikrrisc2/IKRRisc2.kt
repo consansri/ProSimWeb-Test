@@ -4,7 +4,7 @@ import emulator.archs.ArchIKRRisc2
 import cengine.util.integer.Size.Bit32
 import cengine.util.integer.Size.Bit5
 import cengine.util.integer.Bin
-import emulator.core.Variable
+import cengine.util.integer.Variable
 import emulator.kit.common.Docs
 import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.Register

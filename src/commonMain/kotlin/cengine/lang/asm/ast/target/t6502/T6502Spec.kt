@@ -10,6 +10,7 @@ import cengine.lang.obj.elf.Ehdr
 import cengine.lang.obj.elf.LinkerScript
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
+import emulator.EmuLink
 
 object T6502Spec : TargetSpec {
     override val name: String = "6502 MOS"
@@ -26,6 +27,8 @@ object T6502Spec : TargetSpec {
         override val rodataStart: Hex? = null
         override val segmentAlign: UInt = 0x4000U
     }
+    override val emuLink: EmuLink = EmuLink.T6502
+
     override val memAddrSize: Size = Size.Bit16
     override val wordSize: Size = Size.Bit16
     override val detectRegistersByName: Boolean = false

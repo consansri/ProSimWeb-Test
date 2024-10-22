@@ -4,7 +4,7 @@ import Constants
 import Keys
 import StyleAttr
 import emotion.react.css
-import emulator.Link
+import emulator.EmuLink
 import emulator.kit.common.FileBuilder
 import emulator.kit.optional.FileHandler
 import js.array.asList
@@ -207,7 +207,7 @@ val Menu = FC<MenuProps> { props ->
                 }
             }
 
-            for (archLink in Link.entries) {
+            for (archLink in EmuLink.entries) {
                 a {
                     css {
                         color = important(StyleAttr.Header.FgColorSec.get())
@@ -215,7 +215,7 @@ val Menu = FC<MenuProps> { props ->
                     onClick = { event ->
                         showArchs(false)
                         setArch(archLink.load())
-                        localStorage.setItem(Keys.ARCH_TYPE, Link.entries.indexOf(archLink).toString())
+                        localStorage.setItem(Keys.ARCH_TYPE, EmuLink.entries.indexOf(archLink).toString())
 
                         event.currentTarget.classList.toggle("nav-arch-active")
                         props.archState.component1().exeReset()

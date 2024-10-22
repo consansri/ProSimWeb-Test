@@ -1,8 +1,8 @@
 package emulator.archs.riscv64
 
 import cengine.util.integer.Value
+import cengine.util.integer.Variable
 import emulator.kit.common.RegContainer
-import emulator.core.*
 
 class CSRegister(
     address: Value,

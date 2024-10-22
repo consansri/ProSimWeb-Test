@@ -8,9 +8,12 @@ import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.asm.ast.target.riscv.RVDirType
-import cengine.lang.obj.elf.*
+import cengine.lang.obj.elf.E_IDENT
+import cengine.lang.obj.elf.Ehdr
+import cengine.lang.obj.elf.LinkerScript
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
+import emulator.EmuLink
 
 data object RV64Spec : TargetSpec {
     override val name: String = "RISC-V 64 Bit"
@@ -26,6 +29,7 @@ data object RV64Spec : TargetSpec {
         override val rodataStart: Hex? = null
         override val segmentAlign: UInt = 0x40000U
     }
+    override val emuLink: EmuLink = EmuLink.RV64I
 
     override val memAddrSize: Size = Size.Bit64
     override val wordSize: Size = Size.Bit32

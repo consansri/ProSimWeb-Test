@@ -1,34 +1,28 @@
-package emulator.core
+package cengine.util.integer
 
-import cengine.util.integer.*
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 
 /**
  * [Variable] is the mutable version of [Value] which can contain several types all based on [String].
  * Each Variable has a fixed [size] which can't be changed. When a new value will be [set] it will automatically be resized to the former [size].
  * Operator Functions such as comparing functions are overwritten.
  */
-class Variable {
-    private val initialBinary: String
-    val size: Size
+class Variable(private val initialBinary: String, val size: Size, initValue: Value) {
+
+    val state: MutableState<Value> = mutableStateOf(initValue)
+
     var value: Value
+        set(value) {
+            state.component2().invoke(value)
+        }
+        get() = state.component1()
 
-    constructor(initialBinary: String, size: Size) {
-        this.initialBinary = initialBinary
-        this.size = size
-        value = Bin(initialBinary, size)
-    }
+    constructor(initialBinary: String, size: Size) : this(initialBinary, size, Bin(initialBinary, size))
 
-    constructor(value: Value) {
-        this.value = value
-        this.size = value.size
-        this.initialBinary = value.toBin().toString()
-    }
+    constructor(value: Value) : this(value.toBin().toRawString(), value.size, value)
 
-    constructor(size: Size) {
-        this.value = Bin("0", size)
-        this.size = size
-        this.initialBinary = value.toBin().toString()
-    }
+    constructor(size: Size) : this("0", size, Bin("0", size))
 
     /* GETTER SETTER */
     fun get(): Value = value

@@ -21,7 +21,7 @@ import ui.uilib.params.FontType
 import ui.uilib.params.IconType
 
 @Composable
-fun CToggle(onClick: (toggled: Boolean) -> Unit, initialToggle: Boolean, modifier: Modifier = Modifier, icon: ImageVector? = null, text: String? = null, textAlign: TextAlign = TextAlign.Center, iconType: IconType = IconType.MEDIUM, fontType: FontType = FontType.MEDIUM, active: Boolean = true) {
+fun CToggle(onClick: (toggled: Boolean) -> Unit, initialToggle: Boolean, modifier: Modifier = Modifier, icon: ImageVector? = null, text: String? = null, textAlign: TextAlign = TextAlign.Center, iconType: IconType = IconType.MEDIUM, fontType: FontType = FontType.MEDIUM, softWrap: Boolean = false,active: Boolean = true) {
 
     val scaling by UIState.Scale
     val theme by UIState.Theme
@@ -76,6 +76,7 @@ fun CToggle(onClick: (toggled: Boolean) -> Unit, initialToggle: Boolean, modifie
                 textAlign = textAlign,
                 fontFamily = fontType.getFamily(),
                 fontSize = fontType.getSize(),
+                softWrap = softWrap,
                 color = if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0,
             )
         }

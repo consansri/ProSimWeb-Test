@@ -30,7 +30,7 @@ class MifBuilder(val wordSize: Size, val addrSize: Size) {
             }
         }
 
-        fun parseElf(file: ELF32File): MifBuilder {
+        private fun parseElf(file: ELF32File): MifBuilder {
             val builder = MifBuilder(Size.Bit8, Size.Bit32)
             val bytes = file.content
 
@@ -46,7 +46,7 @@ class MifBuilder(val wordSize: Size, val addrSize: Size) {
             return builder
         }
 
-        fun parseElf(file: ELF64File): MifBuilder {
+        private fun parseElf(file: ELF64File): MifBuilder {
             val builder = MifBuilder(Size.Bit8, Size.Bit64)
             val bytes = file.content
 

@@ -10,7 +10,7 @@ import emulator.kit.config.Config
 import emulator.kit.optional.SetupSetting
 import cengine.util.integer.Size.*
 import cengine.util.integer.Hex
-import emulator.core.*
+import cengine.util.integer.Variable
 
 data object IKRMini {
 

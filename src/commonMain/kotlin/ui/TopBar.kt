@@ -19,7 +19,7 @@ fun TopBar(
     viewType: MutableState<ViewType>,
     onClose: () -> Unit,
     runConfigurations: List<RunConfiguration.ProjectRun<*>>
-){
+) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value

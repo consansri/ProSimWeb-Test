@@ -18,12 +18,13 @@ import ui.uilib.UIState
 fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
 
     val project = Project(state, ObjLang(), CownLang())
+    val emuLink = state.getTarget()?.emuLink
 
     val viewType = remember { mutableStateOf(ProjectStateManager.appState.viewType) }
 
     when (viewType.value) {
         ViewType.IDE -> IDEView(project, viewType, close)
-        ViewType.EMU -> EmulatorView(project, viewType, close)
+        ViewType.EMU -> EmulatorView(project, viewType, emuLink, close)
     }
 
     LaunchedEffect(viewType.value) {

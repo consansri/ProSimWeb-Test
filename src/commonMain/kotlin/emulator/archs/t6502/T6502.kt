@@ -12,7 +12,7 @@ import emulator.kit.optional.SetupSetting
 import cengine.util.integer.Size.Bit16
 import cengine.util.integer.Size.Bit8
 import cengine.util.integer.Hex
-import emulator.core.*
+import cengine.util.integer.Variable
 
 
 /**

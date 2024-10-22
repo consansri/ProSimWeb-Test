@@ -1,5 +1,6 @@
 package cengine.util.integer
 
+import androidx.compose.runtime.Immutable
 import cengine.util.string.removeLeadingZeros
 
 /**
@@ -21,6 +22,7 @@ import cengine.util.string.removeLeadingZeros
  * [toRawString]: Provides the string representation of the value without its prefixes.
  *
  */
+@Immutable
 sealed class Value(val size: Size) {
 
     abstract val input: String
@@ -92,7 +94,14 @@ sealed class Value(val size: Size) {
         Bin("BIN"),
         Hex("HEX"),
         Dec("DEC"),
-        UDec("UDEC")
+        UDec("UDEC");
+
+        fun next(): Types {
+            val length = Types.entries.size
+            val currIndex = Types.entries.indexOf(this)
+            val nextIndex = (currIndex + 1) % length
+            return Types.entries[nextIndex]
+        }
     }
 
     data class CheckResult(val valid: Boolean, val corrected: String, val message: String = "")

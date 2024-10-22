@@ -3,7 +3,7 @@ package emulator.kit.common
 import cengine.util.integer.Bin
 import cengine.util.integer.Size
 import cengine.util.integer.Value
-import emulator.core.Variable
+import cengine.util.integer.Variable
 import emulator.kit.common.RegContainer.PC
 import emulator.kit.common.RegContainer.RegisterFile
 import emulator.kit.optional.Feature
@@ -134,7 +134,6 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
     data class RegisterFile(
         val name: String, val unsortedRegisters: Array<Register>, val hasPrivileges: Boolean = false
     ) {
-        private val registers: Array<Register> = unsortedRegisters.sortedBy { if (it.aliases.isNotEmpty()) null else it.address.input }.toTypedArray()
 
         fun search(nameOrAlias: String): Register? = unsortedRegisters.firstOrNull { it.names.contains(nameOrAlias) || it.aliases.contains(nameOrAlias) }
 
@@ -148,11 +147,11 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         }
 
         fun getRegisters(features: List<Feature>): List<Register> {
-            return registers.filter { it.isNeeded(features) }
+            return unsortedRegisters.filter { it.isNeeded(features) }
         }
 
         fun clearAll() {
-            registers.forEach { it.variable.clear() }
+            unsortedRegisters.forEach { it.variable.clear() }
         }
 
         override fun hashCode(): Int {
@@ -163,8 +162,8 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
 
     enum class CallingConvention(val displayName: String) {
         UNSPECIFIED("-"),
-        CALLER("CALLER"),
-        CALLEE("CALLEE")
+        CALLER("R"),
+        CALLEE("E")
     }
 
 

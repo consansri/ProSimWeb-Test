@@ -1,7 +1,7 @@
 
 import debug.DebugTools
 import emotion.react.css
-import emulator.Link
+import emulator.EmuLink
 import emulator.kit.optional.FileHandler
 import emulator.kit.optional.SetupSetting
 import kotlinx.browser.localStorage
@@ -30,7 +30,7 @@ val App = FC<Props> {
     val (showMenu, setShowMenu) = useState(true)
 
 
-    val archState = useState(Link.entries.getOrNull(localStorage.getItem(Keys.ARCH_TYPE)?.toIntOrNull() ?: 0)?.load() ?: Link.entries.first().load())
+    val archState = useState(EmuLink.entries.getOrNull(localStorage.getItem(Keys.ARCH_TYPE)?.toIntOrNull() ?: 0)?.load() ?: EmuLink.entries.first().load())
     val (visibleFeatures, setVisibleFeatures) = useState(archState.component1().features.filter { !it.invisible })
     val (showSettings, setShowSettings) = useState(false)
     val fileState = useState(FileHandler())

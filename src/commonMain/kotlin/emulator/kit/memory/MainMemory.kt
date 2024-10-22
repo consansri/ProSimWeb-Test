@@ -4,9 +4,9 @@ import cengine.util.integer.Size
 import cengine.util.integer.Value
 import debug.DebugTools
 import emulator.kit.nativeWarn
-import emulator.core.*
 import cengine.util.integer.Size.Bit8
 import cengine.util.integer.Hex
+import cengine.util.integer.Variable
 
 /**
  * Represents the main memory of a system.

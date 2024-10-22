@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cengine.lang.asm.ast.TargetSpec
@@ -14,7 +15,6 @@ import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.project.ProjectState
 import cengine.project.ProjectStateManager
 import cengine.system.isAbsolutePathValid
-import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.Selector
@@ -120,12 +120,10 @@ object ProSimApp {
 
     @Composable
     fun CreateNewProjectScreen(onProjectCreated: (ProjectState) -> Unit, onCancel: () -> Unit) {
-        var pathField by remember { mutableStateOf("New") }
+        var pathField by remember { mutableStateOf(TextFieldValue("New")) }
         var target by remember { mutableStateOf<TargetSpec>(RV32Spec) }
 
         var invalidProjectPath by remember { mutableStateOf(false) }
-
-        nativeLog("$pathField -> invalid=$invalidProjectPath")
 
         val theme = UIState.Theme.value
         val scale = UIState.Scale.value
@@ -173,7 +171,7 @@ object ProSimApp {
                                 modifier = Modifier.weight(1.0f),
                                 onValueChange = {
                                     pathField = it
-                                    invalidProjectPath = !isAbsolutePathValid(it)
+                                    invalidProjectPath = !isAbsolutePathValid(it.text)
                                 },
                                 singleLine = true,
                                 error = invalidProjectPath
@@ -198,7 +196,7 @@ object ProSimApp {
                             CButton(
                                 onClick = {
                                     if (!invalidProjectPath) {
-                                        val state = ProjectState(pathField, target.name)
+                                        val state = ProjectState(pathField.text, target.name)
                                         ProjectStateManager.projects += state
                                         onProjectCreated(state)
                                     }

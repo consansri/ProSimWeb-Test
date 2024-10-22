@@ -31,6 +31,7 @@ fun CLabel(
     textDecoration: TextDecoration = TextDecoration.None,
     iconType: IconType = IconType.SMALL,
     fontType: FontType = FontType.MEDIUM,
+    softWrap: Boolean = true,
     active: Boolean = true
 ) {
 
@@ -65,6 +66,7 @@ fun CLabel(
                 textAlign = textAlign,
                 fontFamily = fontType.getFamily(),
                 fontSize = fontType.getSize(),
+                softWrap = softWrap,
                 color = if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0,
             )
         } else if (text != null) {
@@ -75,6 +77,7 @@ fun CLabel(
                 fontFamily = fontType.getFamily(),
                 fontSize = fontType.getSize(),
                 textDecoration = textDecoration,
+                softWrap = softWrap,
                 color = color ?: (if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0),
             )
         }

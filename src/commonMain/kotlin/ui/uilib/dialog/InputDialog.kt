@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.Dialog
 import emulator.kit.nativeLog
 import ui.uilib.UIState
@@ -17,7 +18,7 @@ import ui.uilib.text.CTextField
 @Composable
 fun InputDialog(title: String, init: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit, valid: (String) -> Boolean) {
 
-    var text by remember { mutableStateOf(init) }
+    var text by remember { mutableStateOf(TextFieldValue(init)) }
 
     Dialog(onDismissRequest = {
         onDismiss()
@@ -41,7 +42,7 @@ fun InputDialog(title: String, init: String, onConfirm: (String) -> Unit, onDism
                         text = it
                     },
                     modifier = Modifier.weight(1f),
-                    error = text.isEmpty()
+                    error = text.text.isEmpty()
                 )
             }
 
@@ -49,11 +50,11 @@ fun InputDialog(title: String, init: String, onConfirm: (String) -> Unit, onDism
                 CButton(
                     text = "Confirm",
                     onClick = {
-                        if (text.isNotEmpty()) {
+                        if (text.text.isNotEmpty()) {
                             nativeLog("Confirm: -> ")
-                            onConfirm(text)
+                            onConfirm(text.text)
                         }
-                    }, active = text.isNotEmpty(),
+                    }, active = text.text.isNotEmpty(),
                     modifier = Modifier.weight(1.0f)
                 )
                 CButton(

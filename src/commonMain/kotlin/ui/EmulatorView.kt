@@ -9,28 +9,50 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import cengine.lang.RunConfiguration
 import cengine.project.Project
+import emulator.EmuLink
 import ui.uilib.UIState
+import ui.uilib.emulator.ArchitectureOverview
+import ui.uilib.emulator.RegView
 import ui.uilib.filetree.FileTree
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.CToggle
+import ui.uilib.label.CLabel
 import ui.uilib.layout.BorderLayout
 import ui.uilib.layout.HorizontalToolBar
 import ui.uilib.layout.ResizableBorderPanels
 import ui.uilib.layout.VerticalToolBar
 
 @Composable
-fun EmulatorView(project: Project, viewType: MutableState<ViewType>, close: () -> Unit) {
+fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: EmuLink?, close: () -> Unit) {
 
     val theme = UIState.Theme.value
     val icons = UIState.Icon.value
+    val architecture = remember { emuLink?.load() }
 
     var leftContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
     var rightContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
     var bottomContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
+
+    val archOverview: (@Composable BoxScope.() -> Unit) = {
+        ArchitectureOverview(architecture)
+    }
+
+    val regView: (@Composable BoxScope.() -> Unit) = {
+        if (architecture != null) {
+            RegView(architecture)
+        } else {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                CLabel(text = "No Architecture Selected!")
+            }
+        }
+    }
 
     val objFileSelector: (@Composable BoxScope.() -> Unit) = {
         val leftVScrollState = rememberScrollState()
@@ -64,6 +86,8 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, close: () -
                 initialRightWidth = 200.dp,
                 leftContent = when (leftContentType) {
                     EmulatorContentView.ObjFileSelection -> objFileSelector
+                    EmulatorContentView.ArchOverview -> archOverview
+                    EmulatorContentView.RegView -> regView
                     null -> null
                 },
                 centerContent = {
@@ -73,10 +97,14 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, close: () -
                 },
                 rightContent = when (rightContentType) {
                     EmulatorContentView.ObjFileSelection -> objFileSelector
+                    EmulatorContentView.ArchOverview -> archOverview
+                    EmulatorContentView.RegView -> regView
                     null -> null
                 },
                 bottomContent = when (bottomContentType) {
                     EmulatorContentView.ObjFileSelection -> objFileSelector
+                    EmulatorContentView.ArchOverview -> archOverview
+                    EmulatorContentView.RegView -> regView
                     null -> null
                 }
             )
@@ -92,7 +120,9 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, close: () -
                 },
                 lower = {
                     CToggle(onClick = {
-
+                        bottomContentType = if (bottomContentType != EmulatorContentView.ArchOverview) {
+                            EmulatorContentView.ArchOverview
+                        } else null
                     }, initialToggle = false, icon = icons.processor)
                 }
             )
@@ -101,29 +131,30 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, close: () -
             VerticalToolBar(
                 upper = {
                     CButton(icon = icons.singleExe, onClick = {
-
+                        architecture?.exeSingleStep()
                     })
                     CButton(icon = icons.continuousExe, onClick = {
-
+                        architecture?.exeContinuous()
                     })
                     CButton(icon = icons.stepMultiple, onClick = {
 
                     })
-                    CButton(icon = icons.stepInto, onClick = {
-
-                    })
                     CButton(icon = icons.stepOver, onClick = {
-
+                        architecture?.exeSkipSubroutine()
                     })
                     CButton(icon = icons.stepOut, onClick = {
-
+                        architecture?.exeReturnFromSubroutine()
                     })
                     CButton(icon = icons.refresh, onClick = {
-
+                        architecture?.exeReset()
                     })
                 },
                 lower = {
-
+                    CToggle(onClick = {
+                        rightContentType = if (rightContentType != EmulatorContentView.RegView) {
+                            EmulatorContentView.RegView
+                        } else null
+                    }, initialToggle = false, icon = icons.processorBold)
                 }
             )
         },
@@ -146,5 +177,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, close: () -
 }
 
 enum class EmulatorContentView {
-    ObjFileSelection
+    ObjFileSelection,
+    ArchOverview,
+    RegView
 }

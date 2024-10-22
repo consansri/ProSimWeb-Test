@@ -13,10 +13,10 @@ import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
 import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
-import emulator.core.*
 import cengine.util.integer.Size.*
 import cengine.util.integer.Bin
 import cengine.util.integer.Hex
+import cengine.util.integer.Variable
 
 data object RV64 {
 

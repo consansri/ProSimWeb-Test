@@ -33,6 +33,7 @@ fun CButton(
     textAlign: TextAlign = TextAlign.Center,
     iconType: IconType = IconType.MEDIUM,
     fontType: FontType = FontType.MEDIUM,
+    softWrap: Boolean = false,
     withHoverBg: Boolean = true,
     withPressedBg: Boolean = true,
     active: Boolean = true
@@ -87,6 +88,7 @@ fun CButton(
                 textAlign = textAlign,
                 fontFamily = fontType.getFamily(),
                 fontSize = fontType.getSize(),
+                softWrap = softWrap,
                 color = if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0,
             )
         }
