@@ -22,7 +22,7 @@ fun AppBar(
     title: String,
     name: String? = null,
     type: String? = null,
-    actions: @Composable (RowScope) -> Unit
+    actions: @Composable RowScope.() -> Unit
 ) {
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value

@@ -12,8 +12,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import cengine.lang.RunConfiguration
 import cengine.project.Project
+import cengine.util.integer.Size
+import cengine.util.integer.toValue
 import emulator.EmuLink
 import ui.uilib.UIState
 import ui.uilib.emulator.ArchitectureOverview
@@ -26,6 +27,7 @@ import ui.uilib.layout.BorderLayout
 import ui.uilib.layout.HorizontalToolBar
 import ui.uilib.layout.ResizableBorderPanels
 import ui.uilib.layout.VerticalToolBar
+import ui.uilib.params.FontType
 
 @Composable
 fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: EmuLink?, close: () -> Unit) {
@@ -34,6 +36,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
     val icons = UIState.Icon.value
     val architecture = remember { emuLink?.load() }
 
+    var stepCount by remember { mutableStateOf(4U) }
     var leftContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
     var rightContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
     var bottomContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
@@ -76,7 +79,9 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
     BorderLayout(
         Modifier.fillMaxSize().background(theme.COLOR_BG_0),
         top = {
-            TopBar(project, viewType, onClose = { close() }, project.services.flatMap { it.runConfigurations.filterIsInstance<RunConfiguration.ProjectRun<*>>() })
+            TopBar(project, viewType, onClose = { close() }) {
+                CLabel(text = "PC: ${architecture?.regContainer?.pc?.variable?.state?.value?.toHex()}", fontType = FontType.CODE)
+            }
         },
         center = {
             ResizableBorderPanels(
@@ -132,12 +137,13 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                 upper = {
                     CButton(icon = icons.singleExe, onClick = {
                         architecture?.exeSingleStep()
+                        architecture?.getRegByAddr(1.toValue(Size.Bit5))?.variable?.set(5.toValue())
                     })
                     CButton(icon = icons.continuousExe, onClick = {
                         architecture?.exeContinuous()
                     })
-                    CButton(icon = icons.stepMultiple, onClick = {
-
+                    CButton(icon = icons.stepMultiple, text = stepCount.toString(), onClick = {
+                        architecture?.exeMultiStep(stepCount.toLong())
                     })
                     CButton(icon = icons.stepOver, onClick = {
                         architecture?.exeSkipSubroutine()

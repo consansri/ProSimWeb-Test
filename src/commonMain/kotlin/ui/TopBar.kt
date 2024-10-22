@@ -1,15 +1,12 @@
 package ui
 
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.runtime.*
-import cengine.lang.RunConfiguration
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import cengine.project.Project
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
-import ui.uilib.label.CLabel
 import ui.uilib.layout.AppBar
-import ui.uilib.params.FontType
 import ui.uilib.theme.DarkTheme
 import ui.uilib.theme.LightTheme
 
@@ -18,7 +15,7 @@ fun TopBar(
     project: Project,
     viewType: MutableState<ViewType>,
     onClose: () -> Unit,
-    runConfigurations: List<RunConfiguration.ProjectRun<*>>
+    customContent: @Composable RowScope.() -> Unit = {}
 ) {
 
     val theme = UIState.Theme.value
@@ -32,23 +29,9 @@ fun TopBar(
         type = viewType.value.name,
         actions = {
 
-            // Run Configurations Menu
-            var runConfigExpanded by remember { mutableStateOf(false) }
-            CButton(onClick = { runConfigExpanded = true }, icon = icons.build)
+            customContent()
 
-            DropdownMenu(
-                expanded = runConfigExpanded,
-                onDismissRequest = { runConfigExpanded = false }
-            ) {
-                runConfigurations.forEach { config ->
-                    DropdownMenuItem(onClick = {
-                        config.run(project)
-                        runConfigExpanded = false
-                    }) {
-                        CLabel(text = config.name, fontType = FontType.MEDIUM)
-                    }
-                }
-            }
+
 
             CButton(onClick = {
                 if (theme == LightTheme) {

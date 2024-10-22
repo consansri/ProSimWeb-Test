@@ -1,10 +1,16 @@
 package ui.uilib.emulator
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import cengine.util.integer.Value
 import cengine.util.integer.toULong
@@ -22,7 +28,7 @@ import ui.uilib.params.FontType
 @Composable
 fun RegView(arch: Architecture) {
 
-    val tabs = arch.regContainer.getRegFileList().map { TabItem(it, title = it.name) }
+    val tabs = remember { arch.regContainer.getRegFileList().map { TabItem(it, title = it.name) } }
 
     TabbedPane(tabs, false, content = { tabIndex ->
 
@@ -48,8 +54,6 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
     var showDescription by remember { mutableStateOf(false) }
 
     val valueHScroll = rememberScrollState()
-    val nameHScroll = rememberScrollState()
-    val descHScroll = rememberScrollState()
 
     Column(Modifier.fillMaxSize()) {
         Row(
@@ -104,19 +108,12 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
             }
         }
 
-        Column(
-            Modifier.fillMaxSize()
-                .verticalScroll(vScrollState)
-        ) {
-
-            regs.forEach { reg ->
-
+        LazyColumn(Modifier.fillMaxSize()) {
+            items(regs){reg ->
                 key("reg:${reg.names + reg.aliases}:$numberFormat") {
                     RegRow(reg, numberFormat, valueHScroll, showDescription)
                 }
-
             }
-
         }
     }
 
@@ -133,7 +130,24 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
 @Composable
 fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: ScrollState, showDescription: Boolean) {
 
-    val regState by remember { reg.variable.state }
+
+    val regState by reg.variable.state
+
+    fun getRegString(): String {
+        return when (numberFormat) {
+            Value.Types.Bin -> regState.toBin().toRawString()
+            Value.Types.Hex -> regState.toHex().toRawString()
+            Value.Types.Dec -> regState.toDec().toRawString()
+            Value.Types.UDec -> regState.toUDec().toRawString()
+        }
+    }
+
+    var regValue by remember { mutableStateOf(TextFieldValue(getRegString())) }
+    val regNames = remember { (reg.names + reg.aliases).joinToString(" ") { it } }
+
+    LaunchedEffect(regState) {
+        regValue = regValue.copy(text = getRegString())
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth()
@@ -142,7 +156,7 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
             modifier = Modifier.weight(0.2f),
             contentAlignment = Alignment.CenterStart
         ) {
-            CLabel(modifier = Modifier.fillMaxWidth(), softWrap = false, fontType = FontType.CODE, textAlign = TextAlign.Left, text = (reg.names + reg.aliases).joinToString(" ") { it })
+            CLabel(modifier = Modifier.fillMaxWidth(), softWrap = false, fontType = FontType.CODE, textAlign = TextAlign.Left, text = regNames)
         }
 
         Box(
@@ -152,18 +166,16 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
         ) {
             // TODO Replace CLabel with a CInput which accepts a specific numberformat which only allows certain input chars
             CInput(
-                value = when (numberFormat) {
-                    Value.Types.Bin -> regState.toBin().toRawString()
-                    Value.Types.Hex -> regState.toHex().toRawString()
-                    Value.Types.Dec -> regState.toDec().toRawString()
-                    Value.Types.UDec -> regState.toUDec().toRawString()
-                },
+                value = regValue,
                 onValueChange = { newVal ->
+                    regValue = newVal
+                },
+                onFocusLost = {newVal ->
                     when (numberFormat) {
-                        Value.Types.Bin -> reg.variable.setBin(newVal)
-                        Value.Types.Hex -> reg.variable.setHex(newVal)
-                        Value.Types.Dec -> reg.variable.setDec(newVal)
-                        Value.Types.UDec -> reg.variable.setUDec(newVal)
+                        Value.Types.Bin -> reg.variable.setBin(newVal.text)
+                        Value.Types.Hex -> reg.variable.setHex(newVal.text)
+                        Value.Types.Dec -> reg.variable.setDec(newVal.text)
+                        Value.Types.UDec -> reg.variable.setUDec(newVal.text)
                     }
                 },
                 numberFormat = numberFormat,

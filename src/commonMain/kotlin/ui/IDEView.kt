@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -18,8 +20,11 @@ import ui.uilib.UIState
 import ui.uilib.editor.CodeEditor
 import ui.uilib.editor.ObjectEditor
 import ui.uilib.filetree.FileTree
+import ui.uilib.interactable.CButton
 import ui.uilib.interactable.CToggle
+import ui.uilib.label.CLabel
 import ui.uilib.layout.*
+import ui.uilib.params.FontType
 
 @Composable
 fun IDEView(project: Project, viewType: MutableState<ViewType>, close: () -> Unit) {
@@ -55,7 +60,26 @@ fun IDEView(project: Project, viewType: MutableState<ViewType>, close: () -> Uni
     BorderLayout(
         Modifier.fillMaxSize().background(theme.COLOR_BG_0),
         top = {
-            TopBar(project, viewType, onClose = { close() }, project.services.flatMap { it.runConfigurations.filterIsInstance<RunConfiguration.ProjectRun<*>>() })
+            TopBar(project, viewType, onClose = { close() }) {
+                // Run Configurations Menu
+                val runConfigs = project.services.flatMap { it.runConfigurations.filterIsInstance<RunConfiguration.ProjectRun<*>>() }
+                var runConfigExpanded by remember { mutableStateOf(false) }
+                CButton(onClick = { runConfigExpanded = true }, icon = icons.build)
+
+                DropdownMenu(
+                    expanded = runConfigExpanded,
+                    onDismissRequest = { runConfigExpanded = false }
+                ) {
+                    runConfigs.forEach { config ->
+                        DropdownMenuItem(onClick = {
+                            config.run(project)
+                            runConfigExpanded = false
+                        }) {
+                            CLabel(text = config.name, fontType = FontType.MEDIUM)
+                        }
+                    }
+                }
+            }
         },
         center = {
             ResizableBorderPanels(

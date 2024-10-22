@@ -5,8 +5,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.TextFieldValue
@@ -18,6 +19,7 @@ import ui.uilib.params.FontType
 fun CTextField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
+    onFocusLost: (TextFieldValue) -> Unit = {},
     modifier: Modifier = Modifier,
     singleLine: Boolean = false,
     readonly: Boolean = false,
@@ -34,6 +36,8 @@ fun CTextField(
     val scale = UIState.Scale.value
     val theme = UIState.Theme.value
 
+    var isFocused by remember { mutableStateOf(false) }
+
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
@@ -41,9 +45,21 @@ fun CTextField(
             modifier.background(backgroundColor)
                 .border(scale.SIZE_BORDER_THICKNESS, if (!error) borderColor else UIState.Theme.value.COLOR_RED, RoundedCornerShape(scale.SIZE_CORNER_RADIUS))
                 .padding(scale.SIZE_INSET_MEDIUM)
+                .onFocusChanged {focusState ->
+                    if(isFocused && !focusState.isFocused){
+                        onFocusLost(value)
+                    }
+                    isFocused = focusState.isFocused
+                }
         } else {
             modifier.background(backgroundColor)
                 .padding(scale.SIZE_INSET_MEDIUM)
+                .onFocusChanged {focusState ->
+                    if(isFocused && !focusState.isFocused){
+                        onFocusLost(value)
+                    }
+                    isFocused = focusState.isFocused
+                }
         },
         textStyle = fontType.getStyle().copy(color = theme.COLOR_FG_0),
         singleLine = singleLine,
