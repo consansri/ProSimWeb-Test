@@ -1,12 +1,18 @@
 package ui.uilib.filetree
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.geometry.Offset
 import cengine.lang.LanguageService
 import cengine.lang.RunConfiguration
 import cengine.project.Project
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
+import emulator.kit.nativeWarn
+import io.github.vinceglb.filekit.core.FileKit
+import io.github.vinceglb.filekit.core.PickerMode
+import io.github.vinceglb.filekit.core.PickerType
+import kotlinx.coroutines.launch
 import ui.uilib.UIState
 import ui.uilib.menu.Menu
 import ui.uilib.menu.MenuItem
@@ -21,6 +27,8 @@ fun FileContextMenu(
     onDelete: (VirtualFile) -> Unit,
     onCreate: (VirtualFile, isDirectory: Boolean) -> Unit
 ) {
+    val ioScope = rememberCoroutineScope()
+
     Menu(
         position,
         onDismiss = onDismiss,
@@ -45,7 +53,32 @@ fun FileContextMenu(
             }
         }
 
+        if (file.isFile) {
+            MenuItem(UIState.Icon.value.file, "Export") {
+                onDismiss()
+                ioScope.launch {
+                    val baseName = file.name.substringBeforeLast('.')
+                    val ext = file.name.substringAfterLast('.')
+                    FileKit.saveFile(file.getContent(), baseName, ext)
+                }
+            }
+        }
+
         if (file.isDirectory) {
+            MenuItem(UIState.Icon.value.file, "Import") {
+                onDismiss()
+                ioScope.launch {
+                    val fileData = FileKit.pickFile(PickerType.File(), PickerMode.Single,"Import File")
+                    if (fileData != null) {
+                        val path = file.path + fileData.name
+                        val newFile = project.fileSystem.createFile(path)
+                        newFile.setContent(fileData.readBytes())
+                        nativeLog("Imported File $path!")
+                    }else{
+                        nativeWarn("No File Selected!")
+                    }
+                }
+            }
             MenuItem(UIState.Icon.value.file, "Create New File") {
                 onDismiss()
                 onCreate(file, false)

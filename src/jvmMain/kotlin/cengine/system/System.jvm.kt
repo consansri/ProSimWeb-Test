@@ -13,3 +13,11 @@ actual fun getSystemLineBreak(): String {
 actual fun isAbsolutePathValid(path: String): Boolean {
     TODO("Not yet implemented")
 }
+
+actual suspend fun exportFile(fileData: FileData): Boolean {
+    TODO("Not yet implemented")
+}
+
+actual suspend fun importFile(): FileData? {
+    TODO("Not yet implemented")
+}
