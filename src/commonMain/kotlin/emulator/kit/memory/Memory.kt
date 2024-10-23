@@ -1,9 +1,8 @@
 package emulator.kit.memory
 
-import cengine.util.integer.Size
-import cengine.util.integer.Value
-import cengine.util.integer.Size.Bit8
+import cengine.lang.obj.elf.ELFFile
 import cengine.util.integer.*
+import cengine.util.integer.Size.Bit8
 
 /**
  * Represents a Memory class that provides functionality for loading, storing, and managing memory instances.
@@ -51,7 +50,7 @@ sealed class Memory {
     fun storeArray(address: Hex, vararg values: Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false, tracker: AccessTracker = AccessTracker()) {
         var curraddr: Value = address
         for (value in values) {
-            store(curraddr.toHex(), value, mark, readonly,tracker)
+            store(curraddr.toHex(), value, mark, readonly, tracker)
             curraddr += value.size.getByteCount().toValue(addressSize)
         }
     }
@@ -79,7 +78,7 @@ sealed class Memory {
         var hits: Int = 0,
         var misses: Int = 0,
         var writeBacks: Int = 0
-    ){
+    ) {
         override fun toString(): String {
             return "$hits HITS and $misses MISSES (with $writeBacks write backs)"
         }

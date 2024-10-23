@@ -10,11 +10,14 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import cengine.lang.obj.elf.ELFFile
+import cengine.lang.obj.mif.MifBuilder
 import cengine.project.Project
 import emulator.EmuLink
 import ui.uilib.UIState
@@ -36,7 +39,9 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
 
     val theme = UIState.Theme.value
     val icons = UIState.Icon.value
+    val codeFont = FontType.CODE.getStyle()
     val architecture = remember { emuLink?.load() }
+    val pcState = remember { derivedStateOf { architecture?.regContainer?.pc?.variable?.state?.value } }
 
     var stepCount by remember { mutableStateOf(4U) }
     var accumulatedScroll by remember { mutableStateOf(0f) }
@@ -87,7 +92,17 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
         ) {
             // Left content
             FileTree(project) { file ->
-                // TODO
+                try {
+                    architecture?.let { architecture ->
+                        val elfFile = ELFFile.parse(file.name, file.getContent())
+                        elfFile?.let {
+                            architecture.initializer = MifBuilder.parseElf(it)
+                            architecture.exeReset()
+                        }
+                    }
+                } catch (e: Exception) {
+
+                }
             }
         }
     }
@@ -96,7 +111,8 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
         Modifier.fillMaxSize().background(theme.COLOR_BG_0),
         top = {
             TopBar(project, viewType, onClose = { close() }) {
-                CLabel(text = "PC: ${architecture?.regContainer?.pc?.variable?.state?.value?.toHex()}", fontType = FontType.CODE)
+                Text("PC: ${pcState.value?.toHex() ?: "N/A"}", fontFamily = codeFont.fontFamily, fontSize = codeFont.fontSize, color = theme.COLOR_FG_0)
+                //CLabel(text = "PC: ${pcState.value?.toHex() ?: "N/A"}", fontType = FontType.CODE) // ISSUE: PC doesn't seem to automatically update its value!
             }
         },
         center = {
@@ -190,7 +206,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                                 }
                             }
                         }, icon = icons.stepMultiple, text = stepCount.toString(), onClick = {
-                        architecture?.exeMultiStep(stepCount.toLong()) // TODO Allow increasing or decreasing stepCount on scrolling on the button (mouse wheel)
+                        architecture?.exeMultiStep(stepCount.toLong())
                     })
                     CButton(icon = icons.stepOver, onClick = {
                         architecture?.exeSkipSubroutine()
@@ -225,8 +241,6 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
         rightBg = theme.COLOR_BG_1,
         bottomBg = theme.COLOR_BG_1
     )
-
-
 }
 
 enum class EmulatorContentView {

@@ -22,14 +22,13 @@ fun ArchitectureOverview(arch: Architecture?) {
     val vScrollState = rememberScrollState()
 
     if (arch != null) {
-
         Column(Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier.fillMaxWidth()
                     .background(theme.COLOR_BG_1),
                 contentAlignment = Alignment.Center
             ) {
-                CLabel(text = "Architecture: ${arch.description.name}",fontType = FontType.LARGE)
+                CLabel(text = "Architecture: ${arch.description.name}", fontType = FontType.LARGE)
             }
 
             Row(
@@ -50,7 +49,7 @@ fun ArchitectureOverview(arch: Architecture?) {
                             is SetupSetting.Bool -> TODO()
                             is SetupSetting.Enumeration -> {
                                 Selector<Enum<*>>(
-                                    it.enumValues, initial = it.state.value as? Enum<*>,itemContent = { isSelected, value ->
+                                    it.enumValues, initial = it.state.value as? Enum<*>, itemContent = { isSelected, value ->
                                         CLabel(text = value.name)
                                     },
                                     onSelectionChanged = { newVal ->
@@ -64,8 +63,6 @@ fun ArchitectureOverview(arch: Architecture?) {
                 }
             }
         }
-
-
     } else {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -74,6 +71,4 @@ fun ArchitectureOverview(arch: Architecture?) {
             CLabel(text = "No Architecture Selected!")
         }
     }
-
-
 }

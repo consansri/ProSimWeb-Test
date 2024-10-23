@@ -38,7 +38,7 @@ class Variable(private val initialBinary: String, val size: Size, initValue: Val
     fun getBounds(): Bounds = Bounds(size)
 
     fun set(value: Value): Variable {
-        this.value = value.toBin().getResized(size)
+        state.value = value.toBin().getResized(size)
         return this
     }
 

@@ -4,34 +4,40 @@ import cengine.lang.obj.elf.ELF32File
 import cengine.lang.obj.elf.ELF64File
 import cengine.lang.obj.elf.ELFFile
 import cengine.util.integer.*
-import emulator.kit.nativeLog
+import emulator.kit.common.Initializer
+import emulator.kit.memory.Memory
 import kotlin.math.pow
 
-class MifBuilder(val wordSize: Size, val addrSize: Size) {
+class MifBuilder(val wordSize: Size, val addrSize: Size, override val id: String) : Initializer {
 
     val depth: Double = 2.0.pow(addrSize.bitWidth)
     var addrRDX: Radix = Radix.HEX
     var dataRDX: Radix = Radix.HEX
 
     // Represents the ranges as a list of triples: (start address, end address, data value)
-    private val ranges: MutableList<Range> = mutableListOf()
+    val ranges: MutableList<Range> = mutableListOf()
 
     init {
         // Initially, all addresses are filled with 0
         ranges.add(Range(0.toValue(addrSize), Bin("1".repeat(addrSize.bitWidth), addrSize), listOf(Hex("0", wordSize))))
     }
 
-    companion object {
+    override fun initialize(memory: Memory) {
+        ranges.forEach { range ->
+            range.init(memory)
+        }
+    }
 
+    companion object {
         fun parseElf(file: ELFFile<*, *, *, *, *, *, *>): MifBuilder {
-            return when (file) {
-                is ELF32File -> parseElf(file)
-                is ELF64File -> parseElf(file)
+            return when(file){
+                is ELF32File -> parseElf32(file)
+                is ELF64File -> parseElf64(file)
             }
         }
 
-        private fun parseElf(file: ELF32File): MifBuilder {
-            val builder = MifBuilder(Size.Bit8, Size.Bit32)
+        private fun parseElf32(file: ELF32File): MifBuilder {
+            val builder = MifBuilder(Size.Bit8, Size.Bit32, file.name)
             val bytes = file.content
 
             file.programHeaders.forEach {
@@ -46,8 +52,8 @@ class MifBuilder(val wordSize: Size, val addrSize: Size) {
             return builder
         }
 
-        private fun parseElf(file: ELF64File): MifBuilder {
-            val builder = MifBuilder(Size.Bit8, Size.Bit64)
+        private fun parseElf64(file: ELF64File): MifBuilder {
+            val builder = MifBuilder(Size.Bit8, Size.Bit64, file.name)
             val bytes = file.content
 
             file.programHeaders.forEach {
@@ -64,14 +70,6 @@ class MifBuilder(val wordSize: Size, val addrSize: Size) {
     }
 
     fun build(): String {
-
-        nativeLog(
-            "Ranges: ${
-                ranges.joinToString("") {
-                    "\n\t" + it.toString()
-                }
-            }"
-        )
         val builder = StringBuilder()
         builder.append("DEPTH = ${depth.toString().takeWhile { it != '.' }}; -- The size of memory in words\n")
         builder.append("WIDTH = ${wordSize.bitWidth}; -- The size of data in bits\n")
@@ -176,6 +174,30 @@ class MifBuilder(val wordSize: Size, val addrSize: Size) {
             return string
         }
 
+        fun init(memory: Memory) {
+            val zero = 0U.toValue()
+            if (data.all { it == zero }) return
+
+            if (start == end) {
+                memory.storeArray(start.toHex(), *data.toTypedArray())
+            } else if (data.size == 1) {
+                var currAddr = start
+                val inc = 1U.toValue()
+                while (true) {
+                    memory.store(currAddr.toHex(), data.first())
+                    if (currAddr == end) break
+                    currAddr += inc
+                }
+            } else if (enroll) {
+                data.mapIndexed { index, value ->
+                    val addr = (start + index.toValue(addrSize)).toHex()
+                    memory.store(addr, value)
+                }
+            } else {
+                memory.storeArray(start.toHex(), *data.toTypedArray())
+            }
+        }
+
         override fun toString(): String = "Range: ${start.toHex()}, ${end.toHex()}, $data -> ${build()}"
 
     }
@@ -193,6 +215,9 @@ class MifBuilder(val wordSize: Size, val addrSize: Size) {
     private fun Value.addrRDX(): String = rdx(addrRDX)
     private fun Value.dataRDX(): String = rdx(dataRDX)
 
+    override fun toString(): String {
+        return build()
+    }
 
     enum class Radix {
         HEX,

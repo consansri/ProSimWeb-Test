@@ -1,10 +1,11 @@
 package emulator.kit
 
-import cengine.util.integer.Value
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import cengine.util.integer.*
+import cengine.util.integer.Size.*
 import debug.DebugTools
 import emulator.core.*
-import cengine.util.integer.Size.*
-import cengine.util.integer.*
 import emulator.kit.assembler.*
 import emulator.kit.common.*
 import emulator.kit.config.AsmConfig
@@ -51,6 +52,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     val settings: List<SetupSetting<*>>
     private var lastFile: AsmFile? = null
     private val asmHeader: AsmHeader
+    var initializer: Initializer? = null
 
     init {
         // Build Arch from Config
@@ -145,7 +147,7 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         MicroSetup.getMemoryInstances().forEach {
             it.clear()
         }
-
+        initializer?.initialize(memory)
         console.exeInfo("resetting")
     }
 

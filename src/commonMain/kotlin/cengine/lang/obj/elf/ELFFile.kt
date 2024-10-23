@@ -266,19 +266,19 @@ sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn
 
     fun eIdent(byteArray: ByteArray): E_IDENT = E_IDENT.extractFrom(byteArray)
 
-    fun ehdr(byteArray: ByteArray, eIdent: E_IDENT): EHDR = Ehdr.extractFrom(byteArray, eIdent) as EHDR
+    abstract fun ehdr(byteArray: ByteArray, eIdent: E_IDENT): EHDR
 
-    fun shdr(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): SHDR = Shdr.extractFrom(byteArray, eIdent, offset) as SHDR
+    abstract fun shdr(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): SHDR
 
-    fun phdr(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): PHDR = Phdr.extractFrom(byteArray, eIdent, offset) as PHDR
+    abstract fun phdr(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): PHDR
 
-    fun sym(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): SYM = Sym.extractFrom(byteArray, eIdent, offset) as SYM
+    abstract fun sym(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): SYM
 
-    fun dyn(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): DYN = Dyn.extractFrom(byteArray, eIdent, offset) as DYN
+    abstract fun dyn(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): DYN
 
-    fun rel(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): REL = Rel.extractFrom(byteArray, eIdent, offset) as REL
+    abstract fun rel(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): REL
 
-    fun rela(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): RELA = Rela.extractFrom(byteArray, eIdent, offset) as RELA
+    abstract fun rela(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): RELA
 
     fun nhdr(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Nhdr = Nhdr.extractFrom(byteArray, eIdent, offset)
 

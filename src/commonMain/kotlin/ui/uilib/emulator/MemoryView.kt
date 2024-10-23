@@ -93,7 +93,7 @@ fun MainMemoryView(memory: MainMemory, pc: MutableState<Value>) {
                         Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(offset.toString(), fontFamily = baseFont, color = theme.COLOR_FG_0)
+                        Text(offset.toString(16), fontFamily = baseFont, color = theme.COLOR_FG_0)
                     }
                 }
             }
@@ -204,7 +204,7 @@ fun DMCacheView(memory: DMCache, pc: MutableState<Value>) {
                         Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(s.toString(), fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                        Text(s.toString(16), fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -295,7 +295,7 @@ fun SACacheView(memory: SACache, pc: MutableState<Value>) {
                         Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(s.toString(), fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                        Text(s.toString(16), fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -385,7 +385,7 @@ fun FACacheView(memory: FACache, pc: MutableState<Value>) {
                         Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(s.toString(), fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                        Text(s.toString(16), fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
                     }
                 }
             }
