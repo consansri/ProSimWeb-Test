@@ -2,6 +2,8 @@ package ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -11,11 +13,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import cengine.project.Project
-import cengine.util.integer.Hex
-import cengine.util.integer.Size
-import cengine.util.integer.toValue
 import emulator.EmuLink
 import ui.uilib.UIState
 import ui.uilib.emulator.ArchitectureOverview
@@ -39,6 +39,8 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
     val architecture = remember { emuLink?.load() }
 
     var stepCount by remember { mutableStateOf(4U) }
+    var accumulatedScroll by remember { mutableStateOf(0f) }
+    val scrollThreshold = 100f
     var leftContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
     var rightContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
     var bottomContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
@@ -49,7 +51,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
 
     val memView: (@Composable BoxScope.() -> Unit) = {
         if (architecture != null) {
-            MemView()
+            MemView(architecture)
         } else {
             Box(
                 contentAlignment = Alignment.Center
@@ -145,7 +147,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                         bottomContentType = if (it && bottomContentType != EmulatorContentView.ArchOverview) {
                             EmulatorContentView.ArchOverview
                         } else null
-                    }, value = bottomContentType == EmulatorContentView.ArchOverview, icon = icons.processor)
+                    }, value = bottomContentType == EmulatorContentView.ArchOverview, icon = icons.settings)
                     CToggle(onClick = {
                         bottomContentType = if (it && bottomContentType != EmulatorContentView.MemView) {
                             EmulatorContentView.MemView
@@ -159,14 +161,36 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                 upper = {
                     CButton(icon = icons.singleExe, onClick = {
                         architecture?.exeSingleStep()
-                        architecture?.getRegByAddr(1.toValue(Size.Bit5))?.variable?.set(5.toValue())
                     })
                     CButton(icon = icons.continuousExe, onClick = {
                         architecture?.exeContinuous()
-                        architecture?.memory?.store(Hex("8000", Size.Bit32), 5.toValue(Size.Bit8))
                     })
-                    CButton(icon = icons.stepMultiple, text = stepCount.toString(), onClick = {
-                        architecture?.exeMultiStep(stepCount.toLong())
+                    CButton(modifier = Modifier
+                        .scrollable(orientation = Orientation.Vertical,
+                            state = rememberScrollableState { delta ->
+                                accumulatedScroll += delta
+
+                                // Increment stepCount when scroll threshold is crossed
+                                if (accumulatedScroll <= -scrollThreshold) {
+                                    stepCount = stepCount.dec().coerceAtLeast(1U)
+                                    accumulatedScroll = 0f // Reset after increment
+                                } else if (accumulatedScroll >= scrollThreshold) {
+                                    stepCount = stepCount.inc()
+                                    accumulatedScroll = 0f // Reset after decrement
+                                }
+                                delta
+                            })
+                        .pointerInput(Unit) {
+                            detectVerticalDragGestures { _, dragAmount ->
+                                // Adjust stepCount based on the dragAmount
+                                if (dragAmount < 0) {
+                                    stepCount = stepCount.inc() // Scroll up to increase
+                                } else if (dragAmount > 0) {
+                                    stepCount = stepCount.dec().coerceAtLeast(1U) // Scroll down to decrease, ensure it's >= 1
+                                }
+                            }
+                        }, icon = icons.stepMultiple, text = stepCount.toString(), onClick = {
+                        architecture?.exeMultiStep(stepCount.toLong()) // TODO Allow increasing or decreasing stepCount on scrolling on the button (mouse wheel)
                     })
                     CButton(icon = icons.stepOver, onClick = {
                         architecture?.exeSkipSubroutine()

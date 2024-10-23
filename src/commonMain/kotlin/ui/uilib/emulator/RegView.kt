@@ -99,7 +99,7 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
             Box(
                 modifier = if (showDescription) {
                     Modifier.weight(0.30f)
-                } else Modifier,
+                } else Modifier.weight(0.05f),
                 contentAlignment = Alignment.Center
             ) {
                 CToggle(text = if (showDescription) "Description" else "+", value = showDescription, onClick = {
@@ -188,7 +188,7 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
             modifier = Modifier.weight(0.1f),
             contentAlignment = Alignment.Center
         ) {
-            Text(reg.callingConvention.displayName, Modifier.fillMaxWidth(), softWrap = false,  fontFamily = baseFont.fontFamily, color = baseFont.color, fontSize = baseFont.fontSize, textAlign = TextAlign.Center)
+            Text(reg.callingConvention.displayName, Modifier.fillMaxWidth(), softWrap = false, fontFamily = baseFont.fontFamily, color = baseFont.color, fontSize = baseFont.fontSize, textAlign = TextAlign.Center)
         }
 
         if (showDescription) {
@@ -198,6 +198,8 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
             ) {
                 Text(reg.description, Modifier.fillMaxWidth(), softWrap = false, fontFamily = baseSmallFont.fontFamily, color = baseSmallFont.color, fontSize = baseSmallFont.fontSize, textAlign = TextAlign.Left)
             }
+        } else {
+            Spacer(Modifier.weight(0.05f))
         }
 
     }
