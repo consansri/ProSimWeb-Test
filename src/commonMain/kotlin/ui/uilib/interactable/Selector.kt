@@ -18,11 +18,12 @@ import ui.uilib.UIState
 @Composable
 fun <T> Selector(
     items: Collection<T>,
+    initial: T? = items.firstOrNull(),
     onSelectionChanged: (T) -> Unit,
     itemContent: @Composable (isSelected: Boolean, value: T) -> Unit
 ) {
 // Track the selected item, default to the first one
-    var selectedItem by remember { mutableStateOf(items.firstOrNull()) }
+    var selectedItem by remember { mutableStateOf(initial) }
 
     // Update the selection when a new item is clicked
     LaunchedEffect(selectedItem) {

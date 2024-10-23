@@ -184,9 +184,9 @@ object ProSimApp {
 
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
-                        Selector(TargetSpec.specs, {
+                        Selector(TargetSpec.specs, onSelectionChanged =  {
                             target = it
-                        }, { isSelected, value ->
+                        }, itemContent =  { isSelected, value ->
                             CLabel(text = value.name)
                         })
 

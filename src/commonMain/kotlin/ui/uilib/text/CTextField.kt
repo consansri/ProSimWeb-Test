@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import ui.uilib.UIState
 import ui.uilib.params.FontType
@@ -23,7 +24,7 @@ fun CTextField(
     modifier: Modifier = Modifier,
     singleLine: Boolean = false,
     readonly: Boolean = false,
-    fontType: FontType = FontType.MEDIUM,
+    fontStyle: TextStyle = FontType.MEDIUM.getStyle(),
     backgroundColor: Color = Color.Transparent,
     textColor: Color = UIState.Theme.value.COLOR_FG_0,
     borderColor: Color = UIState.Theme.value.COLOR_BORDER,
@@ -61,7 +62,7 @@ fun CTextField(
                     isFocused = focusState.isFocused
                 }
         },
-        textStyle = fontType.getStyle().copy(color = theme.COLOR_FG_0),
+        textStyle = fontStyle,
         singleLine = singleLine,
         readOnly = readonly,
         cursorBrush = SolidColor(textColor),

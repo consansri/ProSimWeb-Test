@@ -31,8 +31,6 @@ fun TopBar(
 
             customContent()
 
-
-
             CButton(onClick = {
                 if (theme == LightTheme) {
                     UIState.Theme.value = DarkTheme

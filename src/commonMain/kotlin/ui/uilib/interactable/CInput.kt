@@ -2,6 +2,7 @@ package ui.uilib.interactable
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import cengine.util.integer.Value
 import ui.uilib.params.FontType
@@ -15,7 +16,7 @@ fun CInput(
     onFocusLost: (TextFieldValue) -> Unit,
     numberFormat: Value.Types,
     showBorder: Boolean = false,
-    fontType: FontType = FontType.CODE,
+    fontStyle: TextStyle = FontType.CODE.getStyle(),
 ) {
 
     val filterChars: (Char) -> Boolean = { char ->
@@ -26,7 +27,7 @@ fun CInput(
         }
     }
 
-    CTextField(modifier = modifier, value = value, fontType = fontType, showBorder = showBorder, onValueChange = { newVal ->
+    CTextField(modifier = modifier, value = value, fontStyle = fontStyle, showBorder = showBorder, onValueChange = { newVal ->
         val filtered = newVal.copy(text = newVal.text.filter(filterChars))
         onValueChange(filtered)
     }, onFocusLost = onFocusLost)

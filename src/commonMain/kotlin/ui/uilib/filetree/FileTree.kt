@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cengine.project.Project
@@ -250,6 +251,7 @@ fun LazyListScope.node(
                 },
                 iconType = IconType.SMALL,
                 text = file.name,
+                textAlign = TextAlign.Left,
                 fontType = FontType.MEDIUM
             )
         }

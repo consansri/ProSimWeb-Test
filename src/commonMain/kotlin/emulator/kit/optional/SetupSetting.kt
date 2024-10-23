@@ -1,24 +1,24 @@
 package emulator.kit.optional
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import emulator.kit.Architecture
-import emulator.kit.nativeLog
 import kotlin.enums.EnumEntries
-import kotlin.time.measureTime
 
 sealed class SetupSetting<T>(val name: String, val init: T, private val valueToString: (T) -> String, private val parseValueFromString: (String) -> T, val onChange: (Architecture, SetupSetting<T>) -> Unit) {
 
     val trimmedName = name.replace(spaceRegex, "")
-    private var value: T = init
+    val state: MutableState<T> = mutableStateOf(init)
 
     fun set(arch: Architecture, new: T) {
-        value = new
+        state.value = new
         onChange(arch, this)
     }
 
-    fun get(): T = value
+    fun get(): T = state.value
 
     fun valueToString(): String {
-        return valueToString(value)
+        return valueToString(state.value)
     }
 
     fun loadFromString(arch: Architecture, string: String) {

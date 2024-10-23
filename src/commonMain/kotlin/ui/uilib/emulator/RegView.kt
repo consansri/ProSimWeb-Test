@@ -2,9 +2,11 @@ package ui.uilib.emulator
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import cengine.util.integer.Value
@@ -15,7 +17,6 @@ import ui.uilib.UIState
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.CInput
 import ui.uilib.interactable.CToggle
-import ui.uilib.label.CLabel
 import ui.uilib.layout.TabItem
 import ui.uilib.layout.TabbedPane
 import ui.uilib.params.FontType
@@ -40,6 +41,10 @@ fun RegView(arch: Architecture) {
 fun RegTable(regFile: RegContainer.RegisterFile) {
     val scale = UIState.Scale.value
     val theme = UIState.Theme.value
+    val baseFont = FontType.MEDIUM.getStyle().copy(color = theme.COLOR_FG_0)
+    val smallBaseFont = FontType.SMALL.getStyle().copy(color = theme.COLOR_FG_0)
+    val codeFont = FontType.CODE.getStyle().copy(color = theme.COLOR_FG_0)
+
 
     val regs = remember { mutableStateListOf(*regFile.unsortedRegisters) }
 
@@ -57,7 +62,7 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
         ) {
 
             Box(
-                modifier = Modifier.weight(0.2f),
+                modifier = Modifier.weight(0.4f),
                 contentAlignment = Alignment.Center
             ) {
                 CToggle(
@@ -76,7 +81,7 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
             }
 
             Box(
-                modifier = Modifier.weight(0.6f),
+                modifier = Modifier.weight(0.5f),
                 contentAlignment = Alignment.Center
             ) {
                 CButton(text = numberFormat.visibleName, modifier = Modifier.fillMaxWidth(), softWrap = false, fontType = FontType.MEDIUM, onClick = {
@@ -88,12 +93,12 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
                 modifier = Modifier.weight(0.1f),
                 contentAlignment = Alignment.Center
             ) {
-                CLabel(fontType = FontType.MEDIUM, softWrap = false, text = "CC")
+                Text("CC", fontFamily = baseFont.fontFamily, fontSize = baseFont.fontSize, color = baseFont.color, textAlign = TextAlign.Center, softWrap = false)
             }
 
             Box(
                 modifier = if (showDescription) {
-                    Modifier.weight(0.3f)
+                    Modifier.weight(0.30f)
                 } else Modifier,
                 contentAlignment = Alignment.Center
             ) {
@@ -109,7 +114,7 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
         ) {
             regs.forEach { reg ->
                 key("reg:${reg.names + reg.aliases}:$numberFormat") {
-                    RegRow(reg, numberFormat, valueHScroll, showDescription)
+                    RegRow(reg, numberFormat, valueHScroll, showDescription, codeFont, baseFont, smallBaseFont)
                 }
             }
         }
@@ -126,7 +131,7 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
 }
 
 @Composable
-fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: ScrollState, showDescription: Boolean) {
+fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: ScrollState, showDescription: Boolean, codeFont: TextStyle, baseFont: TextStyle, baseSmallFont: TextStyle) {
     val regState by reg.variable.state
 
     fun getRegString(): String {
@@ -149,20 +154,21 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
         modifier = Modifier.fillMaxWidth()
     ) {
         Box(
-            modifier = Modifier.weight(0.2f),
+            modifier = Modifier.weight(0.4f),
             contentAlignment = Alignment.CenterStart
         ) {
-            CLabel(modifier = Modifier.fillMaxWidth(), softWrap = false, fontType = FontType.CODE, textAlign = TextAlign.Left, text = regNames)
+            Text(regNames, Modifier.fillMaxWidth(), softWrap = false, fontFamily = codeFont.fontFamily, color = codeFont.color, fontSize = codeFont.fontSize, textAlign = TextAlign.Left)
         }
 
         Box(
-            modifier = Modifier.weight(0.6f)
+            modifier = Modifier.weight(0.5f)
                 .horizontalScroll(valueHScroll),
             contentAlignment = Alignment.Center
         ) {
             // TODO Replace CLabel with a CInput which accepts a specific numberformat which only allows certain input chars
             CInput(
                 value = regValue,
+                fontStyle = codeFont,
                 onValueChange = { newVal ->
                     regValue = newVal
                 },
@@ -182,15 +188,15 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
             modifier = Modifier.weight(0.1f),
             contentAlignment = Alignment.Center
         ) {
-            CLabel(fontType = FontType.MEDIUM, softWrap = false, text = reg.callingConvention.displayName)
+            Text(reg.callingConvention.displayName, Modifier.fillMaxWidth(), softWrap = false,  fontFamily = baseFont.fontFamily, color = baseFont.color, fontSize = baseFont.fontSize, textAlign = TextAlign.Center)
         }
 
         if (showDescription) {
             Box(
-                modifier = Modifier.weight(0.3f),
+                modifier = Modifier.weight(0.30f),
                 contentAlignment = Alignment.Center
             ) {
-                CLabel(fontType = FontType.SMALL, softWrap = false, text = reg.description)
+                Text(reg.description, Modifier.fillMaxWidth(), softWrap = false, fontFamily = baseSmallFont.fontFamily, color = baseSmallFont.color, fontSize = baseSmallFont.fontSize, textAlign = TextAlign.Left)
             }
         }
 
