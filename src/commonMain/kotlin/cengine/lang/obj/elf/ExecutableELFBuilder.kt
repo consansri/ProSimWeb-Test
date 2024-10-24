@@ -4,6 +4,7 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.psi.core.*
 import cengine.util.integer.toULong
+import emulator.kit.nativeLog
 import kotlin.experimental.*
 
 /**
@@ -15,16 +16,16 @@ import kotlin.experimental.*
  * 4. [Shdr]s
  */
 class ExecutableELFBuilder(
-    ei_class: cengine.lang.obj.elf.Elf_Byte,
-    ei_data: cengine.lang.obj.elf.Elf_Byte,
-    ei_osabi: cengine.lang.obj.elf.Elf_Byte,
-    ei_abiversion: cengine.lang.obj.elf.Elf_Byte,
-    e_machine: cengine.lang.obj.elf.Elf_Half,
-    e_flags: cengine.lang.obj.elf.Elf_Word,
+    ei_class: Elf_Byte,
+    ei_data: Elf_Byte,
+    ei_osabi: Elf_Byte,
+    ei_abiversion: Elf_Byte,
+    e_machine: Elf_Half,
+    e_flags: Elf_Word,
     private val linkerScript: LinkerScript
 ) : ELFBuilder(Ehdr.ET_EXEC,ei_class, ei_data, ei_osabi, ei_abiversion, e_machine, e_flags) {
 
-    constructor(spec: TargetSpec, e_flags: cengine.lang.obj.elf.Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, spec.e_machine, e_flags, spec.linkerScript)
+    constructor(spec: TargetSpec, e_flags: Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, spec.e_machine, e_flags, spec.linkerScript)
 
     private val segAlign get() = linkerScript.segmentAlign.toULong()
 
@@ -91,6 +92,7 @@ class ExecutableELFBuilder(
 
     override fun Section.resolveReservations() {
         reservations.forEach { def ->
+            nativeLog("Reservation: $def")
             def.instr.nodes.filterIsInstance<ASNode.NumericExpr>().forEach { expr ->
                 // Assign all Labels from segments
                 segments.flatMap { it.sections }.forEach {

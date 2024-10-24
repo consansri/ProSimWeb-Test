@@ -8,13 +8,13 @@ import cengine.util.ByteBuffer.Companion.toASCIIString
 import cengine.util.Endianness
 
 abstract class ELFBuilder(
-    val e_type: cengine.lang.obj.elf.Elf_Half,
-    val ei_class: cengine.lang.obj.elf.Elf_Byte,
-    val ei_data: cengine.lang.obj.elf.Elf_Byte,
-    val ei_osabi: cengine.lang.obj.elf.Elf_Byte,
-    val ei_abiversion: cengine.lang.obj.elf.Elf_Byte,
-    val e_machine: cengine.lang.obj.elf.Elf_Half,
-    var e_flags: cengine.lang.obj.elf.Elf_Word
+    val e_type: Elf_Half,
+    val ei_class: Elf_Byte,
+    val ei_data: Elf_Byte,
+    val ei_osabi: Elf_Byte,
+    val ei_abiversion: Elf_Byte,
+    val e_machine: Elf_Half,
+    var e_flags: Elf_Word
 ) {
 
     val endianness: Endianness = when (ei_data) {
@@ -30,7 +30,7 @@ abstract class ELFBuilder(
      */
     protected val e_ident: E_IDENT = E_IDENT(ei_class = ei_class, ei_data = ei_data, ei_osabi = ei_osabi, ei_abiversion = ei_abiversion)
 
-    protected var entryPoint: cengine.lang.obj.elf.Elf_Xword = 0U
+    protected var entryPoint: Elf_Xword = 0U
 
 
     protected val segments: MutableList<Segment> = mutableListOf()
@@ -128,7 +128,7 @@ abstract class ELFBuilder(
                 e_shnum = sections.size.toUShort(),
                 e_shstrndx = 0U, // assign later
                 e_entry = 0U, // assign later
-                e_phoff = 0U, // assign later
+                e_phoff = 0U, // assign laterc
                 e_shoff = 0U // assign later
             )
 
@@ -218,7 +218,7 @@ abstract class ELFBuilder(
         }
     }
 
-    protected fun createAndAddSegment(p_type: cengine.lang.obj.elf.Elf_Word, p_flags: cengine.lang.obj.elf.Elf_Word, p_align: ULong = 1U): Segment {
+    protected fun createAndAddSegment(p_type: Elf_Word, p_flags: Elf_Word, p_align: ULong = 1U): Segment {
         val phdr = when (ei_class) {
             E_IDENT.ELFCLASS32 -> {
                 ELF32_Phdr(
@@ -243,7 +243,7 @@ abstract class ELFBuilder(
         }
     }
 
-    private fun getOrCreateSection(name: String, type: cengine.lang.obj.elf.Elf_Word? = null, link: cengine.lang.obj.elf.Elf_Word? = null, info: String? = null): Section {
+    private fun getOrCreateSection(name: String, type: Elf_Word? = null, link: Elf_Word? = null, info: String? = null): Section {
         val section = sections.firstOrNull { it.shdr.sh_name == shStrTab[name] }
         if (section != null) return section
         val created = createNewSection(name, type, link, info)
@@ -251,7 +251,7 @@ abstract class ELFBuilder(
         return created
     }
 
-    private fun createNewSection(name: String, type: cengine.lang.obj.elf.Elf_Word? = null, link: cengine.lang.obj.elf.Elf_Word? = null, info: String? = null): Section = object : Section {
+    private fun createNewSection(name: String, type: Elf_Word? = null, link: Elf_Word? = null, info: String? = null): Section = object : Section {
         override val name: String = name
         override val shdr: Shdr = Shdr.create(ei_class)
         override val content: ByteBuffer = ByteBuffer(endianness)
@@ -282,12 +282,12 @@ abstract class ELFBuilder(
         return rel
     }
 
-    fun addRelaEntry(identifier: String, type: cengine.lang.obj.elf.Elf_Word, addend: cengine.lang.obj.elf.Elf_Sxword, section: Section, offset: cengine.lang.obj.elf.Elf_Word) {
+    fun addRelaEntry(identifier: String, type: Elf_Word, addend: Elf_Sxword, section: Section, offset: Elf_Word) {
         val relaTab = getOrCreateRela(section)
         relaTab.addEntry(identifier, type, addend, section, offset)
     }
 
-    fun addRelEntry(identifier: String, type: cengine.lang.obj.elf.Elf_Word, section: Section, offset: cengine.lang.obj.elf.Elf_Word) {
+    fun addRelEntry(identifier: String, type: Elf_Word, section: Section, offset: Elf_Word) {
         val relTab = getOrCreateRel(section)
         relTab.addEntry(identifier, type, section, offset)
     }
@@ -432,7 +432,7 @@ abstract class ELFBuilder(
             shdr.sh_info = sections.indexOf(relocatable).toUInt()
         }
 
-        fun addEntry(identifier: String, type: cengine.lang.obj.elf.Elf_Word, section: Section, offset: UInt) {
+        fun addEntry(identifier: String, type: Elf_Word, section: Section, offset: UInt) {
             val symIndex = symTab.search(identifier) ?: symTab.addSymbol(
                 Sym.createEmpty(
                     ei_class,
@@ -479,7 +479,7 @@ abstract class ELFBuilder(
             shdr.sh_info = sections.indexOf(relocatable).toUInt()
         }
 
-        fun addEntry(identifier: String, type: cengine.lang.obj.elf.Elf_Word, addend: cengine.lang.obj.elf.Elf_Sxword, section: Section, offset: cengine.lang.obj.elf.Elf_Word) {
+        fun addEntry(identifier: String, type: Elf_Word, addend: Elf_Sxword, section: Section, offset: Elf_Word) {
             val sym = symTab.search(identifier) ?: symTab.addSymbol(
                 Sym.createEmpty(
                     ei_class,
@@ -555,17 +555,17 @@ abstract class ELFBuilder(
             content.putAll(ByteArray(byteAmount) { 0 })
         }
 
-        data class LabelDef(val label: ASNode.Label, val offset: cengine.lang.obj.elf.Elf_Word)
-        data class InstrReservation(val instr: ASNode.Instruction, val offset: cengine.lang.obj.elf.Elf_Word)
-        data class SymbolDef(val symbol: Sym, val offset: cengine.lang.obj.elf.Elf_Word)
-        data class RelDef(val rel: Rel, val section: Section, val offset: cengine.lang.obj.elf.Elf_Word)
-        data class RelaDef(val rela: Rela, val section: Section, val offset: cengine.lang.obj.elf.Elf_Word)
+        data class LabelDef(val label: ASNode.Label, val offset: Elf_Word)
+        data class InstrReservation(val instr: ASNode.Instruction, val offset: Elf_Word)
+        data class SymbolDef(val symbol: Sym, val offset: Elf_Word)
+        data class RelDef(val rel: Rel, val section: Section, val offset: Elf_Word)
+        data class RelaDef(val rela: Rela, val section: Section, val offset: Elf_Word)
     }
 
     class Segment(val phdr: Phdr) {
         val sections: MutableList<Section> = mutableListOf()
 
-        var p_offset: cengine.lang.obj.elf.Elf_Xword
+        var p_offset: Elf_Xword
             set(value) {
                 when (phdr) {
                     is ELF32_Phdr -> phdr.p_offset = value.toUInt()
@@ -577,7 +577,7 @@ abstract class ELFBuilder(
                 is ELF64_Phdr -> phdr.p_offset
             }
 
-        var p_vaddr: cengine.lang.obj.elf.Elf_Xword
+        var p_vaddr: Elf_Xword
             set(value) {
                 when (phdr) {
                     is ELF32_Phdr -> phdr.p_vaddr = value.toUInt()
@@ -590,7 +590,7 @@ abstract class ELFBuilder(
                 is ELF64_Phdr -> phdr.p_vaddr
             }
 
-        var p_paddr: cengine.lang.obj.elf.Elf_Xword
+        var p_paddr: Elf_Xword
             set(value) {
                 when (phdr) {
                     is ELF32_Phdr -> phdr.p_paddr = value.toUInt()
@@ -602,13 +602,13 @@ abstract class ELFBuilder(
                 is ELF64_Phdr -> phdr.p_paddr
             }
 
-        val p_align: cengine.lang.obj.elf.Elf_Xword
+        val p_align: Elf_Xword
             get() = when (phdr) {
                 is ELF32_Phdr -> phdr.p_align.toULong()
                 is ELF64_Phdr -> phdr.p_align
             }
 
-        var p_filesz: cengine.lang.obj.elf.Elf_Xword
+        var p_filesz: Elf_Xword
             set(value) {
                 when (phdr) {
                     is ELF32_Phdr -> phdr.p_filesz = value.toUInt()
@@ -620,7 +620,7 @@ abstract class ELFBuilder(
                 is ELF64_Phdr -> phdr.p_filesz
             }
 
-        var p_memsz: cengine.lang.obj.elf.Elf_Xword
+        var p_memsz: Elf_Xword
             set(value) {
                 when (phdr) {
                     is ELF32_Phdr -> phdr.p_memsz = value.toUInt()
@@ -661,8 +661,8 @@ abstract class ELFBuilder(
 
     open class ELFBuilderException(message: String) : Exception(message)
 
-    class InvalidElfClassException(ei_class: cengine.lang.obj.elf.Elf_Byte) : ELFBuilderException("Invalid ELF Class $ei_class.")
-    class InvalidElfDataException(ei_data: cengine.lang.obj.elf.Elf_Byte) : ELFBuilderException("Invalid ELF Data $ei_data type.")
+    class InvalidElfClassException(ei_class: Elf_Byte) : ELFBuilderException("Invalid ELF Class $ei_class.")
+    class InvalidElfDataException(ei_data: Elf_Byte) : ELFBuilderException("Invalid ELF Data $ei_data type.")
 
 
 }

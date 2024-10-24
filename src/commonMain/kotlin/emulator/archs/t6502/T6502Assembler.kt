@@ -40,10 +40,7 @@ object T6502Assembler : AsmHeader {
         var result: Rule.MatchResult
 
         for (amode in possibleAModes) {
-            val seq = amode.tokenSequence
-            if (seq == null) {
-                return listOf(T6502Instr(instrType, amode, rawInstr))
-            }
+            val seq = amode.tokenSequence ?: return listOf(T6502Instr(instrType, amode, rawInstr))
 
             result = seq.matchStart(rawInstr.remainingTokens, listOf(), this, tempContainer.symbols)
             if (!result.matches) continue
@@ -96,10 +93,7 @@ object T6502Assembler : AsmHeader {
 
         override fun getMark(): Memory.InstanceType = Memory.InstanceType.PROGRAM
         override fun getBinaryArray(yourAddr: Value, labels: List<Pair<GASParser.Label, Hex>>): Array<Bin> {
-            val opCode = type.opCode[amode]
-            if (opCode == null) {
-                throw Parser.ParserError(rawInstr.instrName, "Couldn't resolve opcode for the following combination: ${type.name} and ${amode.name}")
-            }
+            val opCode = type.opCode[amode] ?: throw Parser.ParserError(rawInstr.instrName, "Couldn't resolve opcode for the following combination: ${type.name} and ${amode.name}")
 
             expr?.assignLabels(labels)
 

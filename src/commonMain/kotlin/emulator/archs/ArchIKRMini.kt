@@ -29,8 +29,7 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config, IKRMini.asmConfig) {
             paramType != null
         }
 
-        val currParamType = paramType
-        if (currParamType == null) return ExecutionResult(false, typeIsBranchToSubroutine = false, typeIsReturnFromSubroutine = false)
+        val currParamType = paramType ?: return ExecutionResult(false, typeIsBranchToSubroutine = false, typeIsReturnFromSubroutine = false)
 
         val extensions = (1..<currParamType.wordAmount).map {
             instrMemory.load((pc + Hex((it * 2).toString(16), IKRMini.MEM_ADDRESS_WIDTH)).toHex(), 2, tracker).toHex()

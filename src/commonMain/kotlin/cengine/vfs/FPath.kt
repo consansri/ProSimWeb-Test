@@ -1,9 +1,12 @@
 package cengine.vfs
 
+import kotlinx.serialization.Serializable
+
 /**
  * A FilePath which is used in the [VFileSystem] to identify [VirtualFile]s.
  * A Path should always contain the root Directory Name of the [VFileSystem] at index 0.
  */
+@Serializable
 class FPath(vararg val names: String) : Collection<String> {
     companion object {
         const val DELIMITER = "/"

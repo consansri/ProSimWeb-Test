@@ -21,6 +21,7 @@ import cengine.lang.obj.elf.ELFBuilder
 import cengine.util.integer.Size
 import cengine.util.integer.toUInt
 import cengine.util.integer.toValue
+import emulator.kit.nativeLog
 
 enum class RV32InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV32ParamType, val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV32ParamType.RD_I20),
@@ -541,6 +542,8 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
                 val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20JalLayout() ?: 0U
 
+                nativeLog("Decided $name: $target - $thisAddr -> $result")
+
                 val rd = regs[0].ordinal.toUInt()
                 val opcode = RVConst.OPC_JAL
 
@@ -574,6 +577,8 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 val imm7 = imm12.mask12CBraLayout7()
                 val imm5 = imm12.mask12CBraLayout5()
 
+                nativeLog("Decided ${name}: 0x${imm12.toString(16)}")
+
                 val opcode = RVConst.OPC_CBRA
                 val funct3 = when (this) {
                     BEQ -> RVConst.FUNCT3_CBRA_BEQ
@@ -603,6 +608,8 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 }
 
                 val result = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+
+                nativeLog("Decided $name: 0x${result.toString(16)}")
 
                 val lo12 = result.mask32Lo12()
                 var hi20 = result.mask32Hi20()
@@ -648,6 +655,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 }
 
                 val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
+                nativeLog("Decided $name: 0x${imm12.toString(16)}")
                 val imm7 = imm12.mask12CBraLayout7()
                 val imm5 = imm12.mask12CBraLayout5()
 
@@ -710,6 +718,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 }
 
                 val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
+                nativeLog("Decided $name: 0x${imm12.toString(16)}")
                 val imm7 = imm12.mask12CBraLayout7()
                 val imm5 = imm12.mask12CBraLayout5()
 
@@ -753,6 +762,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
                 val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20JalLayout() ?: 0U
 
+                nativeLog("Decided $name: 0x${imm20.toString(16)}")
                 val rd = RVBaseRegs.ZERO.ordinal.toUInt()
                 val opcode = RVConst.OPC_JAL
 
@@ -783,7 +793,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 }
 
                 val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20JalLayout() ?: 0U
-
+                nativeLog("Decided $name: 0x${imm20.toString(16)}")
                 val rd = RVBaseRegs.RA.ordinal.toUInt()
                 val opcode = RVConst.OPC_JAL
 
@@ -808,7 +818,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 }
                 val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
                 val result = (target - thisAddr)
-
+                nativeLog("Decided $name: 0x${result.toString(16)}")
                 val lo12 = result.mask32Lo12()
                 var hi20 = result.mask32Hi20()
 
@@ -846,6 +856,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 }
                 val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
                 val result = (target - thisAddr)
+                nativeLog("Decided $name: 0x${result.toString(16)}")
 
                 val lo12 = result.mask32Lo12()
                 var hi20 = result.mask32Hi20()

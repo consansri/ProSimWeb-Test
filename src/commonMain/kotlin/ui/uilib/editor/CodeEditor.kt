@@ -274,7 +274,6 @@ fun CodeEditor(
                             if (keyEvent.type == KeyEventType.KeyDown) {
                                 when (keyEvent.key) {
                                     Key.Tab -> {
-
                                         textFieldValue = if (keyEvent.isShiftPressed) {
                                             if (textFieldValue.selection.length == 0) {
                                                 removeIndentation(textFieldValue, textLayout)

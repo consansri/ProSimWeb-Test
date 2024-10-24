@@ -17,6 +17,7 @@ import ui.uilib.UIState
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.CInput
 import ui.uilib.interactable.CToggle
+import ui.uilib.label.CLabel
 import ui.uilib.layout.TabItem
 import ui.uilib.layout.TabbedPane
 import ui.uilib.params.FontType
@@ -93,7 +94,7 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
                 modifier = Modifier.weight(0.1f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("CC", fontFamily = baseFont.fontFamily, fontSize = baseFont.fontSize, color = baseFont.color, textAlign = TextAlign.Center, softWrap = false)
+                CLabel(text ="CC", fontType = FontType.MEDIUM, softWrap = false)
             }
 
             Box(

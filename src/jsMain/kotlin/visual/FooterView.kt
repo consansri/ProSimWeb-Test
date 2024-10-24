@@ -8,14 +8,11 @@ import react.FC
 import react.Props
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import web.cssom.*
-import web.dom.document
-import web.html.HTMLAnchorElement
 
 
 external interface FooterViewProps : Props

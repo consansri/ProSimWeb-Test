@@ -70,7 +70,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                         if (node == null) {
                             val lineContent = remainingTokens.takeWhile { it.type != Token.Type.LINEBREAK }
                             lineContent.forEach { it.addSeverity(Severity(Severity.Type.ERROR, Severity.MSG_NOT_A_STATEMENT)) }
-                            remainingTokens.removeAll(lineContent)
+                            remainingTokens.removeAll(lineContent.toSet())
                             continue
                         }
 
@@ -120,7 +120,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                     val lineBreak = remainingTokens.checkLineBreak()
                     if (lineBreak == null) {
                         val remainingLineContent = remainingTokens.takeWhile { it.type != Token.Type.LINEBREAK }
-                        remainingTokens.removeAll(remainingLineContent)
+                        remainingTokens.removeAll(remainingLineContent.toSet())
                         spaces.addAll(remainingTokens.dropSpaces())
                         val newLineBreak = remainingTokens.checkLineBreak() ?: return null
                         val node = Statement.Unresolved(label, remainingLineContent, newLineBreak)
@@ -454,7 +454,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
             fun parse(tokens: List<Token>, assignedSymbols: List<GASParser.Symbol> = listOf(), allowSymbolsAsOperands: Boolean = true): StringExpr? {
                 val relevantTokens = takeRelevantTokens(tokens, allowSymbolsAsOperands).toMutableList()
                 val spaces = relevantTokens.filter { it.type == Token.Type.WHITESPACE }
-                relevantTokens.removeAll(spaces)
+                relevantTokens.removeAll(spaces.toSet())
                 if (relevantTokens.isEmpty()) return null
                 val operands: List<Operand> = relevantTokens.map {
                     when {
@@ -509,7 +509,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                 val spaces = relevantTokens.filter { it.type == Token.Type.WHITESPACE }
                 if (relevantTokens.lastOrNull()?.type?.isOpeningBracket == true) relevantTokens.removeLast()
 
-                relevantTokens.removeAll(spaces)
+                relevantTokens.removeAll(spaces.toSet())
                 markPrefixes(relevantTokens)
                 if (relevantTokens.isEmpty()) return null
 
@@ -695,7 +695,7 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                             }
                             if (op.type.isPunctuation) break
                         }
-                        operatorStack.removeAll(higherOrEqualPrecedence)
+                        operatorStack.removeAll(higherOrEqualPrecedence.toSet())
                         operatorStack.add(token)
                         continue
                     }

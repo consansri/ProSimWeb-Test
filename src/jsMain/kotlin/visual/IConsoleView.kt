@@ -2,7 +2,10 @@ package visual
 
 import Keys
 import StyleAttr
+import debug.DebugTools
 import emotion.react.css
+import emulator.kit.Architecture
+import emulator.kit.common.IConsole
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import react.*
@@ -10,16 +13,15 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
-import debug.DebugTools
-import emulator.kit.Architecture
-import emulator.kit.common.IConsole
-
-import web.html.*
-import web.timers.*
 import web.cssom.*
+import web.html.HTMLDivElement
+import web.html.HTMLElement
+import web.timers.Interval
+import web.timers.clearInterval
+import web.timers.setInterval
 
 external interface IConsoleViewProps : Props {
-    var archState: StateInstance<emulator.kit.Architecture>
+    var archState: StateInstance<Architecture>
     var footerRef: MutableRefObject<HTMLElement>
     var compileEventState: StateInstance<Boolean>
     var exeEventState: StateInstance<Boolean>

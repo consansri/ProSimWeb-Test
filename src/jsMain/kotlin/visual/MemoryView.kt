@@ -48,7 +48,7 @@ val MemoryView = FC<MemViewProps> { props ->
     val (lowFirst, setLowFirst) = useState(true)
 
     val (showDefMemSettings, setShowDefMemSettings) = useState(false)
-    val (currMem, setCurrMem) = useState<Int?>(localStorage.getItem(Keys.MEM_SELECTED)?.toIntOrNull())
+    val (currMem, setCurrMem) = useState(localStorage.getItem(Keys.MEM_SELECTED)?.toIntOrNull())
 
     val (useBounds, setUseBounds) = useState(localStorage.getItem("${Keys.MIO_ACTIVE}-${props.archState.component1().description.name}")?.toBooleanStrictOrNull() ?: (props.archState.component1().memory.ioBounds != null))
     val (startAddr, setStartAddr) = useState(localStorage.getItem("${Keys.MIO_START}-${props.archState.component1().description.name}")?.let { Hex(it, props.archState.component1().memory.addressSize) } ?: props.archState.component1().memory

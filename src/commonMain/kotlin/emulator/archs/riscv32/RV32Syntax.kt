@@ -1,14 +1,17 @@
 package emulator.archs.riscv32
 
-import cengine.util.integer.*
+import cengine.util.integer.Bin
+import cengine.util.integer.Hex
+import cengine.util.integer.Size
 import emulator.archs.ArchRV32
 import emulator.archs.riscv32.RV32BinMapper.MaskLabel.*
 import emulator.archs.riscv32.RV32BinMapper.OpCode
 import emulator.kit.assembler.InstrTypeInterface
-import emulator.kit.assembler.syntax.Rule
-import emulator.kit.assembler.syntax.Component.*
 import emulator.kit.assembler.gas.GASNodeType
+import emulator.kit.assembler.syntax.Component.*
+import emulator.kit.assembler.syntax.Rule
 import emulator.kit.memory.Memory
+import emulator.kit.nativeLog
 
 class RV32Syntax {
 
@@ -271,6 +274,8 @@ class RV32Syntax {
                          */
 
                         val shiftedImm = Bin(imm20str[0].toString() + imm20str.substring(12) + imm20str[11] + imm20str.substring(1, 11), Size.Bit20).getResized(RV32.XLEN) shl 1
+
+                        nativeLog("$name -> shiftedImm: ${shiftedImm.toDec()}")
 
                         rd.set(pc.get() + Hex("4"))
                         pc.set(pc.get() + shiftedImm)
@@ -1432,6 +1437,7 @@ class RV32Syntax {
         override fun getDetectionName(): String = this.id
 
         open fun execute(arch: ArchRV32, paramMap: Map<RV32BinMapper.MaskLabel, Bin>, tracker: Memory.AccessTracker) {
+            nativeLog("> $id $paramMap")
             arch.console.log("> $id {...}")
         }
     }

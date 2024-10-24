@@ -27,8 +27,8 @@ data object IKRMini {
                 "IKR Mini Implemented",
                 Chapter(
                     "Memory",
-                    Text("address-width: ${MEM_ADDRESS_WIDTH}"),
-                    Text("value-width: ${BYTESIZE}")
+                    Text("address-width: $MEM_ADDRESS_WIDTH"),
+                    Text("value-width: $BYTESIZE")
                 ),
                 Chapter(
                     "Instructions",

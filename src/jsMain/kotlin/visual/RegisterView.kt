@@ -146,11 +146,11 @@ val RegisterView = FC<RegisterViewProps> { props ->
                         paddingTop = 0.5.rem
                     }
 
-                    +"PC: ${arch.regContainer.pc.variable.get().toHex().toString()}"
+                    +"PC: ${arch.regContainer.pc.variable.get().toHex()}"
 
                     onClick = { event ->
                         pcRef.current?.let {
-                            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex().toString()}"
+                            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex()}"
                         }
                     }
                 }
@@ -337,7 +337,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                                 }
                                                             }
 
-                                                            console.info("Register setValue: [${reg.variable.get().toDec().toString()}|${reg.variable.get().toUDec().toString()}|${reg.variable.get().toHex().toString()}|${reg.variable.get().toBin().toString()}]")
+                                                            console.info("Register setValue: [${reg.variable.get().toDec()}|${reg.variable.get().toUDec()}|${reg.variable.get().toHex()}|${reg.variable.get().toBin()}]")
                                                         } catch (e: NumberFormatException) {
                                                             console.warn("RegisterView reg onBlur: NumberFormatException")
                                                         }
@@ -460,7 +460,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             }
         }
         pcRef.current?.let {
-            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex().toString()}"
+            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex()}"
         }
     }
 
@@ -505,7 +505,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             }
         }
         pcRef.current?.let {
-            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex().toString()}"
+            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex()}"
         }
     }
 
@@ -549,7 +549,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
             }
         }
         pcRef.current?.let {
-            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex().toString()}"
+            it.innerText = "PC: ${arch.regContainer.pc.variable.get().toHex()}"
         }
     }
 

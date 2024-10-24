@@ -24,6 +24,9 @@ object ProjectStateManager {
         }
         get() = appState.projectStates
 
+    fun projectStateChanged() {
+        saveState(appState)
+    }
 
     // Function to save the project state to a file
     fun saveState(state: AppState): VirtualFile {

@@ -63,9 +63,7 @@ class CVerticalLabelUI( private val primary: Boolean, private val fontType: Font
             g2d.translate(-c.height, 0)
         }
 
-        if (icon != null) {
-            icon.paintIcon(c, g2d, paintIconR.x, paintIconR.y)
-        }
+        icon?.paintIcon(c, g2d, paintIconR.x, paintIconR.y)
 
         if (text != null) {
             val textX = paintTextR.x

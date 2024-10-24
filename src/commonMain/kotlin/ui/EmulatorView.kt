@@ -19,7 +19,9 @@ import androidx.compose.ui.unit.dp
 import cengine.lang.obj.elf.ELFFile
 import cengine.lang.obj.mif.MifBuilder
 import cengine.project.Project
+import cengine.vfs.FPath
 import emulator.EmuLink
+import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.emulator.ArchitectureOverview
 import ui.uilib.emulator.MemView
@@ -49,6 +51,21 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
     var leftContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
     var rightContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
     var bottomContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
+
+    var emuObjFilePath by remember { mutableStateOf<FPath?>(project.projectState.emuObjFilePath) }
+
+    LaunchedEffect(emuObjFilePath) {
+        nativeLog("Init ${project.projectState.emuObjFilePath}")
+        architecture?.initializer = null
+        project.projectState.emuObjFilePath = emuObjFilePath
+        val objFilePath = emuObjFilePath ?: return@LaunchedEffect
+        val file = project.fileSystem.findFile(objFilePath) ?: return@LaunchedEffect
+        val arch = architecture ?: return@LaunchedEffect
+        val elfFile = ELFFile.parse(file.name, file.getContent()) ?: return@LaunchedEffect
+
+        arch.initializer = MifBuilder.parseElf(elfFile)
+        arch.exeReset()
+    }
 
     val archOverview: (@Composable BoxScope.() -> Unit) = {
         ArchitectureOverview(architecture)
@@ -92,17 +109,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
         ) {
             // Left content
             FileTree(project) { file ->
-                try {
-                    architecture?.let { architecture ->
-                        val elfFile = ELFFile.parse(file.name, file.getContent())
-                        elfFile?.let {
-                            architecture.initializer = MifBuilder.parseElf(it)
-                            architecture.exeReset()
-                        }
-                    }
-                } catch (e: Exception) {
-
-                }
+                emuObjFilePath = file.path
             }
         }
     }
