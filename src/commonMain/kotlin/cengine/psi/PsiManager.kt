@@ -24,7 +24,7 @@ class PsiManager<T : LanguageService>(
     fun queueUpdate(file: VirtualFile, onfinish: suspend (PsiFile) -> Unit = {}) {
         job?.cancel()
         job = psiUpdateScope.launch {
-            delay(500L)
+            delay(1000L)
             updatePsi(file, onfinish)
         }
     }
