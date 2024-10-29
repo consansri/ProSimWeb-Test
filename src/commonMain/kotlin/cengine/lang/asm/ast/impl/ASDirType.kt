@@ -9,12 +9,15 @@ import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.obj.elf.ELFBuilder
 import cengine.lang.obj.elf.Sym
-import cengine.util.integer.Hex
+import cengine.util.integer.*
 import cengine.util.integer.Size.*
-import cengine.util.integer.toByte
-import cengine.util.integer.toUInt
 
-enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: Boolean = false, override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
+enum class ASDirType(
+    val disabled: Boolean = false,
+    val contentStartsDirectly: Boolean = false,
+    override val isSection: Boolean = false,
+    override val rule: Rule? = null
+) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
     ALIGN(rule = Rule {
         Seq(
@@ -250,7 +253,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.INT_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.INT_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -264,7 +270,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             },
             Repeatable {
-                Seq(Dir("elseif"), InSpecific(AsmTokenType.SYMBOL), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    InSpecific(AsmTokenType.SYMBOL),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
             Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
@@ -280,7 +289,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             },
             Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.STRING_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
             Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
@@ -298,7 +310,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             },
             Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.STRING_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
             Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
@@ -314,7 +329,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             },
             Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.INT_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.INT_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             },
             Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
@@ -330,7 +348,12 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             SpecNode(ASNodeType.STRING_EXPR), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.STRING_EXPR), Specific(","), SpecNode(ASNodeType.STRING_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Specific(","),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -342,7 +365,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             SpecNode(ASNodeType.INT_EXPR), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.INT_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.INT_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -354,7 +380,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             SpecNode(ASNodeType.INT_EXPR), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.INT_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.INT_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -366,7 +395,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             SpecNode(ASNodeType.INT_EXPR), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.INT_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.INT_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -378,7 +410,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             SpecNode(ASNodeType.INT_EXPR), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.INT_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.INT_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -390,7 +425,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             SpecNode(ASNodeType.STRING_EXPR), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.STRING_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -402,7 +440,12 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             SpecNode(ASNodeType.STRING_EXPR), Specific(","), SpecNode(ASNodeType.STRING_EXPR), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.STRING_EXPR), Specific(","), SpecNode(ASNodeType.STRING_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Specific(","),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -414,7 +457,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             InSpecific(AsmTokenType.SYMBOL), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), InSpecific(AsmTokenType.SYMBOL), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    InSpecific(AsmTokenType.SYMBOL),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -426,7 +472,10 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             InSpecific(AsmTokenType.SYMBOL), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), InSpecific(AsmTokenType.SYMBOL), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    InSpecific(AsmTokenType.SYMBOL),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -438,7 +487,12 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             SpecNode(ASNodeType.INT_EXPR), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.STRING_EXPR), Specific(","), SpecNode(ASNodeType.STRING_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Specific(","),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -450,7 +504,12 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             SpecNode(ASNodeType.STRING_EXPR), Specific(","), SpecNode(ASNodeType.STRING_EXPR), Repeatable {
                 Except(XOR(Dir("endif"), Dir("else"), Dir("elseif")))
             }, Repeatable {
-                Seq(Dir("elseif"), SpecNode(ASNodeType.STRING_EXPR), Specific(","), SpecNode(ASNodeType.STRING_EXPR), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
+                Seq(
+                    Dir("elseif"),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Specific(","),
+                    SpecNode(ASNodeType.STRING_EXPR),
+                    Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Optional {
                 Seq(Dir("else"), Repeatable { Except(XOR(Dir("endif"), Dir("else"), Dir("elseif"))) })
             }, Dir("endif")
@@ -1046,7 +1105,12 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             //nativeLog("RuleResult: ${result} for $this")
             val identificationToken = result.matchingTokens.firstOrNull { it.type == AsmTokenType.DIRECTIVE }
             return if (identificationToken != null) {
-                ASNode.Directive(this, identificationToken, result.matchingTokens - identificationToken, result.matchingNodes)
+                ASNode.Directive(
+                    this,
+                    identificationToken,
+                    result.matchingTokens - identificationToken,
+                    result.matchingNodes
+                )
             } else {
                 ASNode.Directive(this, identificationToken, result.matchingTokens, result.matchingNodes)
             }
@@ -1261,7 +1325,21 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             SECTION -> TODO()
             SET_ALT -> TODO()
             SET -> TODO()
-            SHORT -> TODO()
+            SHORT -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
+                for (expr in exprs) {
+                    try {
+                        val short = expr.evaluate(builder).toShort()
+                        if (short == null) {
+                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit8}!"))
+                            continue
+                        }
+                        builder.currentSection.content.put(short)
+                    } catch (e: Exception) {
+                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
+                    }
+                }
+            }
             SINGLE -> TODO()
             SIZE -> TODO()
             SKIP -> TODO()
@@ -1270,8 +1348,32 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             STABD -> TODO()
             STABN -> TODO()
             STABS -> TODO()
-            STRING -> TODO()
-            STRING8 -> TODO()
+            STRING -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.StringExpr>()
+
+                for (expr in exprs) {
+                    try {
+                        val str = expr.evaluate(true).encodeToByteArray() + 0b0
+                        builder.currentSection.content.putAll(str)
+                    } catch (e: Exception) {
+                        dir.addError("Couldn't evaluate string expression!")
+                    }
+                }
+
+            }
+
+            STRING8 -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.StringExpr>()
+
+                for (expr in exprs) {
+                    try {
+                        val str = expr.evaluate(true).encodeToByteArray() + 0b0
+                        builder.currentSection.content.putAll(str)
+                    } catch (e: Exception) {
+                        dir.addError("Couldn't evaluate string expression!")
+                    }
+                }
+            }
             STRING16 -> TODO()
             STRING32 -> TODO()
             STRUCT -> TODO()
@@ -1307,9 +1409,51 @@ enum class ASDirType(val disabled: Boolean = false, val contentStartsDirectly: B
             }
 
             ZERO -> TODO()
-            _2BYTE -> TODO()
-            _4BYTE -> TODO()
-            _8BYTE -> TODO()
+            _2BYTE -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
+                for (expr in exprs) {
+                    try {
+                        val short = expr.evaluate(builder).toShort()
+                        if (short == null) {
+                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit16}!"))
+                            continue
+                        }
+                        builder.currentSection.content.put(short)
+                    } catch (e: Exception) {
+                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
+                    }
+                }
+            }
+            _4BYTE -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
+                for (expr in exprs) {
+                    try {
+                        val int = expr.evaluate(builder).toInt()
+                        if (int == null) {
+                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit32}!"))
+                            continue
+                        }
+                        builder.currentSection.content.put(int)
+                    } catch (e: Exception) {
+                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
+                    }
+                }
+            }
+            _8BYTE -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
+                for (expr in exprs) {
+                    try {
+                        val long = expr.evaluate(builder).toLong()
+                        if (long == null) {
+                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit64}!"))
+                            continue
+                        }
+                        builder.currentSection.content.put(long)
+                    } catch (e: Exception) {
+                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
+                    }
+                }
+            }
             else -> dir.annotations.add(Annotation.warn(dir, "Not $this yet implemented."))
         }
     }
