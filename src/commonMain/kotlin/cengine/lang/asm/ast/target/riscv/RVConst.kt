@@ -10,7 +10,7 @@ data object RVConst{
     const val OPC_JAL = 0b1101111U
     const val OPC_JALR = 0b1100111U
 
-    const val OPC_E = 0b1110011U
+    const val OPC_OS = 0b1110011U
 
     const val OPC_CBRA = 0b1100011U
     const val OPC_LOAD = 0b0000011U
@@ -19,7 +19,6 @@ data object RVConst{
     const val OPC_ARITH_WORD = 0b0111011U
     const val OPC_ARITH_IMM = 0b0010011U
     const val OPC_ARITH_IMM_WORD = 0b0011011U
-    const val OPC_CSR = 0b1110011U
 
     /**
      * FUNCT3 CONSTANTS
@@ -63,6 +62,7 @@ data object RVConst{
     const val FUNCT3_M_REM = 0b110U
     const val FUNCT3_M_REMU = 0b111U
 
+    const val FUNCT3_E = 0b000U
     const val FUNCT3_CSR_RW = 0b001U
     const val FUNCT3_CSR_RS = 0b010U
     const val FUNCT3_CSR_RC = 0b011U
@@ -74,8 +74,7 @@ data object RVConst{
      * FUNCT7 CONSTANTS
      */
 
-    const val FUNCT7_SHIFT_ARITH = 0b0100000U
-    const val FUNCT7_OPERATION_SUB = 0b0100000U
+    const val FUNCT7_SHIFT_ARITH_OR_SUB = 0b0100000U
     const val FUNCT7_M = 0b0000001U
 
     /**
@@ -169,11 +168,11 @@ data object RVConst{
 
     fun UInt.lowest10(): UInt = this and 0b1111111111U
 
-    fun UInt.mask20JalLayout(): UInt = (bit(20) shl 19) or (lowest10() shl 9) or (bit(11) shl 8) or (this shr 11).lowest8()
+    fun UInt.mask20jType(): UInt = (bit(20) shl 19) or (lowest10() shl 9) or (bit(11) shl 8) or (this shr 11).lowest8()
 
-    fun UInt.mask12CBraLayout7(): UInt = (bit(12) shl 6) or (this shr 4).lowest6()
+    fun UInt.mask12bType7(): UInt = (bit(12) shl 6) or (this shr 4).lowest6()
 
-    fun UInt.mask12CBraLayout5(): UInt = (lowest4() shl 1) or bit(11)
+    fun UInt.mask12bType5(): UInt = (lowest4() shl 1) or bit(11)
 }
 
 

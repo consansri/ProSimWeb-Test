@@ -1,7 +1,7 @@
 package emulator.kit
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import cengine.lang.asm.Disassembler
+import cengine.lang.asm.Initializer
 import cengine.util.integer.*
 import cengine.util.integer.Size.*
 import debug.DebugTools
@@ -42,33 +42,23 @@ import emulator.kit.optional.SetupSetting
  *
  */
 abstract class Architecture(config: Config, asmConfig: AsmConfig) {
-    val description: Config.Description
-    val fileEnding: String
-    val regContainer: RegContainer
-    val memory: MainMemory
-    val console: IConsole
-    val assembler: Assembler
-    val features: List<Feature>
-    val settings: List<SetupSetting<*>>
+    val description: Config.Description = config.description
+    val fileEnding: String = config.fileEnding
+    val regContainer: RegContainer = config.regContainer
+    val memory: MainMemory = config.memory
+    val console: IConsole = IConsole("${config.description.name} Console")
+    val assembler: Assembler = Assembler(
+        this,
+        asmConfig.asmHeader
+    )
+    val features: List<Feature> = asmConfig.features
+    val settings: List<SetupSetting<*>> = config.settings
     private var lastFile: AsmFile? = null
-    private val asmHeader: AsmHeader
+    private val asmHeader: AsmHeader = asmConfig.asmHeader
     var initializer: Initializer? = null
+    val disassembler: Disassembler? = config.disassembler
 
     init {
-        // Build Arch from Config
-        this.description = config.description
-        this.fileEnding = config.fileEnding
-        this.regContainer = config.regContainer
-        this.memory = config.memory
-        this.console = IConsole("${config.description.name} Console")
-        this.settings = config.settings
-        this.features = asmConfig.features
-        this.asmHeader = asmConfig.asmHeader
-        this.assembler = Assembler(
-            this,
-            asmConfig.asmHeader
-        )
-
         // Starting with non micro setup
         MicroSetup.clear()
         MicroSetup.append(memory)

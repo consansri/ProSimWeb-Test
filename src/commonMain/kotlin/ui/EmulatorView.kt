@@ -21,9 +21,9 @@ import cengine.lang.obj.mif.MifBuilder
 import cengine.project.Project
 import cengine.vfs.FPath
 import emulator.EmuLink
-import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.emulator.ArchitectureOverview
+import ui.uilib.emulator.ExecutionView
 import ui.uilib.emulator.MemView
 import ui.uilib.emulator.RegView
 import ui.uilib.filetree.FileTree
@@ -54,17 +54,28 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
 
     var emuObjFilePath by remember { mutableStateOf<FPath?>(project.projectState.emuObjFilePath) }
 
-    LaunchedEffect(emuObjFilePath) {
-        nativeLog("Init ${project.projectState.emuObjFilePath}")
-        architecture?.initializer = null
+    fun parseElf(): ELFFile<*, *, *, *, *, *, *>? {
         project.projectState.emuObjFilePath = emuObjFilePath
-        val objFilePath = emuObjFilePath ?: return@LaunchedEffect
-        val file = project.fileSystem.findFile(objFilePath) ?: return@LaunchedEffect
-        val arch = architecture ?: return@LaunchedEffect
-        val elfFile = ELFFile.parse(file.name, file.getContent()) ?: return@LaunchedEffect
+        val objFilePath = emuObjFilePath ?: return null
+        val file = project.fileSystem.findFile(objFilePath) ?: return null
+        return ELFFile.parse(file.name, file.getContent()) ?: return null
+    }
 
-        arch.initializer = MifBuilder.parseElf(elfFile)
-        arch.exeReset()
+    var elfFile by remember { mutableStateOf<ELFFile<*, *, *, *, *, *, *>?>(parseElf()) }
+
+    LaunchedEffect(elfFile) {
+        architecture ?: return@LaunchedEffect
+        architecture.initializer = null
+        architecture.disassembler?.decoded?.value = emptyList()
+        elfFile?.let {
+            architecture.initializer = MifBuilder.parseElf(it)
+            architecture.disassembler?.disassemble(it)
+            architecture.exeReset()
+        }
+    }
+
+    LaunchedEffect(emuObjFilePath) {
+        elfFile = parseElf()
     }
 
     val archOverview: (@Composable BoxScope.() -> Unit) = {
@@ -136,9 +147,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                     null -> null
                 },
                 centerContent = {
-                    Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_0)) {
-
-                    }
+                    ExecutionView(architecture)
                 },
                 rightContent = when (rightContentType) {
                     EmulatorContentView.ObjFileSelection -> objFileSelector

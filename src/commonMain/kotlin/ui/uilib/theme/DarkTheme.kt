@@ -16,6 +16,8 @@ data object DarkTheme: Theme {
     override val name: String = "dark"
     override val icon: ImageVector get() = UIState.Icon.value.darkmode
     override val dark: Boolean = true
+    override val randomBrightness: Float = 0.7f
+    override val randomSaturation: Float = 0.7f
     override val COLOR_BG_0: Color = Color(0xFF222222)
     override val COLOR_BG_1: Color = Color(0xFF373737)
     override val COLOR_BG_OVERLAY: Color = Color(0xFF222222)

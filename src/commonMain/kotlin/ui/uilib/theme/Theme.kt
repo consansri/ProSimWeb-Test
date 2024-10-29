@@ -5,16 +5,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import cengine.lang.asm.CodeStyle
 import emulator.kit.memory.Memory
 import org.jetbrains.compose.resources.FontResource
+import kotlin.random.Random
 
 interface Theme {
 
-    companion object{
+    companion object {
         val all = setOf(LightTheme, DarkTheme)
     }
 
     val name: String
     val icon: ImageVector
     val dark: Boolean
+    val randomBrightness: Float
+    val randomSaturation: Float
 
     // COLORS (BASIC)
 
@@ -52,6 +55,12 @@ interface Theme {
 
     val FONT_BASIC: FontResource
     val FONT_CODE: FontResource
+
+    fun getRandom(): Color {
+        val hue = Random.nextFloat() * 360f  // Vary hue for different colors
+
+        return Color.hsl(hue, randomSaturation, randomBrightness)
+    }
 
     fun getColor(style: CodeStyle?): Color
     fun getColor(style: Memory.InstanceType): Color

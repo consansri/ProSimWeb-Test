@@ -33,12 +33,12 @@ import cengine.util.Endianness
  *
  */
 data class ELF64_Sym(
-    override var st_name: cengine.lang.obj.elf.Elf_Word,
-    override var st_info: cengine.lang.obj.elf.Elf_Byte,
-    override var st_other: cengine.lang.obj.elf.Elf_Byte = 0U,
-    override var st_shndx: cengine.lang.obj.elf.Elf_Half,
-    var st_value: cengine.lang.obj.elf.Elf_Xword = 0U,
-    var st_size: cengine.lang.obj.elf.Elf_Xword = 0U,
+    override var st_name: Elf_Word,
+    override var st_info: Elf_Byte,
+    override var st_other: Elf_Byte = 0U,
+    override var st_shndx: Elf_Half,
+    var st_value: Elf_Xword = 0U,
+    var st_size: Elf_Xword = 0U,
 ): Sym {
     override fun build(endianness: Endianness): ByteArray {
         val b = ByteBuffer(endianness)

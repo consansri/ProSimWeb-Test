@@ -1,27 +1,28 @@
 package emulator.archs.riscv32
 
 
+import cengine.util.integer.Bin
+import cengine.util.integer.Hex
+import cengine.util.integer.Size.*
+import cengine.util.integer.Variable
 import emulator.archs.ArchRV32
 import emulator.archs.riscv32.RV32.asmConfig
 import emulator.archs.riscv32.RV32.config
 import emulator.archs.riscv32.RV32.riscVDocs
 import emulator.archs.riscv64.CSRegister
 import emulator.archs.riscv64.CSRegister.Privilege
+import cengine.lang.asm.ast.target.riscv.RVDisassembler
 import emulator.kit.common.Docs
 import emulator.kit.common.Docs.DocComponent.*
 import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.CallingConvention
 import emulator.kit.common.RegContainer.Register
-import emulator.kit.memory.*
 import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
 import emulator.kit.config.Config.Description
+import emulator.kit.memory.*
 import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
-import cengine.util.integer.Size.*
-import cengine.util.integer.Bin
-import cengine.util.integer.Hex
-import cengine.util.integer.Variable
 
 
 /**
@@ -455,6 +456,7 @@ data object RV32 {
             standardRegFileName = MAIN_REGFILE_NAME
         ),
         MainMemory(MEM_ADDRESS_WIDTH, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
+        RVDisassembler,
         settings
     )
 

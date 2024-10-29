@@ -1,4 +1,4 @@
-package emulator.kit.common
+package cengine.lang.asm
 
 import emulator.kit.memory.Memory
 

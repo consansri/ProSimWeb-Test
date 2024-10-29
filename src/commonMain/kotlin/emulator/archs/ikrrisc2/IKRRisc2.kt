@@ -1,10 +1,10 @@
 package emulator.archs.ikrrisc2
 
-import emulator.archs.ArchIKRRisc2
+import cengine.util.integer.Bin
 import cengine.util.integer.Size.Bit32
 import cengine.util.integer.Size.Bit5
-import cengine.util.integer.Bin
 import cengine.util.integer.Variable
+import emulator.archs.ArchIKRRisc2
 import emulator.kit.common.Docs
 import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.Register
@@ -128,6 +128,7 @@ data object IKRRisc2 {
             standardRegFileName
         ),
         MainMemory(WORD_WIDTH, WORD_WIDTH, endianness = Memory.Endianess.BigEndian, entrysInRow = 4),
+        null,
         settings
     )
 

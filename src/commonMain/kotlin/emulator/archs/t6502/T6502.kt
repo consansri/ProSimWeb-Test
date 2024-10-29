@@ -1,18 +1,18 @@
 package emulator.archs.t6502
 
 
+import cengine.util.integer.Hex
+import cengine.util.integer.Size.Bit16
+import cengine.util.integer.Size.Bit8
+import cengine.util.integer.Variable
 import emulator.archs.ArchT6502
 import emulator.kit.common.Docs
 import emulator.kit.common.Docs.DocComponent.*
 import emulator.kit.common.RegContainer
-import emulator.kit.memory.*
 import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
+import emulator.kit.memory.*
 import emulator.kit.optional.SetupSetting
-import cengine.util.integer.Size.Bit16
-import cengine.util.integer.Size.Bit8
-import cengine.util.integer.Hex
-import cengine.util.integer.Variable
 
 
 /**
@@ -126,6 +126,7 @@ data object T6502 {
         fileEnding = "s",
         RegContainer(listOf(commonRegFile), WORD_SIZE, "common"),
         MainMemory(MEM_ADDR_SIZE, BYTE_SIZE, Memory.Endianess.LittleEndian),
+        null,
         settings
     )
 

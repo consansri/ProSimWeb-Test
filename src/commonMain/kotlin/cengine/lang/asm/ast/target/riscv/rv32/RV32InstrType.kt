@@ -7,11 +7,11 @@ import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVConst
 import cengine.lang.asm.ast.target.riscv.RVConst.bit
-import cengine.lang.asm.ast.target.riscv.RVConst.mask12CBraLayout5
-import cengine.lang.asm.ast.target.riscv.RVConst.mask12CBraLayout7
 import cengine.lang.asm.ast.target.riscv.RVConst.mask12Hi7
 import cengine.lang.asm.ast.target.riscv.RVConst.mask12Lo5
-import cengine.lang.asm.ast.target.riscv.RVConst.mask20JalLayout
+import cengine.lang.asm.ast.target.riscv.RVConst.mask12bType5
+import cengine.lang.asm.ast.target.riscv.RVConst.mask12bType7
+import cengine.lang.asm.ast.target.riscv.RVConst.mask20jType
 import cengine.lang.asm.ast.target.riscv.RVConst.mask32Hi20
 import cengine.lang.asm.ast.target.riscv.RVConst.mask32Lo12
 import cengine.lang.asm.ast.target.riscv.RVCsr
@@ -201,8 +201,8 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             RV32ParamType.RD_RS1_RS2 -> {
                 val opcode = RVConst.OPC_ARITH
                 val funct7 = when (this) {
-                    SRA -> RVConst.FUNCT7_SHIFT_ARITH
-                    SUB -> RVConst.FUNCT7_OPERATION_SUB
+                    SRA -> RVConst.FUNCT7_SHIFT_ARITH_OR_SUB
+                    SUB -> RVConst.FUNCT7_SHIFT_ARITH_OR_SUB
                     MUL, MULH, MULHSU, MULHU, DIV, DIVU, REM, REMU -> RVConst.FUNCT7_M
                     else -> 0U
                 }
@@ -268,7 +268,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             RV32ParamType.RD_RS1_SHAMT5 -> {
                 val opcode = RVConst.OPC_ARITH_IMM
                 val funct7 = when (this) {
-                    SRAI -> RVConst.FUNCT7_SHIFT_ARITH
+                    SRAI -> RVConst.FUNCT7_SHIFT_ARITH_OR_SUB
                     else -> 0U
                 }
                 val funct3 = when (this) {
@@ -291,7 +291,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             RV32ParamType.CSR_RD_OFF12_RS1 -> {
                 val csrs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVCsr.regs.firstOrNull { it.recognizable.contains(token.value) } }
 
-                val opcode = RVConst.OPC_CSR
+                val opcode = RVConst.OPC_OS
                 val funct3 = when (this) {
                     CSRRW -> RVConst.FUNCT3_CSR_RW
                     CSRRS -> RVConst.FUNCT3_CSR_RS
@@ -311,7 +311,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             RV32ParamType.CSR_RD_OFF12_UIMM5 -> {
                 val csrs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVCsr.regs.firstOrNull { it.recognizable.contains(token.value) } }
 
-                val opcode = RVConst.OPC_CSR
+                val opcode = RVConst.OPC_OS
                 val funct3 = when (this) {
                     CSRRWI -> RVConst.FUNCT3_CSR_RWI
                     CSRRSI -> RVConst.FUNCT3_CSR_RSI
@@ -335,7 +335,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
             }
 
             RV32ParamType.NONE -> {
-                val opcode = RVConst.OPC_E
+                val opcode = RVConst.OPC_OS
                 val imm12 = when (this) {
                     EBREAK -> 1U
                     else -> 0U
@@ -397,7 +397,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                     Neg -> {
                         val opcode = RVConst.OPC_ARITH
                         val funct3 = RVConst.FUNCT3_OPERATION
-                        val funct7 = RVConst.FUNCT7_OPERATION_SUB
+                        val funct7 = RVConst.FUNCT7_SHIFT_ARITH_OR_SUB
                         val rd = regs[0].ordinal.toUInt()
                         val rs2 = regs[1].ordinal.toUInt()
 
@@ -461,7 +461,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             RV32ParamType.PS_CSR_RS1 -> {
                 val csrs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVCsr.regs.firstOrNull { it.recognizable.contains(token.value) } }
-                val opcode = RVConst.OPC_CSR
+                val opcode = RVConst.OPC_OS
                 val funct3 = RVConst.FUNCT3_CSR_RW
                 val csr = csrs[0].address
                 val rs1 = regs[0].ordinal.toUInt()
@@ -471,7 +471,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
             RV32ParamType.PS_RD_CSR -> {
                 val csrs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVCsr.regs.firstOrNull { it.recognizable.contains(token.value) } }
-                val opcode = RVConst.OPC_CSR
+                val opcode = RVConst.OPC_OS
                 val funct3 = RVConst.FUNCT3_CSR_RS
                 val csr = csrs[0].address
                 val rd = regs[0].ordinal.toUInt()
@@ -523,26 +523,20 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                     builder.addRelEntry(identifier, RVConst.R_RISCV_JAL, section, index.toUInt())
                 }
 
-                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
-                }
-
                 val shdr = section.shdr
                 val thisAddr = when (shdr) {
                     is ELF32_Shdr -> shdr.sh_addr + index.toUInt()
                     is ELF64_Shdr -> shdr.sh_addr.toUInt() + index.toUInt()
                 }
                 val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
-                val result = target - thisAddr
+                val relative = target - thisAddr
 
-                val imm = result.toValue().toBin().shr(1).toDec()
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
-                    expr.addError("$imm exceeds ${Size.Bit20}")
+                val relativeForComparison = relative.toValue().toBin().shr(1).getResized(Size.Bit20)
+                if (!relativeForComparison.valid) {
+                    expr.addError("$relativeForComparison exceeds ${Size.Bit20}")
                 }
 
-                val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20JalLayout() ?: 0U
-
-                nativeLog("Decided $name: $target - $thisAddr -> $result")
+                val imm20 = relative.mask20jType()
 
                 val rd = regs[0].ordinal.toUInt()
                 val opcode = RVConst.OPC_JAL
@@ -573,11 +567,8 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                     expr.addError("$imm exceeds ${Size.Bit12}")
                 }
 
-                val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
-                val imm7 = imm12.mask12CBraLayout7()
-                val imm5 = imm12.mask12CBraLayout5()
-
-                nativeLog("Decided ${name}: 0x${imm12.toString(16)}")
+                val imm7 = result.mask12bType7()
+                val imm5 = result.mask12bType5()
 
                 val opcode = RVConst.OPC_CBRA
                 val funct3 = when (this) {
@@ -602,17 +593,22 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_HI20, section, index.toUInt())
                     builder.addRelEntry(identifier, RVConst.R_RISCV_PCREL_LO12_I, section, index.toUInt() + 4U)
                 }
-
-                if (!targetAddr.checkSizeSignedOrUnsigned(Size.Bit32)) {
-                    expr.addError("$targetAddr exceeds ${Size.Bit32}")
+                val shdr = section.shdr
+                val thisAddr = when (shdr) {
+                    is ELF32_Shdr -> shdr.sh_addr + index.toUInt()
+                    is ELF64_Shdr -> shdr.sh_addr.toUInt() + index.toUInt()
                 }
 
                 val result = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
+                val relative = result - thisAddr
 
-                nativeLog("Decided $name: 0x${result.toString(16)}")
+                val relativeForExceedingCheck = (targetAddr - thisAddr.toValue())
+                if (!relativeForExceedingCheck.checkSizeSignedOrUnsigned(Size.Bit32)) {
+                    expr.addError("$relativeForExceedingCheck exceeds ${Size.Bit32}")
+                }
 
-                val lo12 = result.mask32Lo12()
-                var hi20 = result.mask32Hi20()
+                val lo12 = relative.mask32Lo12()
+                var hi20 = relative.mask32Hi20()
 
                 if (lo12.bit(12) == 1U) {
                     hi20 += 1U
@@ -654,10 +650,8 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                     expr.addError("$imm exceeds ${Size.Bit12}")
                 }
 
-                val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
-                nativeLog("Decided $name: 0x${imm12.toString(16)}")
-                val imm7 = imm12.mask12CBraLayout7()
-                val imm5 = imm12.mask12CBraLayout5()
+                val imm7 = result.mask12bType7()
+                val imm5 = result.mask12bType5()
 
                 val opcode = RVConst.OPC_CBRA
                 val funct3 = when (this) {
@@ -717,10 +711,8 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                     expr.addError("$imm exceeds ${Size.Bit12}")
                 }
 
-                val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
-                nativeLog("Decided $name: 0x${imm12.toString(16)}")
-                val imm7 = imm12.mask12CBraLayout7()
-                val imm5 = imm12.mask12CBraLayout5()
+                val imm7 = result.mask12bType7()
+                val imm5 = result.mask12bType5()
 
                 val opcode = RVConst.OPC_CBRA
                 val funct3 = when (this) {
@@ -760,7 +752,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                     expr.addError("$imm exceeds ${Size.Bit20}")
                 }
 
-                val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20JalLayout() ?: 0U
+                val imm20 = result.mask20jType()
 
                 nativeLog("Decided $name: 0x${imm20.toString(16)}")
                 val rd = RVBaseRegs.ZERO.ordinal.toUInt()
@@ -792,8 +784,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                     expr.addError("$imm exceeds ${Size.Bit20}")
                 }
 
-                val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20JalLayout() ?: 0U
-                nativeLog("Decided $name: 0x${imm20.toString(16)}")
+                val imm20 = result.mask20jType()
                 val rd = RVBaseRegs.RA.ordinal.toUInt()
                 val opcode = RVConst.OPC_JAL
 
@@ -818,7 +809,6 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 }
                 val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
                 val result = (target - thisAddr)
-                nativeLog("Decided $name: 0x${result.toString(16)}")
                 val lo12 = result.mask32Lo12()
                 var hi20 = result.mask32Hi20()
 
@@ -856,8 +846,6 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 }
                 val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
                 val result = (target - thisAddr)
-                nativeLog("Decided $name: 0x${result.toString(16)}")
-
                 val lo12 = result.mask32Lo12()
                 var hi20 = result.mask32Hi20()
 

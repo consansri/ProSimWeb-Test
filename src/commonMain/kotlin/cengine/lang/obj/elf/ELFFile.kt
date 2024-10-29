@@ -24,6 +24,7 @@ sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn
 
     val e_ident: E_IDENT = eIdent(content)
     val ehdr: EHDR = ehdr(content, e_ident)
+
     val sectionHeaders: List<SHDR> = readSectionHeaders()
     val programHeaders: List<PHDR> = readProgramHeaders()
     val symbolTable: List<SYM>? = readSymbolTable()
@@ -32,6 +33,8 @@ sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn
     val relocationTablesWithAddend: Map<String, List<RELA>> = readRelocationTablesWithAddend()
     val noteHeaders: List<Nhdr>? = readNoteHeaders()
     val segmentToSectionGroup: List<Group> = groupSectionsBySegment()
+    val shstrtab: SHDR? = sectionHeaders.getOrNull(ehdr.e_shstrndx.toInt())
+    val strTab = sectionHeaders.firstOrNull { getSectionName(it) == ".strtab" }
 
     private fun readSectionHeaders(): List<SHDR> {
         return when (ehdr) {
@@ -197,30 +200,9 @@ sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn
         }
     }
 
-    private fun getSectionName(section: SHDR): String {
-        val stringTableSection = sectionHeaders[ehdr.e_shstrndx.toInt()]
-        when (section) {
-            is ELF32_Shdr -> {
-                val stringTableOffset = (stringTableSection as ELF32_Shdr).sh_offset.toInt()
-                val nameOffset = section.sh_name.toInt()
-                return content.sliceArray(stringTableOffset + nameOffset until content.size)
-                    .takeWhile { it != 0.toByte() }
-                    .toByteArray()
-                    .decodeToString()
-            }
+    abstract fun getSectionName(section: SHDR): String
 
-            is ELF64_Shdr -> {
-                val stringTableOffset = (stringTableSection as ELF64_Shdr).sh_offset.toInt()
-                val nameOffset = section.sh_name.toInt()
-                return content.sliceArray(stringTableOffset + nameOffset until content.size)
-                    .takeWhile { it != 0.toByte() }
-                    .toByteArray()
-                    .decodeToString()
-            }
-        }
-
-        return ""
-    }
+    abstract fun getStrTabString(namendx: Int): String?
 
     private fun groupSectionsBySegment(): List<Group> {
         val segments = programHeaders.map { phdr ->
@@ -246,10 +228,10 @@ sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn
 
             }
 
-            Segment(phdr, sections)
+            createSegment(phdr, sections)
         }
         val unmatched = (sectionHeaders - segments.flatMap { it.sections }.toSet()).map {
-            Section(it)
+            createSection(it)
         }
         return (segments + unmatched).sortedBy { it.index }
     }
@@ -260,9 +242,12 @@ sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn
     }
 
 
+    abstract fun createSegment(phdr: PHDR, sections: List<SHDR>): Segment
+    abstract fun createSection(shdr: SHDR): Section
+
     sealed class Group(val index: Int)
-    inner class Segment(val phdr: PHDR, val sections: List<SHDR>) : Group(sectionHeaders.indexOf(sections.firstOrNull()))
-    inner class Section(val section: SHDR) : Group(sectionHeaders.indexOf(section))
+    abstract inner class Segment(val phdr: PHDR, val sections: List<SHDR>) : Group(sectionHeaders.indexOf(sections.firstOrNull()))
+    abstract inner class Section(val section: SHDR) : Group(sectionHeaders.indexOf(section))
 
     fun eIdent(byteArray: ByteArray): E_IDENT = E_IDENT.extractFrom(byteArray)
 

@@ -4,20 +4,20 @@ import cengine.util.ByteBuffer
 import cengine.util.Endianness
 
 data class ELF64_Shdr(
-    override var sh_name: cengine.lang.obj.elf.Elf_Word = 0U,
-    override var sh_type: cengine.lang.obj.elf.Elf_Word = Shdr.SHT_NULL,
-    var sh_flags: cengine.lang.obj.elf.Elf_Xword = 0U,
-    var sh_addr: cengine.lang.obj.elf.Elf64_Addr = 0U,
-    var sh_offset: cengine.lang.obj.elf.Elf64_Off = 0U,
-    var sh_size: cengine.lang.obj.elf.Elf_Xword = 0U,
-    override var sh_link: cengine.lang.obj.elf.Elf_Word = Shdr.SHN_UNDEF.toUInt(),
-    override var sh_info: cengine.lang.obj.elf.Elf_Word = 0U,
-    var sh_addralign: cengine.lang.obj.elf.Elf_Xword = 0U,
-    var sh_entsize: cengine.lang.obj.elf.Elf_Xword = 0U
+    override var sh_name: Elf_Word = 0U,
+    override var sh_type: Elf_Word = SHT_NULL,
+    var sh_flags: Elf_Xword = 0U,
+    var sh_addr: Elf64_Addr = 0U,
+    var sh_offset: Elf64_Off = 0U,
+    var sh_size: Elf_Xword = 0U,
+    override var sh_link: Elf_Word = SHN_UNDEF.toUInt(),
+    override var sh_info: Elf_Word = 0U,
+    var sh_addralign: Elf_Xword = 0U,
+    var sh_entsize: Elf_Xword = 0U
 ) : Shdr() {
 
     companion object {
-        fun create(nameIndex: cengine.lang.obj.elf.Elf_Word, type: cengine.lang.obj.elf.Elf_Word, flags: cengine.lang.obj.elf.Elf_Xword): ELF64_Shdr {
+        fun create(nameIndex: Elf_Word, type: Elf_Word, flags: Elf_Xword): ELF64_Shdr {
             return ELF64_Shdr(
                 sh_name = nameIndex,
                 sh_type = type,
@@ -44,7 +44,7 @@ data class ELF64_Shdr(
     }
 
     override fun byteSize(): Int = 64
-    override fun getEntSize(): cengine.lang.obj.elf.Elf_Xword = sh_entsize
+    override fun getEntSize(): Elf_Xword = sh_entsize
 
-    override fun toString(): String = "$sh_name-${Shdr.getSectionType(sh_type)}-${Shdr.getSectionFlags(sh_flags)}"
+    override fun toString(): String = "$sh_name-${getSectionType(sh_type)}-${getSectionFlags(sh_flags)}"
 }

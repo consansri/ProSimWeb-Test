@@ -15,6 +15,101 @@ class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
         fun ByteArray.toASCIIString(): String = this.decodeToString()
     }
 
+
+    // -------------------------- CONVERSION
+
+    fun toByteArray(): ByteArray = data.toByteArray()
+
+
+    // -------------------------- GET
+
+    operator fun get(index: Int): Byte = data[index]
+
+    // BYTE
+
+    fun getByte(index: Int): Byte = get(index)
+
+    fun getUByte(index: Int): UByte = get(index).toUByte()
+
+    // SHORT
+
+    fun getShort(index: Int): Short {
+        return when (endianness) {
+            Endianness.LITTLE -> ((get(index + 1).toInt() shl 8) or (get(index).toInt() and 0xFF)).toShort()
+            Endianness.BIG -> ((get(index).toInt() shl 8) or (get(index + 1).toInt() and 0xFF)).toShort()
+        }
+    }
+
+    fun getUShort(index: Int): UShort = getShort(index).toUShort()
+
+    // INT
+
+    fun getInt(index: Int): Int {
+        return when (endianness) {
+            Endianness.LITTLE -> (
+                    (get(index + 3).toInt() shl 24) or
+                            (get(index + 2).toInt() and 0xFF shl 16) or
+                            (get(index + 1).toInt() and 0xFF shl 8) or
+                            (get(index).toInt() and 0xFF)
+                    )
+
+            Endianness.BIG -> (
+                    (get(index).toInt() shl 24) or
+                            (get(index + 1).toInt() and 0xFF shl 16) or
+                            (get(index + 2).toInt() and 0xFF shl 8) or
+                            (get(index + 3).toInt() and 0xFF)
+                    )
+        }
+    }
+
+    fun getUInt(index: Int): UInt = getInt(index).toUInt()
+
+    // LONG
+
+    fun getLong(index: Int): Long {
+        return when (endianness) {
+            Endianness.LITTLE -> (
+                    (get(index + 7).toLong() shl 56) or
+                            (get(index + 6).toLong() and 0xFF shl 48) or
+                            (get(index + 5).toLong() and 0xFF shl 40) or
+                            (get(index + 4).toLong() and 0xFF shl 32) or
+                            (get(index + 3).toLong() and 0xFF shl 24) or
+                            (get(index + 2).toLong() and 0xFF shl 16) or
+                            (get(index + 1).toLong() and 0xFF shl 8) or
+                            (get(index).toLong() and 0xFF)
+                    )
+
+            Endianness.BIG -> (
+                    (get(index).toLong() shl 56) or
+                            (get(index + 1).toLong() and 0xFF shl 48) or
+                            (get(index + 2).toLong() and 0xFF shl 40) or
+                            (get(index + 3).toLong() and 0xFF shl 32) or
+                            (get(index + 4).toLong() and 0xFF shl 24) or
+                            (get(index + 5).toLong() and 0xFF shl 16) or
+                            (get(index + 6).toLong() and 0xFF shl 8) or
+                            (get(index + 7).toLong() and 0xFF)
+                    )
+        }
+    }
+
+    fun getULong(index: Int): ULong = getLong(index).toULong()
+
+    // STRING
+
+    fun getZeroTerminated(index: Int): ByteArray {
+        val result = mutableListOf<Byte>()
+        var currentIndex = index
+
+        while (currentIndex < size && this[currentIndex] != 0.toByte()) {
+            result.add(this[currentIndex])
+            currentIndex++
+        }
+
+        return result.toByteArray()
+    }
+
+    // -------------------------- PUT
+
     // BYTE
 
     fun put(value: Byte) {
@@ -35,18 +130,7 @@ class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
         data.addAll(bytes.toList())
     }
 
-
-    fun getZeroTerminated(index: Int): ByteArray {
-        val result = mutableListOf<Byte>()
-        var currentIndex = index
-
-        while (currentIndex < size && this[currentIndex] != 0.toByte()) {
-            result.add(this[currentIndex])
-            currentIndex++
-        }
-
-        return result.toByteArray()
-    }
+    // SHORT
 
     fun put(value: Short) {
         when (endianness) {
@@ -62,14 +146,13 @@ class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
         }
     }
 
-
     fun put(value: UShort) {
         put(value.toShort())
     }
 
+    // INT
 
     fun put(value: Int) {
-        nativeLog("Put ${value.toString(16)} on $size")
         when (endianness) {
             Endianness.LITTLE -> {
                 data.add((value and 0xFF).toByte())
@@ -90,6 +173,8 @@ class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
     fun put(value: UInt) {
         put(value.toInt())
     }
+
+    // LONG
 
     fun put(value: Long) {
         when (endianness) {
@@ -121,15 +206,13 @@ class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
         put(value.toLong())
     }
 
-    fun toByteArray(): ByteArray = data.toByteArray()
-
-    operator fun get(index: Int): Byte = data[index]
+    // -------------------------- SET
 
     operator fun set(index: Int, byte: Byte) {
         data[index] = byte
     }
 
-    operator fun set(index: Int, value: UByte){
+    operator fun set(index: Int, value: UByte) {
         this[index] = value.toByte()
     }
 
@@ -147,7 +230,7 @@ class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
         }
     }
 
-    operator fun set(index: Int, value: UShort){
+    operator fun set(index: Int, value: UShort) {
         this[index] = value.toShort()
     }
 
@@ -170,7 +253,7 @@ class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
         }
     }
 
-    operator fun set(index: Int, value: UInt){
+    operator fun set(index: Int, value: UInt) {
         this[index] = value.toInt()
     }
 
@@ -201,7 +284,7 @@ class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
     }
 
 
-    operator fun set(index: Int, value: ULong){
+    operator fun set(index: Int, value: ULong) {
         this[index] = value.toLong()
     }
 

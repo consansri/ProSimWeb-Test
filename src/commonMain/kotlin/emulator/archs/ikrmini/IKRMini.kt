@@ -1,16 +1,16 @@
 package emulator.archs.ikrmini
 
+import cengine.util.integer.Hex
+import cengine.util.integer.Size.*
+import cengine.util.integer.Variable
 import emulator.archs.ArchIKRMini
 import emulator.kit.common.Docs
 import emulator.kit.common.Docs.DocComponent.*
 import emulator.kit.common.RegContainer
-import emulator.kit.memory.*
 import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
+import emulator.kit.memory.*
 import emulator.kit.optional.SetupSetting
-import cengine.util.integer.Size.*
-import cengine.util.integer.Hex
-import cengine.util.integer.Variable
 
 data object IKRMini {
 
@@ -95,6 +95,7 @@ data object IKRMini {
             "common"
         ),
         MainMemory(WORDSIZE, BYTESIZE, Memory.Endianess.BigEndian),
+        null,
         settings
     )
 

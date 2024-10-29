@@ -4,7 +4,7 @@ import cengine.lang.obj.elf.ELF32File
 import cengine.lang.obj.elf.ELF64File
 import cengine.lang.obj.elf.ELFFile
 import cengine.util.integer.*
-import emulator.kit.common.Initializer
+import cengine.lang.asm.Initializer
 import emulator.kit.memory.Memory
 import kotlin.math.pow
 
