@@ -4,7 +4,6 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.psi.core.*
 import cengine.util.integer.toULong
-import emulator.kit.nativeLog
 import kotlin.experimental.*
 
 /**
@@ -92,7 +91,6 @@ class ExecutableELFBuilder(
 
     override fun Section.resolveReservations() {
         reservations.forEach { def ->
-            nativeLog("Reservation: $def")
             def.instr.nodes.filterIsInstance<ASNode.NumericExpr>().forEach { expr ->
                 // Assign all Labels from segments
                 segments.flatMap { it.sections }.forEach {

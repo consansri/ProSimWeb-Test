@@ -150,21 +150,22 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
         when (paramType) {
             RV64ParamType.RD_I20 -> {
                 val expr = exprs[0]
-                val opcode = when (this) {
-                    LUI -> RVConst.OPC_LUI
-                    AUIPC -> RVConst.OPC_AUIPC
-                    JAL -> RVConst.OPC_JAL
-                    else -> 0b0U
-                }
-                val rd = regs[0].ordinal.toUInt()
-                val imm = expr.evaluate(builder)
-                val imm20 = imm.toBin().toUInt() ?: 0U
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
-                    expr.addError("${expr.evaluated} exceeds ${Size.Bit20}.")
-                }
+                if (this != JAL) {
+                    val opcode = when (this) {
+                        LUI -> RVConst.OPC_LUI
+                        AUIPC -> RVConst.OPC_AUIPC
+                        else -> 0b0U
+                    }
+                    val rd = regs[0].ordinal.toUInt()
+                    val imm = expr.evaluate(builder)
+                    val imm20 = imm.toBin().toUInt() ?: 0U
+                    if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
+                        expr.addError("${expr.evaluated} exceeds ${Size.Bit20}.")
+                    }
 
-                val bundle = (imm20 shl 12) or (rd shl 7) or opcode
-                builder.currentSection.content.put(bundle)
+                    val bundle = (imm20 shl 12) or (rd shl 7) or opcode
+                    builder.currentSection.content.put(bundle)
+                }
             }
 
             RV64ParamType.RD_Off12 -> {
@@ -734,7 +735,9 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                     expr.addError("$imm exceeds ${Size.Bit20}")
                 }
 
-                val imm20 = result.toUInt().mask20jType()
+                nativeLog("jal: ${result.toString(16)} = ${target.toString(16)} - ${thisAddr.toString(16)}")
+
+                val imm20 = (result.toUInt() and 0xFFFFFU).mask20jType()
 
                 val rd = regs[0].ordinal.toUInt()
                 val opcode = RVConst.OPC_JAL
@@ -759,14 +762,13 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 }
                 val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
                 val result = target - thisAddr
-                val imm = result.toValue().toDec()
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit12)) {
-                    expr.addError("$imm exceeds ${Size.Bit12}")
+                val forComparison = result.toValue().toDec()
+                if (!forComparison.checkSizeSignedOrUnsigned(Size.Bit12)) {
+                    expr.addError("$forComparison exceeds ${Size.Bit12}")
                 }
 
-                val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
-                val imm7 = imm12.mask12bType7()
-                val imm5 = imm12.mask12bType5()
+                val imm7 = result.toUInt().mask12bType7()
+                val imm5 = result.toUInt().mask12bType5()
 
                 val opcode = RVConst.OPC_CBRA
                 val funct3 = when (this) {
@@ -836,14 +838,13 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
                 val result = target - thisAddr
 
-                val imm = result.toValue().toDec()
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit12)) {
-                    expr.addError("$imm exceeds ${Size.Bit12}")
+                val forComparison = result.toValue().toDec()
+                if (!forComparison.checkSizeSignedOrUnsigned(Size.Bit12)) {
+                    expr.addError("$forComparison exceeds ${Size.Bit12}")
                 }
 
-                val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
-                val imm7 = imm12.mask12bType7()
-                val imm5 = imm12.mask12bType5()
+                val imm7 = result.toUInt().mask12bType7()
+                val imm5 = result.toUInt().mask12bType5()
 
                 val opcode = RVConst.OPC_CBRA
                 val funct3 = when (this) {
@@ -899,14 +900,13 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val result = target - thisAddr
 
 
-                val imm = result.toValue().toDec()
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit12)) {
-                    expr.addError("$imm exceeds ${Size.Bit12}")
+                val forComparison = result.toValue().toDec()
+                if (!forComparison.checkSizeSignedOrUnsigned(Size.Bit12)) {
+                    expr.addError("$forComparison exceeds ${Size.Bit12}")
                 }
 
-                val imm12 = imm.getResized(Size.Bit12).toBin().toUInt() ?: 0U
-                val imm7 = imm12.mask12bType7()
-                val imm5 = imm12.mask12bType5()
+                val imm7 = result.toUInt().mask12bType7()
+                val imm5 = result.toUInt().mask12bType5()
 
                 val opcode = RVConst.OPC_CBRA
                 val funct3 = when (this) {
@@ -941,12 +941,12 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
                 val result = target - thisAddr
 
-                val imm = result.toValue().toBin().shr(1).toDec()
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
-                    expr.addError("$imm exceeds ${Size.Bit20}")
+                val relativeForComparison = result.toValue().toBin().shr(1).toDec()
+                if (!relativeForComparison.checkSizeSignedOrUnsigned(Size.Bit20)) {
+                    expr.addError("$relativeForComparison exceeds ${Size.Bit20}")
                 }
 
-                val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20jType() ?: 0U
+                val imm20 = result.toUInt().mask20jType()
 
                 val rd = RVBaseRegs.ZERO.ordinal.toUInt()
                 val opcode = RVConst.OPC_JAL
@@ -972,12 +972,12 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val target = targetAddr.getResized(Size.Bit32).toBin().toUInt() ?: 0U
                 val result = target - thisAddr
 
-                val imm = result.toValue().toBin().shr(1).toDec()
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
-                    expr.addError("$imm exceeds ${Size.Bit20}")
+                val relativeForComparison = result.toValue().toBin().shr(1).toDec()
+                if (!relativeForComparison.checkSizeSignedOrUnsigned(Size.Bit20)) {
+                    expr.addError("$relativeForComparison exceeds ${Size.Bit20}")
                 }
 
-                val imm20 = imm.getResized(Size.Bit20).toBin().toUInt()?.mask20jType() ?: 0U
+                val imm20 = result.toUInt().mask20jType() ?: 0U
 
                 val rd = RVBaseRegs.RA.ordinal.toUInt()
                 val opcode = RVConst.OPC_JAL

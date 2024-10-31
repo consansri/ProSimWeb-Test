@@ -127,21 +127,23 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
         when (this.paramType) {
             RV32ParamType.RD_I20 -> {
                 val expr = exprs[0]
-                val opcode = when (this) {
-                    LUI -> RVConst.OPC_LUI
-                    AUIPC -> RVConst.OPC_AUIPC
-                    JAL -> RVConst.OPC_JAL
-                    else -> 0b0U
-                }
-                val rd = regs[0].ordinal.toUInt()
-                val imm = expr.evaluate(builder)
-                val imm20 = imm.toBin().toUInt() ?: 0U
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
-                    expr.addError("${expr.evaluated} exceeds ${Size.Bit20}.")
-                }
+                if (this != JAL) {
+                    val opcode = when (this) {
+                        LUI -> RVConst.OPC_LUI
+                        AUIPC -> RVConst.OPC_AUIPC
+                        JAL -> RVConst.OPC_JAL
+                        else -> 0b0U
+                    }
+                    val rd = regs[0].ordinal.toUInt()
+                    val imm = expr.evaluate(builder)
+                    val imm20 = imm.toBin().toUInt() ?: 0U
+                    if (!imm.checkSizeSignedOrUnsigned(Size.Bit20)) {
+                        expr.addError("${expr.evaluated} exceeds ${Size.Bit20}.")
+                    }
 
-                val bundle = (imm20 shl 12) or (rd shl 7) or opcode
-                builder.currentSection.content.put(bundle)
+                    val bundle = (imm20 shl 12) or (rd shl 7) or opcode
+                    builder.currentSection.content.put(bundle)
+                }
             }
 
             RV32ParamType.RD_OFF12 -> {
@@ -535,6 +537,8 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
                 if (!relativeForComparison.valid) {
                     expr.addError("$relativeForComparison exceeds ${Size.Bit20}")
                 }
+
+                nativeLog("jal: ${relative.toString(16)} = ${target.toString(16)} - ${thisAddr.toString(16)}")
 
                 val imm20 = relative.mask20jType()
 

@@ -12,7 +12,9 @@ import emulator.kit.nativeWarn
 import io.github.vinceglb.filekit.core.FileKit
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ui.uilib.UIState
 import ui.uilib.menu.Menu
 import ui.uilib.menu.MenuItem
@@ -65,19 +67,21 @@ fun FileContextMenu(
         }
 
         if (file.isDirectory) {
-            MenuItem(UIState.Icon.value.file, "Import") {
-                onDismiss()
+            MenuItem(UIState.Icon.value.import, "Import") {
                 ioScope.launch {
-                    val fileData = FileKit.pickFile(PickerType.File(), PickerMode.Single,"Import File")
-                    if (fileData != null) {
-                        val path = file.path + fileData.name
-                        val newFile = project.fileSystem.createFile(path)
-                        newFile.setContent(fileData.readBytes())
-                        nativeLog("Imported File $path!")
-                    }else{
-                        nativeWarn("No File Selected!")
+                    withContext(Dispatchers.Default) {
+                        val fileData = FileKit.pickFile(PickerType.File(), PickerMode.Single, "Import File")
+                        if (fileData != null) {
+                            val path = file.path + fileData.name
+                            val newFile = project.fileSystem.createFile(path)
+                            newFile.setContent(fileData.readBytes())
+                            nativeLog("Imported File $path!")
+                        } else {
+                            nativeWarn("No File Selected!")
+                        }
                     }
                 }
+                onDismiss()
             }
             MenuItem(UIState.Icon.value.file, "Create New File") {
                 onDismiss()

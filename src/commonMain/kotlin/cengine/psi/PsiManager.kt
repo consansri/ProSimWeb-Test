@@ -45,33 +45,41 @@ class PsiManager<T : LanguageService>(
         }
     }
 
-    fun inserted(file: VirtualFile, index: Int, value: String, onfinish: suspend (PsiFile) -> Unit = {}) {
+    fun inserted(file: VirtualFile, index: Int, length: Int): PsiFile? {
+        val psiFile = psiCache[file.path] ?: return null
+        psiCache.remove(file.path)
+        psiCache[file.path] = psiFile
+
+        psiFile.inserted(index, length)
+
+        return psiFile
+    }
+
+    fun deleted(file: VirtualFile, start: Int, end: Int): PsiFile? {
+        val psiFile = psiCache[file.path] ?: return null
+        psiCache.remove(file.path)
+        psiCache[file.path] = psiFile
+
+        psiFile.deleted(start, end)
+
+        return psiFile
+    }
+
+    fun queueInsertion(file: VirtualFile, index: Int, length: Int, onfinish: suspend (PsiFile) -> Unit = {}) {
         queueUpdate(file, onfinish)
         psiUpdateScope.launch {
-            val psiFile = psiCache[file.path] ?: run {
+            onfinish(inserted(file, index, length) ?: run {
                 createPsiFile(file)
-            }
-            psiCache.remove(file.path)
-            psiCache[file.path] = psiFile
-
-            psiFile.inserted(index, value)
-
-            onfinish(psiFile)
+            })
         }
     }
 
-    fun deleted(file: VirtualFile, start: Int, end: Int, onfinish: suspend (PsiFile) -> Unit = {}) {
-        queueUpdate(file,  onfinish)
+    fun queueDeletion(file: VirtualFile, start: Int, end: Int, onfinish: suspend (PsiFile) -> Unit = {}) {
+        queueUpdate(file, onfinish)
         psiUpdateScope.launch {
-            val psiFile = psiCache[file.path] ?: run {
+            onfinish(deleted(file, start, end) ?: run {
                 createPsiFile(file)
-            }
-            psiCache.remove(file.path)
-            psiCache[file.path] = psiFile
-
-            psiFile.deleted(start, end)
-
-            onfinish(psiFile)
+            })
         }
     }
 

@@ -17,17 +17,17 @@ interface PsiElement : Interval {
 
     fun print(prefix: String): String = "$prefix${this::class.simpleName}: $additionalInfo\n" + ArrayList(children).joinToString("\n") { it.print(prefix + "\t") }
 
-    fun inserted(index: Int, value: String) {
-        range = IntRange(range.first, range.last + value.length)
+    fun inserted(index: Int, length: Int) {
+        range = IntRange(range.first, range.last + length)
         val affectedChildren = children.filter { index <= it.range.last }
         affectedChildren.forEach { child ->
             when {
                 index <= child.range.first -> {
-                    child.move(value.length)
+                    child.move(length)
                 }
 
                 index in child.range -> {
-                    child.inserted(index, value)
+                    child.inserted(index, length)
                 }
             }
         }

@@ -69,12 +69,12 @@ interface CodeEditor : Editable {
 
     override fun insert(index: Int, new: String) {
         textModel.insert(index, new)
-        psiManager?.inserted(file, index, new, ::fastFinish)
+        psiManager?.queueInsertion(file, index, new.length, ::fastFinish)
     }
 
     override fun delete(start: Int, end: Int) {
         textModel.delete(start, end)
-        psiManager?.deleted(file,  start, end, ::fastFinish)
+        psiManager?.queueDeletion(file,  start, end, ::fastFinish)
     }
 
     override fun replaceAll(new: String) {

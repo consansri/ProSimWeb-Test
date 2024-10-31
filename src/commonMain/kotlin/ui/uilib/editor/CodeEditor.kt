@@ -19,12 +19,15 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.*
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.toSize
 import cengine.editor.annotation.Annotation
 import cengine.editor.completion.Completion
+import cengine.editor.highlighting.HLInfo
 import cengine.lang.asm.CodeStyle
 import cengine.project.Project
 import cengine.psi.core.PsiElement
@@ -32,10 +35,7 @@ import cengine.psi.core.PsiFile
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import ui.uilib.ComposeTools
+import kotlinx.coroutines.*
 import ui.uilib.UIState
 import ui.uilib.params.FontType
 
@@ -52,31 +52,44 @@ fun CodeEditor(
     val codeStyle = FontType.CODE.getStyle()
     val codeSmallStyle = FontType.CODE_SMALL.getStyle()
     val baseStyle = FontType.SMALL.getStyle()
+
+    val manager = remember { project.getManager(file) }
+    val lang = remember { manager?.lang }
+    val service = remember { lang?.psiService }
+
     val textMeasurer = rememberTextMeasurer()
+    val coroutineScope = rememberCoroutineScope()
+    val scrollVertical = rememberScrollState()
+    val scrollHorizontal = rememberScrollState()
+
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(file.getAsUTF8String())) }
+    var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     var lineNumberLabelingBounds by remember { mutableStateOf<Size>(Size.Zero) }
     val (lineCount, setLineCount) = remember { mutableStateOf(0) }
     val (lineHeight, setLineHeight) = remember { mutableStateOf(0f) }
 
-
-    var currentLine by remember { mutableStateOf(0) }
+    var textFieldSize by remember { mutableStateOf(Size.Zero) }
     var rowHeaderWidth by remember { mutableStateOf<Float>(0f) }
 
-    var completionJob by remember { mutableStateOf<Job?>(null) }
+    var currentLine by remember { mutableStateOf(0) }
+    var hoverPosition by remember { mutableStateOf<Offset?>(null) }
+    var caretOffset by remember { mutableStateOf<Offset>(Offset(0f, 0f)) }
+    var currentElement by remember { mutableStateOf<PsiElement?>(null) }
 
-    val scrollVertical = rememberScrollState()
-    val scrollHorizontal = rememberScrollState()
-    var viewSize by remember { mutableStateOf(Size.Zero) }
-    var contentSize by remember { mutableStateOf(Size.Zero) }
-
-    val manager by remember { mutableStateOf(project.getManager(file)) }
-    val lang = remember { manager?.lang }
-    val service = remember { lang?.psiService }
+    var annotationOverlayJob by remember { mutableStateOf<Job?>(null) }
     var allAnnotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
+    var localAnnotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
+    var isAnnotationVisible by remember { mutableStateOf(false) }
+
+    var completionOverlayJob by remember { mutableStateOf<Job?>(null) }
+    var completions by remember { mutableStateOf<List<Completion>>(emptyList()) }
+    var isCompletionVisible by remember { mutableStateOf(false) }
+    var selectedCompletionIndex by remember { mutableStateOf(0) }
 
     fun buildAnnotatedString(code: String, psiFile: PsiFile? = null): AnnotatedString {
         // Fast Lexing Highlighting
-        val hls = lang?.highlightProvider?.fastHighlight(code) ?: emptyList()
+        val hls = emptyList<HLInfo>()// lang?.highlightProvider?.fastHighlight(code) ?: emptyList()
         val styles = hls.mapNotNull {
             if (!it.range.isEmpty()) {
                 AnnotatedString.Range<SpanStyle>(SpanStyle(color = Color(it.color or 0xFF000000.toInt())), it.range.first, it.range.last + 1)
@@ -106,28 +119,28 @@ fun CodeEditor(
         }
     }
 
-    val coroutineScope = rememberCoroutineScope()
-    var processJob by remember { mutableStateOf<Job?>(null) }
+    fun onTextChange(new: TextFieldValue){
+        val oldText = textFieldValue.annotatedString
+        val newText = new.annotatedString
 
-    var textFieldValue by remember {
-        mutableStateOf(
-            TextFieldValue(buildAnnotatedString(file.getAsUTF8String(), manager?.getPsiFile(file)))
-        )
+        when {
+            newText.length > oldText.length -> {
+                // Insert
+                val startIndex = oldText.commonPrefixWith(newText).length
+                val length = newText.length - oldText.length
+                manager?.inserted(file, startIndex, length)
+            }
+
+            newText.length < oldText.length -> {
+                // Delete
+                val startIndex = newText.commonPrefixWith(oldText).length
+                val length = oldText.length - newText.length
+                manager?.deleted(file, startIndex, startIndex + length)
+            }
+        }
+
+        textFieldValue = new
     }
-    var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
-
-    var annotationOverlayJob by remember { mutableStateOf<Job?>(null) }
-    var hoverPosition by remember { mutableStateOf<Offset?>(null) }
-
-    var localAnnotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
-    var isAnnotationVisible by remember { mutableStateOf(false) }
-
-    var completions by remember { mutableStateOf<List<Completion>>(emptyList()) }
-    var isCompletionVisible by remember { mutableStateOf(false) }
-    var selectedCompletionIndex by remember { mutableStateOf(0) }
-
-    var caretOffset by remember { mutableStateOf<Offset>(Offset(0f, 0f)) }
-    var currentElement by remember { mutableStateOf<PsiElement?>(null) }
 
     suspend fun locatePSIElement() {
         val caretPosition = textFieldValue.selection.start
@@ -137,42 +150,24 @@ fun CodeEditor(
         } else null
     }
 
-    suspend fun updatePSI(code: String) {
-        file.setAsUTF8String(code)
-        manager?.queueUpdate(file) {
-            textFieldValue = textFieldValue.copy(annotatedString = buildAnnotatedString(code, it))
-            locatePSIElement()
-        }
-    }
-
-    fun processTextFieldValue() {
-        processJob?.cancel()
-        processJob = coroutineScope.launch {
-            val newCode = textFieldValue.text
-            val annotatedString = buildAnnotatedString(newCode)
-            textFieldValue = textFieldValue.copy(annotatedString)
-            updatePSI(newCode)
-        }
-    }
-
     fun insertCompletion(completion: Completion) {
         val start = textFieldValue.selection.start
-        val newText = textFieldValue.text.substring(0, start) + completion.insertion + textFieldValue.text.substring(start)
+        val newText = textFieldValue.annotatedString.subSequence(0, start) + AnnotatedString(completion.insertion) + textFieldValue.annotatedString.subSequence(start, textFieldValue.annotatedString.length)
 
-        textFieldValue = textFieldValue.copy(text = newText, selection = TextRange(start + completion.insertion.length))
+        onTextChange(textFieldValue.copy(annotatedString = newText, selection = TextRange(start + completion.insertion.length)))
     }
 
     fun fetchCompletions(showIfPrefixIsEmpty: Boolean = false, onlyHide: Boolean = false) {
-        completionJob?.cancel()
+        completionOverlayJob?.cancel()
 
         if (!onlyHide) {
-            completionJob = coroutineScope.launch {
+            completionOverlayJob = coroutineScope.launch {
                 val layout = textLayout
                 if (layout != null) {
                     try {
                         val lineIndex = layout.getLineForOffset(textFieldValue.selection.start)
                         val lineStart = layout.getLineStart(lineIndex)
-                        val lineContentBefore = textFieldValue.text.substring(lineStart, textFieldValue.selection.start)
+                        val lineContentBefore = textFieldValue.annotatedString.substring(lineStart, textFieldValue.selection.start)
 
                         if (showIfPrefixIsEmpty || lineContentBefore.isNotEmpty()) {
                             completions = lang?.completionProvider?.fetchCompletions(lineContentBefore, currentElement, manager?.getPsiFile(file)) ?: emptyList()
@@ -188,90 +183,16 @@ fun CodeEditor(
     }
 
     with(LocalDensity.current) {
-        Box(
-            modifier
-                .fillMaxSize()
-                .verticalScroll(scrollVertical)
-                .horizontalScroll(scrollHorizontal)
+
+        BasicTextField(
+            modifier = Modifier
                 .onGloballyPositioned {
-                    viewSize = it.size.toSize()
+                    textFieldSize = it.size.toSize()
                 }
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            if (event.type == PointerEventType.Move) {
-                                val position = event.changes.first().position
-
-                                hoverPosition = null
-                                annotationOverlayJob?.cancel()
-                                annotationOverlayJob = coroutineScope.launch {
-                                    delay(500)
-                                    hoverPosition = position
-                                }
-                            }
-                        }
-                    }
-                }
-
-        ) {
-
-            // Add a light blue background for the current line
-            textLayout?.let { layout ->
-                val lineTop = layout.getLineTop(currentLine)
-                val lineBottom = layout.getLineBottom(currentLine)
-                Box(
-                    modifier = Modifier
-                        .offset(y = lineTop.toDp())
-                        .height((lineBottom - lineTop).toDp())
-                        .width(contentSize.width.toDp())
-                        .background(theme.COLOR_SELECTION.copy(alpha = 0.10f))  // Light blue with 10% opacity
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .sizeIn(minWidth = viewSize.width.toDp(), minHeight = viewSize.height.toDp())
-                    .onGloballyPositioned {
-                        contentSize = it.size.toSize()
-                    }
-            ) {
-
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = scale.SIZE_INSET_MEDIUM)
-                        .width(lineNumberLabelingBounds.width.toDp())
-                        .onGloballyPositioned {
-                            rowHeaderWidth = it.size.toSize().width
-                        }
-                ) {
-                    repeat(lineCount) { line ->
-                        val thisLineContent = (line + 1).toString()
-                        val thisLineTop = textLayout?.multiParagraph?.getLineTop(line) ?: (lineHeight * line)
-                        Text(
-                            modifier = Modifier
-                                .width(lineNumberLabelingBounds.width.toDp())
-                                .height(lineHeight.toDp()).offset(y = (thisLineTop).toDp() + (lineHeight.toDp() - lineNumberLabelingBounds.height.toDp()) / 2),
-                            textAlign = TextAlign.Right,
-                            text = thisLineContent,
-                            color = theme.COLOR_FG_1,
-                            style = codeSmallStyle
-                        )
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .height(contentSize.height.toDp())
-                        .width(scale.SIZE_BORDER_THICKNESS)
-                        .background(theme.COLOR_BORDER)
-                )
-
-                BasicTextField(
-                    modifier = Modifier
-                        .sizeIn(minWidth = viewSize.width.toDp() - rowHeaderWidth.toDp(), minHeight = viewSize.height.toDp())
-                        .onPreviewKeyEvent { keyEvent ->
-                            if (keyEvent.type == KeyEventType.KeyDown) {
+                .onPreviewKeyEvent { keyEvent ->
+                    if (keyEvent.type == KeyEventType.KeyDown) {
+                        when {
+                            !keyEvent.isShiftPressed && !keyEvent.isCtrlPressed && !keyEvent.isAltPressed -> {
                                 when (keyEvent.key) {
                                     Key.Tab -> {
                                         textFieldValue = if (keyEvent.isShiftPressed) {
@@ -295,7 +216,7 @@ fun CodeEditor(
                                         if (isCompletionVisible && completion != null) {
                                             insertCompletion(completion)
                                         } else {
-                                            textFieldValue = insertNewlineAndIndent(textFieldValue, textLayout)
+                                            onTextChange(insertNewlineAndIndent(textFieldValue, textLayout))
                                         }
 
                                         true
@@ -319,58 +240,171 @@ fun CodeEditor(
                                         }
                                     }
 
+
                                     else -> false
                                 }
-                            } else {
-                                false
                             }
-                        },
-                    value = textFieldValue,
-                    cursorBrush = SolidColor(theme.COLOR_FG_0),
-                    textStyle = codeStyle.copy(
-                        color = theme.COLOR_FG_0
-                    ),
-                    onValueChange = { newValue ->
-                        textFieldValue = newValue
-                    },
-                    onTextLayout = { result ->
-                        textLayout = result
-                        setLineCount(result.lineCount)
-                        setLineHeight(result.multiParagraph.height / result.lineCount)
+
+                            keyEvent.isShiftPressed && keyEvent.isCtrlPressed && !keyEvent.isAltPressed -> {
+                                when (keyEvent.key) {
+                                    Key.S -> {
+                                        coroutineScope.launch {
+                                            withContext(Dispatchers.Default) {
+                                                manager?.updatePsi(file) {
+                                                    textFieldValue = textFieldValue.copy(buildAnnotatedString(it.content, it))
+                                                    locatePSIElement()
+                                                }
+                                            }
+                                        }
+
+                                        true
+                                    }
+
+                                    else -> false
+                                }
+                            }
+
+                            else -> false
+                        }
+
+                    } else {
+                        false
                     }
-                )
+                },
+            value = textFieldValue,
+            cursorBrush = SolidColor(theme.COLOR_FG_0),
+            textStyle = codeStyle.copy(
+                color = theme.COLOR_FG_0
+            ),
+            visualTransformation = {str ->
+                TransformedText(buildAnnotatedString(str.text, manager?.getPsiFile(file)), OffsetMapping.Identity)
+            },
+            onValueChange = { newValue ->
+                // TODO  Performantly get inserted or deleted event with index of insertion (and value) or deletion range
+                onTextChange(newValue)
+            },
+            onTextLayout = { result ->
+                textLayout = result
+                setLineCount(result.lineCount)
+                setLineHeight(result.multiParagraph.height / result.lineCount)
             }
+        ) { textField ->
 
-            if (isCompletionVisible) {
-                CompletionOverlay(
-                    Modifier
-                        .offset(x = caretOffset.x.toDp() + rowHeaderWidth.toDp() + scale.SIZE_BORDER_THICKNESS, y = caretOffset.y.toDp()),
-                    completions,
-                    selectedCompletionIndex
-                )
-            }
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                if (event.type == PointerEventType.Move) {
+                                    val position = event.changes.first().position
 
-            if (isAnnotationVisible) {
-                hoverPosition?.let {
-                    AnnotationOverlay(
-                        Modifier.offset(it.x.toDp() + rowHeaderWidth.toDp(), it.y.toDp()),
-                        localAnnotations,
-                    )
+                                    hoverPosition = null
+                                    annotationOverlayJob?.cancel()
+                                    annotationOverlayJob = coroutineScope.launch {
+                                        delay(500)
+                                        hoverPosition = position
+                                    }
+                                }
+                            }
+                        }
+                    }
+            ) {
+                // Globally Paint Box
+
+                Box(
+                    Modifier.matchParentSize()
+                        .verticalScroll(scrollVertical)
+                ) {
+
+                    // Add a light blue background for the current line
+                    textLayout?.let { layout ->
+                        val lineTop = layout.getLineTop(currentLine)
+                        val lineBottom = layout.getLineBottom(currentLine)
+                        Box(
+                            modifier = Modifier
+                                .offset(y = lineTop.toDp())
+                                .height((lineBottom - lineTop).toDp())
+                                .fillMaxWidth()
+                                .background(theme.COLOR_SELECTION.copy(alpha = 0.10f))  // Light blue with 10% opacity
+                        )
+                    }
+
+                    Row(
+                        Modifier.fillMaxWidth()
+                    ) {
+                        // Scroll Container
+
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = scale.SIZE_INSET_MEDIUM)
+                                .height(textFieldSize.height.toDp())
+                                .width(lineNumberLabelingBounds.width.toDp())
+                                .onGloballyPositioned {
+                                    rowHeaderWidth = it.size.toSize().width
+                                }
+                        ) {
+                            repeat(lineCount) { line ->
+                                val thisLineContent = (line + 1).toString()
+                                val thisLineTop = textLayout?.multiParagraph?.getLineTop(line) ?: (lineHeight * line)
+                                Text(
+                                    modifier = Modifier
+                                        .width(lineNumberLabelingBounds.width.toDp())
+                                        .height(lineHeight.toDp()).offset(y = (thisLineTop).toDp() + (lineHeight.toDp() - lineNumberLabelingBounds.height.toDp()) / 2),
+                                    textAlign = TextAlign.Right,
+                                    text = thisLineContent,
+                                    color = theme.COLOR_FG_1,
+                                    style = codeSmallStyle
+                                )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .height(textFieldSize.height.toDp())
+                                .width(scale.SIZE_BORDER_THICKNESS)
+                                .background(theme.COLOR_BORDER)
+                        )
+
+                        Box(
+                            Modifier.fillMaxWidth()
+                                .horizontalScroll(scrollHorizontal)
+                        ) {
+                            textField()
+
+                            if (isCompletionVisible) {
+                                CompletionOverlay(
+                                    Modifier
+                                        .offset(x = caretOffset.x.toDp(), y = caretOffset.y.toDp()),
+                                    completions,
+                                    selectedCompletionIndex
+                                )
+                            }
+
+                            if (isAnnotationVisible) {
+                                hoverPosition?.let {
+                                    AnnotationOverlay(
+                                        Modifier.offset(it.x.toDp(), it.y.toDp()),
+                                        localAnnotations,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                 }
+
             }
+
         }
     }
 
-    ComposeTools.TrackStateChanges(textFieldValue) { oldValue, newValue ->
-        if (newValue.text != oldValue.text) {
-            // Text was changed
-            processTextFieldValue()
-        }
-
+    LaunchedEffect(textFieldValue) {
         coroutineScope.launch {
-            caretOffset = textLayout?.getCursorRect(newValue.selection.start)?.bottomCenter ?: Offset(0f, 0f)
+            caretOffset = textLayout?.getCursorRect(textFieldValue.selection.start)?.bottomCenter ?: Offset(0f, 0f)
             // Update the current line when the text changes
-            currentLine = textLayout?.getLineForOffset(newValue.selection.start) ?: -1
+            currentLine = textLayout?.getLineForOffset(textFieldValue.selection.start) ?: -1
             locatePSIElement()
             fetchCompletions()
         }
@@ -383,6 +417,7 @@ fun CodeEditor(
     LaunchedEffect(completions) {
         isCompletionVisible = completions.isNotEmpty()
         selectedCompletionIndex = 0
+        nativeLog("Completions: $isCompletionVisible,  $isAnnotationVisible")
     }
 
     LaunchedEffect(hoverPosition) {
@@ -396,6 +431,8 @@ fun CodeEditor(
             val annotations = service?.collectNotations(psiFile, index) ?: return@let
             localAnnotations = annotations
         }
+
+        nativeLog("Hovering: $isCompletionVisible,  $isAnnotationVisible")
     }
 
     LaunchedEffect(allAnnotations) {

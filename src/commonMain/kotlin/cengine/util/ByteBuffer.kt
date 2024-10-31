@@ -1,7 +1,5 @@
 package cengine.util
 
-import emulator.kit.nativeLog
-
 class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
     private val data = initial.toMutableList()
 
@@ -235,7 +233,6 @@ class ByteBuffer(endianness: Endianness, initial: ByteArray = byteArrayOf()) {
     }
 
     operator fun set(index: Int, value: Int) {
-        nativeLog("Set ${value.toString(16)} on $index")
         when (endianness) {
             Endianness.LITTLE -> {
                 data[index] = (value and 0xFF).toByte()

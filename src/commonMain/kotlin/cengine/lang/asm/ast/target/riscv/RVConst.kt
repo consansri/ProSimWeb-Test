@@ -168,7 +168,12 @@ data object RVConst{
 
     fun UInt.lowest10(): UInt = this and 0b1111111111U
 
-    fun UInt.mask20jType(): UInt = (bit(20) shl 19) or (lowest10() shl 9) or (bit(11) shl 8) or (this shr 11).lowest8()
+    /**
+     * Expects the relative target offset.
+     *
+     * @return the jType starting from index 0 (needs to be shifted for 12 bit to the left when used in opcode)
+     */
+    fun UInt.mask20jType(): UInt = (bit(20) shl 19) or (shr(1).lowest10() shl 9) or (bit(11) shl 8) or shr(12).lowest8()
 
     fun UInt.mask12bType7(): UInt = (bit(12) shl 6) or (this shr 4).lowest6()
 
