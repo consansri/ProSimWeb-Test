@@ -13,9 +13,12 @@ class AsmFile(override val file: VirtualFile, override val lang: AsmLang, privat
     override val additionalInfo: String
         get() = program.additionalInfo
 
-    override val parent: PsiElement?
+    override var parent: PsiElement?
+        set(value) {
+
+        }
         get() = program.parent
-    override val children: List<ASNode> get() = program.children
+    override val children: List<PsiElement> get() = program.children
 
     override var range: IntRange = program.range
         set(value) {

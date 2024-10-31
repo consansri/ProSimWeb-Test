@@ -1,6 +1,8 @@
 package cengine.lang.asm.ast.lexer
 
+import cengine.lang.asm.CodeStyle
 import cengine.lang.asm.ast.lexer.AsmTokenType.*
+import cengine.psi.feature.Highlightable
 import cengine.psi.lexer.core.Token
 
 /**
@@ -12,10 +14,9 @@ import cengine.psi.lexer.core.Token
 data class AsmToken(
     override val type: AsmTokenType,
     override val value: String,
-    override val start: Int,
-    override val end: Int,
+    override var range: IntRange,
     val withoutPrefix: String? = null
-) : Token() {
+) : Token(), Highlightable {
 
     val asNumber: String get() = withoutPrefix ?: value
 
@@ -110,6 +111,9 @@ data class AsmToken(
 
         val regex: Regex = Regex("^${Regex.escape(id)}")
     }
+
+    override val style: CodeStyle?
+        get() = type.style
 
     override fun toString(): String = "{${type.name}:$value}"
 }

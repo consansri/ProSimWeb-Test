@@ -11,7 +11,7 @@ import cengine.vfs.VirtualFile
 abstract class PsiFileImpl(
     override val file: VirtualFile
 ) : PsiElementImpl(), PsiFile {
-    override val parent: PsiElement? = null
+    override var parent: PsiElement? = null
 
     override fun accept(visitor: PsiElementVisitor) {
         visitor.visitFile(this)

@@ -8,7 +8,7 @@ import cengine.editor.annotation.Annotation
 interface PsiElement : Interval {
 
     val pathName: String
-    val parent: PsiElement?
+    var parent: PsiElement?
     val children: List<PsiElement>
     val annotations: List<Annotation>
     val additionalInfo: String

@@ -24,7 +24,9 @@ interface PsiService {
 
             override fun visitElement(element: PsiElement) {
                 if (element is Highlightable) {
-                    highlights.add(element.range to element.style)
+                    element.style?.let {
+                        highlights.add(element.range to it)
+                    }
                 }
                 element.children.forEach {
                     it.accept(this)

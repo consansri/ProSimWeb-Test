@@ -35,10 +35,10 @@ import emulator.kit.nativeLog
  *   - [Statement.Unresolved] Unresolved Content
  * --------------------
  */
-sealed class ASNode(override var range: IntRange, vararg children: ASNode) : PsiElement, PsiFormatter {
+sealed class ASNode(override var range: IntRange, vararg children: PsiElement) : PsiElement, PsiFormatter {
     override var parent: PsiElement? = null
 
-    final override val children: MutableList<ASNode> = mutableListOf(*children)
+    final override val children: MutableList<PsiElement> = mutableListOf(*children)
     final override val annotations: MutableList<Annotation> = mutableListOf()
 
     override val additionalInfo: String
@@ -262,7 +262,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
 
                     val second = lexer.consume(true)
                     if (second.value != "=") {
-                        lexer.position = second.start
+                        lexer.position = second.range.first
                         return Argument.Basic(first)
                     }
 
@@ -298,8 +298,8 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
      * A RootNode only contains several [Statement]s.
      */
     class Program(statements: List<Statement>, comments: List<Comment>) : ASNode(
-        (statements.minByOrNull { it.range.start }?.range?.start ?: 0)..(statements.maxByOrNull { it.range.last }?.range?.last ?: 0),
-        *(statements + comments).sortedBy { it.range.start }.toTypedArray()
+        (statements.minByOrNull { it.range.first }?.range?.start ?: 0)..(statements.maxByOrNull { it.range.last }?.range?.last ?: 0),
+        *(statements + comments).sortedBy { it.range.first }.toTypedArray()
     ) {
         override val pathName: String = this::class.simpleName.toString()
 
@@ -307,7 +307,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             //removeEmptyStatements()
         }
 
-        override fun getFormatted(identSize: Int): String = children.joinToString("") { it.getFormatted(identSize) }
+        override fun getFormatted(identSize: Int): String = children.joinToString("") { (it as? ASNode)?.getFormatted(identSize) ?: it.pathName }
 
         /*private fun removeEmptyStatements() {
             ArrayList(children).filterIsInstance<Statement.Empty>().forEach {
@@ -328,7 +328,7 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
      *  - [Statement.Unresolved] Unresolved Content
      */
     sealed class Statement(val label: Label?, val lineBreak: AsmToken, range: IntRange? = null, vararg childs: ASNode) : ASNode(
-        range ?: (label?.range?.start ?: childs.firstOrNull()?.range?.start ?: lineBreak.start)..<lineBreak.end
+        range ?: (label?.range?.first ?: childs.firstOrNull()?.range?.first ?: lineBreak.range.first)..<(lineBreak.range.last + 1)
     ) {
         override val pathName: String get() = PATHNAME
 
@@ -388,12 +388,17 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
         }
     }
 
-    class Label(val nameToken: AsmToken, val colon: AsmToken) : ASNode(nameToken.start..<colon.end), Highlightable {
+    class Label(val nameToken: AsmToken, val colon: AsmToken) : ASNode(nameToken.start..<colon.end, ), Highlightable {
         override val pathName get() = nameToken.value + colon.value
         val type = if (nameToken.type == AsmTokenType.INT_DEC) Type.NUMERIC else Type.ALPHANUMERIC
         val identifier = nameToken.value
         override val style: CodeStyle
             get() = CodeStyle.label
+
+        init {
+            children.add(nameToken)
+            children.add(colon)
+        }
 
         override fun getFormatted(identSize: Int): String = "${nameToken.value}${colon.value}"
 
@@ -415,6 +420,13 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
             get() = type.typeName + " " + optionalIdentificationToken
 
         private val sortedContent = (allTokens + additionalNodes).sortedBy { it.range.start }
+
+        init {
+            optionalIdentificationToken?.let {
+                children.add(it)
+            }
+            children.addAll(allTokens)
+        }
 
         override fun getFormatted(identSize: Int): String = (optionalIdentificationToken?.value ?: "") + sortedContent.joinToString("", " ") {
             when (it) {
@@ -499,6 +511,11 @@ sealed class ASNode(override var range: IntRange, vararg children: ASNode) : Psi
     class Instruction(val type: InstrTypeInterface, val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
         override val pathName: String
             get() = instrName.value
+
+        init {
+            children.add(instrName)
+            children.addAll(tokens)
+        }
 
         override fun getFormatted(identSize: Int): String = "${instrName.value} ${
             (tokens + nodes).sortedBy { it.range.first }.joinToString("") {

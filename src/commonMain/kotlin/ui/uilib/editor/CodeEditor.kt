@@ -6,9 +6,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -26,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.toSize
 import cengine.editor.annotation.Annotation
+import cengine.editor.annotation.Severity
 import cengine.editor.completion.Completion
 import cengine.editor.highlighting.HLInfo
 import cengine.lang.asm.CodeStyle
@@ -36,6 +40,7 @@ import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
+import ui.uilib.ComposeTools
 import ui.uilib.UIState
 import ui.uilib.params.FontType
 
@@ -48,6 +53,7 @@ fun CodeEditor(
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
+    val icon = UIState.Icon.value
 
     val codeStyle = FontType.CODE.getStyle()
     val codeSmallStyle = FontType.CODE_SMALL.getStyle()
@@ -77,6 +83,7 @@ fun CodeEditor(
     var caretOffset by remember { mutableStateOf<Offset>(Offset(0f, 0f)) }
     var currentElement by remember { mutableStateOf<PsiElement?>(null) }
 
+    var analyticsAreUpToDate by remember { mutableStateOf(false) }
     var annotationOverlayJob by remember { mutableStateOf<Job?>(null) }
     var allAnnotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
     var localAnnotations by remember { mutableStateOf<Set<Annotation>>(emptySet()) }
@@ -119,13 +126,14 @@ fun CodeEditor(
         }
     }
 
-    fun onTextChange(new: TextFieldValue){
+    fun onTextChange(new: TextFieldValue) {
         val oldText = textFieldValue.annotatedString
         val newText = new.annotatedString
 
         when {
             newText.length > oldText.length -> {
                 // Insert
+                analyticsAreUpToDate = false
                 val startIndex = oldText.commonPrefixWith(newText).length
                 val length = newText.length - oldText.length
                 manager?.inserted(file, startIndex, length)
@@ -133,9 +141,14 @@ fun CodeEditor(
 
             newText.length < oldText.length -> {
                 // Delete
+                analyticsAreUpToDate = false
                 val startIndex = newText.commonPrefixWith(oldText).length
                 val length = oldText.length - newText.length
                 manager?.deleted(file, startIndex, startIndex + length)
+            }
+
+            newText != oldText -> {
+                analyticsAreUpToDate = false
             }
         }
 
@@ -148,6 +161,18 @@ fun CodeEditor(
         currentElement = if (psiFile != null) {
             lang?.psiService?.findElementAt(psiFile, caretPosition)
         } else null
+    }
+
+    fun analyze() {
+        coroutineScope.launch {
+            withContext(Dispatchers.Default) {
+                manager?.updatePsi(file) {
+                    textFieldValue = textFieldValue.copy(buildAnnotatedString(it.content, it))
+                    locatePSIElement()
+                    analyticsAreUpToDate = true
+                }
+            }
+        }
     }
 
     fun insertCompletion(completion: Completion) {
@@ -195,19 +220,21 @@ fun CodeEditor(
                             !keyEvent.isShiftPressed && !keyEvent.isCtrlPressed && !keyEvent.isAltPressed -> {
                                 when (keyEvent.key) {
                                     Key.Tab -> {
-                                        textFieldValue = if (keyEvent.isShiftPressed) {
-                                            if (textFieldValue.selection.length == 0) {
-                                                removeIndentation(textFieldValue, textLayout)
+                                        onTextChange(
+                                            if (keyEvent.isShiftPressed) {
+                                                if (textFieldValue.selection.length == 0) {
+                                                    removeIndentation(textFieldValue, textLayout)
+                                                } else {
+                                                    removeIndentationForSelectedLines(textFieldValue, textLayout)
+                                                }
                                             } else {
-                                                removeIndentationForSelectedLines(textFieldValue, textLayout)
+                                                if (textFieldValue.selection.length == 0) {
+                                                    insertIndentation(textFieldValue)
+                                                } else {
+                                                    insertIndentationForSelectedLines(textFieldValue, textLayout)
+                                                }
                                             }
-                                        } else {
-                                            if (textFieldValue.selection.length == 0) {
-                                                insertIndentation(textFieldValue)
-                                            } else {
-                                                insertIndentationForSelectedLines(textFieldValue, textLayout)
-                                            }
-                                        }
+                                        )
                                         true
                                     }
 
@@ -248,14 +275,7 @@ fun CodeEditor(
                             keyEvent.isShiftPressed && keyEvent.isCtrlPressed && !keyEvent.isAltPressed -> {
                                 when (keyEvent.key) {
                                     Key.S -> {
-                                        coroutineScope.launch {
-                                            withContext(Dispatchers.Default) {
-                                                manager?.updatePsi(file) {
-                                                    textFieldValue = textFieldValue.copy(buildAnnotatedString(it.content, it))
-                                                    locatePSIElement()
-                                                }
-                                            }
-                                        }
+                                        analyze()
 
                                         true
                                     }
@@ -276,7 +296,7 @@ fun CodeEditor(
             textStyle = codeStyle.copy(
                 color = theme.COLOR_FG_0
             ),
-            visualTransformation = {str ->
+            visualTransformation = { str ->
                 TransformedText(buildAnnotatedString(str.text, manager?.getPsiFile(file)), OffsetMapping.Identity)
             },
             onValueChange = { newValue ->
@@ -293,25 +313,48 @@ fun CodeEditor(
             Box(
                 Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {
-                        awaitPointerEventScope {
-                            while (true) {
-                                val event = awaitPointerEvent()
-                                if (event.type == PointerEventType.Move) {
-                                    val position = event.changes.first().position
+            ) {
+                // Globally Paint Box
 
-                                    hoverPosition = null
-                                    annotationOverlayJob?.cancel()
-                                    annotationOverlayJob = coroutineScope.launch {
-                                        delay(500)
-                                        hoverPosition = position
-                                    }
-                                }
+                Box(
+                    Modifier.matchParentSize(),
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    Row(Modifier.padding(scale.SIZE_INSET_SMALL), verticalAlignment = Alignment.CenterVertically) {
+
+                        if (analyticsAreUpToDate) {
+                            val errors = allAnnotations.count { it.severity == Severity.ERROR }
+                            val warnings = allAnnotations.count { it.severity == Severity.WARNING }
+                            val infos = allAnnotations.count { it.severity == Severity.INFO }
+
+                            Icon(icon.statusFine, "info", Modifier.size(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_GREEN)
+                            Text("$infos", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
+                            Spacer(Modifier.width(scale.SIZE_INSET_SMALL))
+                            Icon(icon.info, "warnings", Modifier.size(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_YELLOW)
+                            Text("$warnings", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
+                            Spacer(Modifier.width(scale.SIZE_INSET_SMALL))
+                            Icon(icon.statusError, "errors", Modifier.size(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_RED)
+                            Text("$errors", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
+                        } else {
+                            ComposeTools.Rotating { rotation ->
+                                Icon(icon.statusLoading, "loading", Modifier.size(scale.SIZE_CONTROL_SMALL).rotate(rotation), tint = theme.COLOR_FG_1)
                             }
                         }
                     }
-            ) {
-                // Globally Paint Box
+                }
+
+                Box(
+                    Modifier.matchParentSize(),
+                    contentAlignment = Alignment.BottomEnd
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val selection = textFieldValue.selection
+                        val line = textLayout?.getLineForOffset(selection.start) ?: 0
+                        val column = selection.start - (textLayout?.getLineStart(line) ?: 0)
+
+                        Text("${line + 1}:${column + 1}", modifier = Modifier.padding(scale.SIZE_INSET_MEDIUM), fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
+                    }
+                }
 
                 Box(
                     Modifier.matchParentSize()
@@ -370,13 +413,34 @@ fun CodeEditor(
                         Box(
                             Modifier.fillMaxWidth()
                                 .horizontalScroll(scrollHorizontal)
+
                         ) {
-                            textField()
+                            Box(Modifier
+                                .pointerInput(Unit) {
+                                    awaitPointerEventScope {
+                                        while (true) {
+                                            val event = awaitPointerEvent()
+                                            if (event.type == PointerEventType.Move) {
+                                                val position = event.changes.first().position
+
+                                                hoverPosition = null
+                                                annotationOverlayJob?.cancel()
+                                                annotationOverlayJob = coroutineScope.launch {
+                                                    delay(500)
+                                                    hoverPosition = position
+                                                }
+                                            }
+                                        }
+                                    }
+                                }) {
+                                textField()
+                            }
 
                             if (isCompletionVisible) {
                                 CompletionOverlay(
                                     Modifier
                                         .offset(x = caretOffset.x.toDp(), y = caretOffset.y.toDp()),
+                                    codeStyle,
                                     completions,
                                     selectedCompletionIndex
                                 )
@@ -386,6 +450,7 @@ fun CodeEditor(
                                 hoverPosition?.let {
                                     AnnotationOverlay(
                                         Modifier.offset(it.x.toDp(), it.y.toDp()),
+                                        codeStyle,
                                         localAnnotations,
                                     )
                                 }
@@ -394,6 +459,7 @@ fun CodeEditor(
                     }
 
                 }
+
 
             }
 
@@ -417,7 +483,6 @@ fun CodeEditor(
     LaunchedEffect(completions) {
         isCompletionVisible = completions.isNotEmpty()
         selectedCompletionIndex = 0
-        nativeLog("Completions: $isCompletionVisible,  $isAnnotationVisible")
     }
 
     LaunchedEffect(hoverPosition) {
@@ -431,8 +496,6 @@ fun CodeEditor(
             val annotations = service?.collectNotations(psiFile, index) ?: return@let
             localAnnotations = annotations
         }
-
-        nativeLog("Hovering: $isCompletionVisible,  $isAnnotationVisible")
     }
 
     LaunchedEffect(allAnnotations) {

@@ -9,20 +9,20 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import cengine.editor.completion.Completion
 import ui.uilib.UIState
-import ui.uilib.params.FontType
 
 @Composable
 fun CompletionOverlay(
     modifier: Modifier,
+    textStyle: TextStyle,
     completions: List<Completion>,
     selectedCompletionIndex: Int
 ) {
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
-    val fontFamily = FontType.CODE.getFamily()
 
     val vScroll = rememberScrollState()
 
@@ -41,7 +41,7 @@ fun CompletionOverlay(
                         .fillMaxWidth()
                         .padding(scale.SIZE_INSET_MEDIUM, 0.dp)
                 ) {
-                    Text(completion.displayText, color = theme.COLOR_FG_0, fontFamily = fontFamily)
+                    Text(completion.displayText, color = theme.COLOR_FG_0, fontFamily = textStyle.fontFamily, fontSize = textStyle.fontSize)
                 }
             }
         }

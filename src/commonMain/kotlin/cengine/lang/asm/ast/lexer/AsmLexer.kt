@@ -1,9 +1,9 @@
 package cengine.lang.asm.ast.lexer
 
-import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
+import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASDirType
 import cengine.psi.lexer.impl.BaseLexer
 
@@ -26,7 +26,7 @@ class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
         val regs = regs
 
         if (!hasMoreTokens()) {
-            return AsmToken(AsmTokenType.EOF, "", position, position)
+            return AsmToken(AsmTokenType.EOF, "", position..<position)
         }
 
         if (ignoreComments) {
@@ -37,13 +37,13 @@ class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
         }
 
         if (!hasMoreTokens()) {
-            return AsmToken(AsmTokenType.EOF, "", position, position)
+            return AsmToken(AsmTokenType.EOF, "", position..<position)
         }
 
         if (ignoreLeadingSpaces) skipSpaces()
 
         if (!hasMoreTokens()) {
-            return AsmToken(AsmTokenType.EOF, "", position, position)
+            return AsmToken(AsmTokenType.EOF, "", position..<position)
         }
 
         for (type in AsmTokenType.entries) {
@@ -99,8 +99,7 @@ class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
             val token = AsmToken(
                 keyWordType ?: type,
                 matchedText,
-                startPosition,
-                endPosition,
+                startPosition..<endPosition,
                 onlyNumber
             )
 
@@ -111,7 +110,7 @@ class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
         val char = input[index].toString()
         val start = index
         advance()
-        val token = AsmToken(AsmTokenType.UNDEFINED, char, start, index)
+        val token = AsmToken(AsmTokenType.UNDEFINED, char, start..<index)
         return token
         //nativeError("InvalidTokenException $token $index")
     }

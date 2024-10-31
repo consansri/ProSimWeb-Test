@@ -3,8 +3,7 @@ package cengine.psi.feature
 import cengine.lang.asm.CodeStyle
 
 interface Highlightable {
-    val style: CodeStyle
-
+    val style: CodeStyle?
 
     enum class Type(val style: CodeStyle) {
         KEYWORD(CodeStyle.ORANGE),

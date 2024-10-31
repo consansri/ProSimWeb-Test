@@ -1,11 +1,13 @@
 package cengine.psi.lexer.core
 
-import cengine.psi.core.Interval
+import cengine.editor.annotation.Annotation
+import cengine.psi.core.PsiElement
+import cengine.psi.core.PsiElementVisitor
 
 /**
  * Interface representing a token in the source code.
  */
-abstract class Token : Interval {
+abstract class Token : PsiElement {
     /**
      * The type of the token.
      */
@@ -16,37 +18,41 @@ abstract class Token : Interval {
      */
     abstract val value: String
 
-    /**
-     * The starting position of the token in the source code.
-     */
-    abstract val start: Int
+    val start: Int
+        get() = range.first
 
-    /**
-     * The ending position of the token in the source code.
-     */
-    abstract val end: Int
+    val end: Int
+        get() = range.last + 1
 
-    /**
-     * Builds a TextRange object from [start] and [end] index.
-     */
-    override val range: IntRange
-        get() = start..<end
+    final override val children: List<PsiElement>
+        get() = emptyList()
 
-    override fun equals(other: Any?): Boolean {
+    final override val annotations: List<Annotation>
+        get() = emptyList()
+
+    final override val additionalInfo: String
+        get() = ""
+
+    final override var parent: PsiElement? = null
+    final override val pathName: String
+        get() = value
+
+    final override fun accept(visitor: PsiElementVisitor) {
+        visitor.visitElement(this)
+    }
+
+    final override fun equals(other: Any?): Boolean {
         if (other !is Token) return false
 
-        if(other.type != type) return false
-        if(other.start != start) return false
-        if(other.end != end) return false
+        if (other.type != type) return false
+        if (other.value != value) return false
 
         return true
     }
 
-    override fun hashCode(): Int {
+    final override fun hashCode(): Int {
         var result = type.hashCode()
         result = 31 * result + value.hashCode()
-        result = 31 * result + start.hashCode()
-        result = 31 * result + end.hashCode()
         return result
     }
 }

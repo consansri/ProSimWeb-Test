@@ -8,19 +8,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import cengine.editor.annotation.Annotation
 import ui.uilib.UIState
-import ui.uilib.params.FontType
 
 @Composable
 fun AnnotationOverlay(
     modifier: Modifier,
+    textStyle: TextStyle,
     annotations: Set<Annotation>
 ) {
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
-    val fontFamily = FontType.CODE.getFamily()
 
     val vScroll = rememberScrollState()
 
@@ -38,7 +38,7 @@ fun AnnotationOverlay(
                         .fillMaxWidth()
                         .padding(scale.SIZE_INSET_MEDIUM, 0.dp)
                 ) {
-                    Text(annotation.displayText, color = theme.getColor(annotation.severity.color), fontFamily = fontFamily)
+                    Text(annotation.displayText, color = theme.getColor(annotation.severity.color), fontFamily = textStyle.fontFamily, fontSize = textStyle.fontSize)
                 }
             }
         }

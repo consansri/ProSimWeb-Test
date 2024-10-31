@@ -6,8 +6,8 @@ import cengine.psi.lexer.core.TokenType
 data class BasicToken(
     override val type: TokenType,
     override val value: String,
-    override val start: Int,
-    override val end: Int
+    override var range: IntRange
 ) : Token(){
+
 
 }
