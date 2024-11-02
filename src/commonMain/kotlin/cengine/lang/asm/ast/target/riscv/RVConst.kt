@@ -175,9 +175,9 @@ data object RVConst{
      */
     fun UInt.mask20jType(): UInt = (bit(20) shl 19) or (shr(1).lowest10() shl 9) or (bit(11) shl 8) or shr(12).lowest8()
 
-    fun UInt.mask12bType7(): UInt = (bit(12) shl 6) or (this shr 4).lowest6()
+    fun UInt.mask12bType7(): UInt = (bit(12) shl 6) or (this shr 5).lowest6()
 
-    fun UInt.mask12bType5(): UInt = (lowest4() shl 1) or bit(11)
+    fun UInt.mask12bType5(): UInt = (shr(1).lowest4() shl 1) or bit(11)
 }
 
 

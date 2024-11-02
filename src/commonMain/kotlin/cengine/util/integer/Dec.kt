@@ -15,10 +15,6 @@ class Dec(decString: String, size: Size) : Value(size) {
 
     private val negative: Boolean
 
-    companion object {
-        private val posRegex = Regex("[0-9]+")
-    }
-
     init {
         val result = check(decString, size)
         input = result.corrected
@@ -35,7 +31,7 @@ class Dec(decString: String, size: Size) : Value(size) {
     override fun check(string: String, size: Size): CheckResult {
         val formatted = string.trim().removePrefix(Settings.PRESTRING_DECIMAL)
         val message: String
-        if (!posRegex.matches(formatted.replace("-", ""))) {
+        if (!formatted.replace("-", "").all { it.isDigit() }) {
             val zeroString = "0"
             message = "Dec.check(): $formatted does not match the dec Pattern (${Settings.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning $zeroString instead!"
             nativeError(message)
@@ -64,48 +60,78 @@ class Dec(decString: String, size: Size) : Value(size) {
     override fun toDec(): Dec = this
     override fun toUDec(): UDec = getBinary().getUDec()
     override fun toASCII(): String = getASCII()
+    override fun toULong(): ULong = toLong().toULong()
+    override fun toLong(): Long = toRawString().toLong()
     fun toIntOrNull(): Int? = toRawString().toIntOrNull()
     fun toDoubleOrNull(): Double? = toRawString().toDoubleOrNull()
     override fun getBiggest(): Value = Dec(Bounds(size).max, size)
-    override fun plus(operand: Value): Value {
-        val result = DecimalTools.add(toRawString(), operand.toDec().toRawString())
+    override fun plus(operand: Value): Dec {
         val biggerSize = if (size.bitWidth > operand.size.bitWidth) size else operand.size
+        val result = if (biggerSize.bitWidth <= 64) {
+            (toLong() + operand.toLong()).toString()
+        } else {
+            DecimalTools.add(toRawString(), operand.toDec().toRawString())
+        }
+
         return Dec(result, biggerSize)
     }
 
-    override fun minus(operand: Value): Value {
-        val result = DecimalTools.sub(toRawString(), operand.toDec().toRawString())
+    override fun minus(operand: Value): Dec {
         val biggerSize = if (size.bitWidth > operand.size.bitWidth) size else operand.size
+        val result = if (biggerSize.bitWidth <= 64) {
+            (toLong() - operand.toLong()).toString()
+        } else {
+            DecimalTools.sub(toRawString(), operand.toDec().toRawString())
+        }
+
         return Dec(result, biggerSize)
     }
 
-    override fun times(operand: Value): Value {
-        val result = DecimalTools.multiply(toRawString(), operand.toDec().toRawString())
+    override fun times(operand: Value): Dec {
         val biggerSize = if (size.bitWidth > operand.size.bitWidth) size else operand.size
+        val result = if (biggerSize.bitWidth <= 64) {
+            (toLong() * operand.toLong()).toString()
+        } else {
+            DecimalTools.multiply(toRawString(), operand.toDec().toRawString())
+        }
+
         return Dec(result, biggerSize)
     }
 
-    override fun div(operand: Value): Value {
-        val divResult = DecimalTools.divide(toRawString(), operand.toDec().toRawString())
+    override fun div(operand: Value): Dec {
         val biggerSize = if (size.bitWidth > operand.size.bitWidth) size else operand.size
-        return Dec(divResult.result, biggerSize)
+        val result = if (biggerSize.bitWidth <= 64) {
+            (toLong() / operand.toLong()).toString()
+        } else {
+            DecimalTools.divide(toRawString(), operand.toDec().toRawString()).result
+        }
+
+        return Dec(result, biggerSize)
     }
 
-    override fun rem(operand: Value): Value {
-        val divResult = DecimalTools.divide(toRawString(), operand.toDec().toRawString())
+    override fun rem(operand: Value): Dec {
         val biggerSize = if (size.bitWidth > operand.size.bitWidth) size else operand.size
-        return Dec(DecimalTools.checkEmpty(divResult.rest), biggerSize)
+        val result = if (biggerSize.bitWidth <= 64) {
+            (toLong() % operand.toLong()).toString()
+        } else {
+            DecimalTools.checkEmpty(DecimalTools.divide(toRawString(), operand.toDec().toRawString()).rest)
+        }
+
+        return Dec(result, biggerSize)
     }
 
     override fun unaryMinus(): Value = Dec(DecimalTools.negotiate(toRawString()), size)
     override fun inc(): Value = Dec(DecimalTools.add(toRawString(), "1"), size)
     override fun dec(): Value = Dec(DecimalTools.sub(toRawString(), "1"), size)
-    override fun compareTo(other: Value): Int = if (DecimalTools.isEqual(toRawString(), other.toDec().toRawString())) {
-        0
-    } else if (DecimalTools.isGreaterThan(toRawString(), other.toDec().toRawString())) {
-        1
-    } else {
-        -1
+    override fun compareTo(other: Value): Int {
+        if (size.bitWidth <= 64 && other.size.bitWidth <= 64) return toLong().compareTo(other.toLong())
+        return if (DecimalTools.isEqual(toRawString(), other.toDec().toRawString())) {
+            0
+        } else if (DecimalTools.isGreaterThan(toRawString(), other.toDec().toRawString())) {
+            1
+        } else {
+            -1
+        }
     }
 
     override fun equals(other: Any?): Boolean {

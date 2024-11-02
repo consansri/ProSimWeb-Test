@@ -66,6 +66,8 @@ sealed class Value(val size: Size) {
     abstract fun toDec(): Dec
     abstract fun toUDec(): UDec
     abstract fun toASCII(): String
+    abstract fun toLong(): Long
+    abstract fun toULong(): ULong
     abstract fun getBiggest(): Value
     abstract operator fun plus(operand: Value): Value
     abstract operator fun minus(operand: Value): Value

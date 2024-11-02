@@ -42,7 +42,7 @@ object RVDisassembler : Disassembler {
         val rs2 = (binary shr 20) and 0b11111U
         val imm12iType = (binary shr 20) and 0b111111111111U
         val imm12sType = ((binary shr 25) shl 5) or rd
-        val imm12bType = ((binary shr 31) shl 12) or (((binary shr 7) and 0b1U) shl 11) or (((binary shr 25) and 0b111111U) shl 5) or ((binary shr 1) and 0b1111U)
+        val imm12bType = ((binary shr 31) shl 12) or (((binary shr 7) and 0b1U) shl 11) or (((binary shr 25) and 0b111111U) shl 5) or (((binary shr 8) and 0b1111U)) shl 1
         val imm20uType = binary shr 12
         val imm20jType = ((binary shr 31) shl 20) or (((binary shr 12) and 0b11111111U) shl 12) or (((binary shr 20) and 0b1U) shl 11) or (((binary shr 21) and 0b1111111111U) shl 1)
         val shamt = (imm12iType and 0b111111U)

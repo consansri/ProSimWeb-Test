@@ -41,7 +41,7 @@ fun ExecutionView(architecture: Architecture?) {
                 var dest: Disassembler.Decoded? = null
                 disassembler.decoded.value.forEach { destSeg ->
                     val found = destSeg.decodedContent.firstOrNull { dest ->
-                        val rowAddr = (destSeg.addr + dest.offset.toValue(destSeg.addr.size)).toHex()
+                        val rowAddr = destSeg.addr + dest.offset.toValue(destSeg.addr.size)
                         rowAddr == destAddr
                     }
                     if (found != null) dest = found

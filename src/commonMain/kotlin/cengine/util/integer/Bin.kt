@@ -11,10 +11,6 @@ class Bin(binString: String, size: Size) : Value(size) {
     override val input: String
     override val valid: Boolean
 
-    companion object {
-        val regex = Regex("[0-1]+")
-    }
-
     constructor(size: Size) : this(Settings.PRESTRING_BINARY + "0", size)
 
     constructor(binString: String) : this(binString, Size.Original(binString.trim().removePrefix(Settings.PRESTRING_BINARY).length))
@@ -28,7 +24,7 @@ class Bin(binString: String, size: Size) : Value(size) {
     override fun check(string: String, size: Size): CheckResult {
         val formattedInput = string.trim().removePrefix(Settings.PRESTRING_BINARY).padStart(size.bitWidth, '0')
         val message: String
-        if (regex.matches(formattedInput)) {
+        if (formattedInput.all { it == '0' || it == '1' }) {
             // bin string without prestring
             return if (formattedInput.length <= size.bitWidth) {
                 CheckResult(true, formattedInput)
@@ -104,24 +100,39 @@ class Bin(binString: String, size: Size) : Value(size) {
     override fun toDec(): Dec = getDec()
     override fun toUDec(): UDec = getUDec()
     override fun toASCII(): String = getASCII()
+    override fun toLong(): Long = toULong().toLong()
+    override fun toULong(): ULong = toRawString().toULong(2)
     override fun getBiggest(): Value = Bin("1".repeat(size.bitWidth), size)
 
-    override fun plus(operand: Value): Value {
-        val result = BinaryTools.add(this.toRawString(), operand.toBin().toRawString())
-        val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-        return Bin(result, biggerSize)
+    override fun plus(operand: Value): Bin {
+        return if (size.bitWidth <= 64 && operand.size.bitWidth <= 64) {
+            val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+            val result = toULong() + operand.toULong()
+            Bin(result.toString(2), biggerSize)
+        } else {
+            val result = BinaryTools.add(this.toRawString(), operand.toBin().toRawString())
+            val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+            Bin(result, biggerSize)
+        }
     }
 
     fun detailedPlus(operand: Value): AddResult {
+
         val result = BinaryTools.addWithCarry(this.toRawString(), operand.toBin().toRawString())
         val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
         return AddResult(Bin(result.result, biggerSize), result.carry == '1')
     }
 
-    override fun minus(operand: Value): Value {
-        val result = BinaryTools.sub(this.toRawString(), operand.toBin().toRawString())
-        val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-        return Bin(result, biggerSize)
+    override fun minus(operand: Value): Bin {
+        return if (size.bitWidth <= 64 && operand.size.bitWidth <= 64) {
+            val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+            val result = toULong() - operand.toULong()
+            Bin(result.toString(2), biggerSize)
+        } else {
+            val result = BinaryTools.sub(this.toRawString(), operand.toBin().toRawString())
+            val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+            Bin(result, biggerSize)
+        }
     }
 
     fun detailedMinus(operand: Value): SubResult {
@@ -130,10 +141,16 @@ class Bin(binString: String, size: Size) : Value(size) {
         return SubResult(Bin(result.result, biggerSize), result.borrow == '1')
     }
 
-    override fun times(operand: Value): Value {
-        val result = BinaryTools.multiply(this.toRawString(), operand.toBin().toRawString())
-        //val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-        return Bin(result)
+    override fun times(operand: Value): Bin {
+        return if (size.bitWidth <= 64 && operand.size.bitWidth <= 64) {
+            val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+            val result = toULong() * operand.toULong()
+            Bin(result.toString(2), biggerSize)
+        } else {
+            val result = BinaryTools.multiply(this.toRawString(), operand.toBin().toRawString())
+            val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+            Bin(result, biggerSize)
+        }
     }
 
     /**
@@ -146,10 +163,16 @@ class Bin(binString: String, size: Size) : Value(size) {
         return if (resizeToLargestParamSize) Bin(result).getResized(biggerSize) else Bin(result)
     }
 
-    override fun div(operand: Value): Value {
-        val divResult = BinaryTools.divide(toRawString(), operand.toBin().toRawString())
-        val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) size else operand.size
-        return Bin(divResult.result).getUResized(biggerSize)
+    override fun div(operand: Value): Bin {
+        return if (size.bitWidth <= 64 && operand.size.bitWidth <= 64) {
+            val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+            val result = toULong() / operand.toULong()
+            Bin(result.toString(2), biggerSize)
+        } else {
+            val divResult = BinaryTools.divide(toRawString(), operand.toBin().toRawString())
+            val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) size else operand.size
+            Bin(divResult.result).getUResized(biggerSize)
+        }
     }
 
     fun flexDivSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true, dividendIsUnsigned: Boolean = false): Bin {
@@ -158,10 +181,16 @@ class Bin(binString: String, size: Size) : Value(size) {
         return if (resizeToLargestParamSize) Bin(divResult.result).getResized(biggerSize) else Bin(divResult.result)
     }
 
-    override fun rem(operand: Value): Value {
-        val divResult = BinaryTools.divide(toRawString(), operand.toBin().toRawString())
-        val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-        return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize)
+    override fun rem(operand: Value): Bin {
+        return if (size.bitWidth <= 64 && operand.size.bitWidth <= 64) {
+            val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+            val result = toULong() % operand.toULong()
+            Bin(result.toString(2), biggerSize)
+        } else {
+            val divResult = BinaryTools.divide(toRawString(), operand.toBin().toRawString())
+            val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
+            Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize)
+        }
     }
 
     fun flexRemSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true): Bin {
@@ -177,12 +206,16 @@ class Bin(binString: String, size: Size) : Value(size) {
     override fun dec(): Value = Bin(BinaryTools.sub(toRawString(), "1"), size)
 
     override fun compareTo(other: Value): Int {
-        return if (BinaryTools.isEqual(toRawString(), other.toBin().toRawString())) {
-            0
-        } else if (BinaryTools.isGreaterThan(toRawString(), other.toBin().toRawString())) {
-            1
+        return if (size.bitWidth <= 64 && other.size.bitWidth <= 64) {
+            toULong().compareTo(other.toULong())
         } else {
-            -1
+            if (BinaryTools.isEqual(toRawString(), other.toBin().toRawString())) {
+                0
+            } else if (BinaryTools.isGreaterThan(toRawString(), other.toBin().toRawString())) {
+                1
+            } else {
+                -1
+            }
         }
     }
 

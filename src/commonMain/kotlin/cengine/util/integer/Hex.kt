@@ -12,10 +12,6 @@ class Hex(hexString: String, size: Size) : Value(size) {
     override val input: String
     override val valid: Boolean
 
-    companion object {
-        val regex = Regex("[0-9A-Fa-f]+")
-    }
-
     init {
         val result = check(hexString, size)
         this.valid = result.valid
@@ -41,7 +37,7 @@ class Hex(hexString: String, size: Size) : Value(size) {
     override fun check(string: String, size: Size): CheckResult {
         var formatted = string.trim().removePrefix(Settings.PRESTRING_HEX).padStart(size.hexChars, '0').uppercase()
         val message: String
-        if (regex.matches(formatted)) {
+        if (formatted.all { it.isDigit() || it == 'A' || it == 'B' || it == 'C' || it == 'D' || it == 'E' || it == 'F' }) {
             return if (formatted.length <= size.hexChars) {
                 formatted = formatted.padStart(size.hexChars, '0')
                 CheckResult(true, Settings.PRESTRING_HEX + formatted)
@@ -66,47 +62,80 @@ class Hex(hexString: String, size: Size) : Value(size) {
     override fun toDec(): Dec = getBinary().getDec()
     override fun toUDec(): UDec = getBinary().getUDec()
     override fun toASCII(): String = getASCII()
+    override fun toLong(): Long = toULong().toLong()
+    override fun toULong(): ULong = toRawString().toULong(16)
     override fun getBiggest(): Value = Bin("1".repeat(size.bitWidth), size)
 
-    override fun plus(operand: Value): Value {
-        val result = BinaryTools.add(this.toBin().toRawString(), operand.toBin().toRawString())
+    override fun plus(operand: Value): Hex {
         val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-        return Bin(result, biggerSize)
+
+        return if (this.size.bitWidth <= 64 && operand.size.bitWidth <= 64) {
+            val result = (toULong() + operand.toULong())
+            Hex(result.toString(16), biggerSize)
+        } else {
+            val result = BinaryTools.add(this.toBin().toRawString(), operand.toBin().toRawString())
+            Bin(result, biggerSize).toHex()
+        }
     }
 
-    override fun minus(operand: Value): Value {
-        val result = BinaryTools.sub(this.toBin().toRawString(), operand.toBin().toRawString())
+    override fun minus(operand: Value): Hex {
         val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-        return Bin(result, biggerSize)
+        return if (this.size.bitWidth <= 64 && operand.size.bitWidth <= 64) {
+            val result = (toULong() - operand.toULong())
+            Hex(result.toString(16), biggerSize)
+        } else {
+            val result = BinaryTools.sub(this.toBin().toRawString(), operand.toBin().toRawString())
+            Bin(result, biggerSize).toHex()
+        }
     }
 
-    override fun times(operand: Value): Value {
-        val result = BinaryTools.multiply(this.toBin().toRawString(), operand.toBin().toRawString())
+    override fun times(operand: Value): Hex {
         val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-        return Bin(result, biggerSize)
+        return if (this.size.bitWidth <= 64 && operand.size.bitWidth <= 64) {
+            val result = (toULong() * operand.toULong())
+            Hex(result.toString(16), biggerSize)
+        } else {
+            val result = BinaryTools.multiply(this.toBin().toRawString(), operand.toBin().toRawString())
+            Bin(result, biggerSize).toHex()
+        }
     }
 
-    override fun div(operand: Value): Value {
-        val divResult = BinaryTools.divide(this.toBin().toRawString(), operand.toBin().toRawString())
+    override fun div(operand: Value): Hex {
         val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-        return Bin(divResult.result, biggerSize)
+        return if (this.size.bitWidth <= 64 && operand.size.bitWidth <= 64) {
+            val result = (toULong() / operand.toULong())
+            Hex(result.toString(16), biggerSize)
+        } else {
+            val divResult = BinaryTools.divide(this.toBin().toRawString(), operand.toBin().toRawString())
+            Bin(divResult.result, biggerSize).toHex()
+        }
     }
 
-    override fun rem(operand: Value): Value {
-        val divResult = BinaryTools.divide(this.toBin().toRawString(), operand.toBin().toRawString())
+    override fun rem(operand: Value): Hex {
         val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
-        return Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize)
+        return if (this.size.bitWidth <= 64 && operand.size.bitWidth <= 64) {
+            val result = (toULong() % operand.toULong())
+            Hex(result.toString(16), biggerSize)
+        } else {
+            val divResult = BinaryTools.divide(this.toBin().toRawString(), operand.toBin().toRawString())
+            Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize).toHex()
+        }
     }
 
     override fun unaryMinus(): Value = Bin(BinaryTools.negotiate(this.toBin().toRawString()), size)
     override fun inc(): Value = Bin(BinaryTools.add(this.toBin().toRawString(), "1"), size)
     override fun dec(): Value = Bin(BinaryTools.sub(this.toBin().toRawString(), "1"), size)
-    override fun compareTo(other: Value): Int = if (BinaryTools.isEqual(this.toBin().toRawString(), other.toBin().toRawString())) {
-        0
-    } else if (BinaryTools.isGreaterThan(this.toBin().toRawString(), other.toBin().toRawString())) {
-        1
-    } else {
-        -1
+    override fun compareTo(other: Value): Int {
+        if (this.size.bitWidth <= 64 && other.size.bitWidth <= 64) {
+            return toULong().compareTo(other.toULong())
+        }
+        return if (BinaryTools.isEqual(this.toBin().toRawString(), other.toBin().toRawString())) {
+            0
+        } else if (BinaryTools.isGreaterThan(this.toBin().toRawString(), other.toBin().toRawString())) {
+            1
+        } else {
+            -1
+        }
     }
 
     override fun toRawString(): String = input.removePrefix(Settings.PRESTRING_HEX).lowercase()
