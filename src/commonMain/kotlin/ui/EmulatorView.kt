@@ -21,6 +21,7 @@ import cengine.lang.obj.mif.MifBuilder
 import cengine.project.Project
 import cengine.vfs.FPath
 import emulator.EmuLink
+import emulator.kit.nativeError
 import ui.uilib.UIState
 import ui.uilib.emulator.ArchitectureOverview
 import ui.uilib.emulator.ExecutionView
@@ -58,7 +59,12 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
         project.projectState.emuObjFilePath = emuObjFilePath
         val objFilePath = emuObjFilePath ?: return null
         val file = project.fileSystem.findFile(objFilePath) ?: return null
-        return ELFFile.parse(file.name, file.getContent()) ?: return null
+        return try {
+            ELFFile.parse(file.name, file.getContent())
+        } catch (e: Exception) {
+            nativeError(e.toString())
+            null
+        }
     }
 
     var elfFile by remember { mutableStateOf<ELFFile<*, *, *, *, *, *, *>?>(parseElf()) }
@@ -68,9 +74,14 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
         architecture.initializer = null
         architecture.disassembler?.decoded?.value = emptyList()
         elfFile?.let {
-            architecture.initializer = MifBuilder.parseElf(it)
-            architecture.disassembler?.disassemble(it)
-            architecture.exeReset()
+            try {
+                architecture.initializer = MifBuilder.parseElf(it)
+                architecture.disassembler?.disassemble(it)
+                architecture.exeReset()
+            } catch (e: Exception) {
+                nativeError(e.toString())
+                nativeError(e.printStackTrace().toString())
+            }
         }
     }
 

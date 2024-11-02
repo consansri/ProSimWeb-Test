@@ -57,7 +57,7 @@ fun CodeEditor(
 
     val codeStyle = FontType.CODE.getStyle()
     val codeSmallStyle = FontType.CODE_SMALL.getStyle()
-    val baseStyle = FontType.SMALL.getStyle()
+    val baseSmallStyle = FontType.SMALL.getStyle()
 
     val manager = remember { project.getManager(file) }
     val lang = remember { manager?.lang }
@@ -328,16 +328,17 @@ fun CodeEditor(
                             val infos = allAnnotations.count { it.severity == Severity.INFO }
 
                             Icon(icon.statusFine, "info", Modifier.size(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_GREEN)
-                            Text("$infos", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
+                            Text("$infos", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
                             Spacer(Modifier.width(scale.SIZE_INSET_SMALL))
                             Icon(icon.info, "warnings", Modifier.size(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_YELLOW)
-                            Text("$warnings", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
+                            Text("$warnings", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
                             Spacer(Modifier.width(scale.SIZE_INSET_SMALL))
                             Icon(icon.statusError, "errors", Modifier.size(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_RED)
-                            Text("$errors", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
+                            Text("$errors", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
                         } else {
                             ComposeTools.Rotating { rotation ->
-                                Icon(icon.statusLoading, "loading", Modifier.size(scale.SIZE_CONTROL_SMALL).rotate(rotation), tint = theme.COLOR_FG_1)
+                                Text("CTRL+SHIFT+S to analyze", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
+                                Icon(icon.statusLoading, "loading", Modifier.size(scale.SIZE_CONTROL_SMALL).rotate(rotation), tint = theme.COLOR_FG_0)
                             }
                         }
                     }
@@ -352,7 +353,12 @@ fun CodeEditor(
                         val line = textLayout?.getLineForOffset(selection.start) ?: 0
                         val column = selection.start - (textLayout?.getLineStart(line) ?: 0)
 
-                        Text("${line + 1}:${column + 1}", modifier = Modifier.padding(scale.SIZE_INSET_MEDIUM), fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
+                        currentElement?.let {element ->
+                            val path = service?.path(element) ?: return@let
+                            Text(path.joinToString(" > ") { it.pathName }, modifier = Modifier.padding(scale.SIZE_INSET_MEDIUM), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
+                        }
+
+                        Text("${line + 1}:${column + 1}", modifier = Modifier.padding(scale.SIZE_INSET_MEDIUM), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
                     }
                 }
 
