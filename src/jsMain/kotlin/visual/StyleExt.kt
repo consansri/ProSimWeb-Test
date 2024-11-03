@@ -42,7 +42,7 @@ object StyleExt {
     fun List<Token>.getVCRows(): List<String> {
         return this.joinToString("") {
             val severity = it.getMajorSeverity()?.type
-            val codeStyle = it.getCodeStyle()
+            val codeStyle = it.codeStyle()
             val preprocessedContent = when (it.type) {
                 Token.Type.STRING_SL -> {
                     var result = it.content

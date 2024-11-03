@@ -6,10 +6,8 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.toFontFamily
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.Font
 import ui.uilib.UIState
 
@@ -49,7 +47,7 @@ enum class FontType {
     }
 
     @Composable
-    fun measure(text: String, textMeasurer: TextMeasurer, paddingHorizontal: Dp = 0.dp, paddingVertical: Dp = 0.dp): DpSize {
+    fun measure(text: String, textMeasurer: TextMeasurer): DpSize {
         val (widthPx, heightPx) = textMeasurer.measure(text, getStyle()).size
         return with(LocalDensity.current) {
             DpSize(widthPx.toDp(), heightPx.toDp())

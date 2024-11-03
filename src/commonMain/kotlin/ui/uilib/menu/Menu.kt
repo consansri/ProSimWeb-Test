@@ -56,7 +56,7 @@ fun MenuItem(icon: ImageVector, text: String, onClick: () -> Unit) {
             .hoverable(interactionSource)
             .background(if (isHovered) UIState.Theme.value.COLOR_ICON_BG_HOVER else Color.Transparent)
     ) {
-        CLabel(text = text, icon = icon, iconType = IconType.SMALL)
+        CLabel(text = text, icon = icon, iconType = IconType.SMALL, textStyle = UIState.BaseStyle.current)
     }
 }
 

@@ -1,67 +1,75 @@
 package ui.uilib.theme
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import cengine.lang.asm.CodeStyle
 import emulator.kit.memory.Memory
 import org.jetbrains.compose.resources.FontResource
+import ui.uilib.params.FontType
 import kotlin.random.Random
 
-interface Theme {
+abstract class Theme {
 
     companion object {
         val all = setOf(LightTheme, DarkTheme)
+
+
     }
 
-    val name: String
-    val icon: ImageVector
-    val dark: Boolean
-    val randomBrightness: Float
-    val randomSaturation: Float
+    abstract val name: String
+    abstract val icon: ImageVector
+    abstract val dark: Boolean
+    abstract val randomBrightness: Float
+    abstract val randomSaturation: Float
 
     // COLORS (BASIC)
 
-    val COLOR_BG_0: Color
-    val COLOR_BG_1: Color
-    val COLOR_BG_OVERLAY: Color
+    abstract val COLOR_BG_0: Color
+    abstract val COLOR_BG_1: Color
+    abstract val COLOR_BG_OVERLAY: Color
 
-    val COLOR_FG_0: Color
-    val COLOR_FG_1: Color
+    abstract val COLOR_FG_0: Color
+    abstract val COLOR_FG_1: Color
 
-    val COLOR_BORDER: Color
+    abstract val COLOR_BORDER: Color
 
-    val COLOR_SELECTION: Color
-    val COLOR_SEARCH_RESULT: Color
+    abstract val COLOR_SELECTION: Color
+    abstract val COLOR_SEARCH_RESULT: Color
 
     // COLORS (SIMPLE)
 
-    val COLOR_GREEN_LIGHT: Color
-    val COLOR_GREEN: Color
-    val COLOR_YELLOW: Color
-    val COLOR_BLUE: Color
-    val COLOR_ORANGE: Color
-    val COLOR_RED: Color
+    abstract val COLOR_GREEN_LIGHT: Color
+    abstract val COLOR_GREEN: Color
+    abstract val COLOR_YELLOW: Color
+    abstract val COLOR_BLUE: Color
+    abstract val COLOR_ORANGE: Color
+    abstract val COLOR_RED: Color
 
     // COLORS (ICON)
 
-    val COLOR_ICON_FG_0: Color
-    val COLOR_ICON_FG_1: Color
-    val COLOR_ICON_FG_INACTIVE: Color
-    val COLOR_ICON_BG: Color
-    val COLOR_ICON_BG_HOVER: Color
-    val COLOR_ICON_BG_ACTIVE: Color
+    abstract val COLOR_ICON_FG_0: Color
+    abstract val COLOR_ICON_FG_1: Color
+    abstract val COLOR_ICON_FG_INACTIVE: Color
+    abstract val COLOR_ICON_BG: Color
+    abstract val COLOR_ICON_BG_HOVER: Color
+    abstract val COLOR_ICON_BG_ACTIVE: Color
 
     // FONTS
 
-    val FONT_BASIC: FontResource
-    val FONT_CODE: FontResource
+    abstract val FONT_BASIC: FontResource
+    abstract val FONT_CODE: FontResource
+
+
 
     fun getRandom(): Color {
         val hue = Random.nextFloat() * 360f  // Vary hue for different colors
-
         return Color.hsl(hue, randomSaturation, randomBrightness)
     }
 
-    fun getColor(style: CodeStyle?): Color
-    fun getColor(style: Memory.InstanceType): Color
+    abstract fun getColor(style: CodeStyle?): Color
+    abstract fun getColor(style: Memory.InstanceType): Color
 }

@@ -1,6 +1,5 @@
 package ui.uilib.theme
 
-import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import cengine.lang.asm.CodeStyle
@@ -11,8 +10,7 @@ import prosim.prosimweb_test.generated.resources.Poppins_Regular
 import prosim.prosimweb_test.generated.resources.Res
 import ui.uilib.UIState
 
-@Immutable
-data object LightTheme : Theme {
+data object LightTheme : Theme() {
 
     override val name: String = "light"
     override val icon: ImageVector get() = UIState.Icon.value.lightmode

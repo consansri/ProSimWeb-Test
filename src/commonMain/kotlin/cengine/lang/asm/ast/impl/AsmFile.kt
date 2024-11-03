@@ -20,9 +20,10 @@ class AsmFile(override val file: VirtualFile, override val lang: AsmLang, privat
         get() = program.parent
     override val children: List<PsiElement> get() = program.children
 
-    override var range: IntRange = program.range
+    override var range: IntRange  = program.range
         set(value) {
-            field = program.range
+            program.range = value
+            field = value
         }
         get() = program.range
 

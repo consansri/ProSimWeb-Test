@@ -16,8 +16,8 @@ fun List<Token>.toStyledText(theme: Theme): List<CEditorArea.StyledChar> {
 
 fun Token.toStyledCharSequence(theme: Theme): List<CEditorArea.StyledChar> {
     val severity = this.getMajorSeverity()
-    val sevColor = if (severity?.type?.codeStyle != null) {
-        theme.getColor(severity.type.codeStyle)
+    val sevColor = if (severity?.type?.codeStyle.current != null) {
+        theme.getColor(severity.type.codeStyle.current)
     } else {
         null
     }

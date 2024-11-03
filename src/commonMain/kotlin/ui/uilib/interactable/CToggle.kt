@@ -17,13 +17,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import ui.uilib.UIState
-import ui.uilib.params.FontType
 import ui.uilib.params.IconType
 
 @Composable
-fun CToggle(onClick: (toggled: Boolean) -> Unit, value: Boolean, modifier: Modifier = Modifier, icon: ImageVector? = null, text: String? = null, textAlign: TextAlign = TextAlign.Center, iconType: IconType = IconType.MEDIUM, fontType: FontType = FontType.MEDIUM, softWrap: Boolean = false, active: Boolean = true) {
+fun CToggle(
+    onClick: (toggled: Boolean) -> Unit,
+    value: Boolean,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    text: String? = null,
+    textAlign: TextAlign = TextAlign.Center,
+    iconType: IconType = IconType.MEDIUM,
+    textStyle: TextStyle = UIState.BaseStyle.current,
+    softWrap: Boolean = false,
+    active: Boolean = true
+) {
 
     val scaling by UIState.Scale
     val theme by UIState.Theme
@@ -73,8 +84,8 @@ fun CToggle(onClick: (toggled: Boolean) -> Unit, value: Boolean, modifier: Modif
             Text(
                 text,
                 textAlign = textAlign,
-                fontFamily = fontType.getFamily(),
-                fontSize = fontType.getSize(),
+                fontFamily = textStyle.fontFamily,
+                fontSize = textStyle.fontSize,
                 softWrap = softWrap,
                 color = if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0,
             )

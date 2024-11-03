@@ -10,10 +10,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
 import ui.uilib.label.CLabel
-import ui.uilib.params.FontType
 
 data class TabItem<T : Any>(
     val value: T,
@@ -26,6 +26,7 @@ fun <T : Any> TabbedPane(
     tabs: List<TabItem<T>>,
     closeable: Boolean = false,
     content: @Composable (Int) -> Unit,
+    baseStyle: TextStyle,
     modifier: Modifier = Modifier,
     onCloseTab: (TabItem<T>) -> Unit = {}
 ) {
@@ -56,7 +57,8 @@ fun <T : Any> TabbedPane(
                         CLabel(
                             modifier = Modifier.weight(1f),
                             icon = tabItem.icon,
-                            text = tabItem.title
+                            text = tabItem.title,
+                            textStyle = baseStyle
                         )
 
                         if (closeable) {
@@ -109,8 +111,8 @@ fun <T : Any> TabbedPane(
                 Text(
                     "No tabs open",
                     color = UIState.Theme.value.COLOR_FG_1,
-                    fontFamily = FontType.MEDIUM.getFamily(),
-                    fontSize = FontType.MEDIUM.getSize()
+                    fontFamily = baseStyle.fontFamily,
+                    fontSize = baseStyle.fontSize
                 )
             }
         }

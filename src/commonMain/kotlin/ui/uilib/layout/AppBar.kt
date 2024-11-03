@@ -13,7 +13,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextAlign
 import ui.uilib.UIState
 import ui.uilib.label.CLabel
-import ui.uilib.params.FontType
 import ui.uilib.params.IconType
 
 
@@ -61,7 +60,7 @@ fun AppBar(
                     .wrapContentSize()
                     .align(Alignment.CenterVertically),
                 textAlign = TextAlign.Left,
-                fontType = FontType.MEDIUM,
+                textStyle = UIState.BaseStyle.current,
                 iconType = IconType.MEDIUM
             )
             if (name != null) {
@@ -71,7 +70,7 @@ fun AppBar(
                     icon = UIState.Icon.value.chevronRight,
                     text = name,
                     textAlign = TextAlign.Left,
-                    fontType = FontType.MEDIUM
+                    textStyle = UIState.BaseStyle.current,
                 )
             }
 
@@ -82,7 +81,7 @@ fun AppBar(
                     icon = UIState.Icon.value.chevronRight,
                     text = type,
                     textAlign = TextAlign.Left,
-                    fontType = FontType.MEDIUM
+                    textStyle = UIState.BaseStyle.current,
                 )
             }
         }

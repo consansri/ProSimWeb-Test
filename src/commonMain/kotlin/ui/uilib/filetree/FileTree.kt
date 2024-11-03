@@ -26,7 +26,6 @@ import ui.uilib.UIState
 import ui.uilib.dialog.InputDialog
 import ui.uilib.interactable.CButton
 import ui.uilib.label.CLabel
-import ui.uilib.params.FontType
 import ui.uilib.params.IconType
 
 @Composable
@@ -251,8 +250,7 @@ fun LazyListScope.node(
                 },
                 iconType = IconType.SMALL,
                 text = file.name,
-                textAlign = TextAlign.Left,
-                fontType = FontType.MEDIUM
+                textAlign = TextAlign.Left
             )
         }
     }

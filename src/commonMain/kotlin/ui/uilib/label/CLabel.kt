@@ -14,11 +14,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import ui.uilib.UIState
-import ui.uilib.params.FontType
 import ui.uilib.params.IconType
 
 @Composable
@@ -31,7 +31,7 @@ fun CLabel(
     textAlign: TextAlign = TextAlign.Center,
     textDecoration: TextDecoration = TextDecoration.None,
     iconType: IconType = IconType.SMALL,
-    fontType: FontType = FontType.MEDIUM,
+    textStyle: TextStyle = UIState.BaseStyle.current,
     softWrap: Boolean = true,
     active: Boolean = true
 ) {
@@ -41,7 +41,7 @@ fun CLabel(
 
     val text = remember { text }
     val icon = remember { icon }
-    
+
     Row(
         modifier
             .background(Color.Transparent, shape = RoundedCornerShape(scaling.SIZE_CORNER_RADIUS))
@@ -68,8 +68,8 @@ fun CLabel(
                 annotatedString,
                 overflow = TextOverflow.Clip,
                 textAlign = textAlign,
-                fontFamily = fontType.getFamily(),
-                fontSize = fontType.getSize(),
+                fontFamily = textStyle.fontFamily,
+                fontSize = textStyle.fontSize,
                 softWrap = softWrap,
                 color = if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0,
             )
@@ -78,8 +78,8 @@ fun CLabel(
                 text,
                 overflow = TextOverflow.Clip,
                 textAlign = textAlign,
-                fontFamily = fontType.getFamily(),
-                fontSize = fontType.getSize(),
+                fontFamily = textStyle.fontFamily,
+                fontSize = textStyle.fontSize,
                 textDecoration = textDecoration,
                 softWrap = softWrap,
                 color = color ?: (if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0),

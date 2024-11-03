@@ -16,7 +16,7 @@ import ui.uilib.UIState
 @Composable
 fun AnnotationOverlay(
     modifier: Modifier,
-    textStyle: TextStyle,
+    textStyle: TextStyle = UIState.BaseStyle.current,
     annotations: Set<Annotation>
 ) {
     val theme = UIState.Theme.value

@@ -1,5 +1,6 @@
 package emulator.kit.assembler.lexer
 
+import Settings
 import emulator.kit.assembler.AsmFile
 import emulator.kit.assembler.CodeStyle
 import emulator.kit.assembler.DirTypeInterface
@@ -156,7 +157,7 @@ class Token(val type: Type, val lineLoc: LineLoc, val content: String, val id: I
     /**
      * Gets the code style of the token.
      */
-    fun getCodeStyle() = codeStyle
+    fun codeStyle() = codeStyle
 
     /**
      * Gets the major severity of the token.

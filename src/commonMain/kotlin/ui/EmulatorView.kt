@@ -20,7 +20,7 @@ import cengine.lang.obj.elf.ELFFile
 import cengine.lang.obj.mif.MifBuilder
 import cengine.project.Project
 import cengine.vfs.FPath
-import emulator.EmuLink
+import emulator.kit.Architecture
 import emulator.kit.nativeError
 import ui.uilib.UIState
 import ui.uilib.emulator.ArchitectureOverview
@@ -35,16 +35,17 @@ import ui.uilib.layout.BorderLayout
 import ui.uilib.layout.HorizontalToolBar
 import ui.uilib.layout.ResizableBorderPanels
 import ui.uilib.layout.VerticalToolBar
-import ui.uilib.params.FontType
 
 @Composable
-fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: EmuLink?, close: () -> Unit) {
+fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architecture: Architecture?, close: () -> Unit) {
 
     val theme = UIState.Theme.value
     val icons = UIState.Icon.value
-    val codeFont = FontType.CODE.getStyle()
-    val architecture = remember { emuLink?.load() }
     val pcState = remember { derivedStateOf { architecture?.regContainer?.pc?.variable?.state?.value } }
+
+    val baseStyle = UIState.BaseStyle.current
+    val baseLargeStyle = UIState.BaseLargeStyle.current
+    val codeStyle = UIState.CodeStyle.current
 
     var stepCount by remember { mutableStateOf(4U) }
     var accumulatedScroll by remember { mutableStateOf(0f) }
@@ -90,7 +91,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
     }
 
     val archOverview: (@Composable BoxScope.() -> Unit) = {
-        ArchitectureOverview(architecture)
+        ArchitectureOverview(architecture, baseStyle, baseLargeStyle)
     }
 
     val memView: (@Composable BoxScope.() -> Unit) = {
@@ -100,7 +101,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
             Box(
                 contentAlignment = Alignment.Center
             ) {
-                CLabel(text = "No Architecture Selected!")
+                CLabel(text = "No Architecture Selected!", textStyle = baseStyle)
             }
         }
     }
@@ -112,7 +113,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
             Box(
                 contentAlignment = Alignment.Center
             ) {
-                CLabel(text = "No Architecture Selected!")
+                CLabel(text = "No Architecture Selected!", textStyle = baseStyle)
             }
         }
     }
@@ -140,7 +141,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
         Modifier.fillMaxSize().background(theme.COLOR_BG_0),
         top = {
             TopBar(project, viewType, onClose = { close() }) {
-                Text("PC: ${pcState.value?.toHex() ?: "N/A"}", fontFamily = codeFont.fontFamily, fontSize = codeFont.fontSize, color = theme.COLOR_FG_0)
+                Text("PC: ${pcState.value?.toHex() ?: "N/A"}", fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0)
                 //CLabel(text = "PC: ${pcState.value?.toHex() ?: "N/A"}", fontType = FontType.CODE) // ISSUE: PC doesn't seem to automatically update its value!
             }
         },
@@ -158,7 +159,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, emuLink: Em
                     null -> null
                 },
                 centerContent = {
-                    ExecutionView(architecture)
+                    ExecutionView(architecture, baseStyle, codeStyle)
                 },
                 rightContent = when (rightContentType) {
                     EmulatorContentView.ObjFileSelection -> objFileSelector

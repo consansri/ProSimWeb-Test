@@ -9,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import cengine.lang.obj.elf.*
 import cengine.project.Project
@@ -16,12 +17,14 @@ import cengine.vfs.VirtualFile
 import kotlinx.coroutines.Job
 import ui.uilib.UIState
 import ui.uilib.interactable.CToggle
-import ui.uilib.params.FontType
 
 @Composable
 fun ObjectEditor(
     file: VirtualFile,
     project: Project,
+    codeStyle: TextStyle,
+    titleStyle: TextStyle,
+    baseStyle: TextStyle,
     modifier: Modifier = Modifier
 ) {
     val scale = UIState.Scale.value
@@ -51,14 +54,14 @@ fun ObjectEditor(
             ) {
 
                 // Draw Header Info
-                ELFHeaderInfos(elfReader, fileContent)
+                ELFHeaderInfos(elfReader, fileContent, codeStyle, titleStyle, baseStyle)
 
                 // Draw Sections wrapped in ProgramHeaders
-                ELFSectionInfos(elfReader, fileContent)
+                ELFSectionInfos(elfReader, fileContent, codeStyle, baseStyle)
             }
         }
 
-        if (elfReader == null) ByteRange(fileContent, fileContent.indices, 16)
+        if (elfReader == null) ByteRange(fileContent, fileContent.indices, 16, codeStyle, baseStyle)
 
     }
 
@@ -68,13 +71,15 @@ fun ObjectEditor(
 }
 
 @Composable
-fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArray) {
+fun ELFHeaderInfos(
+    elfReader: ELFFile<*, *, *, *, *, *, *>,
+    fileContent: ByteArray,
+    codeStyle: TextStyle,
+    titleStyle: TextStyle,
+    baseStyle: TextStyle
+) {
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
-
-    val codeStyle = FontType.CODE.getFamily()
-    val titleStyle = FontType.LARGE.getFamily()
-    val baseStyle = FontType.MEDIUM.getFamily()
 
     val ehdr = elfReader.ehdr
     val e_ident = ehdr.e_ident
@@ -94,7 +99,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 .padding(scale.SIZE_INSET_MEDIUM),
             textAlign = TextAlign.Center,
             color = theme.COLOR_FG_0,
-            fontFamily = titleStyle
+            fontFamily = titleStyle.fontFamily,
+            fontSize = titleStyle.fontSize
         )
 
         Box(
@@ -115,7 +121,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -125,7 +132,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -140,7 +148,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -150,7 +159,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -165,7 +175,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -175,7 +186,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -190,7 +202,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -200,7 +213,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -215,7 +229,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -225,7 +240,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -240,7 +256,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -250,7 +267,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -265,7 +283,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -275,7 +294,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -290,7 +310,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -300,7 +321,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -315,7 +337,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -329,7 +352,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -344,7 +368,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -358,7 +383,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -373,7 +399,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -387,7 +414,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -402,7 +430,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -412,7 +441,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -427,7 +457,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -437,7 +468,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -452,7 +484,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -462,7 +495,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -477,7 +511,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -487,7 +522,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -502,7 +538,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -512,7 +549,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -527,7 +565,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -537,7 +576,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -552,7 +592,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Right,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_1,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
 
             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -562,7 +603,8 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                 textAlign = TextAlign.Left,
                 modifier = Modifier.weight(0.5f),
                 color = theme.COLOR_FG_0,
-                fontFamily = codeStyle
+                fontFamily = codeStyle.fontFamily,
+                fontSize = codeStyle.fontSize
             )
         }
 
@@ -592,18 +634,16 @@ fun ELFHeaderInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArr
                     .height(scale.SIZE_BORDER_THICKNESS)
             )
 
-            ByteRange(fileContent, 0..<ehdr.e_ehsize.toInt(), 16)
+            ByteRange(fileContent, 0..<ehdr.e_ehsize.toInt(), 16, codeStyle, baseStyle)
         }
     }
 }
 
 @Composable
-fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArray) {
+fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArray, codeStyle: TextStyle, baseStyle: TextStyle) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
-    val codeStyle = FontType.CODE.getFamily()
-    val baseStyle = FontType.MEDIUM.getFamily()
 
     elfReader.segmentToSectionGroup.forEach { group ->
 
@@ -640,7 +680,8 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                         Text(
                             "$name - $type - $flags",
                             color = theme.COLOR_FG_0,
-                            fontFamily = baseStyle,
+                            fontFamily = baseStyle.fontFamily,
+                            fontSize = baseStyle.fontSize,
                             modifier = Modifier
                                 .padding(scale.SIZE_INSET_MEDIUM),
                         )
@@ -665,7 +706,7 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                                 .height(scale.SIZE_BORDER_THICKNESS)
                         )
 
-                        ByteRange(fileContent, range, 16)
+                        ByteRange(fileContent, range, 16, codeStyle, baseStyle)
                     }
                 }
             }
@@ -686,7 +727,8 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                         Text(
                             "${Phdr.getProgramHeaderType(phdr.p_type)} - ${Phdr.getProgramHeaderFlags(phdr.p_flags)}",
                             color = theme.COLOR_FG_0,
-                            fontFamily = baseStyle
+                            fontFamily = baseStyle.fontFamily,
+                            fontSize = baseStyle.fontSize
                         )
                         Text(
                             "offset: 0x${
@@ -696,7 +738,8 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                                 }
                             }",
                             color = theme.COLOR_FG_0,
-                            fontFamily = codeStyle
+                            fontFamily = codeStyle.fontFamily,
+                            fontSize = codeStyle.fontSize
                         )
                         Text(
                             "vaddr: 0x${
@@ -706,7 +749,8 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                                 }
                             }",
                             color = theme.COLOR_FG_0,
-                            fontFamily = codeStyle
+                            fontFamily = codeStyle.fontFamily,
+                            fontSize = codeStyle.fontSize
                         )
                         Text(
                             "paddr: 0x${
@@ -716,7 +760,8 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                                 }
                             }",
                             color = theme.COLOR_FG_0,
-                            fontFamily = codeStyle
+                            fontFamily = codeStyle.fontFamily,
+                            fontSize = codeStyle.fontSize
                         )
                         Text(
                             "filesz: ${
@@ -726,7 +771,8 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                                 }
                             }",
                             color = theme.COLOR_FG_0,
-                            fontFamily = codeStyle
+                            fontFamily = codeStyle.fontFamily,
+                            fontSize = codeStyle.fontSize
                         )
                         Text(
                             "memsz: ${
@@ -736,7 +782,8 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                                 }
                             }",
                             color = theme.COLOR_FG_0,
-                            fontFamily = codeStyle
+                            fontFamily = codeStyle.fontFamily,
+                            fontSize = codeStyle.fontSize
                         )
 
                         Text(
@@ -747,7 +794,8 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                                 }
                             }",
                             color = theme.COLOR_FG_0,
-                            fontFamily = codeStyle
+                            fontFamily = codeStyle.fontFamily,
+                            fontSize = codeStyle.fontSize
                         )
                     }
 
@@ -785,7 +833,8 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                                     Text(
                                         "$name - $type - $flags",
                                         color = theme.COLOR_FG_0,
-                                        fontFamily = baseStyle,
+                                        fontFamily = baseStyle.fontFamily,
+                                        fontSize = baseStyle.fontSize,
                                         modifier = Modifier
                                             .padding(scale.SIZE_INSET_MEDIUM),
                                     )
@@ -810,7 +859,7 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                                             .height(scale.SIZE_BORDER_THICKNESS)
                                     )
 
-                                    ByteRange(fileContent, range, 16)
+                                    ByteRange(fileContent, range, 16, codeStyle, baseStyle)
                                 }
                             }
                         }
@@ -825,12 +874,10 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
 }
 
 @Composable
-fun ByteRange(byteArray: ByteArray, range: IntRange, chunkSize: Int) {
+fun ByteRange(byteArray: ByteArray, range: IntRange, chunkSize: Int, codeStyle: TextStyle, baseStyle: TextStyle) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
-    val codeStyle = FontType.CODE.getFamily()
-    val baseStyle = FontType.MEDIUM.getFamily()
 
     val chunks = range.chunked(chunkSize).map { byteArray.slice(it) }
 
@@ -845,7 +892,8 @@ fun ByteRange(byteArray: ByteArray, range: IntRange, chunkSize: Int) {
                 val address = (range.first + chunkIndex * chunkSize).toString(16).uppercase()
                 Text(
                     text = address,
-                    fontFamily = codeStyle,
+                    fontFamily = codeStyle.fontFamily,
+                    fontSize = codeStyle.fontSize,
                     color = theme.COLOR_FG_1,
                     textAlign = TextAlign.Right,
                     modifier = Modifier.weight(0.5f)
@@ -856,7 +904,8 @@ fun ByteRange(byteArray: ByteArray, range: IntRange, chunkSize: Int) {
                 // Hexadecimal representation
                 Text(
                     text = chunk.joinToString(" ") { it.toUByte().toString(16).padStart(2, '0') },
-                    fontFamily = codeStyle,
+                    fontFamily = codeStyle.fontFamily,
+                    fontSize = codeStyle.fontSize,
                     color = theme.COLOR_FG_0,
                     textAlign = TextAlign.Left,
                     modifier = Modifier.weight(2f)
@@ -868,7 +917,8 @@ fun ByteRange(byteArray: ByteArray, range: IntRange, chunkSize: Int) {
                 Text(
                     text = chunk.map { if (it in 32..126) it.toInt().toChar() else '.' }
                         .joinToString(""),
-                    fontFamily = codeStyle,
+                    fontFamily = codeStyle.fontFamily,
+                    fontSize = codeStyle.fontSize,
                     color = theme.COLOR_FG_1,
                     modifier = Modifier.weight(1f)
                 )

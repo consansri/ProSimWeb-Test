@@ -42,22 +42,20 @@ import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import ui.uilib.ComposeTools
 import ui.uilib.UIState
-import ui.uilib.params.FontType
 
 @Composable
 fun CodeEditor(
     file: VirtualFile,
     project: Project,
+    codeStyle: TextStyle,
+    codeSmallStyle:  TextStyle,
+    baseSmallStyle:  TextStyle,
     modifier: Modifier = Modifier
 ) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
     val icon = UIState.Icon.value
-
-    val codeStyle = FontType.CODE.getStyle()
-    val codeSmallStyle = FontType.CODE_SMALL.getStyle()
-    val baseSmallStyle = FontType.SMALL.getStyle()
 
     val manager = remember { project.getManager(file) }
     val lang = remember { manager?.lang }

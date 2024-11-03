@@ -17,7 +17,7 @@ import ui.uilib.UIState
 @Composable
 fun CompletionOverlay(
     modifier: Modifier,
-    textStyle: TextStyle,
+    textStyle: TextStyle = UIState.BaseStyle.current,
     completions: List<Completion>,
     selectedCompletionIndex: Int
 ) {

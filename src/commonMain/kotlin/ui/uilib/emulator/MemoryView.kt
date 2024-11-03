@@ -9,20 +9,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import cengine.util.integer.Value
-import cengine.util.integer.toULong
 import emulator.kit.Architecture
 import emulator.kit.MicroSetup
 import emulator.kit.memory.*
 import ui.uilib.UIState
 import ui.uilib.layout.TabItem
 import ui.uilib.layout.TabbedPane
-import ui.uilib.params.FontType
 
 @Composable
 fun MemView(arch: Architecture) {
+
+    val theme = UIState.Theme.value
 
     val pc = arch.regContainer.pc.variable.state
     val memoryList = remember { MicroSetup.memory }
@@ -32,9 +32,9 @@ fun MemView(arch: Architecture) {
         val mem = memoryTabs[it]
 
         key(mem.value.name) {
-            MemoryView(mem.value, pc)
+            MemoryView(mem.value, pc, UIState.BaseStyle.current, UIState.CodeStyle.current)
         }
-    })
+    }, baseStyle = UIState.BaseStyle.current)
 
     LaunchedEffect(memoryList) {
         memoryTabs = memoryList.map { TabItem(it, title = it.name) }
@@ -43,33 +43,31 @@ fun MemView(arch: Architecture) {
 }
 
 @Composable
-fun MemoryView(memory: Memory, pc: MutableState<Value>) {
+fun MemoryView(memory: Memory, pc: MutableState<Value>, baseStyle: TextStyle, codeStyle: TextStyle) {
     when (memory) {
         is FACache -> {
-            FACacheView(memory, pc)
+            FACacheView(memory, pc, baseStyle, codeStyle)
         }
 
         is DMCache -> {
-            DMCacheView(memory, pc)
+            DMCacheView(memory, pc, baseStyle, codeStyle)
         }
 
         is SACache -> {
-            SACacheView(memory, pc)
+            SACacheView(memory, pc, baseStyle, codeStyle)
         }
 
         is MainMemory -> {
-            MainMemoryView(memory, pc)
+            MainMemoryView(memory, pc, baseStyle, codeStyle)
         }
     }
 }
 
 @Composable
-fun MainMemoryView(memory: MainMemory, pc: MutableState<Value>) {
+fun MainMemoryView(memory: MainMemory, pc: MutableState<Value>, baseStyle: TextStyle, codeStyle: TextStyle) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
-    val baseFont = FontType.MEDIUM.getFamily()
-    val codeFont = FontType.CODE.getFamily()
 
     val fillValue = remember { memory.getInitialBinary().value.toHex().toRawString() }
 
@@ -82,7 +80,7 @@ fun MainMemoryView(memory: MainMemory, pc: MutableState<Value>) {
                 Modifier.weight(0.2f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("ADDR", fontFamily = baseFont, color = theme.COLOR_FG_0)
+                Text("ADDR", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0)
             }
 
             Row(
@@ -93,7 +91,7 @@ fun MainMemoryView(memory: MainMemory, pc: MutableState<Value>) {
                         Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(offset.toString(16), fontFamily = baseFont, color = theme.COLOR_FG_0)
+                        Text(offset.toString(16), fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0)
                     }
                 }
             }
@@ -102,20 +100,20 @@ fun MainMemoryView(memory: MainMemory, pc: MutableState<Value>) {
                 Modifier.weight(0.3f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("ASCII", fontFamily = baseFont, color = theme.COLOR_FG_0)
+                Text("ASCII", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0)
             }
         }
 
         LazyColumn {
             items(memory.memList.groupBy { it.row }.toList()) { (rowAddress, instances) ->
-                MemoryRow(rowAddress.toRawString(), instances, memory.entrysInRow, fillValue, codeFont, theme.COLOR_FG_0, theme.COLOR_GREEN, pc)
+                MemoryRow(rowAddress.toRawString(), instances, memory.entrysInRow, fillValue, codeStyle, theme.COLOR_FG_0, theme.COLOR_GREEN, pc)
             }
         }
     }
 }
 
 @Composable
-fun MemoryRow(rowAddress: String, instances: List<MainMemory.MemInstance>, entrysInRow: Int, fillValue: String, codeFont: FontFamily, fgColor: Color, pcColor: Color, pc: MutableState<Value>) {
+fun MemoryRow(rowAddress: String, instances: List<MainMemory.MemInstance>, entrysInRow: Int, fillValue: String, codeStyle: TextStyle, fgColor: Color, pcColor: Color, pc: MutableState<Value>) {
 
     val ascii = remember {
         (0..<entrysInRow).joinToString("") { offset ->
@@ -128,7 +126,7 @@ fun MemoryRow(rowAddress: String, instances: List<MainMemory.MemInstance>, entry
             modifier = Modifier.weight(0.2f),
             contentAlignment = Alignment.Center
         ) {
-            Text(rowAddress, fontFamily = codeFont, color = fgColor)
+            Text(rowAddress, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = fgColor)
         }
 
         Row(Modifier.weight(0.5f)) {
@@ -140,14 +138,14 @@ fun MemoryRow(rowAddress: String, instances: List<MainMemory.MemInstance>, entry
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(instance.variable.state.value.toHex().toRawString(), fontFamily = codeFont, color = if (instance.address == pc.value.toHex()) pcColor else fgColor)
+                        Text(instance.variable.state.value.toHex().toRawString(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (instance.address == pc.value.toHex()) pcColor else fgColor)
                     }
                 } else {
                     Box(
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(fillValue, fontFamily = codeFont, color = fgColor)
+                        Text(fillValue, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = fgColor)
                     }
                 }
             }
@@ -157,17 +155,15 @@ fun MemoryRow(rowAddress: String, instances: List<MainMemory.MemInstance>, entry
             modifier = Modifier.weight(0.3f),
             contentAlignment = Alignment.Center
         ) {
-            Text(ascii, fontFamily = codeFont, color = fgColor)
+            Text(ascii, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = fgColor)
         }
     }
 }
 
 
 @Composable
-fun DMCacheView(memory: DMCache, pc: MutableState<Value>) {
+fun DMCacheView(memory: DMCache, pc: MutableState<Value>, baseStyle: TextStyle, codeStyle: TextStyle) {
     val theme = UIState.Theme.value
-    val baseFont = FontType.MEDIUM.getFamily()
-    val codeFont = FontType.CODE.getFamily()
     val pcColor = theme.COLOR_GREEN
     val pcValue = pc.value.toHex()
 
@@ -181,21 +177,21 @@ fun DMCacheView(memory: DMCache, pc: MutableState<Value>) {
                 Modifier.weight(0.05f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("k", fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                Text("k", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
             }
 
             Box(
                 Modifier.weight(0.05f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("m", fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                Text("m", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
             }
 
             Box(
                 Modifier.weight(0.2f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("tag", fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                Text("tag", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
             }
 
             Row(Modifier.weight(0.7f)) {
@@ -204,7 +200,7 @@ fun DMCacheView(memory: DMCache, pc: MutableState<Value>) {
                         Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(s.toString(16), fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                        Text(s.toString(16), fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -223,24 +219,24 @@ fun DMCacheView(memory: DMCache, pc: MutableState<Value>) {
                 }
                 Row {
                     Box(Modifier.weight(0.05f)) {
-                        Text(rowAddr, Modifier.fillMaxWidth(), fontFamily = codeFont, textAlign = TextAlign.Right)
+                        Text(rowAddr, Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, textAlign = TextAlign.Right)
                     }
 
                     Column(Modifier.weight(0.95f)) {
                         row.blocks.forEachIndexed { index, block ->
                             Row(Modifier.fillMaxWidth()) {
                                 Box(Modifier.weight(0.05f)) {
-                                    Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                                    Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
                                 }
 
                                 Box(Modifier.weight(0.2f)) {
-                                    Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                                    Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
                                 }
 
                                 Row(Modifier.weight(0.7f)) {
                                     block.data.forEachIndexed { index, cacheInstance ->
                                         Box(Modifier.weight(1f)) {
-                                            Text(cacheInstance.value.toRawString(), Modifier.fillMaxWidth(), fontFamily = codeFont, color = if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                                            Text(cacheInstance.value.toRawString(), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0, textAlign = TextAlign.Center)
                                         }
                                     }
                                 }
@@ -254,11 +250,9 @@ fun DMCacheView(memory: DMCache, pc: MutableState<Value>) {
 }
 
 @Composable
-fun SACacheView(memory: SACache, pc: MutableState<Value>) {
+fun SACacheView(memory: SACache, pc: MutableState<Value>, baseStyle: TextStyle, codeStyle: TextStyle) {
 
     val theme = UIState.Theme.value
-    val baseFont = FontType.MEDIUM.getFamily()
-    val codeFont = FontType.CODE.getFamily()
     val pcColor = theme.COLOR_GREEN
     val pcValue = pc.value.toHex()
 
@@ -272,21 +266,21 @@ fun SACacheView(memory: SACache, pc: MutableState<Value>) {
                 Modifier.weight(0.05f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("k", fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                Text("k", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
             }
 
             Box(
                 Modifier.weight(0.05f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("m", fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                Text("m", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
             }
 
             Box(
                 Modifier.weight(0.2f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("tag", fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                Text("tag", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
             }
 
             Row(Modifier.weight(0.7f)) {
@@ -295,7 +289,7 @@ fun SACacheView(memory: SACache, pc: MutableState<Value>) {
                         Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(s.toString(16), fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                        Text(s.toString(16), fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -314,24 +308,24 @@ fun SACacheView(memory: SACache, pc: MutableState<Value>) {
                 }
                 Row {
                     Box(Modifier.weight(0.05f)) {
-                        Text(rowAddr, Modifier.fillMaxWidth(), fontFamily = codeFont, textAlign = TextAlign.Right)
+                        Text(rowAddr, Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, textAlign = TextAlign.Right)
                     }
 
                     Column(Modifier.weight(0.95f)) {
                         row.blocks.forEachIndexed { index, block ->
                             Row(Modifier.fillMaxWidth()) {
                                 Box(Modifier.weight(0.05f)) {
-                                    Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                                    Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
                                 }
 
                                 Box(Modifier.weight(0.2f)) {
-                                    Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                                    Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
                                 }
 
                                 Row(Modifier.weight(0.7f)) {
                                     block.data.forEachIndexed { index, cacheInstance ->
                                         Box(Modifier.weight(1f)) {
-                                            Text(cacheInstance.value.toRawString(), Modifier.fillMaxWidth(), fontFamily = codeFont, color = if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                                            Text(cacheInstance.value.toRawString(), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0, textAlign = TextAlign.Center)
                                         }
                                     }
                                 }
@@ -345,10 +339,8 @@ fun SACacheView(memory: SACache, pc: MutableState<Value>) {
 }
 
 @Composable
-fun FACacheView(memory: FACache, pc: MutableState<Value>) {
+fun FACacheView(memory: FACache, pc: MutableState<Value>, baseStyle: TextStyle, codeStyle: TextStyle) {
     val theme = UIState.Theme.value
-    val baseFont = FontType.MEDIUM.getFamily()
-    val codeFont = FontType.CODE.getFamily()
     val pcColor = theme.COLOR_GREEN
     val pcValue = pc.value.toHex()
 
@@ -362,21 +354,21 @@ fun FACacheView(memory: FACache, pc: MutableState<Value>) {
                 Modifier.weight(0.05f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("k", fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                Text("k", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
             }
 
             Box(
                 Modifier.weight(0.05f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("m", fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                Text("m", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
             }
 
             Box(
                 Modifier.weight(0.2f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("tag", fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                Text("tag", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
             }
 
             Row(Modifier.weight(0.7f)) {
@@ -385,7 +377,7 @@ fun FACacheView(memory: FACache, pc: MutableState<Value>) {
                         Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(s.toString(16), fontFamily = baseFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                        Text(s.toString(16), fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -402,17 +394,17 @@ fun FACacheView(memory: FACache, pc: MutableState<Value>) {
                     val index = row.blocks.indexOf(block)
                     Row(Modifier.fillMaxWidth()) {
                         Box(Modifier.weight(0.05f)) {
-                            Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                            Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
                         }
 
                         Box(Modifier.weight(0.2f)) {
-                            Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeFont, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                            Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
                         }
 
                         Row(Modifier.weight(0.7f)) {
                             block.data.forEachIndexed { index, cacheInstance ->
                                 Box(Modifier.weight(1f)) {
-                                    Text(cacheInstance.value.toRawString(), Modifier.fillMaxWidth(), fontFamily = codeFont, color = if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                                    Text(cacheInstance.value.toRawString(), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0, textAlign = TextAlign.Center)
                                 }
                             }
                         }

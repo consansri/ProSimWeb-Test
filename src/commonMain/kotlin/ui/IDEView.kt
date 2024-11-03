@@ -24,12 +24,21 @@ import ui.uilib.interactable.CButton
 import ui.uilib.interactable.CToggle
 import ui.uilib.label.CLabel
 import ui.uilib.layout.*
-import ui.uilib.params.FontType
 
 @Composable
-fun IDEView(project: Project, viewType: MutableState<ViewType>, close: () -> Unit) {
+fun IDEView(
+    project: Project,
+    viewType: MutableState<ViewType>,
+    close: () -> Unit
+) {
     val theme = UIState.Theme.value
     val icons = UIState.Icon.value
+
+    val baseStyle = UIState.BaseStyle.current
+    val codeStyle = UIState.CodeStyle.current
+    val baseLargeStyle = UIState.BaseLargeStyle.current
+    val codeSmallStyle = UIState.CodeSmallStyle.current
+    val baseSmallStyle = UIState.BaseSmallStyle.current
 
     val fileEditors = remember { mutableStateListOf<TabItem<VirtualFile>>() }
     var leftContentType by remember { mutableStateOf<ToolContentType?>(null) }
@@ -75,7 +84,7 @@ fun IDEView(project: Project, viewType: MutableState<ViewType>, close: () -> Uni
                             config.run(project)
                             runConfigExpanded = false
                         }) {
-                            CLabel(text = config.name, fontType = FontType.MEDIUM)
+                            CLabel(text = config.name, textStyle = baseStyle)
                         }
                     }
                 }
@@ -101,20 +110,26 @@ fun IDEView(project: Project, viewType: MutableState<ViewType>, close: () -> Uni
                                     fileEditors[index].value.name.endsWith(".o") -> {
                                         ObjectEditor(
                                             fileEditors[index].value,
-                                            project
+                                            project,
+                                            codeStyle,
+                                            baseLargeStyle,
+                                            baseStyle
                                         )
                                     }
 
                                     else -> {
                                         CodeEditor(
                                             fileEditors[index].value,
-                                            project
+                                            project,
+                                            codeStyle,
+                                            codeSmallStyle,
+                                            baseSmallStyle
                                         )
                                     }
                                 }
                             }
 
-                        }) {
+                        }, baseStyle) {
                             fileEditors.remove(it)
                         }
                     }

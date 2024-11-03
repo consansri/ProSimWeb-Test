@@ -15,6 +15,7 @@ import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.project.ProjectState
 import cengine.project.ProjectStateManager
 import cengine.system.isAbsolutePathValid
+import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.Selector
@@ -33,7 +34,9 @@ object ProSimApp {
 
         UIState.StateUpdater()
 
-        ProSimApp()
+        UIState.launch {
+            ProSimApp()   
+        }
     }
 
     @Composable
@@ -90,6 +93,7 @@ object ProSimApp {
                     } else {
                         UIState.Theme.value = LightTheme
                     }
+                    nativeLog("Switched to ${theme.name}")
                 }, icon = theme.icon)
             },
             center = {
@@ -98,7 +102,7 @@ object ProSimApp {
                         modifier = Modifier
                             .padding(UIState.Scale.value.SIZE_INSET_MEDIUM)
                     ) {
-                        CLabel(text = "Select a Project:", modifier = Modifier.widthIn())
+                        CLabel(text = "Select a Project:", modifier = Modifier.widthIn(), textStyle = UIState.BaseStyle.current)
                         Spacer(modifier = Modifier.height(8.dp))
 
                         ProjectStateManager.projects.forEach {
@@ -153,7 +157,7 @@ object ProSimApp {
                             .widthIn(max = 250.dp)
 
                     ) {
-                        CLabel(text = "Create New Project", modifier = Modifier.fillMaxWidth())
+                        CLabel(text = "Create New Project", modifier = Modifier.fillMaxWidth(), textStyle = UIState.BaseStyle.current)
 
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
@@ -162,7 +166,7 @@ object ProSimApp {
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
                         Row(Modifier) {
-                            CLabel(text = "Project Path:", modifier = Modifier.weight(1.0f), textAlign = TextAlign.Left)
+                            CLabel(text = "Project Path:", modifier = Modifier.weight(1.0f), textAlign = TextAlign.Left,  textStyle = UIState.BaseStyle.current)
 
                             Spacer(Modifier.width(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
@@ -174,7 +178,8 @@ object ProSimApp {
                                     invalidProjectPath = !isAbsolutePathValid(it.text)
                                 },
                                 singleLine = true,
-                                error = invalidProjectPath
+                                error = invalidProjectPath,
+                                textColor = theme.COLOR_FG_0
                             ) {
                                 Box(modifier = Modifier.padding(horizontal = UIState.Scale.value.SIZE_INSET_MEDIUM)) {
                                     it()
@@ -184,10 +189,10 @@ object ProSimApp {
 
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
-                        Selector(TargetSpec.specs, onSelectionChanged =  {
+                        Selector(TargetSpec.specs, onSelectionChanged = {
                             target = it
-                        }, itemContent =  { isSelected, value ->
-                            CLabel(text = value.name)
+                        }, itemContent = { isSelected, value ->
+                            CLabel(text = value.name, textStyle = UIState.BaseStyle.current)
                         })
 
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))

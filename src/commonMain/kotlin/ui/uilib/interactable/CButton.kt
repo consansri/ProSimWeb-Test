@@ -18,10 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import ui.uilib.UIState
-import ui.uilib.params.FontType
 import ui.uilib.params.IconType
 
 @Composable
@@ -32,7 +32,7 @@ fun CButton(
     text: String? = null,
     textAlign: TextAlign = TextAlign.Center,
     iconType: IconType = IconType.MEDIUM,
-    fontType: FontType = FontType.MEDIUM,
+    textStyle: TextStyle = UIState.BaseStyle.current,
     softWrap: Boolean = false,
     withHoverBg: Boolean = true,
     withPressedBg: Boolean = true,
@@ -86,8 +86,8 @@ fun CButton(
                 text,
                 overflow = TextOverflow.Clip,
                 textAlign = textAlign,
-                fontFamily = fontType.getFamily(),
-                fontSize = fontType.getSize(),
+                fontFamily = textStyle.fontFamily,
+                fontSize = textStyle.fontSize,
                 softWrap = softWrap,
                 color = if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0,
             )

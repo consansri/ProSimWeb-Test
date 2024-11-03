@@ -7,15 +7,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import emulator.kit.Architecture
 import emulator.kit.optional.SetupSetting
 import ui.uilib.UIState
 import ui.uilib.interactable.Selector
 import ui.uilib.label.CLabel
-import ui.uilib.params.FontType
 
 @Composable
-fun ArchitectureOverview(arch: Architecture?) {
+fun ArchitectureOverview(arch: Architecture?, baseStyle: TextStyle, baseLargeStyle: TextStyle) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
@@ -28,7 +28,7 @@ fun ArchitectureOverview(arch: Architecture?) {
                     .background(theme.COLOR_BG_1),
                 contentAlignment = Alignment.Center
             ) {
-                CLabel(text = "Architecture: ${arch.description.name}", fontType = FontType.LARGE)
+                CLabel(text = "Architecture: ${arch.description.name}", textStyle = baseLargeStyle)
             }
 
             Row(
@@ -43,14 +43,14 @@ fun ArchitectureOverview(arch: Architecture?) {
                         Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        CLabel(text = it.name)
+                        CLabel(text = it.name, textStyle = baseStyle)
                         when (it) {
                             is SetupSetting.Any -> TODO()
                             is SetupSetting.Bool -> TODO()
                             is SetupSetting.Enumeration -> {
                                 Selector<Enum<*>>(
                                     it.enumValues, initial = it.state.value as? Enum<*>, itemContent = { isSelected, value ->
-                                        CLabel(text = value.name)
+                                        CLabel(text = value.name, textStyle = baseStyle)
                                     },
                                     onSelectionChanged = { newVal ->
                                         it.loadFromString(arch, newVal.name)
@@ -68,7 +68,7 @@ fun ArchitectureOverview(arch: Architecture?) {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            CLabel(text = "No Architecture Selected!")
+            CLabel(text = "No Architecture Selected!", textStyle = baseStyle)
         }
     }
 }

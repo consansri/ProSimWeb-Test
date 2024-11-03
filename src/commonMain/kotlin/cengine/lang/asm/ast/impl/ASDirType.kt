@@ -1238,13 +1238,28 @@ enum class ASDirType(
                     return
                 }
 
-                val symbol = builder.symTab.search(identifier)
+                val symbolIndex = builder.symTab.getOrCreate(identifier, builder.currentSection)
                 val expr = dir.additionalNodes.firstOrNull()
 
-
-
                 if (expr == null) {
+                    dir.addError("Expression is missing!")
+                    return
+                }
 
+                when (expr) {
+                    is ASNode.NumericExpr -> {
+                        val evaluated = expr.evaluate(builder).toHex()
+                        try {
+                            val symbol = builder.symTab[symbolIndex]
+                            symbol.setValue(evaluated.toULong())
+                            symbol.st_info = Sym.ELF_ST_INFO(Sym.STB_NUM, Sym.STT_NUM)
+                            builder.symTab.update(symbol, symbolIndex)
+                        } catch (e: Exception) {
+                            dir.addError(e.message.toString())
+                        }
+                    }
+
+                    else -> dir.addError("equ only supporting numeric expressions.")
                 }
             }
 
@@ -1340,6 +1355,7 @@ enum class ASDirType(
                     }
                 }
             }
+
             SINGLE -> TODO()
             SIZE -> TODO()
             SKIP -> TODO()
@@ -1374,6 +1390,7 @@ enum class ASDirType(
                     }
                 }
             }
+
             STRING16 -> TODO()
             STRING32 -> TODO()
             STRUCT -> TODO()
@@ -1424,6 +1441,7 @@ enum class ASDirType(
                     }
                 }
             }
+
             _4BYTE -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
@@ -1439,6 +1457,7 @@ enum class ASDirType(
                     }
                 }
             }
+
             _8BYTE -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
@@ -1454,6 +1473,7 @@ enum class ASDirType(
                     }
                 }
             }
+
             else -> dir.annotations.add(Annotation.warn(dir, "Not $this yet implemented."))
         }
     }

@@ -895,7 +895,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     Severity.Type.entries.forEach {
                                         ".${it.name}" {
                                             textDecoration = important(TextDecoration.underline)
-                                            textDecorationColor = important(it.codeStyle.get(StyleAttr.mode))
+                                            textDecorationColor = important(it.codeStyle.current.get(StyleAttr.mode))
                                         }
                                     }
                                 }
