@@ -219,24 +219,33 @@ fun DMCacheView(memory: DMCache, pc: MutableState<Value>, baseStyle: TextStyle, 
                 }
                 Row {
                     Box(Modifier.weight(0.05f)) {
-                        Text(rowAddr, Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, textAlign = TextAlign.Right)
+                        Text(rowAddr, Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
                     }
 
                     Column(Modifier.weight(0.95f)) {
                         row.blocks.forEachIndexed { index, block ->
+                            val isInvalid = block.tag == null
+
                             Row(Modifier.fillMaxWidth()) {
                                 Box(Modifier.weight(0.05f)) {
-                                    Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                                    Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (isInvalid) theme.COLOR_FG_1 else theme.COLOR_FG_0, textAlign = TextAlign.Right)
                                 }
 
                                 Box(Modifier.weight(0.2f)) {
-                                    Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                                    Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (isInvalid) theme.COLOR_FG_1 else theme.COLOR_FG_0, textAlign = TextAlign.Right)
                                 }
 
                                 Row(Modifier.weight(0.7f)) {
                                     block.data.forEachIndexed { index, cacheInstance ->
                                         Box(Modifier.weight(1f)) {
-                                            Text(cacheInstance.value.toRawString(), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                                            Text(
+                                                cacheInstance.value.toRawString(),
+                                                Modifier.fillMaxWidth(),
+                                                fontFamily = codeStyle.fontFamily,
+                                                fontSize = codeStyle.fontSize,
+                                                color = if (isInvalid) theme.COLOR_FG_1 else if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0,
+                                                textAlign = TextAlign.Center
+                                            )
                                         }
                                     }
                                 }
@@ -308,24 +317,33 @@ fun SACacheView(memory: SACache, pc: MutableState<Value>, baseStyle: TextStyle, 
                 }
                 Row {
                     Box(Modifier.weight(0.05f)) {
-                        Text(rowAddr, Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, textAlign = TextAlign.Right)
+                        Text(rowAddr, Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize,color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
                     }
 
                     Column(Modifier.weight(0.95f)) {
                         row.blocks.forEachIndexed { index, block ->
+                            val isInvalid = block.tag == null
+
                             Row(Modifier.fillMaxWidth()) {
                                 Box(Modifier.weight(0.05f)) {
-                                    Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                                    Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (isInvalid) theme.COLOR_FG_1 else theme.COLOR_FG_0, textAlign = TextAlign.Right)
                                 }
 
                                 Box(Modifier.weight(0.2f)) {
-                                    Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                                    Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (isInvalid) theme.COLOR_FG_1 else theme.COLOR_FG_0, textAlign = TextAlign.Right)
                                 }
 
                                 Row(Modifier.weight(0.7f)) {
                                     block.data.forEachIndexed { index, cacheInstance ->
                                         Box(Modifier.weight(1f)) {
-                                            Text(cacheInstance.value.toRawString(), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                                            Text(
+                                                cacheInstance.value.toRawString(),
+                                                Modifier.fillMaxWidth(),
+                                                fontFamily = codeStyle.fontFamily,
+                                                fontSize = codeStyle.fontSize,
+                                                color = if (isInvalid) theme.COLOR_FG_1 else if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0,
+                                                textAlign = TextAlign.Center
+                                            )
                                         }
                                     }
                                 }
@@ -392,19 +410,27 @@ fun FACacheView(memory: FACache, pc: MutableState<Value>, baseStyle: TextStyle, 
                     row.blocks.indexOf(block)
                 }) { block ->
                     val index = row.blocks.indexOf(block)
+                    val isInvalid = block.tag == null
                     Row(Modifier.fillMaxWidth()) {
                         Box(Modifier.weight(0.05f)) {
-                            Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                            Text(index.toString(16), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (isInvalid) theme.COLOR_FG_1 else theme.COLOR_FG_0, textAlign = TextAlign.Right)
                         }
 
                         Box(Modifier.weight(0.2f)) {
-                            Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0, textAlign = TextAlign.Right)
+                            Text(block.tag?.toULong()?.toString(16) ?: "invalid", Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (isInvalid) theme.COLOR_FG_1 else theme.COLOR_FG_0, textAlign = TextAlign.Right)
                         }
 
                         Row(Modifier.weight(0.7f)) {
                             block.data.forEachIndexed { index, cacheInstance ->
                                 Box(Modifier.weight(1f)) {
-                                    Text(cacheInstance.value.toRawString(), Modifier.fillMaxWidth(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0, textAlign = TextAlign.Center)
+                                    Text(
+                                        cacheInstance.value.toRawString(),
+                                        Modifier.fillMaxWidth(),
+                                        fontFamily = codeStyle.fontFamily,
+                                        fontSize = codeStyle.fontSize,
+                                        color = if (isInvalid) theme.COLOR_FG_1 else if (cacheInstance.address == pcValue) pcColor else theme.COLOR_FG_0,
+                                        textAlign = TextAlign.Center
+                                    )
                                 }
                             }
                         }
