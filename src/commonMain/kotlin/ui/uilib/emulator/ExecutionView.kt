@@ -69,7 +69,7 @@ fun ExecutionView(architecture: Architecture?, baseStyle: TextStyle,  codeStyle:
                         Text("LABEL", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
                     }
                     Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-                    Box(Modifier.weight(0.3f))
+                    Box(Modifier.weight(0.5f))
                     Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                     Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         Text("DECODED", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
@@ -110,7 +110,7 @@ fun ExecutionView(architecture: Architecture?, baseStyle: TextStyle,  codeStyle:
                                 Text(segment.labels.filter { it.offset == decoded.offset }.joinToString(", ") { it.name + ":" }, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0)
                             }
                             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-                            Row(Modifier.weight(0.3f), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.weight(0.5f), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                                 targetLinks.filter { it.second == decoded }.forEach { (source, dest, color) ->
                                     Icon(icons.chevronRight, "dest", Modifier.size(scale.SIZE_CONTROL_SMALL).background(color, RoundedCornerShape(scale.SIZE_CORNER_RADIUS)), tint = theme.COLOR_BG_0)
                                 }
