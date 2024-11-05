@@ -15,12 +15,14 @@ import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.project.ProjectState
 import cengine.project.ProjectStateManager
 import cengine.system.isAbsolutePathValid
+import config.BuildConfig
 import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.Selector
 import ui.uilib.label.CLabel
 import ui.uilib.layout.BorderLayout
+import ui.uilib.params.IconType
 import ui.uilib.text.CTextField
 import ui.uilib.theme.DarkTheme
 import ui.uilib.theme.LightTheme
@@ -35,7 +37,7 @@ object ProSimApp {
         UIState.StateUpdater()
 
         UIState.launch {
-            ProSimApp()   
+            ProSimApp()
         }
     }
 
@@ -58,8 +60,17 @@ object ProSimApp {
                 },
                 onCreateNewProject = {
                     currentScreen = Screen.CreateNewProject
+                },
+                onShowAbout = {
+                    currentScreen = Screen.About
                 }
             )
+
+            is Screen.About -> {
+                AboutScreen {
+                    currentScreen = Screen.ProjectSelection
+                }
+            }
 
             is Screen.ProjectView -> ProjectViewScreen(screen.state) {
                 ProjectStateManager.appState = ProjectStateManager.appState.copy(currentlyOpened = null)
@@ -78,15 +89,62 @@ object ProSimApp {
     }
 
     @Composable
-    fun ProjectSelectionScreen(onProjectSelected: (ProjectState) -> Unit, onCreateNewProject: () -> Unit) {
+    fun AboutScreen(onCloseAbout: () -> Unit) {
 
         val theme = UIState.Theme.value
+        val scale = UIState.Scale.value
 
         BorderLayout(
             modifier = Modifier.background(theme.COLOR_BG_1),
             topBg = theme.COLOR_BG_0,
             top = {
                 Spacer(Modifier.weight(2.0f))
+                CButton(onClick = {
+                    if (theme == LightTheme) {
+                        UIState.Theme.value = DarkTheme
+                    } else {
+                        UIState.Theme.value = LightTheme
+                    }
+                    nativeLog("Switched to ${theme.name}")
+                }, icon = theme.icon)
+                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                CButton(onClick = {
+                    onCloseAbout()
+                }, icon = UIState.Icon.value.close)
+            },
+            center = {
+                Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+                    CLabel(icon = UIState.Icon.value.reportBug, iconType = IconType.LARGE)
+                    CLabel(text = BuildConfig.NAME, textStyle = UIState.BaseLargeStyle.current, color = theme.COLOR_FG_0)
+                    CLabel(text = "v${BuildConfig.VERSION}", textStyle = UIState.BaseStyle.current, color = theme.COLOR_FG_0)
+                    CButton(text = "Download for Desktop", textStyle = UIState.BaseStyle.current, onClick = {
+                        // Download Desktop Version
+                    })
+                    CLabel(text = "Copyright @ ${BuildConfig.YEAR} ${BuildConfig.ORG}", textStyle = UIState.BaseStyle.current, color = theme.COLOR_FG_0)
+                    CLabel(text = "Developed by ${BuildConfig.DEV}", textStyle = UIState.BaseSmallStyle.current, color = theme.COLOR_FG_0)
+                }
+            }
+
+        )
+
+
+    }
+
+    @Composable
+    fun ProjectSelectionScreen(onProjectSelected: (ProjectState) -> Unit, onCreateNewProject: () -> Unit, onShowAbout: () -> Unit) {
+
+        val theme = UIState.Theme.value
+        val scale = UIState.Scale.value
+
+        BorderLayout(
+            modifier = Modifier.background(theme.COLOR_BG_1),
+            topBg = theme.COLOR_BG_0,
+            top = {
+                Spacer(Modifier.weight(2.0f))
+                CButton(onClick = {
+                    onShowAbout()
+                }, icon = UIState.Icon.value.info)
+                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                 CButton(onClick = {
                     if (theme == LightTheme) {
                         UIState.Theme.value = DarkTheme
@@ -166,7 +224,7 @@ object ProSimApp {
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
                         Row(Modifier) {
-                            CLabel(text = "Project Path:", modifier = Modifier.weight(1.0f), textAlign = TextAlign.Left,  textStyle = UIState.BaseStyle.current)
+                            CLabel(text = "Project Path:", modifier = Modifier.weight(1.0f), textAlign = TextAlign.Left, textStyle = UIState.BaseStyle.current)
 
                             Spacer(Modifier.width(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
@@ -220,10 +278,10 @@ object ProSimApp {
         )
     }
 
-
     sealed class Screen {
-        object ProjectSelection : Screen()
-        object CreateNewProject : Screen()
+        data object ProjectSelection : Screen()
+        data object CreateNewProject : Screen()
+        data object About : Screen()
         data class ProjectView(val state: ProjectState) : Screen()
     }
 

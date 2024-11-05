@@ -1,7 +1,5 @@
-
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-
 
 
 plugins {
@@ -13,8 +11,39 @@ plugins {
     distribution
 }
 
+
+val DIST_NAME: String by project
+val DIST_VERSION: String by project
+val DIST_YEAR: String by project
+val DIST_DEV: String by project
+val DIST_ORG: String by project
+
+// execute when config was changed
+val buildConfigGenerator by tasks.registering(Sync::class){
+    from(
+        resources.text.fromString(
+            """
+                package config
+                
+                object BuildConfig {
+                    const val VERSION = $DIST_VERSION
+                    const val NAME = $DIST_NAME
+                    const val YEAR = $DIST_YEAR
+                    const val DEV = $DIST_DEV
+                    const val ORG = $DIST_ORG
+                }
+                
+            """.trimIndent()
+        )
+    ){
+        rename{"BuildConfig.kt"}
+        into("config")
+    }
+    into(layout.buildDirectory.dir("generated-src/kotlin/"))
+}
+
 group = "prosim"
-version = "0.3.0"
+version = DIST_VERSION
 
 val dokkaVersion = "1.9.20"
 val kotlinVersion = "2.0.20"
@@ -46,12 +75,12 @@ kotlin {
     }
 
     @OptIn(ExperimentalWasmDsl::class)
-    wasmJs("composeWeb"){
+    wasmJs("composeWeb") {
         browser()
         binaries.executable()
     }
 
-    jvm("composeDesktop"){
+    jvm("composeDesktop") {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
             this.mainClass.set("prosim.AppKt")
@@ -67,6 +96,11 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
+
+            kotlin.srcDirs(layout.buildDirectory.dir("generated-src/kotlin/"))
+
+            buildConfigGenerator.map { it.destinationDir } // convert the task to a file-provider
+
             dependencies {
                 //implementation(kotlin("reflect"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
@@ -93,14 +127,14 @@ kotlin {
             }
         }
 
-        val composeWebMain by getting{
-            dependencies{
+        val composeWebMain by getting {
+            dependencies {
 
             }
         }
 
-        val composeDesktopMain by getting{
-            dependencies{
+        val composeDesktopMain by getting {
+            dependencies {
                 // For Compose
                 implementation(compose.desktop.currentOs)
             }
@@ -162,12 +196,28 @@ tasks.withType<Jar>() {
     }
 }
 
-val copyDistZipToJsDistribution by tasks.registering(Copy::class){
+val copyDistZipToJsDistribution by tasks.registering(Copy::class) {
     group = "distribution"
     description = "Copy distZip output to js distribution folder"
     dependsOn("distZip", "distTar")
     from("build/distributions")
     into("build/dist/js/productionExecutable")
+}
+
+val copyComposeDesktopJarToWeb by tasks.registering(Copy::class){
+    group = "distribution"
+    description = "Copy composeDesktop JAR to composeWeb distribution resources"
+
+    val desktopJar by tasks.named("composeDesktopJar")
+    dependsOn(desktopJar)
+
+    from(desktopJar)
+    into("build/dist/composeWeb/productionExecutable")
+    rename { "$DIST_NAME-$DIST_VERSION.jar" }
+}
+
+tasks.named("composeWebBrowserDistribution").configure {
+    dependsOn(copyComposeDesktopJarToWeb)
 }
 
 //tasks.getByName("jsBrowserDistribution").dependsOn(copyDistZipToJsDistribution)

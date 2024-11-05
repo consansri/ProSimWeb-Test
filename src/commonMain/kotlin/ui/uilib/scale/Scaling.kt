@@ -29,6 +29,9 @@ class Scaling(val scale: Float = 1f) {
     val SIZE_CONTROL_MEDIUM: Dp = 24.dp
         get() = field * scale
 
+    val SIZE_CONTROL_LARGE: Dp = 30.dp
+        get() = field * scale
+
     val SIZE_INSET_SMALL: Dp = 2.dp
         get() = field * scale
     val SIZE_INSET_MEDIUM: Dp = 4.dp

@@ -1463,10 +1463,6 @@ enum class ASDirType(
                 for (expr in exprs) {
                     try {
                         val long = expr.evaluate(builder).toLong()
-                        if (long == null) {
-                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit64}!"))
-                            continue
-                        }
                         builder.currentSection.content.put(long)
                     } catch (e: Exception) {
                         expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))

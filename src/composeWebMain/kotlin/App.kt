@@ -1,13 +1,12 @@
-
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
+import config.BuildConfig
 import ui.ProSimApp
 
 @OptIn(ExperimentalComposeUiApi::class)
-fun main(){
+fun main() {
 
-
-    CanvasBasedWindow(title = Constants.TITLE,canvasElementId = "ComposeTarget") {
+    CanvasBasedWindow(title = "${BuildConfig.NAME} - ${BuildConfig.VERSION}", canvasElementId = "ComposeTarget") {
         ProSimApp.launch()
     }
 
