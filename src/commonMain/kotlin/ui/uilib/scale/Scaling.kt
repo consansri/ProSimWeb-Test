@@ -1,13 +1,76 @@
 package ui.uilib.scale
 
-import androidx.compose.runtime.Immutable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import emulator.kit.nativeLog
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import ui.uilib.UIState
+import ui.uilib.interactable.CButton
+import kotlin.math.roundToInt
 
 @Immutable
 class Scaling(val scale: Float = 1f) {
+
+    companion object {
+
+        val BOUNDS = 0.25f..2.0f
+
+        @Composable
+        fun Scaler() {
+            var currentScale by remember { mutableStateOf(UIState.Scale.value.scale) }
+            val scope = rememberCoroutineScope()
+            var currJob: Job? = null
+
+            var accumulatedScale by remember { mutableStateOf(currentScale) }
+
+            fun scale(delta: Float) {
+                val scaleOffset = delta  / 10000
+                nativeLog("Scale: $accumulatedScale = ${accumulatedScale + scaleOffset}")
+                if (accumulatedScale + scaleOffset in BOUNDS) {
+                    accumulatedScale += scaleOffset
+                }
+
+                currJob?.cancel()
+                currJob =  scope.launch {
+                    delay(500)
+                    currentScale = accumulatedScale
+                }
+            }
+
+            CButton(
+                text = "${(accumulatedScale * 100).roundToInt()}%", onClick = {
+                    currentScale = 1f
+                }, modifier = Modifier
+                    .scrollable(orientation = Orientation.Vertical,
+                        state = rememberScrollableState { delta ->
+                            scale(delta)
+                            delta
+                        })
+                    .pointerInput(Unit) {
+                        detectVerticalDragGestures { _, dragAmount ->
+                            // Adjust stepCount based on the dragAmount
+                            scale(dragAmount)
+                        }
+                    }
+            )
+
+            LaunchedEffect(currentScale) {
+                UIState.Scale.value = Scaling(currentScale)
+                accumulatedScale = currentScale
+            }
+        }
+    }
 
     val name: String = "${(scale * 100).toInt()}%"
 

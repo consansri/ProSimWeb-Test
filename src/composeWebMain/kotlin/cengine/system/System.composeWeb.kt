@@ -9,3 +9,4 @@ actual fun appTarget(): AppTarget = AppTarget.WEB
 actual fun downloadDesktopApp(fileNameSuffix: String) {
     JSTools.downloadFile("", BuildConfig.FILENAME + fileNameSuffix)
 }
+

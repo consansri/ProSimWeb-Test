@@ -24,11 +24,11 @@ fun VerticalToolBar(
         verticalArrangement = Arrangement.SpaceBetween
     ) {
 
-        Column{
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             upper(this)
         }
 
-        Column {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             lower(this)
         }
     }

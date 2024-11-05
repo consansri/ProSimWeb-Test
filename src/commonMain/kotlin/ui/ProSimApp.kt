@@ -7,28 +7,29 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.project.ProjectState
 import cengine.project.ProjectStateManager
-import cengine.system.AppTarget
+import cengine.system.AppTarget.DESKTOP
+import cengine.system.AppTarget.WEB
 import cengine.system.appTarget
 import cengine.system.downloadDesktopApp
 import cengine.system.isAbsolutePathValid
 import config.BuildConfig
-import emulator.kit.nativeLog
+import io.github.vinceglb.filekit.core.FileKit
+import kotlinx.coroutines.launch
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.Selector
 import ui.uilib.label.CLabel
 import ui.uilib.layout.BorderLayout
 import ui.uilib.params.IconType
+import ui.uilib.scale.Scaling
 import ui.uilib.text.CTextField
-import ui.uilib.theme.DarkTheme
-import ui.uilib.theme.LightTheme
+import ui.uilib.theme.Theme
 
 object ProSimApp {
 
@@ -103,14 +104,9 @@ object ProSimApp {
             topBg = theme.COLOR_BG_0,
             top = {
                 Spacer(Modifier.weight(2.0f))
-                CButton(onClick = {
-                    if (theme == LightTheme) {
-                        UIState.Theme.value = DarkTheme
-                    } else {
-                        UIState.Theme.value = LightTheme
-                    }
-                    nativeLog("Switched to ${theme.name}")
-                }, icon = theme.icon)
+                Scaling.Scaler()
+                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                Theme.Switch()
                 Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                 CButton(onClick = {
                     onCloseAbout()
@@ -121,7 +117,7 @@ object ProSimApp {
                     CLabel(icon = UIState.Icon.value.reportBug, iconType = IconType.LARGE)
                     CLabel(text = BuildConfig.NAME, textStyle = UIState.BaseLargeStyle.current, color = theme.COLOR_FG_0)
                     CLabel(text = "v${BuildConfig.VERSION}", textStyle = UIState.BaseStyle.current, color = theme.COLOR_FG_0)
-                    if (appTarget() == AppTarget.WEB) {
+                    if (appTarget() == WEB) {
                         CButton(text = "Download for Desktop", textStyle = UIState.BaseStyle.current, onClick = {
                             // Download Desktop Version from resources "${BuildConfig.FILENAME}.jar"
                             downloadDesktopApp(".jar")
@@ -141,6 +137,8 @@ object ProSimApp {
         val theme = UIState.Theme.value
         val scale = UIState.Scale.value
 
+        var currentProjects by remember { mutableStateOf(ProjectStateManager.projects) }
+
         BorderLayout(
             modifier = Modifier.background(theme.COLOR_BG_1),
             topBg = theme.COLOR_BG_0,
@@ -150,44 +148,52 @@ object ProSimApp {
                     onShowAbout()
                 }, icon = UIState.Icon.value.info)
                 Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-                CButton(onClick = {
-                    if (theme == LightTheme) {
-                        UIState.Theme.value = DarkTheme
-                    } else {
-                        UIState.Theme.value = LightTheme
-                    }
-                    nativeLog("Switched to ${theme.name}")
-                }, icon = theme.icon)
+                Scaling.Scaler()
+                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                Theme.Switch()
             },
             center = {
-                Box(modifier = Modifier.align(Alignment.Center)) {
+                Box(modifier = Modifier.align(Alignment.Center).width(500.dp)) {
                     Column(
                         modifier = Modifier
-                            .padding(UIState.Scale.value.SIZE_INSET_MEDIUM)
+                            .padding(UIState.Scale.value.SIZE_INSET_MEDIUM),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        CLabel(text = "Select a Project:", modifier = Modifier.widthIn(), textStyle = UIState.BaseStyle.current)
+                        CLabel(text = "Select a Project:", modifier = Modifier, textStyle = UIState.BaseStyle.current)
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        ProjectStateManager.projects.forEach {
-                            CButton(
-                                onClick = { onProjectSelected(it) },
-                                icon = UIState.Icon.value.chevronRight,
-                                text = it.absRootPath
-                            )
+                        currentProjects.forEach {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                CButton(
+                                    modifier = Modifier,
+                                    onClick = { onProjectSelected(it) },
+                                    icon = UIState.Icon.value.chevronRight,
+                                    text = it.absRootPath
+                                )
+
+                                CButton(icon = UIState.Icon.value.close, onClick = {
+                                    currentProjects -= it
+                                })
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        CButton(onClick = onCreateNewProject, text = "Create New Project", modifier = Modifier.widthIn())
+                        CButton(onClick = onCreateNewProject, text = "Create New Project", modifier = Modifier)
                     }
                 }
             }
         )
+
+        LaunchedEffect(currentProjects) {
+            ProjectStateManager.projects = currentProjects
+        }
     }
 
     @Composable
     fun CreateNewProjectScreen(onProjectCreated: (ProjectState) -> Unit, onCancel: () -> Unit) {
-        var pathField by remember { mutableStateOf(TextFieldValue("New")) }
+        val pickerScope = rememberCoroutineScope()
+        var pathField by remember { mutableStateOf("new-project") }
         var target by remember { mutableStateOf<TargetSpec>(RV32Spec) }
 
         var invalidProjectPath by remember { mutableStateOf(false) }
@@ -200,13 +206,9 @@ object ProSimApp {
             topBg = theme.COLOR_BG_0,
             top = {
                 Spacer(Modifier.weight(2.0f))
-                CButton(onClick = {
-                    if (theme == LightTheme) {
-                        UIState.Theme.value = DarkTheme
-                    } else {
-                        UIState.Theme.value = LightTheme
-                    }
-                }, icon = theme.icon)
+                Scaling.Scaler()
+                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                Theme.Switch()
             },
             center = {
                 Box(
@@ -218,7 +220,6 @@ object ProSimApp {
                     Column(
                         modifier = Modifier
                             .widthIn(max = 250.dp)
-
                     ) {
                         CLabel(text = "Create New Project", modifier = Modifier.fillMaxWidth(), textStyle = UIState.BaseStyle.current)
 
@@ -233,21 +234,38 @@ object ProSimApp {
 
                             Spacer(Modifier.width(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
-                            CTextField(
-                                value = pathField,
-                                modifier = Modifier.weight(1.0f),
-                                onValueChange = {
-                                    pathField = it
-                                    invalidProjectPath = !isAbsolutePathValid(it.text)
-                                },
-                                singleLine = true,
-                                error = invalidProjectPath,
-                                textColor = theme.COLOR_FG_0
-                            ) {
-                                Box(modifier = Modifier.padding(horizontal = UIState.Scale.value.SIZE_INSET_MEDIUM)) {
-                                    it()
+
+                            when (appTarget()) {
+                                WEB -> {
+                                    CTextField(
+                                        value = pathField,
+                                        modifier = Modifier.weight(1.0f),
+                                        onValueChange = {
+                                            pathField = it
+                                            invalidProjectPath = !isAbsolutePathValid(it)
+                                        },
+                                        singleLine = true,
+                                        error = invalidProjectPath,
+                                        textColor = theme.COLOR_FG_0
+                                    ) {
+                                        Box(modifier = Modifier.padding(horizontal = UIState.Scale.value.SIZE_INSET_MEDIUM)) {
+                                            it()
+                                        }
+                                    }
+                                }
+
+                                DESKTOP -> {
+                                    CButton(text = pathField, onClick = {
+                                        pickerScope.launch {
+                                            val path = FileKit.pickDirectory()?.path
+                                            if (path != null) {
+                                                pathField = path
+                                            }
+                                        }
+                                    })
                                 }
                             }
+
                         }
 
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
@@ -264,7 +282,7 @@ object ProSimApp {
                             CButton(
                                 onClick = {
                                     if (!invalidProjectPath) {
-                                        val state = ProjectState(pathField.text, target.name)
+                                        val state = ProjectState(pathField, target.name)
                                         ProjectStateManager.projects += state
                                         onProjectCreated(state)
                                     }

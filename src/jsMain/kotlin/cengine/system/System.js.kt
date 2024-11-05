@@ -8,3 +8,4 @@ actual fun isAbsolutePathValid(path: String): Boolean {
 actual fun appTarget(): AppTarget = AppTarget.WEB
 actual fun downloadDesktopApp(fileNameSuffix: String) {
 }
+

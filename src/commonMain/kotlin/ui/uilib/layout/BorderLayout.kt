@@ -3,6 +3,7 @@ package ui.uilib.layout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import ui.uilib.UIState
@@ -27,18 +28,19 @@ fun BorderLayout(
 
     Column(modifier = modifier) {
         top?.let {
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(topBg)
-
+                    .background(topBg),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 it()
             }
-            Spacer(modifier = Modifier
-                .height(scale.SIZE_BORDER_THICKNESS)
-                .fillMaxWidth()
-                .background(theme.COLOR_BORDER)
+            Spacer(
+                modifier = Modifier
+                    .height(scale.SIZE_BORDER_THICKNESS)
+                    .fillMaxWidth()
+                    .background(theme.COLOR_BORDER)
             )
         }
 
@@ -47,36 +49,41 @@ fun BorderLayout(
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .background(leftBg)
+                        .background(leftBg),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     it()
                 }
-                Spacer(modifier = Modifier
-                    .width(scale.SIZE_BORDER_THICKNESS)
-                    .fillMaxHeight()
-                    .background(theme.COLOR_BORDER)
+                Spacer(
+                    modifier = Modifier
+                        .width(scale.SIZE_BORDER_THICKNESS)
+                        .fillMaxHeight()
+                        .background(theme.COLOR_BORDER)
                 )
             }
 
-            Box(modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .background(centerBg)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .background(centerBg)
             ) {
                 center()
             }
 
             right?.let {
-                Spacer(modifier = Modifier
-                    .width(scale.SIZE_BORDER_THICKNESS)
-                    .fillMaxHeight()
-                    .background(theme.COLOR_BORDER)
+                Spacer(
+                    modifier = Modifier
+                        .width(scale.SIZE_BORDER_THICKNESS)
+                        .fillMaxHeight()
+                        .background(theme.COLOR_BORDER)
                 )
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .background(rightBg)
+                        .background(rightBg),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     it()
                 }
@@ -84,16 +91,18 @@ fun BorderLayout(
         }
 
         bottom?.let {
-            Spacer(modifier = Modifier
-                .height(scale.SIZE_BORDER_THICKNESS)
-                .fillMaxWidth()
-                .background(theme.COLOR_BORDER)
+            Spacer(
+                modifier = Modifier
+                    .height(scale.SIZE_BORDER_THICKNESS)
+                    .fillMaxWidth()
+                    .background(theme.COLOR_BORDER)
             )
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(bottomBg)
+                    .background(bottomBg),
+                verticalAlignment = Alignment.CenterVertically
 
             ) {
                 it()

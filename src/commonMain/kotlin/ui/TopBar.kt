@@ -1,16 +1,19 @@
 package ui
 
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Modifier
 import cengine.project.Project
 import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
 import ui.uilib.layout.AppBar
-import ui.uilib.theme.DarkTheme
-import ui.uilib.theme.LightTheme
+import ui.uilib.scale.Scaling
+import ui.uilib.theme.Theme
 
 @Composable
 fun TopBar(
@@ -33,25 +36,28 @@ fun TopBar(
 
             customContent()
 
-            CButton(onClick = {
-                if (theme == LightTheme) {
-                    UIState.Theme.value = DarkTheme
-                } else {
-                    UIState.Theme.value = LightTheme
-                }
-                nativeLog("Changed to ${UIState.Theme.value.name}")
-            }, icon = theme.icon)
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
+            Scaling.Scaler()
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
+            Theme.Switch()
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
             CButton(onClick = {
                 viewType.component2()(viewType.value.next())
             }, icon = viewType.value.next().icon)
+
+            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
             // Close Button
             CButton(onClick = onClose, icon = icons.close)
         }
     )
 
-    LaunchedEffect(UIState.Theme.value){
+    LaunchedEffect(UIState.Theme.value) {
         nativeLog("Theme switched!")
     }
 

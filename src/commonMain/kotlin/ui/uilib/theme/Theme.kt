@@ -1,15 +1,14 @@
 package ui.uilib.theme
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
 import cengine.lang.asm.CodeStyle
 import emulator.kit.memory.Memory
+import emulator.kit.nativeLog
 import org.jetbrains.compose.resources.FontResource
-import ui.uilib.params.FontType
+import ui.uilib.UIState
+import ui.uilib.interactable.CButton
 import kotlin.random.Random
 
 abstract class Theme {
@@ -17,7 +16,19 @@ abstract class Theme {
     companion object {
         val all = setOf(LightTheme, DarkTheme)
 
+        @Composable
+        fun Switch() {
+            val theme = UIState.Theme.value
 
+            CButton(onClick = {
+                if (theme == LightTheme) {
+                    UIState.Theme.value = DarkTheme
+                } else {
+                    UIState.Theme.value = LightTheme
+                }
+                nativeLog("Switched to ${theme.name}")
+            }, icon = theme.icon)
+        }
     }
 
     abstract val name: String
@@ -62,7 +73,6 @@ abstract class Theme {
 
     abstract val FONT_BASIC: FontResource
     abstract val FONT_CODE: FontResource
-
 
 
     fun getRandom(): Color {
