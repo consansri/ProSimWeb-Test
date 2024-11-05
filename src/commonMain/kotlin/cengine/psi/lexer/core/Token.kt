@@ -46,13 +46,17 @@ abstract class Token : PsiElement {
 
         if (other.type != type) return false
         if (other.value != value) return false
+        if (other.range != range) return false
 
         return true
     }
 
-    final override fun hashCode(): Int {
+    override fun hashCode(): Int {
         var result = type.hashCode()
         result = 31 * result + value.hashCode()
+        result = 31 * result + range.hashCode()
         return result
     }
+
+
 }

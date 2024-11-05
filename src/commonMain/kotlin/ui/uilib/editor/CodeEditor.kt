@@ -319,7 +319,6 @@ fun CodeEditor(
                     contentAlignment = Alignment.TopEnd
                 ) {
                     Row(Modifier.padding(scale.SIZE_INSET_SMALL), verticalAlignment = Alignment.CenterVertically) {
-
                         if (analyticsAreUpToDate) {
                             val errors = allAnnotations.count { it.severity == Severity.ERROR }
                             val warnings = allAnnotations.count { it.severity == Severity.WARNING }
@@ -461,12 +460,8 @@ fun CodeEditor(
                             }
                         }
                     }
-
                 }
-
-
             }
-
         }
     }
 
@@ -475,6 +470,9 @@ fun CodeEditor(
             caretOffset = textLayout?.getCursorRect(textFieldValue.selection.start)?.bottomCenter ?: Offset(0f, 0f)
             // Update the current line when the text changes
             currentLine = textLayout?.getLineForOffset(textFieldValue.selection.start) ?: -1
+
+            file.setAsUTF8String(textFieldValue.text)
+
             locatePSIElement()
             fetchCompletions()
         }
