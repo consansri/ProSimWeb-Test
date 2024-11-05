@@ -14,6 +14,9 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.project.ProjectState
 import cengine.project.ProjectStateManager
+import cengine.system.AppTarget
+import cengine.system.appTarget
+import cengine.system.downloadDesktopApp
 import cengine.system.isAbsolutePathValid
 import config.BuildConfig
 import emulator.kit.nativeLog
@@ -88,6 +91,7 @@ object ProSimApp {
         }
     }
 
+
     @Composable
     fun AboutScreen(onCloseAbout: () -> Unit) {
 
@@ -117,16 +121,17 @@ object ProSimApp {
                     CLabel(icon = UIState.Icon.value.reportBug, iconType = IconType.LARGE)
                     CLabel(text = BuildConfig.NAME, textStyle = UIState.BaseLargeStyle.current, color = theme.COLOR_FG_0)
                     CLabel(text = "v${BuildConfig.VERSION}", textStyle = UIState.BaseStyle.current, color = theme.COLOR_FG_0)
-                    CButton(text = "Download for Desktop", textStyle = UIState.BaseStyle.current, onClick = {
-                        // Download Desktop Version
-                    })
+                    if (appTarget() == AppTarget.WEB) {
+                        CButton(text = "Download for Desktop", textStyle = UIState.BaseStyle.current, onClick = {
+                            // Download Desktop Version from resources "${BuildConfig.FILENAME}.jar"
+                            downloadDesktopApp(".jar")
+                        })
+                    }
                     CLabel(text = "Copyright @ ${BuildConfig.YEAR} ${BuildConfig.ORG}", textStyle = UIState.BaseStyle.current, color = theme.COLOR_FG_0)
                     CLabel(text = "Developed by ${BuildConfig.DEV}", textStyle = UIState.BaseSmallStyle.current, color = theme.COLOR_FG_0)
                 }
             }
-
         )
-
 
     }
 

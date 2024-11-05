@@ -3,14 +3,15 @@ package cengine.project
 import cengine.vfs.FPath
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
+import config.BuildConfig
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 object ProjectStateManager {
 
-    private const val projectsFileName = "projects.json"
+    private val projectsFileName = "projects.json"
 
-    private val vfs = VFileSystem("docs")
+    private val vfs = VFileSystem(BuildConfig.NAME.lowercase())
 
     var appState: AppState = loadState()
         set(value) {

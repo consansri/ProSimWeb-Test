@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.compose") version "2.0.20"
     id("org.jetbrains.compose") version "1.6.11"
     kotlin("plugin.serialization") version "2.0.20"
+    id("com.gradleup.shadow") version "8.3.5"
     distribution
 }
 
@@ -17,26 +18,28 @@ val DIST_VERSION: String by project
 val DIST_YEAR: String by project
 val DIST_DEV: String by project
 val DIST_ORG: String by project
+val DIST_FILENAME = "$DIST_NAME - $DIST_VERSION"
 
 // execute when config was changed
-val buildConfigGenerator by tasks.registering(Sync::class){
+val buildConfigGenerator by tasks.registering(Sync::class) {
     from(
         resources.text.fromString(
             """
                 package config
                 
                 object BuildConfig {
-                    const val VERSION = $DIST_VERSION
-                    const val NAME = $DIST_NAME
-                    const val YEAR = $DIST_YEAR
-                    const val DEV = $DIST_DEV
-                    const val ORG = $DIST_ORG
+                    const val NAME = "$DIST_NAME"
+                    const val VERSION = "$DIST_VERSION"
+                    const val YEAR = "$DIST_YEAR"
+                    const val DEV = "$DIST_DEV"
+                    const val ORG = "$DIST_ORG"
+                    const val FILENAME = "$DIST_NAME - $DIST_VERSION"
                 }
                 
             """.trimIndent()
         )
-    ){
-        rename{"BuildConfig.kt"}
+    ) {
+        rename { "BuildConfig.kt" }
         into("config")
     }
     into(layout.buildDirectory.dir("generated-src/kotlin/"))
@@ -51,7 +54,6 @@ val composeVersion = "1.6.11"
 val coroutineVersion = "1.9.0-RC.2"
 val datetimeVersion = "0.6.1"
 val serializationVersion = "1.7.2"
-
 
 repositories {
     google()
@@ -83,14 +85,14 @@ kotlin {
     jvm("composeDesktop") {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
-            this.mainClass.set("prosim.AppKt")
+            mainClass.set("prosim.AppKt")
         }
     }
 
     jvm {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
-            this.mainClass.set("prosim.AppKt")
+            mainClass.set("prosim.AppKt")
         }
     }
 
@@ -162,38 +164,38 @@ kotlin {
     }
 }
 
+distributions {
+    main {
+        distributionBaseName = DIST_FILENAME
+
+        contents {
+
+        }
+    }
+}
+
 compose.resources {
     publicResClass = true
     //packageOfResClass = "prosim.resources"
     generateResClass = always
 }
 
-distributions {
-    main {
-        distributionBaseName.set("ProSimJVM")
-        contents {
-            into("") {
-                val jvmJar by tasks.getting
-                from(jvmJar)
-            }
-            into("lib/") {
-                val main by kotlin.jvm().compilations.getting
-                from(main.runtimeDependencyFiles)
-            }
-        }
-    }
-}
+val composeDesktopFatJar by tasks.register<Jar>("composeDesktopFatJar") {
+    group = "build"
+    description = "Assembles an executable JAR for the Compose Desktop application"
 
-tasks.withType<Jar>() {
-    doFirst {
-        manifest {
-            val main by kotlin.jvm().compilations.getting
-            attributes(
-                "Main-Class" to "prosim.AppKt",
-                "Class-Path" to main.runtimeDependencyFiles.files.joinToString(" ") { "lib/" + it.name }
-            )
-        }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes["Main-Class"] = "prosim.AppKt"
     }
+
+    // Collect all dependencies and package them into the JAR
+    val runtimeClasspath = configurations["composeDesktopRuntimeClasspath"]
+    from(runtimeClasspath.map { if (it.isDirectory) it else zipTree(it) })
+
+    // Include all files from the main output
+    with(tasks.getByName("composeDesktopJar") as CopySpec)
 }
 
 val copyDistZipToJsDistribution by tasks.registering(Copy::class) {
@@ -204,16 +206,15 @@ val copyDistZipToJsDistribution by tasks.registering(Copy::class) {
     into("build/dist/js/productionExecutable")
 }
 
-val copyComposeDesktopJarToWeb by tasks.registering(Copy::class){
+val copyComposeDesktopJarToWeb by tasks.registering(Copy::class) {
     group = "distribution"
     description = "Copy composeDesktop JAR to composeWeb distribution resources"
 
-    val desktopJar by tasks.named("composeDesktopJar")
-    dependsOn(desktopJar)
+    dependsOn(composeDesktopFatJar)
 
-    from(desktopJar)
+    from(composeDesktopFatJar)
     into("build/dist/composeWeb/productionExecutable")
-    rename { "$DIST_NAME-$DIST_VERSION.jar" }
+    rename { "$DIST_FILENAME.jar" }
 }
 
 tasks.named("composeWebBrowserDistribution").configure {

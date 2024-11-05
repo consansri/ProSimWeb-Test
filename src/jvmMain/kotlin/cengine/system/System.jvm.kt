@@ -13,3 +13,8 @@ actual fun getSystemLineBreak(): String {
 actual fun isAbsolutePathValid(path: String): Boolean {
     TODO("Not yet implemented")
 }
+
+actual fun appTarget(): AppTarget = AppTarget.DESKTOP
+actual fun downloadDesktopApp(fileNameSuffix: String) {
+
+}

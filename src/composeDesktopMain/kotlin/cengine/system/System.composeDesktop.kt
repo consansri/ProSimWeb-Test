@@ -10,3 +10,7 @@ actual fun isAbsolutePathValid(path: String): Boolean {
     val pathObj  = Path(path)
     return pathObj.exists() && pathObj.isDirectory()
 }
+
+actual fun appTarget(): AppTarget =  AppTarget.DESKTOP
+actual fun downloadDesktopApp(fileNameSuffix: String) {
+}
