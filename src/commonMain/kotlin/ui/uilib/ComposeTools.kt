@@ -2,11 +2,8 @@ package ui.uilib
 
 import androidx.compose.animation.core.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.PointerInputScope
-import androidx.compose.ui.input.pointer.changedToDown
-import androidx.compose.ui.input.pointer.changedToUp
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +24,45 @@ object ComposeTools {
             sum += reducer(it)
         }
         return sum
+    }
+
+    fun MutableList<AnnotatedString.Range<SpanStyle>>.insert(index: Int, length: Int) {
+        forEachIndexed { i, range ->
+            when {
+                index > range.end -> {
+                    // Nothing to change
+                }
+
+                index < range.start -> {
+                    this[i] = range.copy(start = range.start + length, end = range.end + length)
+                }
+
+                else -> {
+                    this[i] = range.copy(end = range.end + length)
+                }
+            }
+        }
+    }
+
+    fun MutableList<AnnotatedString.Range<SpanStyle>>.delete(from: Int, to: Int) {
+        val length = to - from
+        val toRemove = mutableListOf<AnnotatedString.Range<SpanStyle>>()
+        forEachIndexed { i, range ->
+            when {
+                from > range.end -> {
+                    // Nothing to change
+                }
+
+                to < range.start -> {
+                    this[i] = range.copy(start = range.start - length, end = range.end - length)
+                }
+
+                else -> {
+                    toRemove.add(range)
+                }
+            }
+        }
+        removeAll(toRemove)
     }
 
     @Composable
@@ -57,22 +93,6 @@ object ComposeTools {
         )
 
         content(rotation)
-    }
-
-    suspend fun PointerInputScope.detectHover(onHover: (Offset) -> Unit) {
-        awaitPointerEventScope {
-            while (true) {
-                val event = awaitPointerEvent()
-                val position = event.changes.first().position
-                if (event.changes.first().changedToHovered()) {
-                    onHover(position)
-                }
-            }
-        }
-    }
-
-    private fun PointerInputChange.changedToHovered(): Boolean {
-        return changedToDown() || changedToUp()
     }
 
 

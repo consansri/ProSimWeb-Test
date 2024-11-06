@@ -3,11 +3,11 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 
 plugins {
-    kotlin("multiplatform") version "2.0.20"
+    kotlin("multiplatform") version "2.0.21"
     id("org.jetbrains.dokka") version "1.9.20"
-    kotlin("plugin.compose") version "2.0.20"
-    id("org.jetbrains.compose") version "1.6.11"
-    kotlin("plugin.serialization") version "2.0.20"
+    kotlin("plugin.compose") version "2.0.21"
+    id("org.jetbrains.compose") version "1.7.0"
+    kotlin("plugin.serialization") version "2.0.21"
     id("com.gradleup.shadow") version "8.3.5"
     distribution
 }
@@ -49,8 +49,8 @@ group = "prosim"
 version = DIST_VERSION
 
 val dokkaVersion = "1.9.20"
-val kotlinVersion = "2.0.20"
-val composeVersion = "1.6.11"
+val kotlinVersion = "2.0.21"
+val composeVersion = "1.7.0"
 val coroutineVersion = "1.9.0-RC.2"
 val datetimeVersion = "0.6.1"
 val serializationVersion = "1.7.2"

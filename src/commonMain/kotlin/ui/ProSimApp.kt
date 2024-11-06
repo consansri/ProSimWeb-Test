@@ -221,7 +221,7 @@ object ProSimApp {
                         modifier = Modifier
                             .widthIn(max = 250.dp)
                     ) {
-                        CLabel(text = "Create New Project", modifier = Modifier.fillMaxWidth(), textStyle = UIState.BaseStyle.current)
+                        CLabel(text = "Create New Project", softWrap = false,modifier = Modifier.fillMaxWidth(), textStyle = UIState.BaseStyle.current)
 
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
@@ -230,7 +230,7 @@ object ProSimApp {
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
 
                         Row(Modifier) {
-                            CLabel(text = "Project Path:", modifier = Modifier.weight(1.0f), textAlign = TextAlign.Left, textStyle = UIState.BaseStyle.current)
+                            CLabel(text = "Project Path:", softWrap = false, modifier = Modifier.weight(1.0f), textAlign = TextAlign.Left, textStyle = UIState.BaseStyle.current)
 
                             Spacer(Modifier.width(UIState.Scale.value.SIZE_INSET_MEDIUM))
 

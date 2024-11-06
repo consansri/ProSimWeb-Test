@@ -31,9 +31,6 @@ class AsmFile(override val file: VirtualFile, override val lang: AsmLang, privat
 
     override fun accept(visitor: PsiElementVisitor) {
         visitor.visitFile(this)
-        ArrayList(children).forEach {
-            it.accept(visitor)
-        }
     }
 
     override fun update() {

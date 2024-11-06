@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.toSize
 import cengine.editor.annotation.Annotation
 import cengine.editor.annotation.Severity
@@ -41,15 +42,21 @@ import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import ui.uilib.ComposeTools
+import ui.uilib.ComposeTools.delete
+import ui.uilib.ComposeTools.insert
 import ui.uilib.UIState
+import ui.uilib.interactable.CButton
+import ui.uilib.params.IconType
+import kotlin.time.measureTime
+import kotlin.time.measureTimedValue
 
 @Composable
 fun CodeEditor(
     file: VirtualFile,
     project: Project,
     codeStyle: TextStyle,
-    codeSmallStyle:  TextStyle,
-    baseSmallStyle:  TextStyle,
+    codeSmallStyle: TextStyle,
+    baseSmallStyle: TextStyle,
     modifier: Modifier = Modifier
 ) {
 
@@ -68,6 +75,7 @@ fun CodeEditor(
 
     var textFieldValue by remember { mutableStateOf(TextFieldValue(file.getAsUTF8String())) }
     var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val spanStyles = remember { mutableListOf<AnnotatedString.Range<SpanStyle>>() }
 
     var lineNumberLabelingBounds by remember { mutableStateOf<Size>(Size.Zero) }
     val (lineCount, setLineCount) = remember { mutableStateOf(0) }
@@ -76,7 +84,6 @@ fun CodeEditor(
     var textFieldSize by remember { mutableStateOf(Size.Zero) }
     var rowHeaderWidth by remember { mutableStateOf<Float>(0f) }
 
-    var currentLine by remember { mutableStateOf(0) }
     var hoverPosition by remember { mutableStateOf<Offset?>(null) }
     var caretOffset by remember { mutableStateOf<Offset>(Offset(0f, 0f)) }
     var currentElement by remember { mutableStateOf<PsiElement?>(null) }
@@ -92,36 +99,35 @@ fun CodeEditor(
     var isCompletionVisible by remember { mutableStateOf(false) }
     var selectedCompletionIndex by remember { mutableStateOf(0) }
 
-    fun buildAnnotatedString(code: String, psiFile: PsiFile? = null): AnnotatedString {
+    fun buildSpanStyles(code: String, psiFile: PsiFile? = null) {
         // Fast Lexing Highlighting
+        spanStyles.clear()
         val hls = emptyList<HLInfo>()// lang?.highlightProvider?.fastHighlight(code) ?: emptyList()
-        val styles = hls.mapNotNull {
+        spanStyles.addAll(hls.mapNotNull {
             if (!it.range.isEmpty()) {
                 AnnotatedString.Range<SpanStyle>(SpanStyle(color = Color(it.color or 0xFF000000.toInt())), it.range.first, it.range.last + 1)
             } else null
-        }
+        })
 
-        if (service != null && psiFile != null) {
-            // Complete Highlighting
-            allAnnotations = service.collectNotations(psiFile)
-            val annotationStyles = allAnnotations.mapNotNull {
-                val annoCodeStyle = it.severity.color ?: CodeStyle.BASE0
-                val style = SpanStyle(textDecoration = TextDecoration.Underline, color = theme.getColor(annoCodeStyle))
-                if (!it.range.isEmpty()) {
-                    AnnotatedString.Range<SpanStyle>(style, it.range.first, it.range.last + 1)
-                } else null
-            }
+        if (service == null || psiFile == null) return
 
-            val highlightStyles = service.collectHighlights(psiFile).mapNotNull { (range, style) ->
-                if (!range.isEmpty()) {
-                    AnnotatedString.Range<SpanStyle>(SpanStyle(color = theme.getColor(style)), range.first, range.last + 1)
-                } else null
-            }
+        // Complete Highlighting
+        allAnnotations = service.collectNotations(psiFile)
+        // Annotation Styles
+        spanStyles.addAll(allAnnotations.mapNotNull {
+            val annoCodeStyle = it.severity.color ?: CodeStyle.BASE0
+            val style = SpanStyle(textDecoration = TextDecoration.Underline, color = theme.getColor(annoCodeStyle))
+            if (!it.range.isEmpty()) {
+                AnnotatedString.Range<SpanStyle>(style, it.range.first, it.range.last + 1)
+            } else null
+        })
 
-            return AnnotatedString(code, annotationStyles + highlightStyles + styles)
-        } else {
-            return AnnotatedString(code, spanStyles = styles)
-        }
+        // Highlight Styles
+        spanStyles.addAll(service.collectHighlights(psiFile).mapNotNull { (range, style) ->
+            if (!range.isEmpty()) {
+                AnnotatedString.Range<SpanStyle>(SpanStyle(color = theme.getColor(style)), range.first, range.last + 1)
+            } else null
+        })
     }
 
     fun onTextChange(new: TextFieldValue) {
@@ -135,6 +141,7 @@ fun CodeEditor(
                 val startIndex = oldText.commonPrefixWith(newText).length
                 val length = newText.length - oldText.length
                 manager?.inserted(file, startIndex, length)
+                spanStyles.insert(startIndex, length)
             }
 
             newText.length < oldText.length -> {
@@ -143,6 +150,7 @@ fun CodeEditor(
                 val startIndex = newText.commonPrefixWith(oldText).length
                 val length = oldText.length - newText.length
                 manager?.deleted(file, startIndex, startIndex + length)
+                spanStyles.delete(startIndex, startIndex + length)
             }
 
             newText != oldText -> {
@@ -154,18 +162,22 @@ fun CodeEditor(
     }
 
     suspend fun locatePSIElement() {
-        val caretPosition = textFieldValue.selection.start
-        val psiFile = manager?.getPsiFile(file)
-        currentElement = if (psiFile != null) {
-            lang?.psiService?.findElementAt(psiFile, caretPosition)
-        } else null
+        val time = measureTime {
+            val caretPosition = textFieldValue.selection.start
+            val psiFile = manager?.getPsiFile(file)
+            currentElement = if (psiFile != null) {
+                lang?.psiService?.findElementAt(psiFile, caretPosition)
+            } else null
+        }
+        if (time.inWholeMilliseconds > 5) nativeLog("locatePSIElement took ${time.inWholeMilliseconds}ms")
     }
 
     fun analyze() {
         coroutineScope.launch {
             withContext(Dispatchers.Default) {
                 manager?.updatePsi(file) {
-                    textFieldValue = textFieldValue.copy(buildAnnotatedString(it.content, it))
+                    buildSpanStyles(it.content, it)
+                    onTextChange(textFieldValue.copy(it.content))
                     locatePSIElement()
                     analyticsAreUpToDate = true
                 }
@@ -185,28 +197,31 @@ fun CodeEditor(
 
         if (!onlyHide) {
             completionOverlayJob = coroutineScope.launch {
-                val layout = textLayout
-                if (layout != null) {
-                    try {
-                        val lineIndex = layout.getLineForOffset(textFieldValue.selection.start)
-                        val lineStart = layout.getLineStart(lineIndex)
-                        val lineContentBefore = textFieldValue.annotatedString.substring(lineStart, textFieldValue.selection.start)
+                val time = measureTime {
+                    val layout = textLayout
+                    if (layout != null) {
+                        try {
+                            val lineIndex = layout.getLineForOffset(textFieldValue.selection.start)
+                            val lineStart = layout.getLineStart(lineIndex)
+                            val lineContentBefore = textFieldValue.annotatedString.substring(lineStart, textFieldValue.selection.start)
 
-                        if (showIfPrefixIsEmpty || lineContentBefore.isNotEmpty()) {
-                            completions = lang?.completionProvider?.fetchCompletions(lineContentBefore, currentElement, manager?.getPsiFile(file)) ?: emptyList()
-                        } else {
-                            completions = emptyList()
+                            if (showIfPrefixIsEmpty || lineContentBefore.isNotEmpty()) {
+                                completions = lang?.completionProvider?.fetchCompletions(lineContentBefore, currentElement, manager?.getPsiFile(file)) ?: emptyList()
+                            } else {
+                                completions = emptyList()
+                            }
+                        } catch (e: Exception) {
+                            nativeWarn("Completion canceled by edit.")
                         }
-                    } catch (e: Exception) {
-                        nativeWarn("Completion canceled by edit.")
                     }
                 }
+
+                if (time.inWholeMilliseconds > 5) nativeLog("fetchCompletions took ${time.inWholeMilliseconds}ms")
             }
         }
     }
 
     with(LocalDensity.current) {
-
         BasicTextField(
             modifier = Modifier
                 .onGloballyPositioned {
@@ -295,11 +310,17 @@ fun CodeEditor(
                 color = theme.COLOR_FG_0
             ),
             visualTransformation = { str ->
-                TransformedText(buildAnnotatedString(str.text, manager?.getPsiFile(file)), OffsetMapping.Identity)
+                val (value, time) = measureTimedValue {
+                    TransformedText(AnnotatedString(str.text, spanStyles), OffsetMapping.Identity)
+                }
+                if (time.inWholeMilliseconds > 5) nativeLog("visualTransformation took ${time.inWholeMilliseconds}ms")
+                value
             },
             onValueChange = { newValue ->
-                // TODO  Performantly get inserted or deleted event with index of insertion (and value) or deletion range
-                onTextChange(newValue)
+                val time = measureTime {
+                    onTextChange(newValue)
+                }
+                if (time.inWholeMilliseconds > 5) nativeLog("onValueChange took ${time.inWholeMilliseconds}ms")
             },
             onTextLayout = { result ->
                 textLayout = result
@@ -314,32 +335,6 @@ fun CodeEditor(
             ) {
                 // Globally Paint Box
 
-                Box(
-                    Modifier.matchParentSize(),
-                    contentAlignment = Alignment.TopEnd
-                ) {
-                    Row(Modifier.padding(scale.SIZE_INSET_SMALL), verticalAlignment = Alignment.CenterVertically) {
-                        if (analyticsAreUpToDate) {
-                            val errors = allAnnotations.count { it.severity == Severity.ERROR }
-                            val warnings = allAnnotations.count { it.severity == Severity.WARNING }
-                            val infos = allAnnotations.count { it.severity == Severity.INFO }
-
-                            Icon(icon.statusFine, "info", Modifier.size(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_GREEN)
-                            Text("$infos", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
-                            Spacer(Modifier.width(scale.SIZE_INSET_SMALL))
-                            Icon(icon.info, "warnings", Modifier.size(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_YELLOW)
-                            Text("$warnings", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
-                            Spacer(Modifier.width(scale.SIZE_INSET_SMALL))
-                            Icon(icon.statusError, "errors", Modifier.size(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_RED)
-                            Text("$errors", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
-                        } else {
-                            ComposeTools.Rotating { rotation ->
-                                Text("CTRL+SHIFT+S to analyze", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
-                                Icon(icon.statusLoading, "loading", Modifier.size(scale.SIZE_CONTROL_SMALL).rotate(rotation), tint = theme.COLOR_FG_0)
-                            }
-                        }
-                    }
-                }
 
                 Box(
                     Modifier.matchParentSize(),
@@ -350,7 +345,7 @@ fun CodeEditor(
                         val line = textLayout?.getLineForOffset(selection.start) ?: 0
                         val column = selection.start - (textLayout?.getLineStart(line) ?: 0)
 
-                        currentElement?.let {element ->
+                        currentElement?.let { element ->
                             val path = service?.path(element) ?: return@let
                             Text(path.joinToString(" > ") { it.pathName }, modifier = Modifier.padding(scale.SIZE_INSET_MEDIUM), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
                         }
@@ -366,8 +361,21 @@ fun CodeEditor(
 
                     // Add a light blue background for the current line
                     textLayout?.let { layout ->
-                        val lineTop = layout.getLineTop(currentLine)
-                        val lineBottom = layout.getLineBottom(currentLine)
+                        val lineTop: Float
+                        val lineBottom: Float
+
+                        if (textFieldValue.selection.collapsed) {
+                            val currentLine = textLayout?.getLineForOffset(textFieldValue.selection.start) ?: -1
+                            lineTop = layout.getLineTop(currentLine)
+                            lineBottom = layout.getLineBottom(currentLine)
+
+                        } else {
+                            val minLine = textLayout?.getLineForOffset(textFieldValue.selection.min) ?: -1
+                            val maxLine = textLayout?.getLineForOffset(textFieldValue.selection.max) ?: -1
+                            lineTop = layout.getLineTop(minLine)
+                            lineBottom = layout.getLineBottom(maxLine)
+                        }
+
                         Box(
                             modifier = Modifier
                                 .offset(y = lineTop.toDp())
@@ -408,7 +416,7 @@ fun CodeEditor(
 
                         Box(
                             modifier = Modifier
-                                .height(textFieldSize.height.toDp())
+                                .height(Dp.Infinity)
                                 .width(scale.SIZE_BORDER_THICKNESS)
                                 .background(theme.COLOR_BORDER)
                         )
@@ -461,25 +469,62 @@ fun CodeEditor(
                         }
                     }
                 }
+
+                Box(
+                    Modifier.align(Alignment.TopEnd)
+                ) {
+                    Row(Modifier.padding(scale.SIZE_INSET_SMALL), verticalAlignment = Alignment.CenterVertically) {
+                        if (analyticsAreUpToDate) {
+                            val errors = allAnnotations.count { it.severity == Severity.ERROR }
+                            val warnings = allAnnotations.count { it.severity == Severity.WARNING }
+                            val infos = allAnnotations.count { it.severity == Severity.INFO }
+
+                            Icon(icon.statusFine, "info", Modifier.height(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_GREEN)
+                            Text("$infos", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
+                            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                            Icon(icon.info, "warnings", Modifier.height(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_YELLOW)
+                            Text("$warnings", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
+                            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                            Icon(icon.statusError, "errors", Modifier.height(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_RED)
+                            Text("$errors", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
+                        } else {
+                            ComposeTools.Rotating { rotation ->
+                                Text("CTRL+SHIFT+S to analyze", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
+                                Icon(icon.statusLoading, "loading", Modifier.size(scale.SIZE_CONTROL_SMALL).rotate(rotation), tint = theme.COLOR_FG_0)
+                                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                                CButton(icon = icon.build, iconType = IconType.SMALL, onClick = {
+                                    analyze()
+                                })
+                            }
+                        }
+                    }
+                }
+
             }
         }
     }
 
     LaunchedEffect(textFieldValue) {
         coroutineScope.launch {
-            caretOffset = textLayout?.getCursorRect(textFieldValue.selection.start)?.bottomCenter ?: Offset(0f, 0f)
-            // Update the current line when the text changes
-            currentLine = textLayout?.getLineForOffset(textFieldValue.selection.start) ?: -1
+            val time = measureTime {
+                caretOffset = textLayout?.getCursorRect(textFieldValue.selection.start)?.bottomCenter ?: Offset(0f, 0f)
+                // Update the current line when the text changes
 
-            file.setAsUTF8String(textFieldValue.text)
 
-            locatePSIElement()
-            fetchCompletions()
+                file.setAsUTF8String(textFieldValue.text)
+
+                locatePSIElement()
+                fetchCompletions()
+            }
+            if (time.inWholeMilliseconds > 5) nativeLog("LaunchedEffect(textFieldValue) took ${time.inWholeMilliseconds}ms")
         }
     }
 
     LaunchedEffect(lineCount) {
-        lineNumberLabelingBounds = textMeasurer.measure(lineCount.toString(), codeSmallStyle).size.toSize()
+        val time = measureTime {
+            lineNumberLabelingBounds = textMeasurer.measure(lineCount.toString(), codeSmallStyle).size.toSize()
+        }
+        if (time.inWholeMilliseconds > 5) nativeLog("LaunchedEffect(lineCount) took ${time.inWholeMilliseconds}ms")
     }
 
     LaunchedEffect(completions) {
@@ -488,23 +533,29 @@ fun CodeEditor(
     }
 
     LaunchedEffect(hoverPosition) {
-        isAnnotationVisible = false
-        localAnnotations = emptySet()
+        val time = measureTime {
+            isAnnotationVisible = false
+            localAnnotations = emptySet()
 
-        hoverPosition?.let { hoverPosition ->
-            val inCodePosition = Offset(hoverPosition.x - rowHeaderWidth, hoverPosition.y)
-            val index = textLayout?.getOffsetForPosition(inCodePosition) ?: return@let
-            val psiFile = manager?.getPsiFile(file) ?: return@let
-            val annotations = service?.collectNotations(psiFile, index) ?: return@let
-            localAnnotations = annotations
+            hoverPosition?.let { hoverPosition ->
+                val inCodePosition = Offset(hoverPosition.x - rowHeaderWidth, hoverPosition.y)
+                val index = textLayout?.getOffsetForPosition(inCodePosition) ?: return@let
+                val psiFile = manager?.getPsiFile(file) ?: return@let
+                val annotations = service?.collectNotations(psiFile, index) ?: return@let
+                localAnnotations = annotations
+            }
         }
+        if (time.inWholeMilliseconds > 5) nativeLog("LaunchedEffect(hoverPosition) took ${time.inWholeMilliseconds}ms")
     }
 
     LaunchedEffect(allAnnotations) {
-        val psiFile = manager?.getPsiFile(file) ?: return@LaunchedEffect
-        allAnnotations.forEach {
-            nativeLog(it.createConsoleMessage(psiFile))
+        val time = measureTime {
+            val psiFile = manager?.getPsiFile(file) ?: return@LaunchedEffect
+            allAnnotations.forEach {
+                nativeLog(it.createConsoleMessage(psiFile))
+            }
         }
+        if (time.inWholeMilliseconds > 5) nativeLog("LaunchedEffect(allAnnotations) took ${time.inWholeMilliseconds}ms")
     }
 
     LaunchedEffect(localAnnotations) {
