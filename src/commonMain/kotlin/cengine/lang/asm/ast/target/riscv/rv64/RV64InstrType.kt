@@ -10,6 +10,7 @@ import cengine.lang.asm.ast.target.riscv.RVConst
 import cengine.lang.asm.ast.target.riscv.RVConst.bit
 import cengine.lang.asm.ast.target.riscv.RVConst.lowest12
 import cengine.lang.asm.ast.target.riscv.RVConst.lowest20
+import cengine.lang.asm.ast.target.riscv.RVConst.lowest4
 import cengine.lang.asm.ast.target.riscv.RVConst.mask12Hi7
 import cengine.lang.asm.ast.target.riscv.RVConst.mask12Lo5
 import cengine.lang.asm.ast.target.riscv.RVConst.mask12bType5
@@ -80,6 +81,9 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
     OR("OR", false, RV64ParamType.RD_RS1_RS2),
     AND("AND", false, RV64ParamType.RD_RS1_RS2),
 
+    FENCE("FENCE", false, RV64ParamType.PRED_SUCC),
+    FENCEI("FENCE.I", false, RV64ParamType.NONE),
+
     // CSR Extension
     CSRRW("CSRRW", false, RV64ParamType.CSR_RD_OFF12_RS1),
     CSRRS("CSRRS", false, RV64ParamType.CSR_RD_OFF12_RS1),
@@ -108,8 +112,9 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
     REMW("REMW", false, RV64ParamType.RD_RS1_RS2),
     REMUW("REMUW", false, RV64ParamType.RD_RS1_RS2),
 
+
     // Pseudo
-    FENCEI("FENCE.I", true, RV64ParamType.PS_NONE),
+
     Nop("NOP", true, RV64ParamType.PS_NONE),
     Mv("MV", true, RV64ParamType.PS_RD_RS1),
     Li64("LI", true, RV64ParamType.PS_RD_LI_I64, bytesNeeded = null),
@@ -651,13 +656,24 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
             }
 
             RV64ParamType.NONE -> {
-                val opcode = RVConst.OPC_OS
-                val imm12 = when (this) {
-                    EBREAK -> 1U
-                    else -> 0U
+                when (this) {
+                    EBREAK, ECALL -> {
+                        val opcode = RVConst.OPC_OS
+                        val imm12 = when (this) {
+                            EBREAK -> 1U
+                            else -> 0U
+                        }
+                        val bundle = (imm12 shl 20) or opcode
+                        builder.currentSection.content.put(bundle)
+                    }
+
+                    FENCEI -> {
+                        val bundle = (RVConst.FUNCT3_FENCE_I shl 12) or RVConst.OPC_FENCE
+                        builder.currentSection.content.put(bundle)
+                    }
+
+                    else -> {}
                 }
-                val bundle = (imm12 shl 20) or opcode
-                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.PS_NONE -> {
@@ -681,10 +697,28 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 }
             }
 
+            RV64ParamType.PRED_SUCC -> {
+                val predUnchecked = exprs[0].evaluate(builder)
+                val succUnchecked = exprs[1].evaluate(builder)
+                if (!predUnchecked.checkSizeSignedOrUnsigned(Size.Bit4)) {
+                    exprs[0].addError("$predUnchecked exceeds 4 Bit!")
+                }
+
+                if (!succUnchecked.checkSizeSignedOrUnsigned(Size.Bit4)) {
+                    exprs[1].addError("$succUnchecked exceeds 4 Bit!")
+                }
+
+                val pred = predUnchecked.getResized(Size.Bit4).toBin().toULong().lowest4()
+                val succ = succUnchecked.getResized(Size.Bit4).toBin().toULong().lowest4()
+                val bundle = (pred shl 24) or (succ shl 20) or RVConst.OPC_FENCE
+                builder.currentSection.content.put(bundle)
+            }
+
             RV64ParamType.RS1_RS2_LBL -> {} // Will be evaluated later
             RV64ParamType.PS_RS1_Jlbl -> {} // Will be evaluated later
             RV64ParamType.PS_RD_Albl -> {} // Will be evaluated later
             RV64ParamType.PS_lbl -> {} // Will be evaluated later
+
         }
 
         if (labelDependent) {

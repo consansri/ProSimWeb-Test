@@ -20,6 +20,8 @@ data object RVConst {
     const val OPC_ARITH_IMM = 0b0010011U
     const val OPC_ARITH_IMM_WORD = 0b0011011U
 
+    const val OPC_FENCE = 0b0001111U
+
     /**
      * FUNCT3 CONSTANTS
      */
@@ -69,6 +71,8 @@ data object RVConst {
     const val FUNCT3_CSR_RWI = 0b101U
     const val FUNCT3_CSR_RSI = 0b110U
     const val FUNCT3_CSR_RCI = 0b111U
+
+    const val FUNCT3_FENCE_I = 0b001U
 
     /**
      * FUNCT7 CONSTANTS
@@ -173,6 +177,7 @@ data object RVConst {
     fun UInt.lowest12(): UInt = this and 0b111111111111U
     fun UInt.lowest20(): UInt = this and 0b11111111111111111111U
 
+    fun ULong.lowest4(): UInt = this.toUInt().lowest4()
     fun ULong.lowest12(): UInt = this.toUInt().lowest12()
     fun ULong.lowest20(): UInt = this.toUInt().lowest20()
 

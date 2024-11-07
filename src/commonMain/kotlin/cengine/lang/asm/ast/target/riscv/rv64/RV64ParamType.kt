@@ -89,6 +89,13 @@ enum class RV64ParamType(val pseudo: Boolean, val exampleString: String, val rul
             SpecNode(ASNodeType.INT_EXPR)
         )
     }),
+    PRED_SUCC(false, "pred, succ",  Rule{
+        Seq(
+            SpecNode(ASNodeType.INT_EXPR),
+            Specific(","),
+            SpecNode(ASNodeType.INT_EXPR),
+        )
+    }),
     CSR_RD_OFF12_RS1(
         false, "rd, csr12, rs1",
         Rule {

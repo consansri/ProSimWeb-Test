@@ -92,6 +92,14 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
             )
         }) ,
 
+    PRED_SUCC(false, "pred, succ",  Rule{
+        Seq(
+            SpecNode(ASNodeType.INT_EXPR),
+            Specific(","),
+            SpecNode(ASNodeType.INT_EXPR),
+        )
+    }),
+
     // PSEUDO INSTRUCTIONS
     RS1_RS2_LBL(
         true, "rs1, rs2, jlabel", Rule {
