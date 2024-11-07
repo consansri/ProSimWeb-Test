@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast.target.riscv
 
-data object RVConst{
+data object RVConst {
     /**
      * OPCODE CONSTANTS
      */
@@ -96,7 +96,7 @@ data object RVConst{
     const val R_RISCV_LO12_I = 27U
     const val R_RISCV_LO12_S = 28U
 
-    enum class RelocType{
+    enum class RelocType {
         R_RISCV_NONE,
         R_RISCV_32,
         R_RISCV_64,
@@ -141,7 +141,6 @@ data object RVConst{
         RVC_JUMP,
 
 
-
     }
 
 
@@ -162,11 +161,21 @@ data object RVConst{
      */
     fun UInt.bit(index: Int): UInt = (this shr (index - 1)) and 1U
 
+    /**
+     * @param index 1 (lowest) .. 64 (highest possible)
+     */
+    fun ULong.bit(index: Int): ULong = (this shr (index - 1)) and 1U
+
     fun UInt.lowest4(): UInt = this and 0b1111U
     fun UInt.lowest6(): UInt = this and 0b111111U
     fun UInt.lowest8(): UInt = this and 0b11111111U
-
     fun UInt.lowest10(): UInt = this and 0b1111111111U
+    fun UInt.lowest12(): UInt = this and 0b111111111111U
+    fun UInt.lowest20(): UInt = this and 0b11111111111111111111U
+
+    fun ULong.lowest12(): UInt = this.toUInt().lowest12()
+    fun ULong.lowest20(): UInt = this.toUInt().lowest20()
+
 
     /**
      * Expects the relative target offset.

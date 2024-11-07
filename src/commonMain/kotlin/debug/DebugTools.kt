@@ -12,7 +12,7 @@ object DebugTools {
     const val RV32_showBinMapperInfo = false
 
     const val RV64_showBinMapperInfo = false
-    const val RV64_showLIDecisions = false
+    const val RV64_showLIDecisions = true
 
     /**
      * CENGINE

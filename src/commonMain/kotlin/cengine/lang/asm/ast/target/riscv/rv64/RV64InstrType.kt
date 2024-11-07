@@ -8,6 +8,8 @@ import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVConst
 import cengine.lang.asm.ast.target.riscv.RVConst.bit
+import cengine.lang.asm.ast.target.riscv.RVConst.lowest12
+import cengine.lang.asm.ast.target.riscv.RVConst.lowest20
 import cengine.lang.asm.ast.target.riscv.RVConst.mask12Hi7
 import cengine.lang.asm.ast.target.riscv.RVConst.mask12Lo5
 import cengine.lang.asm.ast.target.riscv.RVConst.mask12bType5
@@ -19,7 +21,6 @@ import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.obj.elf.ELF32_Shdr
 import cengine.lang.obj.elf.ELF64_Shdr
 import cengine.lang.obj.elf.ELFBuilder
-import cengine.util.integer.Bin
 import cengine.util.integer.Size
 import cengine.util.integer.toUInt
 import cengine.util.integer.toValue
@@ -384,8 +385,8 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
                 when {
                     imm.checkSizeSigned(Size.Bit12) -> {
-                        val imm12 = imm.toBin().getResized(Size.Bit12).toUInt() ?: 0U
-                        if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 12 Bit Signed")
+                        val imm12 = imm.toBin().toULong().lowest12()
+                        if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 12 Bit Signed for 0x${imm12.toString(16)}")
                         val opcode = RVConst.OPC_ARITH_IMM
                         val funct3 = RVConst.FUNCT3_OPERATION
 
@@ -394,15 +395,15 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                     }
 
                     imm.checkSizeSigned(Size.Bit32) -> {
-                        val imm32 = imm.getResized(Size.Bit32).toBin()
-                        if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 32 Bit Signed")
+                        val imm32 = imm.getResized(Size.Bit32).toBin().toULong()
+                        if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 32 Bit Signed for 0x${imm32.toString(16)}")
                         // resized = upper + lower
                         // upper = resized - lower
-                        val lower = imm32.getResized(Size.Bit12).getResized(Size.Bit32)
-                        val upper = (imm32 - lower).toBin()
+                        val lower = imm32.lowest12()
+                        val upper = (imm32 - lower).toUInt()
 
-                        val imm20 = Bin(upper.toRawString().substring(0, 20), Size.Bit20).toUInt() ?: 0U
-                        val imm12 = Bin(lower.toRawString().substring(20), Size.Bit12).toUInt() ?: 0U
+                        val imm20 = upper.shr(12)
+                        val imm12 = lower.lowest12()
 
                         // Build LUI Bundle
                         val luiOPC = RVConst.OPC_LUI
@@ -415,8 +416,8 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                     }
 
                     imm.checkSizeSigned(Size.Bit44) -> {
-                        val resized = imm.toBin().getResized(Size.Bit44)
-                        if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 44 Bit Signed for ${resized.toHex()}")
+                        val resized = imm.toBin().getResized(Size.Bit44).toULong()
+                        if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 44 Bit Signed for 0x${resized.toString(16)}")
                         /**
                          *  val64 = lui + addiw + addi3 + addi2 + addi1
                          *
@@ -425,21 +426,16 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                          *  SLLI 12
                          *  ADDI
                          */
-                        val l1 = resized.getResized(Size.Bit12).getResized(Size.Bit44)
-                        val l2 = resized.shr(12).getResized(Size.Bit12).getResized(Size.Bit44) + (l1.toBin().getBit(0) ?: Bin("0", Size.Bit1))
-                        val l3 = resized.shr(12 + 12).getResized(Size.Bit20).getResized(Size.Bit44) + (l2.toBin().getBit(0) ?: Bin("0", Size.Bit1))
-
-                        val l1Int = l1.toUInt() ?: 0U
-                        val l2Int = l2.toBin().toUInt() ?: 0U
-                        val l3Int = l3.toBin().toUInt() ?: 0U
-
+                        val l1 = resized.lowest12()
+                        val l2 = resized.shr(12).lowest12() + l1.bit(12)
+                        val l3 = resized.shr(12 + 12).lowest20() + l2.bit(12)
 
                         // Build LUI Bundle
-                        val luiBundle = (l3Int shl 12) or (rd shl 7) or RVConst.OPC_LUI
+                        val luiBundle = (l3 shl 12) or (rd shl 7) or RVConst.OPC_LUI
                         builder.currentSection.content.put(luiBundle)
 
                         // Build ADDIW Bundle
-                        val addiwBundle = (l2Int shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM_WORD
+                        val addiwBundle = (l2 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM_WORD
                         builder.currentSection.content.put(addiwBundle)
 
                         // Build SLLI Bundle
@@ -447,13 +443,13 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         builder.currentSection.content.put(slliBundle)
 
                         // Build ADDI Bundle
-                        val addiBundle = (l1Int shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
+                        val addiBundle = (l1 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
                         builder.currentSection.content.put(addiBundle)
                     }
 
                     imm.checkSizeSigned(Size.Bit56) -> {
-                        val resized = imm.toBin().getResized(Size.Bit56)
-                        if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 56 Bit Signed for ${resized.toHex()}")
+                        val resized = imm.toBin().getResized(Size.Bit56).toULong()
+                        if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 56 Bit Signed for ${resized.toString(16)}")
                         /**
                          *  val64 = lui + addiw + addi3 + addi2 + addi1
                          *
@@ -464,22 +460,17 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                          *  SLLI 12
                          *  ADDI
                          */
-                        val l1 = resized.getResized(Size.Bit12).getResized(Size.Bit56)
-                        val l2 = resized.shr(12).getResized(Size.Bit12).getResized(Size.Bit56) + (l1.toBin().getBit(0) ?: Bin("0", Size.Bit1))
-                        val l3 = resized.shr(12 + 12).getResized(Size.Bit12).getResized(Size.Bit56) + (l2.toBin().getBit(0) ?: Bin("0", Size.Bit1))
-                        val l4 = resized.shr(12 + 12 + 12).getResized(Size.Bit20).getResized(Size.Bit56) + (l3.toBin().getBit(0) ?: Bin("0", Size.Bit1))
-
-                        val l1Int = l1.toUInt() ?: 0U
-                        val l2Int = l2.toBin().toUInt() ?: 0U
-                        val l3Int = l3.toBin().toUInt() ?: 0U
-                        val l4Int = l4.toBin().toUInt() ?: 0U
+                        val l1 = resized.lowest12()
+                        val l2 = resized.shr(12).lowest12() + l1.bit(12)
+                        val l3 = resized.shr(12 + 12).lowest12() + l2.bit(12)
+                        val l4 = resized.shr(12 + 12 + 12).lowest20() + l3.bit(12)
 
                         // Build LUI Bundle
-                        val luiBundle = (l4Int shl 12) or (rd shl 7) or RVConst.OPC_LUI
+                        val luiBundle = (l4 shl 12) or (rd shl 7) or RVConst.OPC_LUI
                         builder.currentSection.content.put(luiBundle)
 
                         // Build ADDIW Bundle
-                        val addiwBundle = (l3Int shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM_WORD
+                        val addiwBundle = (l3 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM_WORD
                         builder.currentSection.content.put(addiwBundle)
 
                         // Build SLLI Bundle
@@ -487,20 +478,20 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         builder.currentSection.content.put(slliBundle)
 
                         // Build ADDI Bundle
-                        val addiBundle1 = (l2Int shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
+                        val addiBundle1 = (l2 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
                         builder.currentSection.content.put(addiBundle1)
 
                         // Build SLLI Bundle
                         builder.currentSection.content.put(slliBundle)
 
                         // Build ADDI Bundle
-                        val addiBundle2 = (l1Int shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
+                        val addiBundle2 = (l1 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
                         builder.currentSection.content.put(addiBundle2)
                     }
 
-                    imm.checkSizeSigned(Size.Bit64) -> {
-                        val resized = imm.toBin().getUResized(Size.Bit64)
-                        if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 64 Bit Signed")
+                    else -> {
+                        val resized = imm.toBin().getUResized(Size.Bit64).toULong()
+                        if (DebugTools.RV64_showLIDecisions) nativeLog("Decided 64 Bit Signed for ${resized.toString(16)}")
                         /**
                          *  val64 = lui + addiw + addi3 + addi2 + addi1
                          *
@@ -508,30 +499,24 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                          *  ADDIW
                          *  SLLI 12
                          *  ADDI
-                         *  SLLI 13
+                         *  SLLI 12
                          *  ADDI
                          *  SLLI 12
                          *  ADDI
                          */
 
-                        val l1 = resized.getResized(Size.Bit12).getResized(Size.Bit64)
-                        val l2 = resized.shr(12).getResized(Size.Bit12).getResized(Size.Bit64) + (l1.toBin().getBit(0) ?: Bin("0", Size.Bit1))
-                        val l3 = resized.shr(12 + 13).getResized(Size.Bit12).getResized(Size.Bit64) + (l2.toBin().getBit(0) ?: Bin("0", Size.Bit1))
-                        val l4 = resized.shr(12 + 13 + 12).getResized(Size.Bit12).getResized(Size.Bit64) + (l3.toBin().getBit(0) ?: Bin("0", Size.Bit1))
-                        val l5 = resized.shr(12 + 13 + 12 + 12) + (l4.toBin().getBit(0) ?: Bin("0", Size.Bit1))
-
-                        val l1Int = l1.toUInt() ?: 0U
-                        val l2Int = l2.toBin().toUInt() ?: 0U
-                        val l3Int = l3.toBin().toUInt() ?: 0U
-                        val l4Int = l4.toBin().toUInt() ?: 0U
-                        val l5Int = l5.toBin().toUInt() ?: 0U
+                        val l1 = resized.lowest12()
+                        val l2 = resized.shr(12).lowest12() + l1.bit(12)
+                        val l3 = resized.shr(12 + 12).lowest12() + l2.bit(12)
+                        val l4 = resized.shr(12 + 12 + 12).lowest12() + l3.bit(12)
+                        val l5 = resized.shr(12 + 12 + 12 + 12).toUInt() + l4.bit(12)
 
                         // Build LUI Bundle
-                        val luiBundle = (l5Int shl 12) or (rd shl 7) or RVConst.OPC_LUI
+                        val luiBundle = (l5 shl 12) or (rd shl 7) or RVConst.OPC_LUI
                         builder.currentSection.content.put(luiBundle)
 
                         // Build ADDIW Bundle
-                        val addiwBundle = (l4Int shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM_WORD
+                        val addiwBundle = (l4 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM_WORD
                         builder.currentSection.content.put(addiwBundle)
 
                         // Build SLLI Bundle
@@ -539,22 +524,21 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         builder.currentSection.content.put(slliBundleC)
 
                         // Build ADDI Bundle
-                        val addiBundle1 = (l3Int shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
+                        val addiBundle1 = (l3 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
                         builder.currentSection.content.put(addiBundle1)
 
                         // Build SLLI Bundle
-                        val slliBundleD = (0U shl 25) or (0xDU shl 20) or (rd shl 15) or (RVConst.FUNCT3_SHIFT_LEFT shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
-                        builder.currentSection.content.put(slliBundleD)
+                        builder.currentSection.content.put(slliBundleC)
 
                         // Build ADDI Bundle
-                        val addiBundle2 = (l2Int shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
+                        val addiBundle2 = (l2 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
                         builder.currentSection.content.put(addiBundle2)
 
                         // Build SLLI Bundle
                         builder.currentSection.content.put(slliBundleC)
 
                         // Build ADDI Bundle
-                        val addiBundle3 = (l1Int shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
+                        val addiBundle3 = (l1 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
                         builder.currentSection.content.put(addiBundle3)
                     }
                 }

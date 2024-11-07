@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import emulator.kit.nativeLog
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -36,7 +35,6 @@ class Scaling(val scale: Float = 1f) {
 
             fun scale(delta: Float) {
                 val scaleOffset = delta  / 10000
-                nativeLog("Scale: $accumulatedScale = ${accumulatedScale + scaleOffset}")
                 if (accumulatedScale + scaleOffset in BOUNDS) {
                     accumulatedScale += scaleOffset
                 }
