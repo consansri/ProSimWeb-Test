@@ -2,8 +2,13 @@ package ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -163,12 +168,37 @@ object ProSimApp {
                         Spacer(modifier = Modifier.height(8.dp))
 
                         currentProjects.forEach {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                CButton(
-                                    modifier = Modifier,
-                                    onClick = { onProjectSelected(it) },
-                                    icon = UIState.Icon.value.chevronRight,
-                                    text = it.absRootPath
+                            val interactionSource = remember { MutableInteractionSource() }
+                            val isHovered by interactionSource.collectIsHoveredAsState()
+
+                            Row(
+                                Modifier
+                                    /*.background(if (isHovered) theme.COLOR_SELECTION else Color.Transparent, RoundedCornerShape(scale.SIZE_CORNER_RADIUS))*/
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onProjectSelected(it)
+                                    }
+                                    .hoverable(interactionSource),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(UIState.Icon.value.chevronRight, ">", Modifier.size(scale.SIZE_CONTROL_MEDIUM))
+
+                                CLabel(
+                                    modifier = Modifier.weight(1.0f),
+                                    text = it.absRootPath,
+                                    textAlign = TextAlign.Left,
+                                    horizontalArrangement = Arrangement.Start,
+                                    softWrap = false
+                                )
+
+                                CLabel(
+                                    modifier = Modifier.weight(0.5f),
+                                    icon = UIState.Icon.value.processor,
+                                    text = it.target,
+                                    textAlign = TextAlign.Left,
+                                    textStyle = UIState.BaseSmallStyle.current,
+                                    horizontalArrangement = Arrangement.Start,
+                                    softWrap = false
                                 )
 
                                 CButton(icon = UIState.Icon.value.close, onClick = {
@@ -221,7 +251,7 @@ object ProSimApp {
                         modifier = Modifier
                             .widthIn(max = 250.dp)
                     ) {
-                        CLabel(text = "Create New Project", softWrap = false,modifier = Modifier.fillMaxWidth(), textStyle = UIState.BaseStyle.current)
+                        CLabel(text = "Create New Project", softWrap = false, modifier = Modifier.fillMaxWidth(), textStyle = UIState.BaseStyle.current)
 
                         Spacer(modifier = Modifier.height(UIState.Scale.value.SIZE_INSET_MEDIUM))
 

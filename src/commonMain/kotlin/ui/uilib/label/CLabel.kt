@@ -32,6 +32,7 @@ fun CLabel(
     textDecoration: TextDecoration = TextDecoration.None,
     iconType: IconType = IconType.SMALL,
     textStyle: TextStyle = UIState.BaseStyle.current,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
     softWrap: Boolean = true,
     active: Boolean = true
 ) {
@@ -47,7 +48,7 @@ fun CLabel(
             .background(Color.Transparent, shape = RoundedCornerShape(scaling.SIZE_CORNER_RADIUS))
             .padding(scaling.SIZE_INSET_MEDIUM),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = horizontalArrangement
     ) {
 
         if (icon != null) {

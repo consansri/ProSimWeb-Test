@@ -365,12 +365,10 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
                 val luiOPC = RVConst.OPC_LUI
                 val luiBundle = (hi20 shl 12) or (rd shl 7) or luiOPC
-
                 builder.currentSection.content.put(luiBundle)
 
                 val addiOPC = RVConst.OPC_ARITH_IMM
                 val addiFUNCT3 = RVConst.FUNCT3_OPERATION
-
                 val addiBundle = (lo12 shl 20) or (rd shl 15) or (addiFUNCT3 shl 12) or (rd shl 7) or addiOPC
                 builder.currentSection.content.put(addiBundle)
             }
