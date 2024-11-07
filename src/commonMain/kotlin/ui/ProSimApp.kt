@@ -181,7 +181,7 @@ object ProSimApp {
                                     .hoverable(interactionSource),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(UIState.Icon.value.chevronRight, ">", Modifier.size(scale.SIZE_CONTROL_MEDIUM))
+                                Icon(UIState.Icon.value.chevronRight, ">", Modifier.size(scale.SIZE_CONTROL_MEDIUM), tint = theme.COLOR_FG_1)
 
                                 CLabel(
                                     modifier = Modifier.weight(1.0f),
@@ -201,9 +201,14 @@ object ProSimApp {
                                     softWrap = false
                                 )
 
-                                CButton(icon = UIState.Icon.value.close, onClick = {
-                                    currentProjects -= it
-                                })
+                                CButton(
+                                    icon = UIState.Icon.value.close,
+                                    iconType = IconType.SMALL,
+                                    onClick = {
+                                        currentProjects -= it
+                                    },
+                                    iconTint = theme.COLOR_FG_1
+                                )
                             }
                         }
 

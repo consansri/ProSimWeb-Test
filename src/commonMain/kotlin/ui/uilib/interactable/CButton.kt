@@ -1,6 +1,5 @@
 package ui.uilib.interactable
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
@@ -9,6 +8,7 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -29,9 +28,10 @@ fun CButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
+    iconType: IconType = IconType.MEDIUM,
+    iconTint: Color? = null,
     text: String? = null,
     textAlign: TextAlign = TextAlign.Center,
-    iconType: IconType = IconType.MEDIUM,
     textStyle: TextStyle = UIState.BaseStyle.current,
     softWrap: Boolean = false,
     withHoverBg: Boolean = true,
@@ -69,11 +69,11 @@ fun CButton(
     ) {
 
         if (icon != null) {
-            Image(
+            Icon(
                 icon,
-                colorFilter = ColorFilter.tint(theme.COLOR_FG_0),
+                contentDescription = "Icon",
+                tint = iconTint ?: UIState.Theme.value.COLOR_FG_0,
                 modifier = Modifier.size(iconType.getSize()),
-                contentDescription = "Add Icon"
             )
         }
 
