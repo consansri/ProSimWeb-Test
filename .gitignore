@@ -3,6 +3,7 @@ build/
 .gradle/
 .idea/
 shell/
+premu/
 .kotlin
 .classpath
 .project
