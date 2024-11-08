@@ -1,21 +1,21 @@
 package ui.uilib.editor
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -27,7 +27,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.toSize
 import cengine.editor.annotation.Annotation
 import cengine.editor.annotation.Severity
@@ -37,6 +36,7 @@ import cengine.lang.asm.CodeStyle
 import cengine.project.Project
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiFile
+import cengine.psi.core.PsiReference
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
@@ -87,6 +87,7 @@ fun CodeEditor(
     var hoverPosition by remember { mutableStateOf<Offset?>(null) }
     var caretOffset by remember { mutableStateOf<Offset>(Offset(0f, 0f)) }
     var currentElement by remember { mutableStateOf<PsiElement?>(null) }
+    var references by remember { mutableStateOf<List<PsiReference>>(emptyList()) }
 
     var analyticsAreUpToDate by remember { mutableStateOf(false) }
     var annotationOverlayJob by remember { mutableStateOf<Job?>(null) }
@@ -98,6 +99,7 @@ fun CodeEditor(
     var completions by remember { mutableStateOf<List<Completion>>(emptyList()) }
     var isCompletionVisible by remember { mutableStateOf(false) }
     var selectedCompletionIndex by remember { mutableStateOf(0) }
+
 
     fun buildSpanStyles(code: String, psiFile: PsiFile? = null) {
         // Fast Lexing Highlighting
@@ -334,8 +336,6 @@ fun CodeEditor(
                     .fillMaxSize()
             ) {
                 // Globally Paint Box
-
-
                 Box(
                     Modifier.matchParentSize(),
                     contentAlignment = Alignment.BottomEnd
@@ -365,13 +365,13 @@ fun CodeEditor(
                         val lineBottom: Float
 
                         if (textFieldValue.selection.collapsed) {
-                            val currentLine = textLayout?.getLineForOffset(textFieldValue.selection.start) ?: -1
+                            val currentLine = layout.getLineForOffset(textFieldValue.selection.start)
                             lineTop = layout.getLineTop(currentLine)
                             lineBottom = layout.getLineBottom(currentLine)
 
                         } else {
-                            val minLine = textLayout?.getLineForOffset(textFieldValue.selection.min) ?: -1
-                            val maxLine = textLayout?.getLineForOffset(textFieldValue.selection.max) ?: -1
+                            val minLine = layout.getLineForOffset(textFieldValue.selection.min)
+                            val maxLine = layout.getLineForOffset(textFieldValue.selection.max)
                             lineTop = layout.getLineTop(minLine)
                             lineBottom = layout.getLineBottom(maxLine)
                         }
@@ -416,7 +416,7 @@ fun CodeEditor(
 
                         Box(
                             modifier = Modifier
-                                .height(Dp.Infinity)
+                                .height(textFieldSize.height.toDp())
                                 .width(scale.SIZE_BORDER_THICKNESS)
                                 .background(theme.COLOR_BORDER)
                         )
@@ -424,8 +424,27 @@ fun CodeEditor(
                         Box(
                             Modifier.fillMaxWidth()
                                 .horizontalScroll(scrollHorizontal)
-
                         ) {
+                            textLayout?.let { layout ->
+                                // Add marks from references
+
+                                if (references.isEmpty()) return@let
+                                val root = references.firstOrNull()?.referencedElement ?: return@let
+
+                                Canvas(Modifier.size(layout.size.toSize().toDpSize())) {
+                                    val rootRange = root.range
+                                    val rootPath = layout.getPathForRange(rootRange.first, rootRange.last + 1)
+                                    drawPath(rootPath, theme.COLOR_SEARCH_RESULT, style = Fill)
+
+                                    references.forEach {
+                                        val range = it.element.range
+                                        val path = layout.getPathForRange(range.first, range.last + 1)
+
+                                        drawPath(path, theme.COLOR_SEARCH_RESULT, style = Fill)
+                                    }
+                                }
+                            }
+
                             Box(Modifier
                                 .pointerInput(Unit) {
                                     awaitPointerEventScope {
@@ -470,8 +489,11 @@ fun CodeEditor(
                     }
                 }
 
-                Box(
-                    Modifier.align(Alignment.TopEnd)
+                Column(
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .fillMaxHeight(),
+                    horizontalAlignment = Alignment.End
                 ) {
                     Row(Modifier.padding(scale.SIZE_INSET_SMALL), verticalAlignment = Alignment.CenterVertically) {
                         if (analyticsAreUpToDate) {
@@ -498,8 +520,59 @@ fun CodeEditor(
                             }
                         }
                     }
-                }
 
+
+                    // Draw Vertical ScrollBar
+
+                    val containerHeight = scrollVertical.maxValue.toFloat() + scrollVertical.viewportSize.toFloat()
+                    val scrollRatio = if (containerHeight == 0f) 0f else scrollVertical.value.toFloat() / containerHeight
+
+                    // Calculate scrollbar thumb height based on the content height and viewport
+                    val thumbHeightRatio = if (containerHeight == 0f) 1f else scrollVertical.viewportSize.toFloat() / containerHeight
+                    val thumbHeightPx = thumbHeightRatio * scrollVertical.viewportSize.toFloat()
+
+                    Canvas(Modifier.fillMaxHeight().width(scale.SIZE_CONTROL_MEDIUM)
+                        .pointerInput(Unit) {
+                            detectVerticalDragGestures { _, dragAmount ->
+                                // Calculate new scroll position based on drag amount
+                                val newScroll = (scrollVertical.value + (dragAmount / thumbHeightRatio)).toInt().coerceIn(0, scrollVertical.maxValue)
+                                coroutineScope.launch {
+                                    scrollVertical.scrollTo(newScroll)
+                                }
+                            }
+                        }) {
+                        // Draw the scrollbar thumb
+                        drawRoundRect(
+                            color = theme.COLOR_FG_1,
+                            style = Fill,
+                            topLeft = Offset(x = size.width / 2, y = scrollRatio * size.height),
+                            size = size.copy(width = size.width / 2, height = thumbHeightPx),
+                            cornerRadius = CornerRadius(scale.SIZE_CORNER_RADIUS.value, scale.SIZE_CORNER_RADIUS.value)
+                        )
+
+                        // Draw References
+                        textLayout?.let { layout ->
+                            val root = references.firstOrNull()?.referencedElement ?: return@let
+                            val rootRange = root.range
+                            val rootLine = layout.getLineForOffset(rootRange.first)
+                            val rootRatioTop = layout.getLineTop(rootLine) / layout.size.height
+                            val rootRatioBottom = layout.getLineBottom(rootLine) / layout.size.height
+                            val rootRatioHeight = rootRatioBottom - rootRatioTop
+
+                            drawRect(theme.COLOR_SEARCH_RESULT, topLeft = Offset(0f, rootRatioTop * size.height), size = Size(size.width, rootRatioHeight * size.height), style = Fill)
+
+                            references.forEach {
+                                val range = it.element.range
+                                val line = layout.getLineForOffset(range.first)
+                                val ratioTop = layout.getLineTop(line) / layout.size.height
+                                val ratioBottom = layout.getLineBottom(line) / layout.size.height
+                                val ratioHeight = ratioBottom - ratioTop
+
+                                drawRect(theme.COLOR_SEARCH_RESULT, topLeft = Offset(0f, ratioTop * size.height), size = Size(size.width, ratioHeight * size.height), style = Fill)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -560,6 +633,23 @@ fun CodeEditor(
 
     LaunchedEffect(localAnnotations) {
         isAnnotationVisible = localAnnotations.isNotEmpty()
+    }
+
+    LaunchedEffect(currentElement) {
+        // Add marks from references
+        currentElement?.let { element ->
+            val root = if (element is PsiReference) {
+                element.referencedElement
+            } else {
+                element
+            }
+
+            references = if (root == null) {
+                emptyList()
+            } else {
+                service?.findReferences(root) ?: emptyList()
+            }
+        }
     }
 }
 

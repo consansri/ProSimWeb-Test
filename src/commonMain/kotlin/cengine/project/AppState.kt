@@ -1,7 +1,6 @@
 package cengine.project
 
 import kotlinx.serialization.Serializable
-import ui.ViewType
 import ui.uilib.scale.Scaling
 import ui.uilib.theme.LightTheme
 import ui.uilib.theme.Theme
@@ -11,7 +10,6 @@ data class AppState(
     val scale: Float = 1.0f,
     val theme: String = LightTheme.name,
     val currentlyOpened: Int? = null,
-    val viewType: ViewType = ViewType.IDE,
     val projectStates: List<ProjectState> = listOf()
 ) {
 

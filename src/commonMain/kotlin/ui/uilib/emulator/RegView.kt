@@ -6,7 +6,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import cengine.util.integer.Value
@@ -109,7 +108,7 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
         ) {
             regs.forEach { reg ->
                 key("reg:${reg.names + reg.aliases}:$numberFormat") {
-                    RegRow(reg, numberFormat, valueHScroll, showDescription, UIState.CodeStyle.current, UIState.BaseStyle.current, UIState.BaseSmallStyle.current)
+                    RegRow(reg, numberFormat, valueHScroll, showDescription)
                 }
             }
         }
@@ -126,7 +125,7 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
 }
 
 @Composable
-fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: ScrollState, showDescription: Boolean, codeStyle: TextStyle, baseStyle: TextStyle, baseSmallStyle: TextStyle) {
+fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: ScrollState, showDescription: Boolean) {
     val regState by reg.variable.state
 
     fun getRegString(): String {
@@ -152,7 +151,7 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
             modifier = Modifier.weight(0.4f),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(regNames, Modifier.fillMaxWidth(), softWrap = false, fontFamily = codeStyle.fontFamily, color = codeStyle.color, fontSize = codeStyle.fontSize, textAlign = TextAlign.Left)
+            Text(regNames, Modifier.fillMaxWidth(), softWrap = false, fontFamily = UIState.CodeStyle.current.fontFamily, color = UIState.Theme.value.COLOR_FG_0, fontSize = UIState.CodeStyle.current.fontSize, textAlign = TextAlign.Left)
         }
 
         Box(
@@ -160,10 +159,8 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
                 .horizontalScroll(valueHScroll),
             contentAlignment = Alignment.Center
         ) {
-            // TODO Replace CLabel with a CInput which accepts a specific numberformat which only allows certain input chars
             CInput(
                 value = regValue,
-                textStyle = codeStyle,
                 onValueChange = { newVal ->
                     regValue = newVal
                 },
@@ -183,7 +180,7 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
             modifier = Modifier.weight(0.1f),
             contentAlignment = Alignment.Center
         ) {
-            Text(reg.callingConvention.displayName, Modifier.fillMaxWidth(), softWrap = false, fontFamily = baseStyle.fontFamily, color = baseStyle.color, fontSize = baseStyle.fontSize, textAlign = TextAlign.Center)
+            Text(reg.callingConvention.displayName, Modifier.fillMaxWidth(), softWrap = false, fontFamily = UIState.BaseStyle.current.fontFamily, color = UIState.Theme.value.COLOR_FG_0, fontSize = UIState.BaseStyle.current.fontSize, textAlign = TextAlign.Center)
         }
 
         if (showDescription) {
@@ -191,7 +188,7 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
                 modifier = Modifier.weight(0.30f),
                 contentAlignment = Alignment.Center
             ) {
-                Text(reg.description, Modifier.fillMaxWidth(), softWrap = false, fontFamily = baseSmallStyle.fontFamily, color = baseSmallStyle.color, fontSize = baseSmallStyle.fontSize, textAlign = TextAlign.Left)
+                Text(reg.description, Modifier.fillMaxWidth(), softWrap = false, fontFamily = UIState.BaseSmallStyle.current.fontFamily, color = UIState.Theme.value.COLOR_FG_0, fontSize = UIState.BaseSmallStyle.current.fontSize, textAlign = TextAlign.Left)
             }
         } else {
             Spacer(Modifier.weight(0.05f))

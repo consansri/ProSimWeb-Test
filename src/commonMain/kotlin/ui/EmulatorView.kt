@@ -15,13 +15,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
 import cengine.lang.obj.elf.ELFFile
 import cengine.lang.obj.mif.MifBuilder
 import cengine.project.Project
+import cengine.project.ProjectStateManager.update
+import cengine.project.ProjectStateManager.updateEmu
 import cengine.vfs.FPath
 import emulator.kit.Architecture
 import emulator.kit.nativeError
+import kotlinx.serialization.Serializable
 import ui.uilib.UIState
 import ui.uilib.emulator.ArchitectureOverview
 import ui.uilib.emulator.ExecutionView
@@ -42,6 +45,8 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
     val theme = UIState.Theme.value
     val icons = UIState.Icon.value
     val pcState = remember { derivedStateOf { architecture?.regContainer?.pc?.variable?.state?.value } }
+    val projectState = project.projectState
+    val emuState = projectState.emu
 
     val baseStyle = UIState.BaseStyle.current
     val baseLargeStyle = UIState.BaseLargeStyle.current
@@ -50,14 +55,16 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
     var stepCount by remember { mutableStateOf(4U) }
     var accumulatedScroll by remember { mutableStateOf(0f) }
     val scrollThreshold = 100f
-    var leftContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
-    var rightContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
-    var bottomContentType by remember { mutableStateOf<EmulatorContentView?>(null) }
+    var leftContentType by remember { mutableStateOf<EmulatorContentView?>(emuState.leftContent) }
+    var rightContentType by remember { mutableStateOf<EmulatorContentView?>(emuState.rightContent) }
+    var bottomContentType by remember { mutableStateOf<EmulatorContentView?>(emuState.bottomContent) }
 
-    var emuObjFilePath by remember { mutableStateOf<FPath?>(project.projectState.emuObjFilePath) }
+    var emuObjFilePath by remember { mutableStateOf<FPath?>(project.projectState.emu.objFilePath) }
 
     fun parseElf(): ELFFile<*, *, *, *, *, *, *>? {
-        project.projectState.emuObjFilePath = emuObjFilePath
+        projectState.update {
+            it.copy(emu = it.emu.copy(objFilePath = emuObjFilePath))
+        }
         val objFilePath = emuObjFilePath ?: return null
         val file = project.fileSystem.findFile(objFilePath) ?: return null
         return try {
@@ -146,36 +153,55 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
             }
         },
         center = {
-            ResizableBorderPanels(
-                Modifier.fillMaxSize(),
-                initialLeftWidth = 200.dp,
-                initialBottomHeight = 200.dp,
-                initialRightWidth = 200.dp,
-                leftContent = when (leftContentType) {
-                    EmulatorContentView.ObjFileSelection -> objFileSelector
-                    EmulatorContentView.ArchOverview -> archOverview
-                    EmulatorContentView.RegView -> regView
-                    EmulatorContentView.MemView -> memView
-                    null -> null
-                },
-                centerContent = {
-                    ExecutionView(architecture, baseStyle, codeStyle)
-                },
-                rightContent = when (rightContentType) {
-                    EmulatorContentView.ObjFileSelection -> objFileSelector
-                    EmulatorContentView.ArchOverview -> archOverview
-                    EmulatorContentView.RegView -> regView
-                    EmulatorContentView.MemView -> memView
-                    null -> null
-                },
-                bottomContent = when (bottomContentType) {
-                    EmulatorContentView.ObjFileSelection -> objFileSelector
-                    EmulatorContentView.ArchOverview -> archOverview
-                    EmulatorContentView.RegView -> regView
-                    EmulatorContentView.MemView -> memView
-                    null -> null
-                }
-            )
+
+            with(LocalDensity.current){
+                ResizableBorderPanels(
+                    Modifier.fillMaxSize(),
+                    initialLeftWidth = emuState.leftWidth.toDp(),
+                    initialBottomHeight = emuState.bottomHeight.toDp(),
+                    initialRightWidth = emuState.rightWidth.toDp(),
+                    leftContent = when (leftContentType) {
+                        EmulatorContentView.ObjFileSelection -> objFileSelector
+                        EmulatorContentView.ArchOverview -> archOverview
+                        EmulatorContentView.RegView -> regView
+                        EmulatorContentView.MemView -> memView
+                        null -> null
+                    },
+                    centerContent = {
+                        ExecutionView(architecture, baseStyle, codeStyle)
+                    },
+                    rightContent = when (rightContentType) {
+                        EmulatorContentView.ObjFileSelection -> objFileSelector
+                        EmulatorContentView.ArchOverview -> archOverview
+                        EmulatorContentView.RegView -> regView
+                        EmulatorContentView.MemView -> memView
+                        null -> null
+                    },
+                    bottomContent = when (bottomContentType) {
+                        EmulatorContentView.ObjFileSelection -> objFileSelector
+                        EmulatorContentView.ArchOverview -> archOverview
+                        EmulatorContentView.RegView -> regView
+                        EmulatorContentView.MemView -> memView
+                        null -> null
+                    },
+                    onBottomHeightChange = {
+                        projectState.updateEmu {emu ->
+                            emu.copy(bottomHeight = it.value)
+                        }
+                    },
+                    onLeftWidthChange = {
+                        projectState.updateEmu {emu ->
+                            emu.copy(leftWidth = it.value)
+                        }
+                    },
+                    onRightWidthChange = {
+                        projectState.updateEmu {emu ->
+                            emu.copy(rightWidth = it.value)
+                        }
+                    }
+                )
+            }
+
         },
         left = {
             VerticalToolBar(
@@ -269,8 +295,25 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
         rightBg = theme.COLOR_BG_1,
         bottomBg = theme.COLOR_BG_1
     )
+
+    LaunchedEffect(leftContentType){
+        projectState.updateEmu {
+            it.copy(leftContent = leftContentType)
+        }
+    }
+    LaunchedEffect(rightContentType){
+        projectState.updateEmu {
+            it.copy(rightContent = rightContentType)
+        }
+    }
+    LaunchedEffect(bottomContentType){
+        projectState.updateEmu {
+            it.copy(bottomContent = bottomContentType)
+        }
+    }
 }
 
+@Serializable
 enum class EmulatorContentView {
     ObjFileSelection,
     ArchOverview,

@@ -582,7 +582,6 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
 
                 override fun getFormatted(identSize: Int): String = symbol.value
 
-
                 override fun resolve(): PsiElement? = referencedElement
 
                 override fun isReferenceTo(element: PsiElement): Boolean = referencedElement == element
@@ -1031,10 +1030,6 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
 
                     if (symbol != null) label = null
                 }
-
-                override fun resolve(): PsiElement? = referencedElement
-
-                override fun isReferenceTo(element: PsiElement): Boolean = referencedElement == element
             }
 
             class Number(val number: AsmToken) : Operand(number, number.range), Highlightable {

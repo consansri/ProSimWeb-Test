@@ -318,7 +318,10 @@ object ProSimApp {
                                 onClick = {
                                     if (!invalidProjectPath) {
                                         val state = ProjectState(pathField, target.name)
-                                        ProjectStateManager.projects += state
+                                        ProjectStateManager.appState = ProjectStateManager.appState.copy(
+                                            projectStates = listOf(state) + ProjectStateManager.projects,
+                                            currentlyOpened = 0
+                                        )
                                         onProjectCreated(state)
                                     }
                                 }, text = "Create",

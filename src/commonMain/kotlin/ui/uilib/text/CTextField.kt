@@ -34,7 +34,6 @@ fun CTextField(
     }
 ) {
     val scale = UIState.Scale.value
-    val theme = UIState.Theme.value
 
     var isFocused by remember { mutableStateOf(false) }
 
@@ -61,7 +60,7 @@ fun CTextField(
                     isFocused = focusState.isFocused
                 }
         },
-        textStyle = textStyle,
+        textStyle = textStyle.copy(textColor),
         singleLine = singleLine,
         readOnly = readonly,
         cursorBrush = SolidColor(textColor),
@@ -88,7 +87,6 @@ fun CTextField(
     }
 ) {
     val scale = UIState.Scale.value
-    val theme = UIState.Theme.value
 
     var isFocused by remember { mutableStateOf(false) }
 
@@ -115,7 +113,7 @@ fun CTextField(
                     isFocused = focusState.isFocused
                 }
         },
-        textStyle = textStyle,
+        textStyle = textStyle.copy(textColor),
         singleLine = singleLine,
         readOnly = readonly,
         cursorBrush = SolidColor(textColor),

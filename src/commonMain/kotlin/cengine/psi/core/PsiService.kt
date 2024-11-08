@@ -11,6 +11,10 @@ import cengine.vfs.VirtualFile
 interface PsiService {
     fun createFile(file: VirtualFile): PsiFile
     fun findElementAt(file: PsiFile, offset: Int): PsiElement?
+
+    /**
+     * Searches for references to [element]
+     */
     fun findReferences(element: PsiElement): List<PsiReference>
 
     fun collectHighlights(file: PsiFile): List<Pair<IntRange, CodeStyle>> {

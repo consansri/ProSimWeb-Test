@@ -4,6 +4,7 @@ import cengine.vfs.FPath
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
 import config.BuildConfig
+import emulator.kit.nativeWarn
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -24,10 +25,6 @@ object ProjectStateManager {
             appState = appState.copy(projectStates = value)
         }
         get() = appState.projectStates
-
-    fun projectStateChanged() {
-        saveState(appState)
-    }
 
     // Function to save the project state to a file
     fun saveState(state: AppState): VirtualFile {
@@ -51,7 +48,13 @@ object ProjectStateManager {
             // Read the JSON string from the file
             val jsonString = createdFile.getAsUTF8String()
             // Deserialize the JSON string to a ProjectState object
-            val appState = Json.decodeFromString<AppState>(jsonString)
+            val appState = try {
+                Json.decodeFromString<AppState>(jsonString)
+            } catch (e: Exception) {
+                nativeWarn("Couldn't load state!")
+                AppState()
+            }
+
             return appState
         }
 
@@ -59,6 +62,24 @@ object ProjectStateManager {
         val jsonString = file.getAsUTF8String()
         // Deserialize the JSON string to a ProjectState object
         return Json.decodeFromString<AppState>(jsonString)
+    }
+
+    fun ProjectState.update(updated: (ProjectState) -> ProjectState) {
+        val newProjectList = (projects - this).toMutableList()
+        newProjectList.add(0, updated(this))
+        appState = appState.copy(currentlyOpened = 0, projectStates = newProjectList)
+    }
+
+    fun ProjectState.updateEmu(updated: (ProjectState.EMUViewState) -> ProjectState.EMUViewState) {
+        this.update {
+            it.copy(emu = updated(it.emu))
+        }
+    }
+
+    fun ProjectState.updateIde(updated: (ProjectState.IDEViewState) -> ProjectState.IDEViewState) {
+        this.update {
+            it.copy(ide = updated(it.ide))
+        }
     }
 
 }

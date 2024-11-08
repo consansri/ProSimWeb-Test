@@ -33,9 +33,10 @@ class PsiServiceImpl(
         return finder.result
     }
 
-    override fun findReferences(element: PsiElement): List<PsiReference> {
+    override fun findReferences(rootElement: PsiElement): List<PsiReference> {
         // This is a simplistic implementation. In a real-world scenario, you'd need a more sophisticated approach to find references.
         val references = mutableListOf<PsiReference>()
+        val possibleRoots = generateSequence(rootElement) { it.parent }
 
         class ReferenceFinder : PsiElementVisitor {
             override fun visitFile(file: PsiFile) {
@@ -45,14 +46,15 @@ class PsiServiceImpl(
             }
 
             override fun visitElement(element: PsiElement) {
-                if (element is PsiReference && element.isReferenceTo(element)) {
+                if (element is PsiReference && possibleRoots.any { root -> element.isReferenceTo(root) }) {
                     references.add(element)
                 }
+
                 element.children.forEach { it.accept(this) }
             }
         }
 
-        val root = generateSequence(element) { it.parent }.last()
+        val root = generateSequence(rootElement) { it.parent }.last()
         root.accept(ReferenceFinder())
         return references
     }

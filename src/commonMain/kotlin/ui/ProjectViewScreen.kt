@@ -9,7 +9,7 @@ import cengine.lang.cown.CownLang
 import cengine.lang.obj.ObjLang
 import cengine.project.Project
 import cengine.project.ProjectState
-import cengine.project.ProjectStateManager
+import cengine.project.ProjectStateManager.update
 import kotlinx.serialization.Serializable
 import ui.uilib.UIState
 
@@ -20,7 +20,7 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
     val project = Project(state, ObjLang(), CownLang())
     val architecture = remember { state.getTarget()?.emuLink?.load() }
 
-    val viewType = remember { mutableStateOf(ProjectStateManager.appState.viewType) }
+    val viewType = remember { mutableStateOf(state.viewType) }
 
     when (viewType.value) {
         ViewType.IDE -> IDEView(project, viewType,  close)
@@ -28,7 +28,9 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
     }
 
     LaunchedEffect(viewType.value) {
-        ProjectStateManager.saveState(ProjectStateManager.appState.copy(viewType = viewType.value))
+        state.update {
+            it.copy(viewType = viewType.value)
+        }
     }
 }
 

@@ -12,10 +12,12 @@ import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
 import cengine.lang.RunConfiguration
 import cengine.project.Project
+import cengine.project.ProjectStateManager.updateIde
 import cengine.vfs.VirtualFile
+import kotlinx.serialization.Serializable
 import ui.uilib.UIState
 import ui.uilib.editor.CodeEditor
 import ui.uilib.editor.ObjectEditor
@@ -34,16 +36,25 @@ fun IDEView(
     val theme = UIState.Theme.value
     val icons = UIState.Icon.value
 
+    val projectState = project.projectState
+    val ideState = projectState.ide
+
     val baseStyle = UIState.BaseStyle.current
     val codeStyle = UIState.CodeStyle.current
     val baseLargeStyle = UIState.BaseLargeStyle.current
     val codeSmallStyle = UIState.CodeSmallStyle.current
     val baseSmallStyle = UIState.BaseSmallStyle.current
 
-    val fileEditors = remember { mutableStateListOf<TabItem<VirtualFile>>() }
-    var leftContentType by remember { mutableStateOf<ToolContentType?>(null) }
-    var rightContentType by remember { mutableStateOf<ToolContentType?>(null) }
-    var bottomContentType by remember { mutableStateOf<ToolContentType?>(null) }
+    val fileEditors = remember {
+        mutableStateListOf<TabItem<VirtualFile>>(*ideState.openFiles.mapNotNull { path ->
+            project.fileSystem.findFile(path)
+        }.map { file ->
+            TabItem(file, icons.file, file.name)
+        }.toTypedArray())
+    }
+    var leftContentType by remember { mutableStateOf<ToolContentType?>(ideState.leftContentType) }
+    var rightContentType by remember { mutableStateOf<ToolContentType?>(ideState.rightContentType) }
+    var bottomContentType by remember { mutableStateOf<ToolContentType?>(ideState.bottomContentType) }
 
     val fileTree: (@Composable BoxScope.() -> Unit) = {
         val leftVScrollState = rememberScrollState()
@@ -91,58 +102,76 @@ fun IDEView(
             }
         },
         center = {
-            ResizableBorderPanels(
-                Modifier.fillMaxSize(),
-                initialLeftWidth = 200.dp,
-                initialBottomHeight = 200.dp,
-                initialRightWidth = 200.dp,
-                leftContent = when (leftContentType) {
-                    ToolContentType.FileTree -> fileTree
-                    null -> null
-                },
-                centerContent = {
-                    Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_0)) {
-                        // Center content
-                        TabbedPane(fileEditors, closeable = true, content = { index ->
-                            // Display File Content
-                            key(fileEditors[index].value.path) {
-                                when {
-                                    fileEditors[index].value.name.endsWith(".o") -> {
-                                        ObjectEditor(
-                                            fileEditors[index].value,
-                                            project,
-                                            codeStyle,
-                                            baseLargeStyle,
-                                            baseStyle
-                                        )
-                                    }
+            with(LocalDensity.current) {
+                ResizableBorderPanels(
+                    Modifier.fillMaxSize(),
+                    initialLeftWidth = ideState.leftWidth.toDp(),
+                    initialBottomHeight = ideState.bottomHeight.toDp(),
+                    initialRightWidth = ideState.rightWidth.toDp(),
+                    leftContent = when (leftContentType) {
+                        ToolContentType.FileTree -> fileTree
+                        null -> null
+                    },
+                    centerContent = {
+                        Box(modifier = Modifier.fillMaxSize().background(UIState.Theme.value.COLOR_BG_0)) {
+                            // Center content
+                            TabbedPane(fileEditors, closeable = true, content = { index ->
+                                // Display File Content
+                                key(fileEditors[index].value.path) {
+                                    when {
+                                        fileEditors[index].value.name.endsWith(".o") -> {
+                                            ObjectEditor(
+                                                fileEditors[index].value,
+                                                project,
+                                                codeStyle,
+                                                baseLargeStyle,
+                                                baseStyle
+                                            )
+                                        }
 
-                                    else -> {
-                                        CodeEditor(
-                                            fileEditors[index].value,
-                                            project,
-                                            codeStyle,
-                                            codeSmallStyle,
-                                            baseSmallStyle
-                                        )
+                                        else -> {
+                                            CodeEditor(
+                                                fileEditors[index].value,
+                                                project,
+                                                codeStyle,
+                                                codeSmallStyle,
+                                                baseSmallStyle
+                                            )
+                                        }
                                     }
                                 }
-                            }
 
-                        }, baseStyle) {
-                            fileEditors.remove(it)
+                            }, baseStyle) {
+                                fileEditors.remove(it)
+                            }
+                        }
+                    },
+                    rightContent = when (rightContentType) {
+                        ToolContentType.FileTree -> fileTree
+                        null -> null
+                    },
+                    bottomContent = when (bottomContentType) {
+                        ToolContentType.FileTree -> fileTree
+                        null -> null
+                    },
+                    onLeftWidthChange = {
+                        projectState.updateIde { state ->
+                            state.copy(leftWidth = it.value)
+                        }
+                    },
+                    onBottomHeightChange = {
+                        projectState.updateIde { state ->
+                            state.copy(bottomHeight = it.value)
+                        }
+                    },
+                    onRightWidthChange = {
+                        projectState.updateIde { state ->
+                            state.copy(rightWidth = it.value)
                         }
                     }
-                },
-                rightContent = when (rightContentType) {
-                    ToolContentType.FileTree -> fileTree
-                    null -> null
-                },
-                bottomContent = when (bottomContentType) {
-                    ToolContentType.FileTree -> fileTree
-                    null -> null
-                }
-            )
+                )
+            }
+
         },
         left = {
             VerticalToolBar(
@@ -189,8 +218,33 @@ fun IDEView(
         rightBg = theme.COLOR_BG_1,
         bottomBg = theme.COLOR_BG_1
     )
+
+    LaunchedEffect(fileEditors) {
+        projectState.updateIde { ideState ->
+            ideState.copy(openFiles = fileEditors.map { it.value.path })
+        }
+    }
+
+    LaunchedEffect(leftContentType) {
+        projectState.updateIde { state ->
+            state.copy(leftContentType = leftContentType)
+        }
+    }
+
+    LaunchedEffect(rightContentType) {
+        projectState.updateIde { state ->
+            state.copy(rightContentType = rightContentType)
+        }
+    }
+
+    LaunchedEffect(bottomContentType) {
+        projectState.updateIde { state ->
+            state.copy(bottomContentType = bottomContentType)
+        }
+    }
 }
 
+@Serializable
 enum class ToolContentType {
     FileTree;
 }
