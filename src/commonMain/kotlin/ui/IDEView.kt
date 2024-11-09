@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import cengine.lang.RunConfiguration
 import cengine.project.Project
-import cengine.project.ProjectStateManager.updateIde
 import cengine.vfs.VirtualFile
+import emulator.kit.nativeLog
 import kotlinx.serialization.Serializable
 import ui.uilib.UIState
 import ui.uilib.editor.CodeEditor
@@ -47,14 +47,15 @@ fun IDEView(
 
     val fileEditors = remember {
         mutableStateListOf<TabItem<VirtualFile>>(*ideState.openFiles.mapNotNull { path ->
+            nativeLog("Path: $path -> ${project.fileSystem.findFile(path)}")
             project.fileSystem.findFile(path)
         }.map { file ->
             TabItem(file, icons.file, file.name)
         }.toTypedArray())
     }
-    var leftContentType by remember { mutableStateOf<ToolContentType?>(ideState.leftContentType) }
-    var rightContentType by remember { mutableStateOf<ToolContentType?>(ideState.rightContentType) }
-    var bottomContentType by remember { mutableStateOf<ToolContentType?>(ideState.bottomContentType) }
+    var leftContentType by remember { mutableStateOf<ToolContentType?>(ideState.leftContent) }
+    var rightContentType by remember { mutableStateOf<ToolContentType?>(ideState.rightContent) }
+    var bottomContentType by remember { mutableStateOf<ToolContentType?>(ideState.bottomContent) }
 
     val fileTree: (@Composable BoxScope.() -> Unit) = {
         val leftVScrollState = rememberScrollState()
@@ -72,6 +73,7 @@ fun IDEView(
             FileTree(project) { file ->
                 if (file.isFile && !fileEditors.any { it.value == file }) {
                     fileEditors.add(TabItem(file, icons.file, file.name))
+                    ideState.openFiles = fileEditors.map { it.value.path }
                 }
             }
         }
@@ -143,6 +145,7 @@ fun IDEView(
 
                             }, baseStyle) {
                                 fileEditors.remove(it)
+                                ideState.openFiles = fileEditors.map { it.value.path }
                             }
                         }
                     },
@@ -155,19 +158,13 @@ fun IDEView(
                         null -> null
                     },
                     onLeftWidthChange = {
-                        projectState.updateIde { state ->
-                            state.copy(leftWidth = it.value)
-                        }
+                        ideState.leftWidth = it.value
                     },
                     onBottomHeightChange = {
-                        projectState.updateIde { state ->
-                            state.copy(bottomHeight = it.value)
-                        }
+                        ideState.bottomHeight = it.value
                     },
                     onRightWidthChange = {
-                        projectState.updateIde { state ->
-                            state.copy(rightWidth = it.value)
-                        }
+                        ideState.rightWidth = it.value
                     }
                 )
             }
@@ -219,28 +216,16 @@ fun IDEView(
         bottomBg = theme.COLOR_BG_1
     )
 
-    LaunchedEffect(fileEditors) {
-        projectState.updateIde { ideState ->
-            ideState.copy(openFiles = fileEditors.map { it.value.path })
-        }
-    }
-
     LaunchedEffect(leftContentType) {
-        projectState.updateIde { state ->
-            state.copy(leftContentType = leftContentType)
-        }
+        ideState.leftContent = leftContentType
     }
 
     LaunchedEffect(rightContentType) {
-        projectState.updateIde { state ->
-            state.copy(rightContentType = rightContentType)
-        }
+        ideState.rightContent = rightContentType
     }
 
     LaunchedEffect(bottomContentType) {
-        projectState.updateIde { state ->
-            state.copy(bottomContentType = bottomContentType)
-        }
+        ideState.bottomContent = bottomContentType
     }
 }
 

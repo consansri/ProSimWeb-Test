@@ -583,7 +583,6 @@ fun CodeEditor(
                 caretOffset = textLayout?.getCursorRect(textFieldValue.selection.start)?.bottomCenter ?: Offset(0f, 0f)
                 // Update the current line when the text changes
 
-
                 file.setAsUTF8String(textFieldValue.text)
 
                 locatePSIElement()

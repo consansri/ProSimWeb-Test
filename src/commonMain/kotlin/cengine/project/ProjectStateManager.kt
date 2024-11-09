@@ -64,22 +64,8 @@ object ProjectStateManager {
         return Json.decodeFromString<AppState>(jsonString)
     }
 
-    fun ProjectState.update(updated: (ProjectState) -> ProjectState) {
-        val newProjectList = (projects - this).toMutableList()
-        newProjectList.add(0, updated(this))
-        appState = appState.copy(currentlyOpened = 0, projectStates = newProjectList)
-    }
-
-    fun ProjectState.updateEmu(updated: (ProjectState.EMUViewState) -> ProjectState.EMUViewState) {
-        this.update {
-            it.copy(emu = updated(it.emu))
-        }
-    }
-
-    fun ProjectState.updateIde(updated: (ProjectState.IDEViewState) -> ProjectState.IDEViewState) {
-        this.update {
-            it.copy(ide = updated(it.ide))
-        }
+    fun projectStateChanged(){
+        saveState(appState)
     }
 
 }

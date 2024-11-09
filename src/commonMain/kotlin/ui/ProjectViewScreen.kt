@@ -9,7 +9,6 @@ import cengine.lang.cown.CownLang
 import cengine.lang.obj.ObjLang
 import cengine.project.Project
 import cengine.project.ProjectState
-import cengine.project.ProjectStateManager.update
 import kotlinx.serialization.Serializable
 import ui.uilib.UIState
 
@@ -28,9 +27,7 @@ fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
     }
 
     LaunchedEffect(viewType.value) {
-        state.update {
-            it.copy(viewType = viewType.value)
-        }
+        state.viewType = viewType.value
     }
 }
 

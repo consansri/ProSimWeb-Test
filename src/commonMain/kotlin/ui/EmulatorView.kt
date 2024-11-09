@@ -19,8 +19,6 @@ import androidx.compose.ui.platform.LocalDensity
 import cengine.lang.obj.elf.ELFFile
 import cengine.lang.obj.mif.MifBuilder
 import cengine.project.Project
-import cengine.project.ProjectStateManager.update
-import cengine.project.ProjectStateManager.updateEmu
 import cengine.vfs.FPath
 import emulator.kit.Architecture
 import emulator.kit.nativeError
@@ -62,9 +60,8 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
     var emuObjFilePath by remember { mutableStateOf<FPath?>(project.projectState.emu.objFilePath) }
 
     fun parseElf(): ELFFile<*, *, *, *, *, *, *>? {
-        projectState.update {
-            it.copy(emu = it.emu.copy(objFilePath = emuObjFilePath))
-        }
+        emuState.objFilePath = emuObjFilePath
+
         val objFilePath = emuObjFilePath ?: return null
         val file = project.fileSystem.findFile(objFilePath) ?: return null
         return try {
@@ -185,19 +182,13 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
                         null -> null
                     },
                     onBottomHeightChange = {
-                        projectState.updateEmu {emu ->
-                            emu.copy(bottomHeight = it.value)
-                        }
+                        emuState.bottomHeight = it.value
                     },
                     onLeftWidthChange = {
-                        projectState.updateEmu {emu ->
-                            emu.copy(leftWidth = it.value)
-                        }
+                        emuState.leftWidth = it.value
                     },
                     onRightWidthChange = {
-                        projectState.updateEmu {emu ->
-                            emu.copy(rightWidth = it.value)
-                        }
+                        emuState.rightWidth = it.value
                     }
                 )
             }
@@ -297,19 +288,13 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
     )
 
     LaunchedEffect(leftContentType){
-        projectState.updateEmu {
-            it.copy(leftContent = leftContentType)
-        }
+        emuState.leftContent = leftContentType
     }
     LaunchedEffect(rightContentType){
-        projectState.updateEmu {
-            it.copy(rightContent = rightContentType)
-        }
+        emuState.rightContent = rightContentType
     }
     LaunchedEffect(bottomContentType){
-        projectState.updateEmu {
-            it.copy(bottomContent = bottomContentType)
-        }
+        emuState.bottomContent = bottomContentType
     }
 }
 
