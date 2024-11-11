@@ -14,6 +14,7 @@ import kotlin.random.Random
 abstract class Theme {
 
     companion object {
+
         val all = setOf(LightTheme, DarkTheme)
 
         @Composable

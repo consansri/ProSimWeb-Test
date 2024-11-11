@@ -16,7 +16,6 @@ import androidx.compose.ui.platform.LocalDensity
 import cengine.lang.RunConfiguration
 import cengine.project.Project
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 import kotlinx.serialization.Serializable
 import ui.uilib.UIState
 import ui.uilib.editor.CodeEditor
@@ -47,7 +46,6 @@ fun IDEView(
 
     val fileEditors = remember {
         mutableStateListOf<TabItem<VirtualFile>>(*ideState.openFiles.mapNotNull { path ->
-            nativeLog("Path: $path -> ${project.fileSystem.findFile(path)}")
             project.fileSystem.findFile(path)
         }.map { file ->
             TabItem(file, icons.file, file.name)

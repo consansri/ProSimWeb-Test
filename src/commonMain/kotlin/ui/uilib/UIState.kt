@@ -10,12 +10,11 @@ import ui.uilib.params.FontType
 import ui.uilib.resource.BenIcons
 import ui.uilib.resource.Icons
 import ui.uilib.scale.Scaling
-import ui.uilib.theme.DarkTheme
 import ui.uilib.theme.Theme
 
 object UIState {
 
-    val Theme = mutableStateOf<Theme>(DarkTheme)
+    val Theme = mutableStateOf<Theme>(ui.uilib.theme.Theme.all.first())
     val Icon = mutableStateOf<Icons>(BenIcons)
     val Scale = mutableStateOf<Scaling>(Scaling())
 

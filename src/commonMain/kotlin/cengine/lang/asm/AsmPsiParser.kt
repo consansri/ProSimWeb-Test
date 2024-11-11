@@ -79,11 +79,9 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
                             else -> null
                         }
                         element.referencedElement = reference
-                        nativeLog("Linked reference: $element to $reference")
                     } else {
                         val reference = labels.firstOrNull { it.identifier == element.symToken.value }
                         element.referencedElement = reference
-                        nativeLog("Linked reference: $element to $reference")
                     }
                     return
                 }

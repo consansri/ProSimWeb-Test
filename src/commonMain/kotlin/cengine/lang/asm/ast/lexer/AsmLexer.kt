@@ -50,7 +50,11 @@ class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
 
             val regex = regexMap[type] ?: continue
             //val contentToMatch = input.substring(index)
-            val match = regex.matchAt(input, index) ?: continue
+            val match = try {
+                 regex.matchAt(input, index) ?: continue
+            } catch (e: Exception) {
+                continue
+            }
 
             //regex.find(input, index) ?: continue
 

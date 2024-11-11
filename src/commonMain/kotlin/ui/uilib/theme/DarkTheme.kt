@@ -11,6 +11,7 @@ import prosim.prosimweb_test.generated.resources.Res
 import ui.uilib.UIState
 
 data object DarkTheme : Theme() {
+
     override val name: String = "dark"
     override val icon: ImageVector get() = UIState.Icon.value.darkmode
     override val dark: Boolean = true
@@ -23,7 +24,7 @@ data object DarkTheme : Theme() {
     override val COLOR_FG_1: Color = Color(0xFF777777)
     override val COLOR_BORDER: Color = Color(0xFF777777)
     override val COLOR_SELECTION: Color = Color(0xFF777777)
-    override val COLOR_SEARCH_RESULT: Color = Color(0xFFB68B0F)
+    override val COLOR_SEARCH_RESULT: Color = Color(0x33B68B0F)
     override val COLOR_GREEN_LIGHT: Color = Color(0xFF98D8AA)
     override val COLOR_GREEN: Color = Color(0xFF58CC79)
     override val COLOR_YELLOW: Color = Color(0xFFE2B124)

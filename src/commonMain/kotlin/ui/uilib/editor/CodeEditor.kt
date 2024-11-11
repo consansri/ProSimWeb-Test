@@ -10,7 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -31,7 +30,6 @@ import androidx.compose.ui.unit.toSize
 import cengine.editor.annotation.Annotation
 import cengine.editor.annotation.Severity
 import cengine.editor.completion.Completion
-import cengine.editor.highlighting.HLInfo
 import cengine.lang.asm.CodeStyle
 import cengine.project.Project
 import cengine.psi.core.PsiElement
@@ -42,13 +40,12 @@ import emulator.kit.nativeLog
 import emulator.kit.nativeWarn
 import kotlinx.coroutines.*
 import ui.uilib.ComposeTools
-import ui.uilib.ComposeTools.delete
-import ui.uilib.ComposeTools.insert
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
 import ui.uilib.params.IconType
+import kotlin.math.roundToInt
+import kotlin.time.Duration
 import kotlin.time.measureTime
-import kotlin.time.measureTimedValue
 
 @Composable
 fun CodeEditor(
@@ -72,10 +69,16 @@ fun CodeEditor(
     val coroutineScope = rememberCoroutineScope()
     val scrollVertical = rememberScrollState()
     val scrollHorizontal = rememberScrollState()
+    val scrollPadding by remember { mutableStateOf(30) }
+
+    // Performance
+
+    var inputLag by remember { mutableStateOf<Duration>(Duration.ZERO) }
+
+    // Content State
 
     var textFieldValue by remember { mutableStateOf(TextFieldValue(file.getAsUTF8String())) }
     var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val spanStyles = remember { mutableListOf<AnnotatedString.Range<SpanStyle>>() }
 
     var lineNumberLabelingBounds by remember { mutableStateOf<Size>(Size.Zero) }
     val (lineCount, setLineCount) = remember { mutableStateOf(0) }
@@ -100,18 +103,47 @@ fun CodeEditor(
     var isCompletionVisible by remember { mutableStateOf(false) }
     var selectedCompletionIndex by remember { mutableStateOf(0) }
 
+    fun scrollToIndex(index: Int) {
+        textLayout?.let { layout ->
+            val line = layout.getLineForOffset(index)
+            val scrollDestinationUpper = layout.getLineBottom(line).roundToInt()
+            val scrollDestinationLower = layout.getLineTop(line).roundToInt()
+            val lowerBound = (scrollVertical.value + scrollPadding)
+            val upperBound = scrollVertical.value + scrollVertical.viewportSize - scrollPadding
 
-    fun buildSpanStyles(code: String, psiFile: PsiFile? = null) {
+            when {
+                scrollDestinationLower > upperBound -> {
+                    // Scroll To Upper Bound
+                    val dest = (scrollDestinationUpper - scrollVertical.viewportSize + scrollPadding).coerceAtLeast(0)
+                    coroutineScope.launch {
+                        scrollVertical.scrollTo(dest)
+                    }
+                }
+
+                scrollDestinationLower < lowerBound -> {
+                    // Scroll To Lower Bound
+                    val dest = (scrollDestinationLower - scrollPadding).coerceAtLeast(0)
+                    coroutineScope.launch {
+                        scrollVertical.scrollTo(dest)
+                    }
+                }
+
+                else -> {}
+            }
+        }
+    }
+
+    fun fetchStyledContent(code: String, psiFile: PsiFile? = null): AnnotatedString {
         // Fast Lexing Highlighting
-        spanStyles.clear()
-        val hls = emptyList<HLInfo>()// lang?.highlightProvider?.fastHighlight(code) ?: emptyList()
+        val spanStyles = mutableListOf<AnnotatedString.Range<SpanStyle>>()
+        val hls = lang?.highlightProvider?.fastHighlight(code) ?: emptyList()
         spanStyles.addAll(hls.mapNotNull {
             if (!it.range.isEmpty()) {
                 AnnotatedString.Range<SpanStyle>(SpanStyle(color = Color(it.color or 0xFF000000.toInt())), it.range.first, it.range.last + 1)
             } else null
         })
 
-        if (service == null || psiFile == null) return
+        if (service == null || psiFile == null) return AnnotatedString(code, spanStyles)
 
         // Complete Highlighting
         allAnnotations = service.collectNotations(psiFile)
@@ -130,37 +162,47 @@ fun CodeEditor(
                 AnnotatedString.Range<SpanStyle>(SpanStyle(color = theme.getColor(style)), range.first, range.last + 1)
             } else null
         })
+
+        return AnnotatedString(code, spanStyles)
     }
 
+    var annotatedString by remember { mutableStateOf<AnnotatedString>(fetchStyledContent(textFieldValue.text, manager?.getPsiFile(file))) }
+
     fun onTextChange(new: TextFieldValue) {
-        val oldText = textFieldValue.annotatedString
-        val newText = new.annotatedString
+        val time = measureTime {
+            val oldText = textFieldValue.annotatedString
+            val newText = new.annotatedString
 
-        when {
-            newText.length > oldText.length -> {
-                // Insert
-                analyticsAreUpToDate = false
-                val startIndex = oldText.commonPrefixWith(newText).length
-                val length = newText.length - oldText.length
-                manager?.inserted(file, startIndex, length)
-                spanStyles.insert(startIndex, length)
+            when {
+                newText.length > oldText.length -> {
+                    // Insert
+                    analyticsAreUpToDate = false
+                    val startIndex = oldText.commonPrefixWith(newText).length
+                    val length = newText.length - oldText.length
+                    manager?.inserted(file, startIndex, length)
+                    annotatedString = fetchStyledContent(newText.text, manager?.getPsiFile(file))
+                }
+
+                newText.length < oldText.length -> {
+                    // Delete
+                    analyticsAreUpToDate = false
+                    val startIndex = newText.commonPrefixWith(oldText).length
+                    val length = oldText.length - newText.length
+                    manager?.deleted(file, startIndex, startIndex + length)
+                    annotatedString = fetchStyledContent(newText.text, manager?.getPsiFile(file))
+                }
+
+                newText != oldText -> {
+                    analyticsAreUpToDate = false
+                }
             }
 
-            newText.length < oldText.length -> {
-                // Delete
-                analyticsAreUpToDate = false
-                val startIndex = newText.commonPrefixWith(oldText).length
-                val length = oldText.length - newText.length
-                manager?.deleted(file, startIndex, startIndex + length)
-                spanStyles.delete(startIndex, startIndex + length)
-            }
+            val caretIndex = new.selection.start
+            scrollToIndex(caretIndex)
 
-            newText != oldText -> {
-                analyticsAreUpToDate = false
-            }
+            textFieldValue = new
         }
-
-        textFieldValue = new
+        if (time.inWholeMilliseconds > 0) inputLag = time
     }
 
     suspend fun locatePSIElement() {
@@ -178,8 +220,8 @@ fun CodeEditor(
         coroutineScope.launch {
             withContext(Dispatchers.Default) {
                 manager?.updatePsi(file) {
-                    buildSpanStyles(it.content, it)
                     onTextChange(textFieldValue.copy(it.content))
+                    annotatedString = fetchStyledContent(it.content, it)
                     locatePSIElement()
                     analyticsAreUpToDate = true
                 }
@@ -199,6 +241,7 @@ fun CodeEditor(
 
         if (!onlyHide) {
             completionOverlayJob = coroutineScope.launch {
+                delay(200)
                 val time = measureTime {
                     val layout = textLayout
                     if (layout != null) {
@@ -222,6 +265,8 @@ fun CodeEditor(
             }
         }
     }
+
+
 
     with(LocalDensity.current) {
         BasicTextField(
@@ -312,17 +357,10 @@ fun CodeEditor(
                 color = theme.COLOR_FG_0
             ),
             visualTransformation = { str ->
-                val (value, time) = measureTimedValue {
-                    TransformedText(AnnotatedString(str.text, spanStyles), OffsetMapping.Identity)
-                }
-                if (time.inWholeMilliseconds > 5) nativeLog("visualTransformation took ${time.inWholeMilliseconds}ms")
-                value
+                TransformedText(annotatedString, OffsetMapping.Identity)
             },
             onValueChange = { newValue ->
-                val time = measureTime {
-                    onTextChange(newValue)
-                }
-                if (time.inWholeMilliseconds > 5) nativeLog("onValueChange took ${time.inWholeMilliseconds}ms")
+                onTextChange(newValue)
             },
             onTextLayout = { result ->
                 textLayout = result
@@ -335,25 +373,6 @@ fun CodeEditor(
                 Modifier
                     .fillMaxSize()
             ) {
-                // Globally Paint Box
-                Box(
-                    Modifier.matchParentSize(),
-                    contentAlignment = Alignment.BottomEnd
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        val selection = textFieldValue.selection
-                        val line = textLayout?.getLineForOffset(selection.start) ?: 0
-                        val column = selection.start - (textLayout?.getLineStart(line) ?: 0)
-
-                        currentElement?.let { element ->
-                            val path = service?.path(element) ?: return@let
-                            Text(path.joinToString(" > ") { it.pathName }, modifier = Modifier.padding(scale.SIZE_INSET_MEDIUM), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
-                        }
-
-                        Text("${line + 1}:${column + 1}", modifier = Modifier.padding(scale.SIZE_INSET_MEDIUM), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
-                    }
-                }
-
                 Box(
                     Modifier.matchParentSize()
                         .verticalScroll(scrollVertical)
@@ -414,11 +433,10 @@ fun CodeEditor(
                             }
                         }
 
-                        Box(
+                        Spacer(
                             modifier = Modifier
                                 .height(textFieldSize.height.toDp())
                                 .width(scale.SIZE_BORDER_THICKNESS)
-                                .background(theme.COLOR_BORDER)
                         )
 
                         Box(
@@ -489,38 +507,72 @@ fun CodeEditor(
                     }
                 }
 
-                Column(
-                    Modifier
-                        .align(Alignment.TopEnd)
-                        .fillMaxHeight(),
-                    horizontalAlignment = Alignment.End
+                Row(
+                    Modifier.align(Alignment.CenterEnd).fillMaxHeight()
                 ) {
-                    Row(Modifier.padding(scale.SIZE_INSET_SMALL), verticalAlignment = Alignment.CenterVertically) {
-                        if (analyticsAreUpToDate) {
-                            val errors = allAnnotations.count { it.severity == Severity.ERROR }
-                            val warnings = allAnnotations.count { it.severity == Severity.WARNING }
-                            val infos = allAnnotations.count { it.severity == Severity.INFO }
 
-                            Icon(icon.statusFine, "info", Modifier.height(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_GREEN)
-                            Text("$infos", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
-                            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-                            Icon(icon.info, "warnings", Modifier.height(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_YELLOW)
-                            Text("$warnings", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
-                            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-                            Icon(icon.statusError, "errors", Modifier.height(scale.SIZE_CONTROL_SMALL), tint = theme.COLOR_RED)
-                            Text("$errors", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
-                        } else {
-                            ComposeTools.Rotating { rotation ->
-                                Text("CTRL+SHIFT+S to analyze", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
-                                Icon(icon.statusLoading, "loading", Modifier.size(scale.SIZE_CONTROL_SMALL).rotate(rotation), tint = theme.COLOR_FG_0)
+                    Column(
+                        Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween,
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Row(Modifier.padding(scale.SIZE_INSET_MEDIUM), verticalAlignment = Alignment.CenterVertically) {
+                            if (analyticsAreUpToDate) {
+                                val errors = allAnnotations.count { it.severity == Severity.ERROR }
+                                val warnings = allAnnotations.count { it.severity == Severity.WARNING }
+                                val infos = allAnnotations.count { it.severity == Severity.INFO }
+
+                                CButton(icon = icon.statusFine, text = "$infos", onClick = {
+                                    val firstInfo = allAnnotations.firstOrNull { it.severity == Severity.INFO } ?: return@CButton
+                                    val index = firstInfo.range.first
+                                    scrollToIndex(index)
+                                }, iconType = IconType.SMALL, textStyle = baseSmallStyle, iconTint = theme.COLOR_GREEN)
+
                                 Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-                                CButton(icon = icon.build, iconType = IconType.SMALL, onClick = {
-                                    analyze()
-                                })
+
+                                CButton(icon = icon.info, text = "$warnings", onClick = {
+                                    val firstWarning = allAnnotations.firstOrNull { it.severity == Severity.WARNING } ?: return@CButton
+                                    val index = firstWarning.range.first
+                                    scrollToIndex(index)
+                                }, iconType = IconType.SMALL, textStyle = baseSmallStyle, iconTint = theme.COLOR_YELLOW)
+
+                                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
+                                CButton(icon = icon.statusError, text = "$errors", onClick = {
+                                    val firstError = allAnnotations.firstOrNull { it.severity == Severity.ERROR } ?: return@CButton
+                                    val index = firstError.range.first
+                                    scrollToIndex(index)
+                                }, iconType = IconType.SMALL, textStyle = baseSmallStyle, iconTint = theme.COLOR_RED)
+                            } else {
+                                ComposeTools.Rotating { rotation ->
+                                    Text("CTRL+SHIFT+S to analyze", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
+                                    Icon(icon.statusLoading, "loading", Modifier.size(scale.SIZE_CONTROL_SMALL).rotate(rotation), tint = theme.COLOR_FG_0)
+                                    Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                                    CButton(icon = icon.build, iconType = IconType.SMALL, onClick = {
+                                        analyze()
+                                    })
+                                }
                             }
                         }
-                    }
 
+                        Row(Modifier.padding(scale.SIZE_INSET_MEDIUM), verticalAlignment = Alignment.CenterVertically) {
+                            val selection = textFieldValue.selection
+                            val line = textLayout?.getLineForOffset(selection.start) ?: 0
+                            val column = selection.start - (textLayout?.getLineStart(line) ?: 0)
+
+                            currentElement?.let { element ->
+                                val path = service?.path(element) ?: return@let
+                                Text(path.joinToString(" > ") { it.pathName }, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
+                            }
+
+                            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
+                            Text("${line + 1}:${column + 1}", fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
+
+                            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
+                            Text("${inputLag.inWholeMilliseconds}ms", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_1)
+                        }
+                    }
 
                     // Draw Vertical ScrollBar
 
@@ -542,16 +594,27 @@ fun CodeEditor(
                             }
                         }) {
                         // Draw the scrollbar thumb
-                        drawRoundRect(
+                        drawRect(
                             color = theme.COLOR_FG_1,
                             style = Fill,
                             topLeft = Offset(x = size.width / 2, y = scrollRatio * size.height),
-                            size = size.copy(width = size.width / 2, height = thumbHeightPx),
-                            cornerRadius = CornerRadius(scale.SIZE_CORNER_RADIUS.value, scale.SIZE_CORNER_RADIUS.value)
+                            size = size.copy(width = size.width / 2, height = thumbHeightPx)
                         )
 
-                        // Draw References
+
                         textLayout?.let { layout ->
+                            // Draw Annotations
+                            allAnnotations.forEach {
+                                val range = it.range
+                                val line = layout.getLineForOffset(range.first)
+                                val ratioTop = layout.getLineTop(line) / layout.size.height
+                                val ratioBottom = layout.getLineBottom(line) / layout.size.height
+                                val ratioHeight = ratioBottom - ratioTop
+
+                                drawRect(theme.getColor(it.severity.color), topLeft = Offset(0f, ratioTop * size.height), size = Size(size.width / 2, ratioHeight * size.height), style = Fill)
+                            }
+
+                            // Draw References
                             val root = references.firstOrNull()?.referencedElement ?: return@let
                             val rootRange = root.range
                             val rootLine = layout.getLineForOffset(rootRange.first)
@@ -559,7 +622,7 @@ fun CodeEditor(
                             val rootRatioBottom = layout.getLineBottom(rootLine) / layout.size.height
                             val rootRatioHeight = rootRatioBottom - rootRatioTop
 
-                            drawRect(theme.COLOR_SEARCH_RESULT, topLeft = Offset(0f, rootRatioTop * size.height), size = Size(size.width, rootRatioHeight * size.height), style = Fill)
+                            drawRect(theme.COLOR_SEARCH_RESULT, topLeft = Offset(0f, rootRatioTop * size.height), size = Size(size.width / 2, rootRatioHeight * size.height), style = Fill)
 
                             references.forEach {
                                 val range = it.element.range
@@ -568,7 +631,7 @@ fun CodeEditor(
                                 val ratioBottom = layout.getLineBottom(line) / layout.size.height
                                 val ratioHeight = ratioBottom - ratioTop
 
-                                drawRect(theme.COLOR_SEARCH_RESULT, topLeft = Offset(0f, ratioTop * size.height), size = Size(size.width, ratioHeight * size.height), style = Fill)
+                                drawRect(theme.COLOR_SEARCH_RESULT, topLeft = Offset(0f, ratioTop * size.height), size = Size(size.width / 2, ratioHeight * size.height), style = Fill)
                             }
                         }
                     }
@@ -636,7 +699,11 @@ fun CodeEditor(
 
     LaunchedEffect(currentElement) {
         // Add marks from references
-        currentElement?.let { element ->
+
+        val element = currentElement
+        if (element == null) {
+            references = emptyList()
+        } else {
             val root = if (element is PsiReference) {
                 element.referencedElement
             } else {
