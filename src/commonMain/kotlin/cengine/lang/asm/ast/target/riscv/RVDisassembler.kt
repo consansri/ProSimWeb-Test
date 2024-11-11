@@ -32,7 +32,7 @@ object RVDisassembler : Disassembler {
         return decoded
     }
 
-    data class RVInstrInfoProvider(val binary: UInt) {
+    data class RVInstrInfoProvider(val binary: UInt): Disassembler.InstrProvider {
         val binaryAsHex: Hex = binary.toValue()
         val opcode = binary and 0b1111111U
         val funct3 = (binary shr 12) and 0b111U
@@ -47,7 +47,7 @@ object RVDisassembler : Disassembler {
         val imm20jType = ((binary shr 31) shl 20) or (((binary shr 12) and 0b11111111U) shl 12) or (((binary shr 20) and 0b1U) shl 11) or (((binary shr 21) and 0b1111111111U) shl 1)
         val shamt = (imm12iType and 0b111111U)
 
-        fun decode(segmentAddr: Hex, offset: ULong): Decoded {
+        override fun decode(segmentAddr: Hex, offset: ULong): Decoded {
             return when (opcode) {
                 RVConst.OPC_LUI -> Decoded(offset, binaryAsHex, "lui ${rdName()}, 0x${imm20uType.toString(16)}")
                 RVConst.OPC_AUIPC -> Decoded(offset, binaryAsHex, "auipc ${rdName()}, 0x${imm20uType.toString(16)}")

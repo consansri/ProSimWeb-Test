@@ -17,7 +17,7 @@ data object IKRR2Spec: TargetSpec {
     override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
     override val ei_abiversion: Elf_Byte = Ehdr.EV_CURRENT.toUByte()
     override val e_machine: Elf_Half = Ehdr.EM_CUSTOM_IKRRISC2
-    override val emuLink: EmuLink = EmuLink.IKRMINI
+    override val emuLink: EmuLink = EmuLink.IKRRISC2
 
     override val linkerScript: LinkerScript = object : LinkerScript {
         override val textStart: Hex = Hex("0", Size.Bit32)

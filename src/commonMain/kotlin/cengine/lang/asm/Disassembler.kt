@@ -74,6 +74,10 @@ interface Disassembler {
         }
     }
 
+    interface InstrProvider{
+
+        fun decode(segmentAddr: Hex, offset: ULong): Decoded
+    }
 
     data class DecodedSegment(
         val addr: Hex,

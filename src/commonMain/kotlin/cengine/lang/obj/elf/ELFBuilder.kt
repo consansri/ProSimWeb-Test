@@ -32,7 +32,6 @@ abstract class ELFBuilder(
 
     protected var entryPoint: Elf_Xword = 0U
 
-
     protected val segments: MutableList<Segment> = mutableListOf()
 
     /**

@@ -1,5 +1,6 @@
 package emulator.archs.ikrrisc2
 
+import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler
 import cengine.util.integer.Bin
 import cengine.util.integer.Size.Bit32
 import cengine.util.integer.Size.Bit5
@@ -128,7 +129,7 @@ data object IKRRisc2 {
             standardRegFileName
         ),
         MainMemory(WORD_WIDTH, WORD_WIDTH, endianness = Memory.Endianess.BigEndian, entrysInRow = 4),
-        null,
+        IKRR2Disassembler,
         settings
     )
 

@@ -1,9 +1,9 @@
 package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.*
+import cengine.lang.obj.elf.Ehdr.Companion.EV_CURRENT
 import cengine.lang.obj.elf.Ehdr.Companion.getELFMachine
 import cengine.lang.obj.elf.Ehdr.Companion.getELFType
-import cengine.lang.obj.elf.Ehdr.Companion.EV_CURRENT
 import cengine.util.ByteBuffer
 import cengine.util.Endianness
 import cengine.util.string.hexDump
@@ -42,19 +42,19 @@ import cengine.util.string.hexDump
  */
 data class ELF32_Ehdr(
     override var e_ident: E_IDENT,
-    override var e_type: cengine.lang.obj.elf.Elf_Half,
-    override var e_machine: cengine.lang.obj.elf.Elf_Half,
-    override var e_version: cengine.lang.obj.elf.Elf_Word = EV_CURRENT,
-    var e_entry: cengine.lang.obj.elf.Elf32_Addr,
-    var e_phoff: cengine.lang.obj.elf.Elf32_Off,
-    var e_shoff: cengine.lang.obj.elf.Elf32_Off,
-    override var e_flags: cengine.lang.obj.elf.Elf_Word,
-    override var e_ehsize: cengine.lang.obj.elf.Elf_Half,
-    override var e_phentsize: cengine.lang.obj.elf.Elf_Half,
-    override var e_phnum: cengine.lang.obj.elf.Elf_Half,
-    override var e_shentsize: cengine.lang.obj.elf.Elf_Half,
-    override var e_shnum: cengine.lang.obj.elf.Elf_Half,
-    override var e_shstrndx: cengine.lang.obj.elf.Elf_Half
+    override var e_type: Elf_Half,
+    override var e_machine: Elf_Half,
+    override var e_version: Elf_Word = EV_CURRENT,
+    var e_entry: Elf32_Addr,
+    var e_phoff: Elf32_Off,
+    var e_shoff: Elf32_Off,
+    override var e_flags: Elf_Word,
+    override var e_ehsize: Elf_Half,
+    override var e_phentsize: Elf_Half,
+    override var e_phnum: Elf_Half,
+    override var e_shentsize: Elf_Half,
+    override var e_shnum: Elf_Half,
+    override var e_shstrndx: Elf_Half
 ) : Ehdr {
 
     /*constructor(

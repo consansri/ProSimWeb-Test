@@ -11,9 +11,9 @@ import cengine.util.Endianness
  * @property d_ptr The address associated with the dynamic table entry.
  */
 data class ELF32_Dyn(
-    var d_tag: cengine.lang.obj.elf.Elf_Sword,
-    var d_val: cengine.lang.obj.elf.Elf_Word,
-    var d_ptr: cengine.lang.obj.elf.Elf32_Addr
+    var d_tag: Elf_Sword,
+    var d_val: Elf_Word,
+    var d_ptr: Elf32_Addr
 ): Dyn{
     override fun build(endianness: Endianness): ByteArray {
         val b = ByteBuffer(endianness)
