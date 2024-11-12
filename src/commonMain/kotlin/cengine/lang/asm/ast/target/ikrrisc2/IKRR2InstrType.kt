@@ -7,6 +7,7 @@ import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.obj.elf.ELF32_Shdr
 import cengine.lang.obj.elf.ELF64_Shdr
 import cengine.lang.obj.elf.ELFBuilder
+import cengine.lang.obj.elf.Shdr
 import cengine.util.integer.Size
 import cengine.util.integer.toUInt
 import cengine.util.integer.toValue
@@ -306,15 +307,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                     else -> 0U
                 }
 
-                val shdr = section.shdr
-                val thisAddr = (when (shdr) {
-                    is ELF32_Shdr -> shdr.sh_addr
-                    is ELF64_Shdr -> shdr.sh_addr.toUInt()
-                } + index.toUInt())
-
-                val targetAddr = expr.evaluate(builder).toBin().toUInt() ?: 0U
-
-                val imm26 = (targetAddr - thisAddr).toInt().toValue(Size.Bit26)
+                val imm26 = expr.displacement(builder, section.shdr, index).toValue(Size.Bit26)
 
                 if (!imm26.valid) {
                     expr.addError("$imm26 exceeds ${Size.Bit26}")
@@ -322,7 +315,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
 
                 val bundle = (opc shl 26) or (imm26.toBin().toUInt() ?: 0U)
 
-                builder.currentSection.content.put(bundle)
+                section.content[index] = bundle
             }
 
             IKRR2ParamType.B_DISP18_TYPE -> {
@@ -341,15 +334,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                     else -> 0U
                 }
 
-                val shdr = section.shdr
-                val thisAddr = (when (shdr) {
-                    is ELF32_Shdr -> shdr.sh_addr
-                    is ELF64_Shdr -> shdr.sh_addr.toUInt()
-                } + index.toUInt())
-
-                val targetAddr = expr.evaluate(builder).toBin().toUInt() ?: 0U
-
-                val imm18 = (targetAddr - thisAddr).toInt().toValue(Size.Bit18)
+                val imm18 = expr.displacement(builder, section.shdr, index).toValue(Size.Bit18)
 
                 if (!imm18.valid) {
                     expr.addError("$imm18 exceeds ${Size.Bit18}")
@@ -357,11 +342,26 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
 
                 val bundle = (opc shl 26) or (rc shl 21) or (funct3 shl 18) or (imm18.toBin().toUInt() ?: 0U)
 
-                builder.currentSection.content.put(bundle)
+                section.content[index] = bundle
             }
 
             else -> {}
         }
+    }
+
+    private fun ASNode.NumericExpr.targetAddr(builder: ELFBuilder): UInt {
+        return (evaluate(builder).toBin().toULong() shr 2).toUInt()
+    }
+
+    private fun Shdr.thisAddr(index: Int): UInt {
+        return when (this) {
+            is ELF32_Shdr -> sh_addr
+            is ELF64_Shdr -> sh_addr.toUInt()
+        } + (index.toUInt() shr 2)
+    }
+
+    private fun ASNode.NumericExpr.displacement(builder: ELFBuilder, shdr: Shdr, index: Int): Int{
+        return (targetAddr(builder) - shdr.thisAddr(index)).toInt()
     }
 
 

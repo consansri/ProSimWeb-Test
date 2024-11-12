@@ -12,8 +12,8 @@ import emulator.EmuLink
 
 data object IKRR2Spec: TargetSpec {
     override val name: String = "IKR RISC-II"
-    override val ei_class: Elf_Byte = E_IDENT.ELFCLASS32
-    override val ei_data: Elf_Byte = E_IDENT.ELFDATA2LSB
+    override val ei_class: Elf_Byte = E_IDENT.ELFCLASS64
+    override val ei_data: Elf_Byte = E_IDENT.ELFDATA2MSB
     override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
     override val ei_abiversion: Elf_Byte = Ehdr.EV_CURRENT.toUByte()
     override val e_machine: Elf_Half = Ehdr.EM_CUSTOM_IKRRISC2
