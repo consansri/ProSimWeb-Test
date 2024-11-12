@@ -7,6 +7,7 @@ interface Lexer {
 
     val ignored: Set<Token>
 
+
     fun reset(input: String)
     fun consume(ignoreLeadingSpaces: Boolean, ignoreComments: Boolean = true): Token
     fun peek(ignoreLeadingSpaces: Boolean, ignoreComments: Boolean = true): Token

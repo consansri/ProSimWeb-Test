@@ -559,18 +559,18 @@ fun CodeEditor(
                             val line = textLayout?.getLineForOffset(selection.start) ?: 0
                             val column = selection.start - (textLayout?.getLineStart(line) ?: 0)
 
+                            Text("${inputLag.inWholeMilliseconds}ms", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_1)
+
+                            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
                             currentElement?.let { element ->
                                 val path = service?.path(element) ?: return@let
                                 Text(path.joinToString(" > ") { it.pathName }, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
+
+                                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                             }
 
-                            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-
                             Text("${line + 1}:${column + 1}", fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
-
-                            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-
-                            Text("${inputLag.inWholeMilliseconds}ms", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_1)
                         }
                     }
 

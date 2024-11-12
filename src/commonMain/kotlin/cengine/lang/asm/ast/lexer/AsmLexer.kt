@@ -1,23 +1,32 @@
 package cengine.lang.asm.ast.lexer
 
 import cengine.lang.asm.ast.DirTypeInterface
-import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASDirType
+import cengine.psi.lexer.core.Token
 import cengine.psi.lexer.impl.BaseLexer
 
 class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
 
     private val prefices: Prefices get() = targetSpec.prefices
-    private val regs: List<Pair<RegTypeInterface, Regex>> = targetSpec.allRegs.map { it to it.getRegex() }
-    private val instrs: List<Pair<InstrTypeInterface, Regex>> = targetSpec.allInstrs.map { it to it.getInstrRegex() }
-    private val dirs: List<Pair<DirTypeInterface, Regex>> = (ASDirType.entries + targetSpec.customDirs).map { it to it.getDirRegex() }
+    private val regs: List<Pair<RegTypeInterface, Set<String>>> = targetSpec.allRegs.map { it to it.recognizable.toSet() }
+    private val instrs = targetSpec.allInstrs.map { it to it.detectionName.lowercase() }
+    private val dirs: List<Pair<DirTypeInterface, String>> = (ASDirType.entries + targetSpec.customDirs).map { it to it.getDetectionString().lowercase() }.filter { it.second.isNotEmpty() }
     private val regexMap: Map<AsmTokenType, Regex?> = AsmTokenType.entries.associateWith { it.getRegex(prefices) }
 
+    /**
+     * For Caching the peeked token at a certain Index
+     */
+    private var peeked: Pair<Int, Token>? = null
+
     override fun peek(ignoreLeadingSpaces: Boolean, ignoreComments: Boolean): AsmToken {
+        peeked?.let {
+            if (it.first == position) return it.second as AsmToken
+        }
         val initialPos = position
         val token = consume(ignoreLeadingSpaces, ignoreComments)
+        peeked = initialPos to token
         position = initialPos
         return token
     }
@@ -51,7 +60,7 @@ class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
             val regex = regexMap[type] ?: continue
             //val contentToMatch = input.substring(index)
             val match = try {
-                 regex.matchAt(input, index) ?: continue
+                regex.matchAt(input, index) ?: continue
             } catch (e: Exception) {
                 continue
             }
@@ -65,30 +74,37 @@ class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
 
             val endPosition = position
 
-            var keyWordType: AsmTokenType? = null
-
             if (type == AsmTokenType.SYMBOL) {
                 // Check directives
-                for (dir in dirs) {
-                    if (dir.second.matchEntire(matchedText) != null) {
-                        keyWordType = AsmTokenType.DIRECTIVE
-                        break
+
+                if (matchedText.startsWith(".")) {
+                    val dirType = dirs.firstOrNull { "." + it.second == matchedText.lowercase() }
+                    if (dirType != null) {
+                        return AsmToken(
+                            AsmTokenType.DIRECTIVE,
+                            matchedText,
+                            startPosition..<endPosition
+                        )
                     }
                 }
 
                 // check for instruction
-                for (instr in instrs) {
-                    if (instr.second.matchEntire(matchedText) != null) {
-                        keyWordType = AsmTokenType.INSTRNAME
-                        break
-                    }
+                val instrType = instrs.firstOrNull { it.second == matchedText.lowercase() }
+                if (instrType != null) {
+                    return AsmToken(
+                        AsmTokenType.INSTRNAME,
+                        matchedText,
+                        startPosition..<endPosition
+                    )
                 }
 
-                for (reg in regs) {
-                    if (reg.second.matchEntire(matchedText) != null) {
-                        keyWordType = AsmTokenType.REGISTER
-                        break
-                    }
+                val regType = regs.firstOrNull { it.second.contains(matchedText.lowercase()) }
+                if (regType != null) {
+                    return AsmToken(
+                        AsmTokenType.REGISTER,
+                        matchedText,
+                        startPosition..<endPosition
+                    )
                 }
             }
 
@@ -101,7 +117,7 @@ class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
             }
 
             val token = AsmToken(
-                keyWordType ?: type,
+                type,
                 matchedText,
                 startPosition..<endPosition,
                 onlyNumber
@@ -118,10 +134,6 @@ class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
         return token
         //nativeError("InvalidTokenException $token $index")
     }
-
-    private fun InstrTypeInterface.getInstrRegex(): Regex = Regex(Regex.escape(this.detectionName), RegexOption.IGNORE_CASE)
-    private fun DirTypeInterface.getDirRegex(): Regex = Regex("\\.${Regex.escape(this.getDetectionString())}", RegexOption.IGNORE_CASE)
-    private fun RegTypeInterface.getRegex(): Regex = Regex("(?:${this.recognizable.joinToString("|") { Regex.escape(it) }})")
 
     interface Prefices {
         val hex: String
