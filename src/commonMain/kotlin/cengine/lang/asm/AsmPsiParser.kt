@@ -26,7 +26,7 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
 
         val program = ASNode.buildNode(ASNodeType.PROGRAM, lexer, spec) as ASNode.Program
 
-        program.accept(ParentLinker())
+        program.accept(PsiParser.ParentLinker())
 
         val labelCollector = LabelCollector()
         program.accept(labelCollector)
@@ -155,22 +155,6 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
         }
     }
 
-    private class ParentLinker : PsiElementVisitor {
-        override fun visitFile(file: PsiFile) {
-            if (file !is AsmFile) return
-            file.children.forEach {
-                it.parent = file
-                it.accept(this)
-            }
-        }
 
-        override fun visitElement(element: PsiElement) {
-            if (element !is ASNode) return
-            element.children.forEach {
-                it.parent = element
-                it.accept(this)
-            }
-        }
-    }
 
 }

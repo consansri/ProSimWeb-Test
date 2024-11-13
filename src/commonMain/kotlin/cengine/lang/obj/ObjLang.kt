@@ -13,14 +13,13 @@ import cengine.psi.core.PsiService
 import cengine.psi.impl.PsiServiceImpl
 import cengine.vfs.VirtualFile
 
-class ObjLang: LanguageService {
-    companion object {
-        const val OUTPUT_DIR = ".obj"
-    }
+object ObjLang: LanguageService {
+
+    const val OUTPUT_DIR = ".obj"
 
     override val name: String = "ObjLang"
     override val fileSuffix: String = ".o"
-    override val psiParser: PsiParser<*> = ObjPsiParser(this)
+    override val psiParser: PsiParser<*> = ObjPsiParser
     override val psiService: PsiService = PsiServiceImpl(psiParser)
     override val runConfigurations: Set<RunConfiguration<LanguageService>> = setOf(Mif)
     override val completionProvider: CompletionProvider?= null

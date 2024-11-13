@@ -21,9 +21,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.*
-import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.toSize
@@ -83,6 +81,8 @@ fun CodeEditor(
     var lineNumberLabelingBounds by remember { mutableStateOf<Size>(Size.Zero) }
     val (lineCount, setLineCount) = remember { mutableStateOf(0) }
     val (lineHeight, setLineHeight) = remember { mutableStateOf(0f) }
+    var visibleIndexRange by remember { mutableStateOf(0..<textFieldValue.text.length) }
+    var highlightJob by remember { mutableStateOf<Job?>(null) }
 
     var textFieldSize by remember { mutableStateOf(Size.Zero) }
     var rowHeaderWidth by remember { mutableStateOf<Float>(0f) }
@@ -136,7 +136,7 @@ fun CodeEditor(
     fun fetchStyledContent(code: String, psiFile: PsiFile? = null): AnnotatedString {
         // Fast Lexing Highlighting
         val spanStyles = mutableListOf<AnnotatedString.Range<SpanStyle>>()
-        val hls = lang?.highlightProvider?.fastHighlight(code) ?: emptyList()
+        val hls = lang?.highlightProvider?.fastHighlight(code, visibleIndexRange) ?: emptyList()
         spanStyles.addAll(hls.mapNotNull {
             if (!it.range.isEmpty()) {
                 AnnotatedString.Range<SpanStyle>(SpanStyle(color = Color(it.color or 0xFF000000.toInt())), it.range.first, it.range.last + 1)
@@ -145,9 +145,9 @@ fun CodeEditor(
 
         if (service == null || psiFile == null) return AnnotatedString(code, spanStyles)
 
-        // Complete Highlighting
-        allAnnotations = service.collectNotations(psiFile)
+        // Visible Highlighting
         // Annotation Styles
+        allAnnotations = service.collectNotations(psiFile)
         spanStyles.addAll(allAnnotations.mapNotNull {
             val annoCodeStyle = it.severity.color ?: CodeStyle.BASE0
             val style = SpanStyle(textDecoration = TextDecoration.Underline, color = theme.getColor(annoCodeStyle))
@@ -157,7 +157,7 @@ fun CodeEditor(
         })
 
         // Highlight Styles
-        spanStyles.addAll(service.collectHighlights(psiFile).mapNotNull { (range, style) ->
+        spanStyles.addAll(service.collectHighlights(psiFile, visibleIndexRange).mapNotNull { (range, style) ->
             if (!range.isEmpty()) {
                 AnnotatedString.Range<SpanStyle>(SpanStyle(color = theme.getColor(style)), range.first, range.last + 1)
             } else null
@@ -165,8 +165,6 @@ fun CodeEditor(
 
         return AnnotatedString(code, spanStyles)
     }
-
-    var annotatedString by remember { mutableStateOf<AnnotatedString>(fetchStyledContent(textFieldValue.text, manager?.getPsiFile(file))) }
 
     fun onTextChange(new: TextFieldValue) {
         val time = measureTime {
@@ -180,7 +178,6 @@ fun CodeEditor(
                     val startIndex = oldText.commonPrefixWith(newText).length
                     val length = newText.length - oldText.length
                     manager?.inserted(file, startIndex, length)
-                    annotatedString = fetchStyledContent(newText.text, manager?.getPsiFile(file))
                 }
 
                 newText.length < oldText.length -> {
@@ -189,7 +186,6 @@ fun CodeEditor(
                     val startIndex = newText.commonPrefixWith(oldText).length
                     val length = oldText.length - newText.length
                     manager?.deleted(file, startIndex, startIndex + length)
-                    annotatedString = fetchStyledContent(newText.text, manager?.getPsiFile(file))
                 }
 
                 newText != oldText -> {
@@ -200,7 +196,7 @@ fun CodeEditor(
             val caretIndex = new.selection.start
             scrollToIndex(caretIndex)
 
-            textFieldValue = new
+            textFieldValue = new.copy(fetchStyledContent(newText.text, manager?.getPsiFile(file)))
         }
         if (time.inWholeMilliseconds > 0) inputLag = time
     }
@@ -221,7 +217,7 @@ fun CodeEditor(
             withContext(Dispatchers.Default) {
                 manager?.updatePsi(file) {
                     onTextChange(textFieldValue.copy(it.content))
-                    annotatedString = fetchStyledContent(it.content, it)
+                    allAnnotations = service?.collectNotations(it) ?: emptySet()
                     locatePSIElement()
                     analyticsAreUpToDate = true
                 }
@@ -265,8 +261,6 @@ fun CodeEditor(
             }
         }
     }
-
-
 
     with(LocalDensity.current) {
         BasicTextField(
@@ -356,9 +350,6 @@ fun CodeEditor(
             textStyle = codeStyle.copy(
                 color = theme.COLOR_FG_0
             ),
-            visualTransformation = { str ->
-                TransformedText(annotatedString, OffsetMapping.Identity)
-            },
             onValueChange = { newValue ->
                 onTextChange(newValue)
             },
@@ -652,6 +643,22 @@ fun CodeEditor(
                 fetchCompletions()
             }
             if (time.inWholeMilliseconds > 5) nativeLog("LaunchedEffect(textFieldValue) took ${time.inWholeMilliseconds}ms")
+        }
+    }
+
+    LaunchedEffect(scrollVertical.value, textLayout) {
+        textLayout?.let { layout ->
+            val preload = scrollVertical.viewportSize / 2
+            val first = layout.getOffsetForPosition(Offset(0f, (scrollVertical.value - preload).coerceAtLeast(0).toFloat()))
+            val last = layout.getOffsetForPosition(Offset(0f, (scrollVertical.value + scrollVertical.viewportSize + preload).toFloat()))
+            visibleIndexRange = first..<last
+        }
+    }
+
+    LaunchedEffect(visibleIndexRange) {
+        highlightJob?.cancel()
+        highlightJob = coroutineScope.launch {
+            textFieldValue = textFieldValue.copy(fetchStyledContent(textFieldValue.text, manager?.getPsiFile(file)))
         }
     }
 

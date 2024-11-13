@@ -1,4 +1,4 @@
-package cengine.lang.mif
+package cengine.lang.mif.ast
 
 import cengine.psi.lexer.core.Token
 import cengine.psi.lexer.impl.BaseLexer
@@ -22,18 +22,42 @@ class MifLexer(input: String) : BaseLexer(input) {
     }
 
     override fun consume(ignoreLeadingSpaces: Boolean, ignoreComments: Boolean): MifToken {
-        if (input[position].isWhitespace()) readWhitespace()
+        if (!hasMoreTokens()) {
+            return MifToken(MifToken.Type.EOF, "", input.length..input.length)
+        }
 
-        if (position >= input.length) {
+        if (ignoreLeadingSpaces && (input[position].isWhitespace() || input[position] == '\n')) readWhitespace()
+
+        if (!hasMoreTokens()) {
             return MifToken(MifToken.Type.EOF, "", input.length..input.length)
         }
 
         if (input.startsWith("--", position)) {
-            ignored += readSLComment()
+            if (ignoreComments) {
+                ignored += readSLComment()
+            } else {
+                return readSLComment()
+            }
+        }
+
+        if (ignoreLeadingSpaces && (input[position].isWhitespace() || input[position] == '\n')) readWhitespace()
+
+        if (!hasMoreTokens()) {
+            return MifToken(MifToken.Type.EOF, "", input.length..input.length)
         }
 
         if (input.startsWith("%", position)) {
-            ignored += readMLComment()
+            if (ignoreComments) {
+                ignored += readMLComment()
+            } else {
+                return readMLComment()
+            }
+        }
+
+        if (ignoreLeadingSpaces && (input[position].isWhitespace() || input[position] == '\n')) readWhitespace()
+
+        if (!hasMoreTokens()) {
+            return MifToken(MifToken.Type.EOF, "", input.length..input.length)
         }
 
         val currChar = input[position]
@@ -42,24 +66,35 @@ class MifLexer(input: String) : BaseLexer(input) {
             input.startsWith("CONTENT", position)
                     || input.startsWith("BEGIN", position)
                     || input.startsWith("END", position)
+
             -> readKeyword()
 
-            input.startsWith("DEPTH")
-                    || input.startsWith("WIDTH")
-                    || input.startsWith("ADDRESS_RADIX")
-                    || input.startsWith("DATA_RADIX")
+            input.startsWith("DEPTH", position)
+                    || input.startsWith("WIDTH", position)
+                    || input.startsWith("ADDRESS_RADIX", position)
+                    || input.startsWith("DATA_RADIX", position)
             -> readIdentifier()
 
-            input.startsWith("BIN")
-                    || input.startsWith("DEC")
-                    || input.startsWith("HEX")
-                    || input.startsWith("OCT")
-                    || input.startsWith("UNS")
+            input.startsWith("BIN", position)
+                    || input.startsWith("DEC", position)
+                    || input.startsWith("HEX", position)
+                    || input.startsWith("OCT", position)
+                    || input.startsWith("UNS", position)
             -> readRadix()
 
             currChar.isDigit() || currChar in "ABCDEFabcdef" -> readNumber()
+
+            input.startsWith("..", position) -> readRangeTo()
+
             else -> readSymbol()
         }
+    }
+
+    private fun readRangeTo(): MifToken {
+        val start = position
+        val content = input.substring(start, start + 2)
+        position += content.length
+        return MifToken(MifToken.Type.RANGE_TO, content, start..<position)
     }
 
     private fun readRadix(): MifToken {

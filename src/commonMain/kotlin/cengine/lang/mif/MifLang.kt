@@ -7,21 +7,21 @@ import cengine.editor.formatting.Formatter
 import cengine.editor.highlighting.HighlightProvider
 import cengine.lang.LanguageService
 import cengine.lang.RunConfiguration
+import cengine.lang.mif.features.MifHighlighter
 import cengine.psi.core.PsiParser
 import cengine.psi.core.PsiService
 import cengine.psi.impl.PsiServiceImpl
 import cengine.vfs.VirtualFile
 
-object MifLang: LanguageService {
+object MifLang : LanguageService {
     override val name: String = "MIF"
     override val fileSuffix: String = ".mif"
-    override val psiParser: PsiParser<*>
-        get() = TODO("Not yet implemented")
+    override val psiParser: PsiParser<*> = MifParser
     override val psiService: PsiService = PsiServiceImpl(psiParser)
     override val runConfigurations: Set<RunConfiguration<LanguageService>> = setOf()
     override val completionProvider: CompletionProvider? = null
-    override val annotationProvider: AnnotationProvider?= null
-    override val highlightProvider: HighlightProvider?= null
-    override val formatter: Formatter?= null
+    override val annotationProvider: AnnotationProvider? = null
+    override val highlightProvider: HighlightProvider = MifHighlighter()
+    override val formatter: Formatter? = null
     override val annotations: MutableMap<VirtualFile, Set<Annotation>> = mutableMapOf()
 }

@@ -1,20 +1,21 @@
-package cengine.lang.asm.features
+package cengine.lang.mif.features
 
 import cengine.editor.highlighting.HLInfo
 import cengine.editor.highlighting.HighlightProvider
 import cengine.lang.asm.CodeStyle
-import cengine.lang.asm.ast.TargetSpec
+import cengine.lang.mif.ast.MifLexer
 import cengine.psi.core.Interval
-import cengine.psi.core.PsiElement
+import emulator.kit.nativeLog
 
-class AsmHighlighter(targetSpec: TargetSpec) : HighlightProvider {
-    private val cache = mutableMapOf<PsiElement, List<HLInfo>>()
+class MifHighlighter : HighlightProvider {
 
-    private val lexer = targetSpec.createLexer("")
-
+    val lexer = MifLexer("")
     override fun fastHighlight(text: String, inRange: IntRange): List<HLInfo> {
         lexer.reset(text)
         lexer.position = inRange.first
+
+        nativeLog("fastHighlight starting")
+
         val highlights = mutableListOf<HLInfo>()
         while (lexer.position <= inRange.last) {
             if (!lexer.hasMoreTokens()) {
@@ -24,11 +25,13 @@ class AsmHighlighter(targetSpec: TargetSpec) : HighlightProvider {
             val token = lexer.consume(ignoreLeadingSpaces = true, ignoreComments = false)
 
             val style = token.type.style
-
+            nativeLog("HL -> $token -> $style")
             style?.let {
                 highlights.add(HL(token, it))
             }
         }
+
+        nativeLog("fastHighlight finished")
 
         return highlights
     }

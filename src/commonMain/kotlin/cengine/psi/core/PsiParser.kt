@@ -11,4 +11,20 @@ interface PsiParser<T: PsiFile> {
 
     class NodeException(element: PsiElement, message: String) : Exception("${element.range}: $message")
     class TokenException(element: Token, message: String) : Exception("${element.range}: $message")
+
+    class ParentLinker : PsiElementVisitor {
+        override fun visitFile(file: PsiFile) {
+            file.children.forEach {
+                it.parent = file
+                it.accept(this)
+            }
+        }
+
+        override fun visitElement(element: PsiElement) {
+            element.children.forEach {
+                it.parent = element
+                it.accept(this)
+            }
+        }
+    }
 }

@@ -17,7 +17,7 @@ class AsmCompleter(targetSpec: TargetSpec) : CompletionProvider {
 
     val symbolRegex = targetSpec.prefices.symbol
     val directives: Set<String> = (ASDirType.entries + targetSpec.customDirs).map { "." + it.getDetectionString().lowercase() }.filter { it.isNotEmpty() }.toSet()
-    val instructions: Set<String> = targetSpec.allInstrs.map { it.detectionName }.toSet()
+    val instructions: Set<String> = targetSpec.allInstrs.map { it.detectionName.lowercase() }.toSet()
     val cachedCompletions: MutableMap<PsiFile, CompletionSet> = mutableMapOf()
 
     data class CompletionSet(

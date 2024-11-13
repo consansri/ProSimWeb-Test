@@ -52,4 +52,7 @@ fun Bin.toUByte(): UByte? = this.toRawString().toUByteOrNull(2)
 fun Oct.toUByte(): UByte? = this.toRawString().toUByteOrNull(8)
 fun Hex.toUByte(): UByte? = this.toRawString().toUByteOrNull(16)
 
+fun IntRange.overlaps(other: IntRange): Boolean {
+    return this.first <= other.last && other.first <= this.last
+}
 

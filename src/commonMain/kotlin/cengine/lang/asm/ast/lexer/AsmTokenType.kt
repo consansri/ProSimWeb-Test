@@ -9,7 +9,7 @@ import cengine.psi.lexer.core.TokenType
  */
 enum class AsmTokenType(
     val regex: Regex? = null,
-    val style: CodeStyle? = null,
+    override val style: CodeStyle? = null,
     val isOperator: Boolean = false,
     val couldBePrefix: Boolean = false,
     val isPunctuation: Boolean = false,
