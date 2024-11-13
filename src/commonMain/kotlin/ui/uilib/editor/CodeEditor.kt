@@ -683,7 +683,7 @@ fun CodeEditor(
                 val inCodePosition = Offset(hoverPosition.x - rowHeaderWidth, hoverPosition.y)
                 val index = textLayout?.getOffsetForPosition(inCodePosition) ?: return@let
                 val psiFile = manager?.getPsiFile(file) ?: return@let
-                val annotations = service?.collectNotations(psiFile, index) ?: return@let
+                val annotations = service?.collectNotations(psiFile, index..index) ?: return@let
                 localAnnotations = annotations
             }
         }

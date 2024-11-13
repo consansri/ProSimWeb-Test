@@ -19,7 +19,7 @@ interface PsiService {
     fun findReferences(element: PsiElement): List<PsiReference>
 
     fun collectHighlights(file: PsiFile, inRange: IntRange): List<Pair<IntRange, CodeStyle>> {
-        class HighlightCollector : PsiElementVisitor {
+        class HighlightRangeCollector : PsiElementVisitor {
             val highlights = mutableListOf<Pair<IntRange, CodeStyle>>()
             override fun visitFile(file: PsiFile) {
                 if (!file.range.overlaps(inRange)) return
@@ -42,43 +42,16 @@ interface PsiService {
             }
         }
 
-        val collector = HighlightCollector()
+        val collector = HighlightRangeCollector()
         file.accept(collector)
         return collector.highlights
     }
 
-    fun collectHighlights(file: PsiFile): List<Pair<IntRange, CodeStyle>> {
-        class HighlightCollector : PsiElementVisitor {
-            val highlights = mutableListOf<Pair<IntRange, CodeStyle>>()
-            override fun visitFile(file: PsiFile) {
-                file.children.forEach {
-                    it.accept(this)
-                }
-            }
-
-            override fun visitElement(element: PsiElement) {
-                if (element is Highlightable) {
-                    element.style?.let {
-                        highlights.add(element.range to it)
-                    }
-                }
-
-                element.children.forEach {
-                    it.accept(this)
-                }
-            }
-        }
-
-        val collector = HighlightCollector()
-        file.accept(collector)
-        return collector.highlights
-    }
-
-    fun collectNotations(file: PsiFile, inRange: IntRange): Set<Annotation> {
-        class NotationCollector : PsiElementVisitor {
+    fun collectNotations(file: PsiFile, inRange: IntRange? = null): Set<Annotation> {
+        class NotationRangeCollector : PsiElementVisitor {
             val annotations = mutableSetOf<Annotation>()
             override fun visitFile(file: PsiFile) {
-                if (!file.range.overlaps(inRange)) return
+                if (inRange != null && !file.range.overlaps(inRange)) return
 
                 annotations.addAll(file.annotations)
 
@@ -88,7 +61,7 @@ interface PsiService {
             }
 
             override fun visitElement(element: PsiElement) {
-                if (!element.range.overlaps(inRange)) return
+                if (inRange != null && !file.range.overlaps(inRange)) return
 
                 annotations.addAll(element.annotations)
 
@@ -98,36 +71,7 @@ interface PsiService {
             }
         }
 
-        val collector = NotationCollector()
-        file.accept(collector)
-        return collector.annotations
-    }
-
-    fun collectNotations(file: PsiFile, index: Int? = null): Set<Annotation> {
-        class NotationCollector : PsiElementVisitor {
-            val annotations = mutableSetOf<Annotation>()
-            override fun visitFile(file: PsiFile) {
-                if (index != null && index !in file.range) return
-
-                annotations.addAll(file.annotations)
-
-                file.children.forEach {
-                    it.accept(this)
-                }
-            }
-
-            override fun visitElement(element: PsiElement) {
-                if (index != null && index !in element.range) return
-
-                annotations.addAll(element.annotations)
-
-                element.children.forEach {
-                    it.accept(this)
-                }
-            }
-        }
-
-        val collector = NotationCollector()
+        val collector = NotationRangeCollector()
         file.accept(collector)
         return collector.annotations
     }
