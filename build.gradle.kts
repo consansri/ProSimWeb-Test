@@ -54,8 +54,6 @@ val buildConfigGenerator by tasks.registering(Sync::class) {
 group = "prosim"
 version = DIST_VERSION
 
-
-
 repositories {
     google()
     mavenCentral()
@@ -84,13 +82,6 @@ kotlin {
     }
 
     jvm("composeDesktop") {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        mainRun {
-            mainClass.set("prosim.AppKt")
-        }
-    }
-
-    jvm {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
             mainClass.set("prosim.AppKt")
@@ -149,17 +140,6 @@ kotlin {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:18.3.1-pre.757")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-emotion:11.11.4-pre.757")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-tanstack-react-virtual:3.5.1-pre.757")
-            }
-        }
-
-        val jvmMain by getting {
-            dependencies {
-
-                // For Swing
-                implementation("com.formdev:flatlaf:3.4")
-                implementation("com.formdev:flatlaf-extras:3.4")
-
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutine_version")
             }
         }
     }
