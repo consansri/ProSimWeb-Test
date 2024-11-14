@@ -5,7 +5,6 @@ import cengine.lang.mif.ast.MifNode
 import cengine.lang.mif.ast.MifPsiFile
 import cengine.psi.core.PsiParser
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 
 object MifParser: PsiParser<MifPsiFile> {
     override fun parse(file: VirtualFile): MifPsiFile {
@@ -14,8 +13,6 @@ object MifParser: PsiParser<MifPsiFile> {
         val program = MifNode.Program.parse(lexer)
 
         program.accept(PsiParser.ParentLinker())
-
-        nativeLog("Tree ${program.print("")}")
 
         return MifPsiFile(file, program)
     }

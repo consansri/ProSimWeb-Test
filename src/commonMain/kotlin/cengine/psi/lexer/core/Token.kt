@@ -41,6 +41,8 @@ abstract class Token : PsiElement {
         visitor.visitElement(this)
     }
 
+    override fun print(prefix: String): String = "$prefix${type}: $value\n"
+
     final override fun equals(other: Any?): Boolean {
         if (other !is Token) return false
 

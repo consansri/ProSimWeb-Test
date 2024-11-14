@@ -8,7 +8,7 @@ import cengine.psi.core.PsiFile
 import cengine.vfs.VirtualFile
 
 class MifPsiFile(
-    override val file: VirtualFile, val program: MifNode.Program
+    override val file: VirtualFile, var program: MifNode.Program
 ) : PsiFile {
 
     override val lang: MifLang get() = MifLang
@@ -23,7 +23,10 @@ class MifPsiFile(
     override var range: IntRange = (children.minOf { it.range.first })..(children.maxOf { it.range.last })
 
     override fun update() {
-
+        // Reparse the file and update children
+        val newFile = lang.psiParser.parse(file)
+        program = newFile.program
+        range = newFile.range
     }
 
     override fun accept(visitor: PsiElementVisitor) {

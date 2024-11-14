@@ -5,7 +5,6 @@ import cengine.editor.highlighting.HighlightProvider
 import cengine.lang.asm.CodeStyle
 import cengine.lang.mif.ast.MifLexer
 import cengine.psi.core.Interval
-import emulator.kit.nativeLog
 
 class MifHighlighter : HighlightProvider {
 
@@ -13,8 +12,6 @@ class MifHighlighter : HighlightProvider {
     override fun fastHighlight(text: String, inRange: IntRange): List<HLInfo> {
         lexer.reset(text)
         lexer.position = inRange.first
-
-        nativeLog("fastHighlight starting")
 
         val highlights = mutableListOf<HLInfo>()
         while (lexer.position <= inRange.last) {
@@ -25,13 +22,10 @@ class MifHighlighter : HighlightProvider {
             val token = lexer.consume(ignoreLeadingSpaces = true, ignoreComments = false)
 
             val style = token.type.style
-            nativeLog("HL -> $token -> $style")
             style?.let {
                 highlights.add(HL(token, it))
             }
         }
-
-        nativeLog("fastHighlight finished")
 
         return highlights
     }

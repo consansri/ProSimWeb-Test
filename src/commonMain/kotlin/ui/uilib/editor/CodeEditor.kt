@@ -216,8 +216,8 @@ fun CodeEditor(
         coroutineScope.launch {
             withContext(Dispatchers.Default) {
                 manager?.updatePsi(file) {
-                    onTextChange(textFieldValue.copy(it.content))
                     allAnnotations = service?.collectNotations(it) ?: emptySet()
+                    onTextChange(textFieldValue.copy(it.content))
                     locatePSIElement()
                     analyticsAreUpToDate = true
                 }
