@@ -1,17 +1,12 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
-
-plugins {
-    kotlin("multiplatform") version "2.0.21"
-    id("org.jetbrains.dokka") version "1.9.20"
-    kotlin("plugin.compose") version "2.0.21"
-    id("org.jetbrains.compose") version "1.7.0"
-    kotlin("plugin.serialization") version "2.0.21"
-    id("com.gradleup.shadow") version "8.3.5"
-    distribution
-}
-
+val serialization_version: String by project
+val kotlin_version: String by project
+val datetime_version: String by project
+val coroutine_version: String by project
+val compose_version: String by project
+val dokka_version: String by project
 
 val DIST_NAME: String by project
 val DIST_VERSION: String by project
@@ -19,6 +14,17 @@ val DIST_YEAR: String by project
 val DIST_DEV: String by project
 val DIST_ORG: String by project
 val DIST_FILENAME = "$DIST_NAME - $DIST_VERSION"
+
+plugins {
+    kotlin("multiplatform") version "2.0.21"
+    id("org.jetbrains.dokka") version "1.9.20"
+    kotlin("plugin.compose") version "2.0.21"
+    id("org.jetbrains.compose") version "1.7.1"
+    kotlin("plugin.serialization") version "2.0.21"
+    id("com.gradleup.shadow") version "8.3.5"
+    distribution
+}
+
 
 // execute when config was changed
 val buildConfigGenerator by tasks.registering(Sync::class) {
@@ -48,12 +54,7 @@ val buildConfigGenerator by tasks.registering(Sync::class) {
 group = "prosim"
 version = DIST_VERSION
 
-val dokkaVersion = "1.9.20"
-val kotlinVersion = "2.0.21"
-val composeVersion = "1.7.0"
-val coroutineVersion = "1.9.0-RC.2"
-val datetimeVersion = "0.6.1"
-val serializationVersion = "1.7.2"
+
 
 repositories {
     google()
@@ -105,9 +106,9 @@ kotlin {
 
             dependencies {
                 //implementation(kotlin("reflect"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetimeVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutine_version")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetime_version")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version")
 
                 // Enables FileKit without Compose dependencies
                 implementation("io.github.vinceglb:filekit-core:0.8.7")
@@ -158,7 +159,7 @@ kotlin {
                 implementation("com.formdev:flatlaf:3.4")
                 implementation("com.formdev:flatlaf-extras:3.4")
 
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutineVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutine_version")
             }
         }
     }
