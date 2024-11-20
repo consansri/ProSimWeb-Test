@@ -68,7 +68,11 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
 
         when (this) {
             is ASNode.Statement.Dir -> {
-                this.dir.type.build(this@AsmCodeGenerator, this.dir)
+                try {
+                    this.dir.type.build(this@AsmCodeGenerator, this.dir)
+                } catch (e: NotImplementedError) {
+                    dir.addError(e.message.toString())
+                }
             }
 
             is ASNode.Statement.Empty -> {}
@@ -77,7 +81,11 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
                 instruction.nodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                     it.assign(symbols, currentSection, currentSection.content.size.toUInt())
                 }
-                instruction.type.resolve(this@AsmCodeGenerator, instruction)
+                try {
+                    instruction.type.resolve(this@AsmCodeGenerator, instruction)
+                } catch (e: Exception) {
+                    instruction.addError(e.message.toString())
+                }
             }
 
             is ASNode.Statement.Unresolved -> {}
