@@ -41,19 +41,19 @@ package cengine.lang.obj.elf
  */
 sealed interface Phdr : BinaryProvider {
 
-    var p_type: cengine.lang.obj.elf.Elf_Word
-    var p_flags: cengine.lang.obj.elf.Elf_Word
+    var p_type: Elf_Word
+    var p_flags: Elf_Word
 
     companion object {
-        fun size(ei_class: cengine.lang.obj.elf.Elf_Byte): cengine.lang.obj.elf.Elf_Half {
+        fun size(ei_class: Elf_Byte): Elf_Half {
             return when(ei_class){
                 E_IDENT.ELFCLASS32 -> 32U
                 E_IDENT.ELFCLASS64 -> 56U
-                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw ELFGenerator.InvalidElfClassException(ei_class)
             }
         }
 
-        fun getProgramHeaderType(type: cengine.lang.obj.elf.Elf_Word): String = when (type) {
+        fun getProgramHeaderType(type: Elf_Word): String = when (type) {
             PT_NULL -> "NULL"
             PT_LOAD -> "LOAD"
             PT_DYNAMIC -> "DYNAMIC"
@@ -67,7 +67,7 @@ sealed interface Phdr : BinaryProvider {
             else -> "UNKNOWN (0x${type.toString(16)})"
         }
 
-        fun getProgramHeaderFlags(flags: cengine.lang.obj.elf.Elf_Word): String {
+        fun getProgramHeaderFlags(flags: Elf_Word): String {
             val flagsList = mutableListOf<String>()
             if (flags and PF_X != 0U) flagsList.add("X")
             if (flags and PF_W != 0U) flagsList.add("W")
@@ -119,7 +119,7 @@ sealed interface Phdr : BinaryProvider {
                     return ELF64_Phdr(p_type, p_flags, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz, p_align)
                 }
 
-                else -> throw cengine.lang.obj.elf.NotInELFFormatException
+                else -> throw NotInELFFormatException
             }
         }
 
@@ -131,7 +131,7 @@ sealed interface Phdr : BinaryProvider {
          * The array element is unused; other members' values are undefined. This type lets
          * the program header table have ignored entries.
          */
-        const val PT_NULL: cengine.lang.obj.elf.Elf_Word = 0U
+        const val PT_NULL: Elf_Word = 0U
 
         /**
          * The array element specifies a loadable segment, described by [p_filesz] and
@@ -142,28 +142,28 @@ sealed interface Phdr : BinaryProvider {
          * Loadable segment entries in the program header table appear in ascending order,
          * sorted on the [p_vaddr] member.
          */
-        const val PT_LOAD: cengine.lang.obj.elf.Elf_Word = 1U
+        const val PT_LOAD: Elf_Word = 1U
 
         /**
          * The array element specifies dynamic linking information.
          */
-        const val PT_DYNAMIC: cengine.lang.obj.elf.Elf_Word = 2U
+        const val PT_DYNAMIC: Elf_Word = 2U
 
         /**
          * The array element specifies the location and size of a null-terminated path name to
          * invoke as an interpreter.
          */
-        const val PT_INTERP: cengine.lang.obj.elf.Elf_Word = 3U
+        const val PT_INTERP: Elf_Word = 3U
 
         /**
          * The array element specifies the location and size of auxiliary information.
          */
-        const val PT_NOTE: cengine.lang.obj.elf.Elf_Word = 4U
+        const val PT_NOTE: Elf_Word = 4U
 
         /**
          * This segment type is reserved but has unspecified semantics.
          */
-        const val PT_SHLIB: cengine.lang.obj.elf.Elf_Word = 5U
+        const val PT_SHLIB: Elf_Word = 5U
 
         /**
          * The array element, if present, specifies the location and size of the program header
@@ -173,32 +173,32 @@ sealed interface Phdr : BinaryProvider {
          * it must precede any loadable segment entry. See "Program Interpreter" in the
          * appendix at the end of Book III for further information.
          */
-        const val PT_PHDR: cengine.lang.obj.elf.Elf_Word = 6U
+        const val PT_PHDR: Elf_Word = 6U
 
         /**
          * The array element specifies the Thread-Local Storage template. Implementations need not support this program table entry.
          */
-        const val PT_TLS: cengine.lang.obj.elf.Elf_Word = 7U
+        const val PT_TLS: Elf_Word = 7U
 
         /**
          * [PT_LOOS] .. [PT_HIOS] : Values in this inclusive range are reserved for operating system-specific semantics.
          */
-        const val PT_LOOS: cengine.lang.obj.elf.Elf_Word = 0x60000000U
+        const val PT_LOOS: Elf_Word = 0x60000000U
 
         /**
          * [PT_LOOS] .. [PT_HIOS] : Values in this inclusive range are reserved for operating system-specific semantics.
          */
-        const val PT_HIOS: cengine.lang.obj.elf.Elf_Word = 0x6fffffffU
+        const val PT_HIOS: Elf_Word = 0x6fffffffU
 
         /**
          * [PT_LOPROC] .. [PT_HIPROC] : Values in this inclusive range are reserved for processor-specific semantics.
          */
-        const val PT_LOPROC: cengine.lang.obj.elf.Elf_Word = 0x70000000U
+        const val PT_LOPROC: Elf_Word = 0x70000000U
 
         /**
          * [PT_LOPROC] .. [PT_HIPROC] : Values in this inclusive range are reserved for processor-specific semantics.
          */
-        const val PT_HIPROC: cengine.lang.obj.elf.Elf_Word = 0x7fffffffU
+        const val PT_HIPROC: Elf_Word = 0x7fffffffU
 
         /**
          * [p_flags]
@@ -207,27 +207,27 @@ sealed interface Phdr : BinaryProvider {
         /**
          * Execute
          */
-        const val PF_X: cengine.lang.obj.elf.Elf_Word = 0x1U
+        const val PF_X: Elf_Word = 0x1U
 
         /**
          * Write
          */
-        const val PF_W: cengine.lang.obj.elf.Elf_Word = 0x2U
+        const val PF_W: Elf_Word = 0x2U
 
         /**
          * Read
          */
-        const val PF_R: cengine.lang.obj.elf.Elf_Word = 0x4U
+        const val PF_R: Elf_Word = 0x4U
 
         /**
          * Unspecified
          */
-        const val PF_MASKOS: cengine.lang.obj.elf.Elf_Word = 0x0ff00000U
+        const val PF_MASKOS: Elf_Word = 0x0ff00000U
 
         /**
          * Unspecified
          */
-        const val PF_MASKPROC: cengine.lang.obj.elf.Elf_Word = 0xf0000000U
+        const val PF_MASKPROC: Elf_Word = 0xf0000000U
 
     }
 

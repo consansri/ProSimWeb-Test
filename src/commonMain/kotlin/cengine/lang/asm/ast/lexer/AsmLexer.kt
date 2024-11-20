@@ -3,16 +3,15 @@ package cengine.lang.asm.ast.lexer
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.TargetSpec
-import cengine.lang.asm.ast.impl.ASDirType
 import cengine.psi.lexer.core.Token
 import cengine.psi.lexer.impl.BaseLexer
 
-class AsmLexer(input: String, val targetSpec: TargetSpec) : BaseLexer(input) {
+class AsmLexer(input: String, val targetSpec: TargetSpec<*>) : BaseLexer(input) {
 
     private val prefices: Prefices get() = targetSpec.prefices
     private val regs: List<Pair<RegTypeInterface, Set<String>>> = targetSpec.allRegs.map { it to it.recognizable.toSet() }
     private val instrs = targetSpec.allInstrs.map { it to it.detectionName.lowercase() }
-    private val dirs: List<Pair<DirTypeInterface, String>> = (ASDirType.entries + targetSpec.customDirs).map { it to it.getDetectionString().lowercase() }.filter { it.second.isNotEmpty() }
+    private val dirs: List<Pair<DirTypeInterface, String>> = targetSpec.allDirs.map { it to it.getDetectionString().lowercase() }.filter { it.second.isNotEmpty() }
     private val regexMap: Map<AsmTokenType, Regex?> = AsmTokenType.entries.associateWith { it.getRegex(prefices) }
 
     /**

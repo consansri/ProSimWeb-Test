@@ -1,6 +1,6 @@
 package cengine.lang.obj.elf
 
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
 
 /**
@@ -33,14 +33,14 @@ import cengine.util.Endianness
  *
  */
 data class ELF32_Sym(
-    override var st_name: cengine.lang.obj.elf.Elf_Word,
-    var st_value: cengine.lang.obj.elf.Elf32_Addr = 0U,
-    var st_size: cengine.lang.obj.elf.Elf_Word = 0U,
-    override var st_info: cengine.lang.obj.elf.Elf_Byte = 0U,
-    override var st_other: cengine.lang.obj.elf.Elf_Byte = 0U,
-    override var st_shndx: cengine.lang.obj.elf.Elf_Half
+    override var st_name: Elf_Word,
+    var st_value: Elf32_Addr = 0U,
+    var st_size: Elf_Word = 0U,
+    override var st_info: Elf_Byte = 0U,
+    override var st_other: Elf_Byte = 0U,
+    override var st_shndx: Elf_Half
 ): Sym {
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(st_name)
@@ -50,7 +50,7 @@ data class ELF32_Sym(
         b.put(st_other)
         b.put(st_shndx)
 
-        return b.toByteArray()
+        return b.toArray()
     }
 
     override fun byteSize(): Int = 16

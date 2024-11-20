@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import cengine.lang.obj.elf.ELFFile
-import cengine.lang.obj.mif.MifBuilder
+import cengine.lang.mif.MifConverter
 import cengine.project.Project
 import cengine.vfs.FPath
 import emulator.kit.Architecture
@@ -80,7 +80,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
         architecture.disassembler?.decoded?.value = emptyList()
         elfFile?.let {
             try {
-                architecture.initializer = MifBuilder.parseElf(it)
+                architecture.initializer = MifConverter.parseElf(it)
                 architecture.disassembler?.disassemble(it)
                 architecture.exeReset()
             } catch (e: Exception) {

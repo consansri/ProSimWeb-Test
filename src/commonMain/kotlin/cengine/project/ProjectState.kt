@@ -130,5 +130,5 @@ data class ProjectState(
             }
     }
 
-    fun getTarget(): TargetSpec? = TargetSpec.specs.firstOrNull { it.name == target }
+    fun getTarget(): TargetSpec<*>? = TargetSpec.specs.firstOrNull { it.name == target }
 }

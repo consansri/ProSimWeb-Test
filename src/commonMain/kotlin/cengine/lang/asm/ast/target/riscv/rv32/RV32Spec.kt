@@ -4,6 +4,7 @@ import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.TargetSpec
+import cengine.lang.asm.ast.impl.ASDirType
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVCsr
@@ -13,7 +14,7 @@ import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import emulator.EmuLink
 
-data object RV32Spec : TargetSpec {
+data object RV32Spec : TargetSpec<ELFGenerator> {
     override val name: String = "RISC-V 32 Bit"
 
     override val ei_class: Elf_Byte = E_IDENT.ELFCLASS32
@@ -21,7 +22,7 @@ data object RV32Spec : TargetSpec {
     override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
     override val ei_abiversion: Elf_Byte = E_IDENT.ZERO
     override val e_machine: Elf_Half = Ehdr.EM_RISCV
-    override val linkerScript: LinkerScript = object : LinkerScript{
+    override val linkerScript: LinkerScript = object : LinkerScript {
         override val textStart: Hex = Hex("0", Size.Bit32)
         override val dataStart: Hex? = null
         override val rodataStart: Hex? = null
@@ -43,6 +44,8 @@ data object RV32Spec : TargetSpec {
 
     override val allRegs: List<RegTypeInterface> = RVBaseRegs.entries + RVCsr.regs
     override val allInstrs: List<InstrTypeInterface> = RV32InstrType.entries
-    override val customDirs: List<DirTypeInterface> = RVDirType.entries
+    override val allDirs: List<DirTypeInterface> = RVDirType.entries + ASDirType.entries
+    override fun createGenerator(): ELFGenerator = ExecELFGenerator(this)
+
     override fun toString(): String = name
 }

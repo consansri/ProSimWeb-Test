@@ -13,7 +13,7 @@ import emulator.EmuLink
 /**
  * Interface representing a defined assembly configuration.
  */
-interface TargetSpec {
+interface TargetSpec<T : AsmCodeGenerator<*>> {
     companion object {
         val specs = setOf(RV32Spec, RV64Spec, IKRR2Spec, IKRMiniSpec, T6502Spec)
     }
@@ -48,9 +48,10 @@ interface TargetSpec {
 
     val allInstrs: List<InstrTypeInterface>
 
-    val customDirs: List<DirTypeInterface>
+    val allDirs: List<DirTypeInterface>
 
     fun createLexer(input: String): AsmLexer = AsmLexer(input, this)
+    fun createGenerator(): T
 
     override fun toString(): String
 

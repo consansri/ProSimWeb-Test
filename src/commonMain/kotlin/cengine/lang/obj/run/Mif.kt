@@ -4,7 +4,7 @@ import cengine.lang.LanguageService
 import cengine.lang.RunConfiguration
 import cengine.lang.obj.ObjLang
 import cengine.lang.obj.elf.ELFFile
-import cengine.lang.obj.mif.MifBuilder
+import cengine.lang.mif.MifConverter
 import cengine.vfs.FPath
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
@@ -22,7 +22,7 @@ object Mif : RunConfiguration.FileRun<LanguageService> {
 
         val elfFile = ELFFile.parse(file.name, file.getContent())
         if (elfFile != null) {
-            val fileContent = MifBuilder.parseElf(elfFile).build()
+            val fileContent = MifConverter.parseElf(elfFile).build()
             outputFile.setAsUTF8String(fileContent)
         }
     }

@@ -1,7 +1,7 @@
 package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.*
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
 
 /**
@@ -44,16 +44,16 @@ import cengine.util.Endianness
  *
  */
 data class ELF64_Phdr(
-    override var p_type: cengine.lang.obj.elf.Elf_Word,
-    override var p_flags: cengine.lang.obj.elf.Elf_Word,
-    var p_offset: cengine.lang.obj.elf.Elf64_Off = 0U,
-    var p_vaddr: cengine.lang.obj.elf.Elf64_Addr = 0U,
-    var p_paddr: cengine.lang.obj.elf.Elf64_Addr = 0U,
-    var p_filesz: cengine.lang.obj.elf.Elf_Xword = 0U,
-    var p_memsz: cengine.lang.obj.elf.Elf_Xword = 0U,
-    var p_align: cengine.lang.obj.elf.Elf_Xword
+    override var p_type: Elf_Word,
+    override var p_flags: Elf_Word,
+    var p_offset: Elf64_Off = 0U,
+    var p_vaddr: Elf64_Addr = 0U,
+    var p_paddr: Elf64_Addr = 0U,
+    var p_filesz: Elf_Xword = 0U,
+    var p_memsz: Elf_Xword = 0U,
+    var p_align: Elf_Xword
 ) : Phdr {
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(p_type)
@@ -65,7 +65,7 @@ data class ELF64_Phdr(
         b.put(p_memsz)
         b.put(p_align)
 
-        return b.toByteArray()
+        return b.toArray()
     }
 
     override fun byteSize(): Int = 56

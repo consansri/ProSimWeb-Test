@@ -7,7 +7,7 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.psi.core.Interval
 import cengine.psi.core.PsiElement
 
-class AsmHighlighter(targetSpec: TargetSpec) : HighlightProvider {
+class AsmHighlighter(targetSpec: TargetSpec<*>) : HighlightProvider {
     private val cache = mutableMapOf<PsiElement, List<HLInfo>>()
 
     private val lexer = targetSpec.createLexer("")

@@ -1,7 +1,7 @@
 package cengine.lang.obj.elf
 
-import cengine.util.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.ByteBuffer
 
 /**
  * Note Information
@@ -57,14 +57,14 @@ data class Nhdr(
 
     override fun byteSize(): Int = 12
 
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(n_namesz)
         b.put(n_descsz)
         b.put(n_type)
 
-        return b.toByteArray()
+        return b.toArray()
     }
 
 }

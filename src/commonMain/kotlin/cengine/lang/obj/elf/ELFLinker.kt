@@ -1,6 +1,6 @@
 package cengine.lang.obj.elf
 
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 
 sealed class ELFLinker<ELFFILE : ELFFile<*, *, *, *, *, *, *>>(private val inputFiles: List<ELFFILE>) {
 

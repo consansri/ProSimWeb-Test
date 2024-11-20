@@ -4,7 +4,7 @@ import cengine.lang.obj.elf.*
 import cengine.lang.obj.elf.Ehdr.Companion.EV_CURRENT
 import cengine.lang.obj.elf.Ehdr.Companion.getELFMachine
 import cengine.lang.obj.elf.Ehdr.Companion.getELFType
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
 import cengine.util.string.hexDump
 
@@ -69,7 +69,7 @@ data class ELF32_Ehdr(
 
     override fun byteSize(): Int = e_ident.byteSize() + 36
 
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val buffer = ByteBuffer(endianness)
 
         buffer.putAll(e_ident.build(endianness))
@@ -87,7 +87,7 @@ data class ELF32_Ehdr(
         buffer.put(e_shnum)
         buffer.put(e_shstrndx)
 
-        return buffer.toByteArray()
+        return buffer.toArray()
     }
 
     override fun toString(): String {

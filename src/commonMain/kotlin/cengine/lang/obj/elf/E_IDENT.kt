@@ -1,8 +1,8 @@
 package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.Ehdr.Companion.EV_CURRENT
-import cengine.util.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.ByteBuffer
 
 /**
  * @param ei_mag0 File identification
@@ -170,7 +170,7 @@ data class E_IDENT(
 
     }
 
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val buffer = ByteBuffer(endianness)
 
         buffer.put(ei_mag0)
@@ -193,7 +193,7 @@ data class E_IDENT(
             })
         }
 
-        return buffer.toByteArray()
+        return buffer.toArray()
     }
 
     override fun byteSize(): Int = ei_nident.toInt()

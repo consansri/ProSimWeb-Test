@@ -1,6 +1,6 @@
 package cengine.lang.obj.elf
 
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
 
 data class ELF64_Shdr(
@@ -26,7 +26,7 @@ data class ELF64_Shdr(
         }
     }
 
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(sh_name)
@@ -40,7 +40,7 @@ data class ELF64_Shdr(
         b.put(sh_addralign)
         b.put(sh_entsize)
 
-        return b.toByteArray()
+        return b.toArray()
     }
 
     override fun byteSize(): Int = 64

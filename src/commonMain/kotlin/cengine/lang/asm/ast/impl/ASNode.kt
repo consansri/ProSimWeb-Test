@@ -3,11 +3,8 @@ package cengine.lang.asm.ast.impl
 import cengine.editor.CodeEditor
 import cengine.editor.annotation.Annotation
 import cengine.lang.asm.CodeStyle
+import cengine.lang.asm.ast.*
 import cengine.lang.asm.ast.Component.*
-import cengine.lang.asm.ast.DirTypeInterface
-import cengine.lang.asm.ast.InstrTypeInterface
-import cengine.lang.asm.ast.Rule
-import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASNode.*
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmToken
@@ -96,7 +93,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
         /**
          * Severities will be set by the Lowest Node, which is actually checking the token.
          */
-        fun buildNode(gasNodeType: ASNodeType, lexer: AsmLexer, targetSpec: TargetSpec): ASNode? {
+        fun buildNode(gasNodeType: ASNodeType, lexer: AsmLexer, targetSpec: TargetSpec<*>): ASNode? {
             val initialPos = lexer.position
 
             when (gasNodeType) {
@@ -186,7 +183,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                 }
 
                 ASNodeType.DIRECTIVE -> {
-                    (targetSpec.customDirs + ASDirType.entries).forEach {
+                    targetSpec.allDirs.forEach {
                         val node = it.buildDirectiveContent(lexer, targetSpec)
                         if (node != null) {
                             //nativeLog("Found directive ${it.getDetectionString()} ${node::class.simpleName}")
@@ -388,7 +385,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
         }
     }
 
-    class Label(val nameToken: AsmToken, val colon: AsmToken) : ASNode(nameToken.start..<colon.end, ), Highlightable {
+    class Label(val nameToken: AsmToken, val colon: AsmToken) : ASNode(nameToken.start..<colon.end), Highlightable {
         override val pathName get() = nameToken.value + colon.value
         val type = if (nameToken.type == AsmTokenType.INT_DEC) Type.NUMERIC else Type.ALPHANUMERIC
         val identifier = nameToken.value
@@ -870,9 +867,8 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
          * @param builder is for storing relocation information.
          *
          */
-        abstract fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit = {}): Dec
-        abstract fun assign(section: ELFBuilder.Section)
-        abstract fun assign(symTab: ELFBuilder.SymTab)
+        abstract fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit = {}): Dec
+        abstract fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt)
 
         /**
          * [Prefix]
@@ -890,7 +886,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
 
             override var evaluated: Dec? = null
 
-            override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
+            override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): Dec {
                 return when (operator.type) {
                     AsmTokenType.COMPLEMENT -> operand.evaluate(builder, createRelocations).toBin().inv().toDec()
                     AsmTokenType.MINUS -> (-operand.evaluate(builder, createRelocations)).toDec()
@@ -901,12 +897,8 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                 }.also { evaluated = it }
             }
 
-            override fun assign(section: ELFBuilder.Section) {
-                operand.assign(section)
-            }
-
-            override fun assign(symTab: ELFBuilder.SymTab) {
-                operand.assign(symTab)
+            override fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt) {
+                operand.assign(symbols, section, offset)
             }
 
             override fun getFormatted(identSize: Int): String = if (brackets.isEmpty()) "${operator.value}${operand.getFormatted(identSize)}" else "${operator.value}(${operand.getFormatted(identSize)})"
@@ -925,7 +917,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             override val pathName: String
                 get() = operator.value
 
-            override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
+            override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): Dec {
                 return (when (operator.type) {
                     AsmTokenType.MULT -> operandA.evaluate(builder, createRelocations) * operandB.evaluate(builder, createRelocations)
                     AsmTokenType.DIV -> operandA.evaluate(builder, createRelocations) / operandB.evaluate(builder, createRelocations)
@@ -952,14 +944,9 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                 }).toDec().also { evaluated = it }
             }
 
-            override fun assign(symTab: ELFBuilder.SymTab) {
-                operandA.assign(symTab)
-                operandB.assign(symTab)
-            }
-
-            override fun assign(section: ELFBuilder.Section) {
-                operandA.assign(section)
-                operandB.assign(section)
+            override fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt) {
+                operandA.assign(symbols, section, offset)
+                operandB.assign(symbols, section, offset)
             }
 
             override fun getFormatted(identSize: Int): String = if (brackets.isEmpty()) "${operandA.getFormatted(identSize)} ${operator.value} ${operandB.getFormatted(identSize)}" else "(${operandA.getFormatted(identSize)} ${operator.value} ${operandB.getFormatted(identSize)})"
@@ -970,8 +957,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                 get() = additionalInfo
 
             class Identifier(val symToken: AsmToken) : Operand(symToken, symToken.range), PsiReference, Highlightable {
-                private var symbol: Sym? = null
-                private var label: Pair<ELFBuilder.Section, ELFBuilder.Section.LabelDef>? = null
+                private var symbol: AsmCodeGenerator.Symbol<*>? = null
 
                 override val additionalInfo: String
                     get() = token.value
@@ -982,53 +968,53 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                 override fun getFormatted(identSize: Int): String = symToken.value
 
                 override val style: CodeStyle
-                    get() = when {
-                        symbol != null -> CodeStyle.symbol
-                        label != null -> CodeStyle.label
-                        else -> CodeStyle.BASE0
+                    get() = when (symbol) {
+                        is AsmCodeGenerator.Symbol.Abs -> CodeStyle.symbol
+                        is AsmCodeGenerator.Symbol.Label -> CodeStyle.label
+                        null -> CodeStyle.BASE0
                     }
 
-                override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
+                override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): Dec {
                     val currSymbol = symbol
 
-                    if (currSymbol != null) {
-                        return when (currSymbol) {
-                            is ELF32_Sym -> currSymbol.st_value.toValue().toDec().also { evaluated = it }
-                            is ELF64_Sym -> currSymbol.st_value.toValue().toDec().also { evaluated = it }
+                    return when (currSymbol) {
+                        is AsmCodeGenerator.Symbol.Abs -> currSymbol.value.toValue().toDec().also { evaluated = it }
+                        is AsmCodeGenerator.Symbol.Label -> currSymbol.address().toDec().also { evaluated = it }
+                        null -> {
+                            createRelocations(symToken.value)
+                            0.toValue().also { evaluated = it }
+                        }
+                    }
+                }
+
+                override fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt) {
+                    val nameAssociated = symbols.firstOrNull {
+                        it.name == symToken.value
+                    }
+                    if (nameAssociated != null) {
+                        symbol = nameAssociated
+                        return
+                    }
+
+                    if (symToken.value.endsWith("f")) {
+                        val nextLocal = symbols.filterIsInstance<AsmCodeGenerator.Symbol.Label<*>>().firstOrNull {
+                            it.local && it.section == section && it.offset >= offset
+                        }
+                        if (nextLocal != null) {
+                            symbol = nextLocal
+                            return
                         }
                     }
 
-                    val lblPair = label
-                    if (lblPair != null) {
-                        val (lblSection, lbl) = lblPair
-                        val lblAddr = when (val shdr = lblSection.shdr) {
-                            is ELF32_Shdr -> shdr.sh_addr.toULong() + lbl.offset
-                            is ELF64_Shdr -> shdr.sh_addr + lbl.offset
+                    if (symToken.value.endsWith("b")) {
+                        val lastLocal = symbols.filterIsInstance<AsmCodeGenerator.Symbol.Label<*>>().firstOrNull {
+                            it.local && it.section == section && it.offset <= offset
                         }
-
-                        return lblAddr.toValue().toDec().also { evaluated = it }
+                        if (lastLocal != null) {
+                            symbol = lastLocal
+                            return
+                        }
                     }
-
-                    createRelocations(symToken.value)
-
-                    return 0.toValue().also { evaluated = it }
-                }
-
-                override fun assign(section: ELFBuilder.Section) {
-                    section.labels.firstOrNull { it.label.identifier == symToken.value }?.let { labelDef ->
-                        label = section to labelDef
-                    }
-
-                    if (label != null) symbol = null
-                }
-
-                override fun assign(symTab: ELFBuilder.SymTab) {
-                    val index = symTab.search(symToken.value)
-                    if (index != null) {
-                        symbol = symTab[index]
-                    }
-
-                    if (symbol != null) label = null
                 }
             }
 
@@ -1041,7 +1027,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                         //nativeLog("Operand.evaluate(): $value with Size ${value?.size}") // For DEBUGGING
                     }
 
-                override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
+                override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): Dec {
                     return (when (number.type) {
                         AsmTokenType.INT_DEC -> {
                             val auto = number.asNumber.asDec()
@@ -1090,9 +1076,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                     }).also { evaluated = it }
                 }
 
-                override fun assign(section: ELFBuilder.Section) {}
-
-                override fun assign(symTab: ELFBuilder.SymTab) {}
+                override fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt) {}
 
                 override fun getFormatted(identSize: Int): String = number.value
 
@@ -1107,11 +1091,9 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                     get() = char.value
 
                 override var evaluated: Dec? = null
-                override fun assign(symTab: ELFBuilder.SymTab) {}
+                override fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt) {}
 
-                override fun assign(section: ELFBuilder.Section) {}
-
-                override fun evaluate(builder: ELFBuilder, createRelocations: (String) -> Unit): Dec {
+                override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): Dec {
                     return char.getContentAsString().first().code.toValue().also { evaluated = it }
                 }
 

@@ -34,19 +34,19 @@ package cengine.lang.obj.elf
 sealed interface Ehdr : BinaryProvider {
 
     var e_ident: E_IDENT
-    var e_type: cengine.lang.obj.elf.Elf_Half
-    var e_machine: cengine.lang.obj.elf.Elf_Half
-    var e_version: cengine.lang.obj.elf.Elf_Word
-    var e_flags: cengine.lang.obj.elf.Elf_Word
-    var e_ehsize: cengine.lang.obj.elf.Elf_Half
-    var e_phentsize: cengine.lang.obj.elf.Elf_Half
-    var e_phnum: cengine.lang.obj.elf.Elf_Half
-    var e_shentsize: cengine.lang.obj.elf.Elf_Half
-    var e_shnum: cengine.lang.obj.elf.Elf_Half
-    var e_shstrndx: cengine.lang.obj.elf.Elf_Half
+    var e_type: Elf_Half
+    var e_machine: Elf_Half
+    var e_version: Elf_Word
+    var e_flags: Elf_Word
+    var e_ehsize: Elf_Half
+    var e_phentsize: Elf_Half
+    var e_phnum: Elf_Half
+    var e_shentsize: Elf_Half
+    var e_shnum: Elf_Half
+    var e_shstrndx: Elf_Half
 
     companion object {
-        fun getELFType(type: cengine.lang.obj.elf.Elf_Half): String = when (type) {
+        fun getELFType(type: Elf_Half): String = when (type) {
             ET_NONE -> "NONE (No file type)"
             ET_REL -> "REL (Relocatable file)"
             ET_EXEC -> "EXEC (Executable file)"
@@ -55,7 +55,7 @@ sealed interface Ehdr : BinaryProvider {
             else -> "UNKNOWN (0x${type.toString(16)})"
         }
 
-        fun getELFMachine(machine: cengine.lang.obj.elf.Elf_Half): String = when (machine) {
+        fun getELFMachine(machine: Elf_Half): String = when (machine) {
             EM_386 -> "Intel 80386"
             EM_VPP500 -> "VPP500"
             EM_SPARC -> "SPARC"
@@ -144,7 +144,7 @@ sealed interface Ehdr : BinaryProvider {
                     return ELF64_Ehdr(eIdent, e_type, e_machine, e_version, e_entry, e_phoff, e_shoff, e_flags, e_ehsize, e_phentsize, e_phnum, e_shentsize, e_shnum, e_shstrndx)
                 }
 
-                else -> throw cengine.lang.obj.elf.NotInELFFormatException
+                else -> throw NotInELFFormatException
             }
 
         }
@@ -156,37 +156,37 @@ sealed interface Ehdr : BinaryProvider {
         /**
          * No file type
          */
-        const val ET_NONE: cengine.lang.obj.elf.Elf_Half = 0U
+        const val ET_NONE: Elf_Half = 0U
 
         /**
          * Relocatable file
          */
-        const val ET_REL: cengine.lang.obj.elf.Elf_Half = 1U
+        const val ET_REL: Elf_Half = 1U
 
         /**
          * Executable file
          */
-        const val ET_EXEC: cengine.lang.obj.elf.Elf_Half = 2U
+        const val ET_EXEC: Elf_Half = 2U
 
         /**
          * Shared Object file
          */
-        const val ET_DYN: cengine.lang.obj.elf.Elf_Half = 3U
+        const val ET_DYN: Elf_Half = 3U
 
         /**
          * Core file
          */
-        const val ET_CORE: cengine.lang.obj.elf.Elf_Half = 4U
+        const val ET_CORE: Elf_Half = 4U
 
         /**
          * Processor-specific
          */
-        const val ET_LOPROC: cengine.lang.obj.elf.Elf_Half = 0xFF00U
+        const val ET_LOPROC: Elf_Half = 0xFF00U
 
         /**
          * Processor-specific
          */
-        const val ET_HIPROC: cengine.lang.obj.elf.Elf_Half = 0xFFFFU
+        const val ET_HIPROC: Elf_Half = 0xFFFFU
 
         /**
          * [e_machine]
@@ -195,83 +195,83 @@ sealed interface Ehdr : BinaryProvider {
         /**
          * AT&T WE 32100
          */
-        const val EM_M32: cengine.lang.obj.elf.Elf_Half = 1U
+        const val EM_M32: Elf_Half = 1U
 
         /**
          * SPARC
          */
-        const val EM_SPARC: cengine.lang.obj.elf.Elf_Half = 2U // SPARC
+        const val EM_SPARC: Elf_Half = 2U // SPARC
 
         /**
          * Intel Architecture
          */
-        const val EM_386: cengine.lang.obj.elf.Elf_Half = 3U // Intel Architecture
+        const val EM_386: Elf_Half = 3U // Intel Architecture
 
         /**
          * Motorola 68000
          */
-        const val EM_68K: cengine.lang.obj.elf.Elf_Half = 4U // Motorola 68000
+        const val EM_68K: Elf_Half = 4U // Motorola 68000
 
         /**
          * Motorola 88000
          */
-        const val EM_88K: cengine.lang.obj.elf.Elf_Half = 5U // Motorola 88000
+        const val EM_88K: Elf_Half = 5U // Motorola 88000
 
         /**
          * Intel 80860
          */
-        const val EM_860: cengine.lang.obj.elf.Elf_Half = 7U
+        const val EM_860: Elf_Half = 7U
 
         /**
          * MIPS RS3000 Big-Endian
          */
-        const val EM_MIPS: cengine.lang.obj.elf.Elf_Half = 8U
+        const val EM_MIPS: Elf_Half = 8U
 
         /**
          * MIPS RS4000 Big-Endian
          */
-        const val EM_MIPS_RS4_BE: cengine.lang.obj.elf.Elf_Half = 10U
+        const val EM_MIPS_RS4_BE: Elf_Half = 10U
 
         /**
          * Fujitsu VPP500
          */
-        const val EM_VPP500: cengine.lang.obj.elf.Elf_Half = 17U
+        const val EM_VPP500: Elf_Half = 17U
 
         /**
          * ARM
          */
-        const val EM_ARM: cengine.lang.obj.elf.Elf_Half = 40U
+        const val EM_ARM: Elf_Half = 40U
 
         /**
          * X86 64Bit
          */
-        const val EM_X86_64: cengine.lang.obj.elf.Elf_Half = 62U
+        const val EM_X86_64: Elf_Half = 62U
 
         /**
          * RISC-V
          */
-        const val EM_RISCV: cengine.lang.obj.elf.Elf_Half = 243U
+        const val EM_RISCV: Elf_Half = 243U
 
         // ...
 
         // FREE TO USE MACHINE TYPES 0xFF00 - 0xFFFF
 
-        const val EM_CUSTOM_IKRRISC2: cengine.lang.obj.elf.Elf_Half = 0xFF00U
+        const val EM_CUSTOM_IKRRISC2: Elf_Half = 0xFF00U
 
-        const val EM_CUSTOM_IKRMINI: cengine.lang.obj.elf.Elf_Half = 0xFF01U
+        const val EM_CUSTOM_IKRMINI: Elf_Half = 0xFF01U
 
-        const val EM_CUSTOM_T6502: cengine.lang.obj.elf.Elf_Half = 0xFF02U
+        const val EM_CUSTOM_T6502: Elf_Half = 0xFF02U
 
 
         /**
          * Invalid version
          */
-        const val EV_NONE: cengine.lang.obj.elf.Elf_Word = 0U
+        const val EV_NONE: Elf_Word = 0U
 
         /**
          * Current version
          */
-        const val EV_CURRENT: cengine.lang.obj.elf.Elf_Word = 1U
+        const val EV_CURRENT: Elf_Word = 1U
     }
 
     override fun toString(): String

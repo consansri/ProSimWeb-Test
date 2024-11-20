@@ -4,13 +4,17 @@ import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.TargetSpec
+import cengine.lang.asm.ast.impl.ASDirType
 import cengine.lang.asm.ast.lexer.AsmLexer
+import cengine.lang.mif.MifGenerator
 import cengine.lang.obj.elf.*
+import cengine.util.Endianness
+import cengine.util.buffer.IntBuffer
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import emulator.EmuLink
 
-data object IKRR2Spec: TargetSpec {
+data object IKRR2Spec: TargetSpec<MifGenerator<IntBuffer>> {
     override val name: String = "IKR RISC-II"
     override val ei_class: Elf_Byte = E_IDENT.ELFCLASS64
     override val ei_data: Elf_Byte = E_IDENT.ELFDATA2MSB
@@ -39,6 +43,11 @@ data object IKRR2Spec: TargetSpec {
     }
     override val allRegs: List<RegTypeInterface> = IKRR2BaseRegs.entries
     override val allInstrs: List<InstrTypeInterface> = IKRR2InstrType.entries
-    override val customDirs: List<DirTypeInterface> = emptyList()
+    override val allDirs: List<DirTypeInterface> = ASDirType.entries
+
+    override fun createGenerator(): MifGenerator<IntBuffer> = MifGenerator(linkerScript, memAddrSize) {
+        IntBuffer(Endianness.BIG)
+    }
+
     override fun toString(): String = name
 }

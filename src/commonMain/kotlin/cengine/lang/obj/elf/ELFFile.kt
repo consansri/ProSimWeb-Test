@@ -209,12 +209,12 @@ sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn
             val start = when (phdr) {
                 is ELF32_Phdr -> phdr.p_offset.toULong()
                 is ELF64_Phdr -> phdr.p_offset
-                else -> throw ELFBuilder.InvalidElfClassException(e_ident.ei_class)
+                else -> throw ELFGenerator.InvalidElfClassException(e_ident.ei_class)
             }
             val size = when (phdr) {
                 is ELF32_Phdr -> phdr.p_filesz.toULong()
                 is ELF64_Phdr -> phdr.p_filesz
-                else -> throw ELFBuilder.InvalidElfClassException(e_ident.ei_class)
+                else -> throw ELFGenerator.InvalidElfClassException(e_ident.ei_class)
             }
 
             val fileIndexRange = start..<(start + size)
@@ -223,7 +223,7 @@ sealed class ELFFile<EHDR : Ehdr, SHDR : Shdr, PHDR : Phdr, SYM : Sym, DYN : Dyn
                 when (shdr) {
                     is ELF32_Shdr -> shdr.sh_offset in fileIndexRange
                     is ELF64_Shdr -> shdr.sh_offset in fileIndexRange
-                    else -> throw ELFBuilder.InvalidElfClassException(e_ident.ei_class)
+                    else -> throw ELFGenerator.InvalidElfClassException(e_ident.ei_class)
                 }
 
             }

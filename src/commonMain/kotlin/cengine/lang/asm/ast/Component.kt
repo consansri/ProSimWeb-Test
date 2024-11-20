@@ -13,13 +13,13 @@ import emulator.kit.nativeLog
  * Lexing Position needs to be restored by the caller.
  */
 sealed class Component {
-    abstract fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult
+    abstract fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult
 
     abstract fun print(prefix: String): String
 
     class Optional(comp: () -> Component) : Component() {
         private val comp = comp()
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val result = comp.matchStart(lexer, targetSpec)
             if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Optional ${comp.print("")}")
             return Rule.MatchResult(true, result.matchingTokens, result.matchingNodes)
@@ -29,7 +29,7 @@ sealed class Component {
     }
 
     class XOR(private vararg val comps: Component) : Component() {
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val initialPos = lexer.position
             for (comp in comps) {
                 val result = comp.matchStart(lexer, targetSpec)
@@ -47,7 +47,7 @@ sealed class Component {
 
     class Repeatable(private val maxLength: Int? = null, comp: () -> Component) : Component() {
         private val comp = comp()
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val matchingTokens = mutableListOf<AsmToken>()
             val matchingNodes = mutableListOf<ASNode>()
 
@@ -73,7 +73,7 @@ sealed class Component {
     }
 
     class Seq(vararg val comps: Component, val print: Boolean = false) : Component() {
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val initialPosition = lexer.position
             val matchingNodes = mutableListOf<ASNode>()
             val matchingTokens = mutableListOf<AsmToken>()
@@ -102,7 +102,7 @@ sealed class Component {
     }
 
     class Except(private val comp: Component, private val ignoreSpace: Boolean = true) : Component() {
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val initialPosition = lexer.position
             val result = comp.matchStart(lexer, targetSpec)
             lexer.position = initialPosition
@@ -119,7 +119,7 @@ sealed class Component {
     }
 
     class Specific(val content: String, private val ignoreCase: Boolean = false) : Component() {
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val initialPos = lexer.position
             val token = lexer.consume(true)
 
@@ -143,7 +143,7 @@ sealed class Component {
     }
 
     class Reg(private val isContainedBy: List<RegTypeInterface>? = null, private val isNotContainedBy: List<RegTypeInterface>? = null) : Component() {
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val token = lexer.peek(true)
             if (token.type == AsmTokenType.EOF) return Rule.MatchResult(false, listOf(), listOf())
 
@@ -162,7 +162,7 @@ sealed class Component {
     }
 
     class Dir(private val dirName: String) : Component() {
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val initialPos = lexer.position
             val token = lexer.consume(true)
             if (token.type == AsmTokenType.DIRECTIVE && ".${dirName.uppercase()}" == token.value.uppercase()) {
@@ -177,7 +177,7 @@ sealed class Component {
     }
 
     class InSpecific(private val type: AsmTokenType, val print: Boolean = false) : Component() {
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val initialPos = lexer.position
             val token = lexer.consume(true)
 
@@ -201,7 +201,7 @@ sealed class Component {
     }
 
     class SpecNode(private val type: ASNodeType) : Component() {
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val initialPosition = lexer.position
 
             val node = ASNode.buildNode(type, lexer, targetSpec)
@@ -219,7 +219,7 @@ sealed class Component {
     }
 
     object Nothing : Component() {
-        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec): Rule.MatchResult {
+        override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             return Rule.MatchResult(true)
         }
 

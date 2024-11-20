@@ -1,15 +1,11 @@
 package cengine.lang.asm.ast.target.riscv
 
 import cengine.editor.annotation.Annotation
-import cengine.lang.asm.ast.Component
-import cengine.lang.asm.ast.DirTypeInterface
-import cengine.lang.asm.ast.Rule
-import cengine.lang.asm.ast.TargetSpec
+import cengine.lang.asm.ast.*
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.obj.elf.ELFBuilder
 import cengine.util.integer.Size
 
 enum class RVDirType(override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
@@ -97,7 +93,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
     override val typeName: String
         get() = name
 
-    override fun buildDirectiveContent(lexer: AsmLexer, targetSpec: TargetSpec): ASNode.Directive? {
+    override fun buildDirectiveContent(lexer: AsmLexer, targetSpec: TargetSpec<*>): ASNode.Directive? {
         val initialPos = lexer.position
         val result = this.rule?.matchStart(lexer, targetSpec)
 
@@ -120,7 +116,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
         return null
     }
 
-    override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
+    override fun build(builder: AsmCodeGenerator<*>, dir: ASNode.Directive) {
         /**
          * Check Semantic
          */

@@ -1,6 +1,6 @@
 package cengine.lang.obj.elf
 
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
 
 /**
@@ -11,18 +11,18 @@ import cengine.util.Endianness
  * @property d_ptr The address associated with the dynamic table entry.
  */
 data class ELF64_Dyn(
-    var d_tag: cengine.lang.obj.elf.Elf_Sxword,
-    var d_val: cengine.lang.obj.elf.Elf_Xword,
-    var d_ptr: cengine.lang.obj.elf.Elf64_Addr
+    var d_tag: Elf_Sxword,
+    var d_val: Elf_Xword,
+    var d_ptr: Elf64_Addr
 ): Dyn{
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(d_tag)
         b.put(d_val)
         b.put(d_ptr)
 
-        return b.toByteArray()
+        return b.toArray()
     }
 
     override fun byteSize(): Int = 24

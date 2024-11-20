@@ -3,7 +3,7 @@ package cengine.lang.asm.ast.target.ikrrisc2
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import cengine.lang.asm.Disassembler
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import cengine.util.integer.toValue

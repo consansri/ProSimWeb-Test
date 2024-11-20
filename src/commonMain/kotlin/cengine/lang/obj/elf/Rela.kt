@@ -3,11 +3,11 @@ package cengine.lang.obj.elf
 sealed interface Rela : BinaryProvider {
 
     companion object {
-        fun size(ei_class: cengine.lang.obj.elf.Elf_Byte): cengine.lang.obj.elf.Elf_Half {
+        fun size(ei_class: Elf_Byte): Elf_Half {
             return when(ei_class){
                 E_IDENT.ELFCLASS32 -> ELF32_Rela.SIZE.toUShort()
                 E_IDENT.ELFCLASS64 -> ELF64_Rela.SIZE.toUShort()
-                else -> throw ELFBuilder.InvalidElfClassException(ei_class)
+                else -> throw ELFGenerator.InvalidElfClassException(ei_class)
             }
         }
 
@@ -32,7 +32,7 @@ sealed interface Rela : BinaryProvider {
                     return ELF64_Rela(r_offset, r_info, r_addend)
                 }
 
-                else -> throw cengine.lang.obj.elf.NotInELFFormatException
+                else -> throw NotInELFFormatException
             }
         }
     }

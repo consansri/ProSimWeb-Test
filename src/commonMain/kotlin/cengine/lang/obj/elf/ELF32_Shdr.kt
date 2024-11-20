@@ -1,8 +1,8 @@
 package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.Shdr.Companion.SHN_UNDEF
-import cengine.util.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.ByteBuffer
 
 /**
  * ELF Section Header
@@ -46,8 +46,6 @@ import cengine.util.Endianness
  * such a section, this member gives the size in bytes of each entry. The
  * member contains 0 if the section does not hold a table of fixed-size entries.
  *
- *
- *
  */
 data class ELF32_Shdr(
     override var sh_name: Elf_Word = 0U,
@@ -72,7 +70,7 @@ data class ELF32_Shdr(
         }
     }
 
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(sh_name)
@@ -86,7 +84,7 @@ data class ELF32_Shdr(
         b.put(sh_addralign)
         b.put(sh_entsize)
 
-        return b.toByteArray()
+        return b.toArray()
     }
 
     override fun byteSize(): Int = 40

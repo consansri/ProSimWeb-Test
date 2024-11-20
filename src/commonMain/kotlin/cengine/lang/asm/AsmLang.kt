@@ -12,18 +12,17 @@ import cengine.lang.asm.features.AsmAnnotator
 import cengine.lang.asm.features.AsmCompleter
 import cengine.lang.asm.features.AsmFormatter
 import cengine.lang.asm.features.AsmHighlighter
-import cengine.lang.asm.run.AsmExecutable
-import cengine.lang.asm.run.AsmRelocatable
+import cengine.lang.asm.run.AsmGenerateBinary
 import cengine.psi.core.PsiService
 import cengine.psi.impl.PsiServiceImpl
 import cengine.vfs.VirtualFile
 
-class AsmLang(spec: TargetSpec) : LanguageService {
+class AsmLang(spec: TargetSpec<*>) : LanguageService {
     companion object {
         const val OUTPUT_DIR = ".asm"
     }
 
-    var spec: TargetSpec = spec
+    var spec: TargetSpec<*> = spec
         set(value) {
             field = value
             psiParser = AsmPsiParser(value, this)
@@ -33,7 +32,7 @@ class AsmLang(spec: TargetSpec) : LanguageService {
             annotations.clear()
         }
 
-    override var runConfigurations: Set<RunConfiguration<LanguageService>> = setOf(AsmExecutable, AsmRelocatable)
+    override var runConfigurations: Set<RunConfiguration<LanguageService>> = setOf(AsmGenerateBinary)
 
     override val name: String = "Assembly"
     override val fileSuffix: String = ".s"

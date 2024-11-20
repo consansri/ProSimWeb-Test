@@ -1,6 +1,6 @@
 package cengine.lang.obj.elf
 
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
 
 /**
@@ -43,18 +43,18 @@ import cengine.util.Endianness
  *
  */
 data class ELF32_Phdr(
-    override var p_type: cengine.lang.obj.elf.Elf_Word,
-    var p_offset: cengine.lang.obj.elf.Elf32_Off = 0U,
-    var p_vaddr: cengine.lang.obj.elf.Elf32_Addr = 0U,
-    var p_paddr: cengine.lang.obj.elf.Elf32_Addr = 0U,
-    var p_filesz: cengine.lang.obj.elf.Elf_Word = 0U,
-    var p_memsz: cengine.lang.obj.elf.Elf_Word = 0U,
-    override var p_flags: cengine.lang.obj.elf.Elf_Word,
-    var p_align: cengine.lang.obj.elf.Elf_Word
+    override var p_type: Elf_Word,
+    var p_offset: Elf32_Off = 0U,
+    var p_vaddr: Elf32_Addr = 0U,
+    var p_paddr: Elf32_Addr = 0U,
+    var p_filesz: Elf_Word = 0U,
+    var p_memsz: Elf_Word = 0U,
+    override var p_flags: Elf_Word,
+    var p_align: Elf_Word
 ) : Phdr {
 
 
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(p_type)
@@ -66,7 +66,7 @@ data class ELF32_Phdr(
         b.put(p_flags)
         b.put(p_align)
 
-        val array = b.toByteArray()
+        val array = b.toArray()
 
         return array
     }

@@ -1,7 +1,7 @@
 package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.*
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
 
 /**
@@ -44,14 +44,14 @@ data class ELF32_Rela(
         const val SIZE = 12
     }
 
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(r_offset)
         b.put(r_info)
         b.put(r_addend)
 
-        return b.toByteArray()
+        return b.toArray()
     }
 
     override fun byteSize(): Int = SIZE

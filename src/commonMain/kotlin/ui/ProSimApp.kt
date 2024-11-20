@@ -229,7 +229,7 @@ object ProSimApp {
     fun CreateNewProjectScreen(onProjectCreated: (ProjectState) -> Unit, onCancel: () -> Unit) {
         val pickerScope = rememberCoroutineScope()
         var pathField by remember { mutableStateOf("new-project") }
-        var target by remember { mutableStateOf<TargetSpec>(RV32Spec) }
+        var target by remember { mutableStateOf<TargetSpec<*>>(RV32Spec) }
 
         var invalidProjectPath by remember { mutableStateOf(false) }
 

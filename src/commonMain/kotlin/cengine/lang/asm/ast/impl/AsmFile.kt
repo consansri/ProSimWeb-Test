@@ -7,7 +7,11 @@ import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 import cengine.vfs.VirtualFile
 
-class AsmFile(override val file: VirtualFile, override val lang: AsmLang, private var program: ASNode.Program) : PsiFile {
+class AsmFile(override val file: VirtualFile, override val lang: AsmLang, program: ASNode.Program) : PsiFile {
+
+    var program: ASNode.Program = program
+        private set
+
     override val annotations: List<Annotation>
         get() = program.annotations
     override val additionalInfo: String
@@ -15,7 +19,7 @@ class AsmFile(override val file: VirtualFile, override val lang: AsmLang, privat
 
     override var parent: PsiElement?
         set(value) {
-
+            // nothing
         }
         get() = program.parent
     override val children: List<PsiElement> get() = program.children

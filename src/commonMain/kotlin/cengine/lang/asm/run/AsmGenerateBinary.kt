@@ -4,8 +4,6 @@ import cengine.editor.annotation.Severity
 import cengine.lang.LanguageService
 import cengine.lang.RunConfiguration
 import cengine.lang.asm.AsmLang
-import cengine.lang.asm.ast.impl.ASNode
-import cengine.lang.obj.elf.RelocatableELFBuilder
 import cengine.psi.impl.PsiNotationCollector
 import cengine.vfs.FPath
 import cengine.vfs.VFileSystem
@@ -14,23 +12,24 @@ import emulator.kit.nativeError
 import emulator.kit.nativeInfo
 import emulator.kit.nativeWarn
 
-object AsmRelocatable : RunConfiguration.FileRun<LanguageService> {
+object AsmGenerateBinary : RunConfiguration.FileRun<LanguageService> {
 
-    const val RELOCATABLE_SUB_DIR = "reloc"
+    const val EXECUTABLE_SUB_DIR = "exec"
 
-    override val name: String = "ELF Relocatable"
+    override val name: String = "Generate Binary"
 
     override fun run(file: VirtualFile, lang: LanguageService, vfs: VFileSystem) {
         if (lang !is AsmLang) return
         val asmFile = lang.psiParser.parse(file)
 
-        val outputPath = FPath.of(vfs, AsmLang.OUTPUT_DIR, RELOCATABLE_SUB_DIR, file.name.removeSuffix(lang.fileSuffix) + ".o")
+        val generator = lang.spec.createGenerator()
+
+        val outputPath = FPath.of(vfs, AsmLang.OUTPUT_DIR, EXECUTABLE_SUB_DIR, file.name.removeSuffix(lang.fileSuffix) + generator.fileSuffix)
 
         vfs.deleteFile(outputPath)
         val outputFile = vfs.createFile(outputPath)
 
-        val builder = RelocatableELFBuilder(lang.spec)
-        val content = builder.build(*asmFile.children.filterIsInstance<ASNode.Statement>().toTypedArray())
+        val content = generator.generate(asmFile.program)
 
         val collector = PsiNotationCollector()
         asmFile.accept(collector)

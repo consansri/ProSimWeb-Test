@@ -1,14 +1,14 @@
 package cengine.lang.asm.ast.impl
 
 import cengine.editor.annotation.Annotation
+import cengine.lang.asm.ast.AsmCodeGenerator
 import cengine.lang.asm.ast.Component.*
 import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.obj.elf.ELFBuilder
-import cengine.lang.obj.elf.Sym
+import cengine.lang.obj.elf.Shdr
 import cengine.util.integer.*
 import cengine.util.integer.Size.*
 
@@ -16,7 +16,7 @@ enum class ASDirType(
     val disabled: Boolean = false,
     val contentStartsDirectly: Boolean = false,
     override val isSection: Boolean = false,
-    override val rule: Rule? = null
+    override val rule: Rule? = null,
 ) : DirTypeInterface {
     ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
     ALIGN(rule = Rule {
@@ -1092,7 +1092,7 @@ enum class ASDirType(
 
     override fun getDetectionString(): String = if (!this.contentStartsDirectly) this.name.removePrefix("_") else ""
 
-    override fun buildDirectiveContent(lexer: AsmLexer, targetSpec: TargetSpec): ASNode.Directive? {
+    override fun buildDirectiveContent(lexer: AsmLexer, targetSpec: TargetSpec<*>): ASNode.Directive? {
         val initialPos = lexer.position
         val result = this.rule?.matchStart(lexer, targetSpec)
 
@@ -1120,7 +1120,7 @@ enum class ASDirType(
         return null
     }
 
-    override fun build(builder: ELFBuilder, dir: ASNode.Directive) {
+    override fun build(builder: AsmCodeGenerator<*>, dir: ASNode.Directive) {
         /**
          * Check Semantic
          */
@@ -1192,14 +1192,14 @@ enum class ASDirType(
             ASCII -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.StringExpr>()
                 exprs.forEach {
-                    builder.currentSection.content.putAll(it.evaluate(true).encodeToByteArray())
+                    builder.currentSection.content.putBytes(it.evaluate(true).encodeToByteArray())
                 }
             }
 
             ASCIZ -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.StringExpr>()
                 exprs.forEach {
-                    builder.currentSection.content.putAll(it.evaluate(true).encodeToByteArray() + 0)
+                    builder.currentSection.content.putBytes(it.evaluate(true).encodeToByteArray() + 0)
                 }
             }
 
@@ -1207,7 +1207,7 @@ enum class ASDirType(
             BALIGN -> TODO()
             BALIGNL -> TODO()
             BALIGNW -> TODO()
-            BSS -> builder.currentSection = builder.bss
+            BSS -> builder.getOrCreateSectionAndSetCurrent(".bss", Shdr.SHT_bss, Shdr.SHF_bss.toULong())
             BYTE -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
@@ -1225,7 +1225,7 @@ enum class ASDirType(
             }
 
             COMM -> TODO()
-            DATA -> builder.currentSection = builder.data
+            DATA -> builder.getOrCreateSectionAndSetCurrent(".data", Shdr.SHT_data, Shdr.SHF_data.toULong())
             DEF -> TODO()
             DESC -> TODO()
             DIM -> TODO()
@@ -1238,7 +1238,7 @@ enum class ASDirType(
                     return
                 }
 
-                val symbolIndex = builder.symTab.getOrCreate(identifier, builder.currentSection)
+                // val symbolIndex = builder.symTab.getOrCreate(identifier, builder.currentSection)
                 val expr = dir.additionalNodes.firstOrNull()
 
                 if (expr == null) {
@@ -1250,10 +1250,11 @@ enum class ASDirType(
                     is ASNode.NumericExpr -> {
                         val evaluated = expr.evaluate(builder).toHex()
                         try {
-                            val symbol = builder.symTab[symbolIndex]
+                            builder.getOrCreateAbsSymbolInCurrentSection(identifier, evaluated.toULong())
+                            /*val symbol = builder.symTab[symbolIndex]
                             symbol.setValue(evaluated.toULong())
                             symbol.st_info = Sym.ELF_ST_INFO(Sym.STB_NUM, Sym.STT_NUM)
-                            builder.symTab.update(symbol, symbolIndex)
+                            builder.symTab.update(symbol, symbolIndex)*/
                         } catch (e: Exception) {
                             dir.addError(e.message.toString())
                         }
@@ -1276,20 +1277,30 @@ enum class ASDirType(
             FUNC -> TODO()
             GLOBAL -> {
                 val identifier = dir.allTokens.last { it.type == AsmTokenType.SYMBOL }.value
-                val index = builder.symTab.getOrCreate(identifier, builder.currentSection)
+                builder.symbols.firstOrNull { it.name == identifier }?.let {
+                    it.binding = AsmCodeGenerator.Symbol.Binding.GLOBAL
+                }
+
+                /*val index = builder.symTab.getOrCreate(identifier, builder.currentSection)
                 val sym = builder.symTab[index]
                 val type = Sym.ELF_ST_TYPE(sym.st_info)
                 sym.st_info = Sym.ELF_ST_INFO(Sym.STB_GLOBAL, type)
-                builder.symTab.update(sym, index)
+                builder.symTab.update(sym, index)*/
             }
 
             GLOBL -> {
                 val identifier = dir.allTokens.last { it.type == AsmTokenType.SYMBOL }.value
-                val index = builder.symTab.getOrCreate(identifier, builder.currentSection)
+                builder.symbols.firstOrNull {
+                    it.name == identifier
+                }?.let {
+                    it.binding = AsmCodeGenerator.Symbol.Binding.GLOBAL
+                }
+
+                /*val index = builder.symTab.getOrCreate(identifier, builder.currentSection)
                 val sym = builder.symTab[index]
                 val type = Sym.ELF_ST_TYPE(sym.st_info)
                 sym.st_info = Sym.ELF_ST_INFO(Sym.STB_GLOBAL, type)
-                builder.symTab.update(sym, index)
+                builder.symTab.update(sym, index)*/
             }
 
             GNU_ATTRIBUTE -> TODO()
@@ -1332,7 +1343,7 @@ enum class ASDirType(
             PURGEM -> TODO()
             PUSHSECTION -> TODO()
             QUAD -> TODO()
-            RODATA -> builder.currentSection = builder.rodata
+            RODATA -> builder.getOrCreateSectionAndSetCurrent(".rodata", Shdr.SHT_rodata, Shdr.SHF_rodata.toULong())
             RELOC -> TODO()
             REPT -> TODO()
             SBTTL -> TODO()
@@ -1370,7 +1381,7 @@ enum class ASDirType(
                 for (expr in exprs) {
                     try {
                         val str = expr.evaluate(true).encodeToByteArray() + 0b0
-                        builder.currentSection.content.putAll(str)
+                        builder.currentSection.content.putBytes(str)
                     } catch (e: Exception) {
                         dir.addError("Couldn't evaluate string expression!")
                     }
@@ -1384,7 +1395,7 @@ enum class ASDirType(
                 for (expr in exprs) {
                     try {
                         val str = expr.evaluate(true).encodeToByteArray() + 0b0
-                        builder.currentSection.content.putAll(str)
+                        builder.currentSection.content.putBytes(str)
                     } catch (e: Exception) {
                         dir.addError("Couldn't evaluate string expression!")
                     }
@@ -1397,7 +1408,7 @@ enum class ASDirType(
             SUBSECTION -> TODO()
             SYMVER -> TODO()
             TAG -> TODO()
-            TEXT -> builder.currentSection = builder.text
+            TEXT -> builder.getOrCreateSectionAndSetCurrent(".text", Shdr.SHT_text, Shdr.SHF_text.toULong())
             TITLE -> TODO()
             TLS_COMMON -> TODO()
             TYPE -> TODO()

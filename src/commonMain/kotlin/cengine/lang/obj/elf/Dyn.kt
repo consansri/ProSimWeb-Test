@@ -10,7 +10,7 @@ package cengine.lang.obj.elf
 sealed interface Dyn : BinaryProvider {
 
     companion object {
-        fun getDynamicType(tag: cengine.lang.obj.elf.Elf_Sxword): String = when (tag) {
+        fun getDynamicType(tag: Elf_Sxword): String = when (tag) {
             DT_NULL -> "NULL"
             DT_NEEDED -> "NEEDED"
             DT_PLTRELSZ -> "PLTRELSZ"
@@ -61,7 +61,7 @@ sealed interface Dyn : BinaryProvider {
                     return ELF64_Dyn(d_tag, d_un, d_ptr)
                 }
 
-                else -> throw cengine.lang.obj.elf.NotInELFFormatException
+                else -> throw NotInELFFormatException
             }
         }
 

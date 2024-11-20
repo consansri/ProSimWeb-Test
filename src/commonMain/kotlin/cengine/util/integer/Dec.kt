@@ -4,7 +4,6 @@ import Settings
 import cengine.util.integer.Size.Companion.nearestDecSize
 import cengine.util.integer.decimal.DecimalTools
 import emulator.kit.nativeError
-import emulator.kit.nativeWarn
 
 /**
  * Provides the decimal representation of [Value].
@@ -42,7 +41,6 @@ class Dec(decString: String, size: Size) : Value(size) {
                 CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).max, message)
             } else if (DecimalTools.isGreaterThan(Bounds(size).min, formatted)) {
                 message = "Dec.check(): $formatted must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}"
-                nativeWarn(message)
                 CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).min, message)
             } else {
                 CheckResult(true, Settings.PRESTRING_DECIMAL + formatted)

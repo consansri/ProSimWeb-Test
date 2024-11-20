@@ -2,7 +2,7 @@ package cengine.lang.asm
 
 import androidx.compose.runtime.MutableState
 import cengine.lang.obj.elf.*
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.integer.Hex
 import cengine.util.integer.toValue
 
@@ -42,7 +42,7 @@ interface Disassembler {
             val end = start + group.phdr.p_filesz
             val byteArray = elfFile.content.copyOfRange(start.toInt(), end.toInt())
             val startAddr = group.phdr.p_vaddr.toValue()
-            val byteBuffer = ByteBuffer(elfFile.e_ident.endianness, byteArray)
+            val byteBuffer = ByteBuffer(elfFile.e_ident.endianness, byteArray.toTypedArray())
             DecodedSegment(startAddr, labels, disassemble(byteBuffer, startAddr))
         }
     }
@@ -69,7 +69,7 @@ interface Disassembler {
             val end = start + group.phdr.p_filesz
             val byteArray = elfFile.content.copyOfRange(start.toInt(), end.toInt())
             val startAddr = group.phdr.p_vaddr.toValue()
-            val byteBuffer = ByteBuffer(elfFile.e_ident.endianness, byteArray)
+            val byteBuffer = ByteBuffer(elfFile.e_ident.endianness, byteArray.toTypedArray())
             DecodedSegment(startAddr, labels, disassemble(byteBuffer, startAddr))
         }
     }

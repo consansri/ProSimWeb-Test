@@ -1,7 +1,7 @@
 package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.*
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
 
 /**
@@ -36,21 +36,21 @@ import cengine.util.Endianness
  *
  */
 data class ELF64_Rela(
-    var r_offset: cengine.lang.obj.elf.Elf64_Addr,
-    var r_info: cengine.lang.obj.elf.Elf_Xword,
-    var r_addend: cengine.lang.obj.elf.Elf_Sxword
+    var r_offset: Elf64_Addr,
+    var r_info: Elf_Xword,
+    var r_addend: Elf_Sxword
 ): Rela {
     companion object{
         const val SIZE = 24
     }
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(r_offset)
         b.put(r_info)
         b.put(r_addend)
 
-        return b.toByteArray()
+        return b.toArray()
     }
 
     override fun byteSize(): Int = SIZE

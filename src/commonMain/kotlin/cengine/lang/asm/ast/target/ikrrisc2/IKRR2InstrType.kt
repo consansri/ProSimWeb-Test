@@ -1,13 +1,10 @@
 package cengine.lang.asm.ast.target.ikrrisc2
 
+import cengine.lang.asm.ast.AsmCodeGenerator
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.obj.elf.ELF32_Shdr
-import cengine.lang.obj.elf.ELF64_Shdr
-import cengine.lang.obj.elf.ELFBuilder
-import cengine.lang.obj.elf.Shdr
 import cengine.util.integer.Size
 import cengine.util.integer.toUInt
 import cengine.util.integer.toValue
@@ -95,7 +92,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
     override val typeName: String
         get() = name
 
-    override fun resolve(builder: ELFBuilder, instr: ASNode.Instruction) {
+    override fun resolve(builder: AsmCodeGenerator<*>, instr: ASNode.Instruction) {
         val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> IKRR2BaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) }?.ordinal?.toUInt() }
         val exprs = instr.nodes.filterIsInstance<ASNode.NumericExpr>()
 
@@ -293,7 +290,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
         }
     }
 
-    override fun lateEvaluation(builder: ELFBuilder, section: ELFBuilder.Section, instr: ASNode.Instruction, index: Int) {
+    override fun lateEvaluation(builder: AsmCodeGenerator<*>, section: AsmCodeGenerator.Section, instr: ASNode.Instruction, index: Int) {
         val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> IKRR2BaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) }?.ordinal?.toUInt() }
         val exprs = instr.nodes.filterIsInstance<ASNode.NumericExpr>()
 
@@ -307,7 +304,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                     else -> 0U
                 }
 
-                val imm26 = expr.displacement(builder, section.shdr, index).toValue(Size.Bit26)
+                val imm26 = expr.displacement(builder, section, index).toValue(Size.Bit26)
 
                 if (!imm26.valid) {
                     expr.addError("$imm26 exceeds ${Size.Bit26}")
@@ -334,7 +331,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                     else -> 0U
                 }
 
-                val imm18 = expr.displacement(builder, section.shdr, index).toValue(Size.Bit18)
+                val imm18 = expr.displacement(builder, section, index).toValue(Size.Bit18)
 
                 if (!imm18.valid) {
                     expr.addError("$imm18 exceeds ${Size.Bit18}")
@@ -349,19 +346,16 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
         }
     }
 
-    private fun ASNode.NumericExpr.targetAddr(builder: ELFBuilder): UInt {
+    private fun ASNode.NumericExpr.targetAddr(builder: AsmCodeGenerator<*>): UInt {
         return (evaluate(builder).toBin().toULong() shr 2).toUInt()
     }
 
-    private fun Shdr.thisAddr(index: Int): UInt {
-        return when (this) {
-            is ELF32_Shdr -> sh_addr
-            is ELF64_Shdr -> sh_addr.toUInt()
-        } + (index.toUInt() shr 2)
+    private fun AsmCodeGenerator.Section.thisAddr(index: Int): UInt {
+        return this.address.toULong().toUInt() + (index.toUInt())
     }
 
-    private fun ASNode.NumericExpr.displacement(builder: ELFBuilder, shdr: Shdr, index: Int): Int{
-        return (targetAddr(builder) - shdr.thisAddr(index)).toInt()
+    private fun ASNode.NumericExpr.displacement(builder: AsmCodeGenerator<*>, section: AsmCodeGenerator.Section, index: Int): Int{
+        return (targetAddr(builder) - section.thisAddr(index)).toInt()
     }
 
 

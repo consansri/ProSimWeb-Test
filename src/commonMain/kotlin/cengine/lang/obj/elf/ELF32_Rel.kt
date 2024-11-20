@@ -1,6 +1,8 @@
 package cengine.lang.obj.elf
 
-import cengine.util.ByteBuffer
+import cengine.lang.obj.elf.ELF32_Rel.Companion.R_SYM
+import cengine.lang.obj.elf.ELF32_Rel.Companion.R_TYPE
+import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
 
 /**
@@ -32,25 +34,25 @@ import cengine.util.Endianness
  *
  */
 data class ELF32_Rel(
-    var r_offset: cengine.lang.obj.elf.Elf32_Addr,
-    var r_info: cengine.lang.obj.elf.Elf_Word
+    var r_offset: Elf32_Addr,
+    var r_info: Elf_Word
 ): Rel {
 
     companion object{
         const val SIZE = 8
 
-        fun R_SYM(i: cengine.lang.obj.elf.Elf_Word) = i.shr(8)
-        fun R_TYPE(i: cengine.lang.obj.elf.Elf_Word) = i.toUByte()
-        fun R_INFO(s: cengine.lang.obj.elf.Elf_Word, t: cengine.lang.obj.elf.Elf_Word) = s.shl(8) + t.toUByte()
+        fun R_SYM(i: Elf_Word) = i.shr(8)
+        fun R_TYPE(i: Elf_Word) = i.toUByte()
+        fun R_INFO(s: Elf_Word, t: Elf_Word) = s.shl(8) + t.toUByte()
     }
 
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(r_offset)
         b.put(r_info)
 
-        return b.toByteArray()
+        return b.toArray()
     }
 
     override fun byteSize(): Int = SIZE

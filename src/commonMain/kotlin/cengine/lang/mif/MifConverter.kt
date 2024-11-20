@@ -1,4 +1,4 @@
-package cengine.lang.obj.mif
+package cengine.lang.mif
 
 import cengine.lang.asm.Initializer
 import cengine.lang.obj.elf.ELF32File
@@ -8,7 +8,7 @@ import cengine.util.integer.*
 import emulator.kit.memory.Memory
 import kotlin.math.pow
 
-class MifBuilder(val wordSize: Size, val addrSize: Size, override val id: String) : Initializer {
+class MifConverter(val wordSize: Size, val addrSize: Size, override val id: String) : Initializer {
 
     val depth: Double = 2.0.pow(addrSize.bitWidth)
     var addrRDX: Radix = Radix.HEX
@@ -29,15 +29,15 @@ class MifBuilder(val wordSize: Size, val addrSize: Size, override val id: String
     }
 
     companion object {
-        fun parseElf(file: ELFFile<*, *, *, *, *, *, *>): MifBuilder {
+        fun parseElf(file: ELFFile<*, *, *, *, *, *, *>): MifConverter {
             return when(file){
                 is ELF32File -> parseElf32(file)
                 is ELF64File -> parseElf64(file)
             }
         }
 
-        private fun parseElf32(file: ELF32File): MifBuilder {
-            val builder = MifBuilder(Size.Bit8, Size.Bit32, file.name)
+        private fun parseElf32(file: ELF32File): MifConverter {
+            val builder = MifConverter(Size.Bit8, Size.Bit32, file.name)
             val bytes = file.content
 
             file.programHeaders.forEach {
@@ -52,8 +52,8 @@ class MifBuilder(val wordSize: Size, val addrSize: Size, override val id: String
             return builder
         }
 
-        private fun parseElf64(file: ELF64File): MifBuilder {
-            val builder = MifBuilder(Size.Bit8, Size.Bit64, file.name)
+        private fun parseElf64(file: ELF64File): MifConverter {
+            val builder = MifConverter(Size.Bit8, Size.Bit64, file.name)
             val bytes = file.content
 
             file.programHeaders.forEach {
@@ -86,7 +86,7 @@ class MifBuilder(val wordSize: Size, val addrSize: Size, override val id: String
         return builder.toString()
     }
 
-    fun addContent(startAddr: Hex, data: List<Hex>): MifBuilder {
+    fun addContent(startAddr: Hex, data: List<Hex>): MifConverter {
         // Find the range where the new content starts and modify accordingly
         if (data.isEmpty()) return this
         val newEnd = startAddr + (data.size - 1).toValue(addrSize)
@@ -125,12 +125,12 @@ class MifBuilder(val wordSize: Size, val addrSize: Size, override val id: String
         return this
     }
 
-    fun setAddrRadix(radix: Radix): MifBuilder {
+    fun setAddrRadix(radix: Radix): MifConverter {
         this.addrRDX = radix
         return this
     }
 
-    fun setDataRadix(radix: Radix): MifBuilder {
+    fun setDataRadix(radix: Radix): MifConverter {
         this.dataRDX = radix
         return this
     }

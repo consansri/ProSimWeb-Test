@@ -6,7 +6,6 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.impl.AsmFile
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.obj.elf.ExecutableELFBuilder
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
@@ -14,7 +13,7 @@ import cengine.psi.core.PsiParser
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
 
-class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiParser<AsmFile> {
+class AsmPsiParser(val spec: TargetSpec<*>, val languageService: AsmLang) : PsiParser<AsmFile> {
 
     override fun parse(file: VirtualFile): AsmFile {
         nativeLog("Parsing file ...")
@@ -35,8 +34,8 @@ class AsmPsiParser(val spec: TargetSpec, val languageService: AsmLang) : PsiPars
 
         //nativeLog("AsmPsiParser parses file: $fileName!")
 
-        val builder = ExecutableELFBuilder(spec)
-        builder.build(*program.getAllStatements().toTypedArray())
+        val generator = spec.createGenerator()
+        generator.generate(program)
 
         val asmFile = AsmFile(file, languageService, program)
 

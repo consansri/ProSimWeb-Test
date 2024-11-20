@@ -1,6 +1,6 @@
 package cengine.lang.obj.elf
 
-import cengine.util.ByteBuffer
+import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
 
 /**
@@ -15,14 +15,14 @@ data class ELF32_Dyn(
     var d_val: Elf_Word,
     var d_ptr: Elf32_Addr
 ): Dyn{
-    override fun build(endianness: Endianness): ByteArray {
+    override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 
         b.put(d_tag)
         b.put(d_val)
         b.put(d_ptr)
 
-        return b.toByteArray()
+        return b.toArray()
     }
 
     override fun byteSize(): Int = 12

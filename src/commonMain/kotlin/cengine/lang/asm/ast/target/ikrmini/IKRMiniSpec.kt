@@ -4,15 +4,19 @@ import cengine.lang.asm.ast.DirTypeInterface
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.RegTypeInterface
 import cengine.lang.asm.ast.TargetSpec
+import cengine.lang.asm.ast.impl.ASDirType
 import cengine.lang.asm.ast.lexer.AsmLexer
+import cengine.lang.mif.MifGenerator
 import cengine.lang.obj.elf.E_IDENT
 import cengine.lang.obj.elf.Ehdr
 import cengine.lang.obj.elf.LinkerScript
+import cengine.util.Endianness
+import cengine.util.buffer.ShortBuffer
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import emulator.EmuLink
 
-data object IKRMiniSpec: TargetSpec {
+data object IKRMiniSpec : TargetSpec<MifGenerator<ShortBuffer>> {
     override val name: String = "IKR Mini"
     override val ei_class: cengine.lang.obj.elf.Elf_Byte = E_IDENT.ELFCLASS32
     override val ei_data: cengine.lang.obj.elf.Elf_Byte = E_IDENT.ELFDATA2LSB
@@ -41,6 +45,11 @@ data object IKRMiniSpec: TargetSpec {
     }
     override val allRegs: List<RegTypeInterface> = emptyList()
     override val allInstrs: List<InstrTypeInterface> = IKRMiniInstrType.entries
-    override val customDirs: List<DirTypeInterface> = emptyList()
+    override val allDirs: List<DirTypeInterface> = ASDirType.entries
+
+    override fun createGenerator(): MifGenerator<ShortBuffer> = MifGenerator(linkerScript, memAddrSize) {
+        ShortBuffer(Endianness.LITTLE)
+    }
+
     override fun toString(): String = name
 }
