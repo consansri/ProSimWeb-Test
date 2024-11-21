@@ -1,7 +1,7 @@
 package cengine.lang.obj.elf
 
-import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.ByteBuffer
 
 /**
  * Symbol Table
@@ -39,7 +39,7 @@ data class ELF32_Sym(
     override var st_info: Elf_Byte = 0U,
     override var st_other: Elf_Byte = 0U,
     override var st_shndx: Elf_Half
-): Sym {
+): Sym() {
     override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 

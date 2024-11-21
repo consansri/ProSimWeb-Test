@@ -10,7 +10,6 @@ import cengine.util.buffer.ByteBuffer.Companion.toASCIIString
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import cengine.util.integer.toValue
-import emulator.kit.nativeLog
 
 abstract class ELFGenerator(
     val e_type: Elf_Half,
@@ -167,8 +166,6 @@ abstract class ELFGenerator(
             }
         }
 
-        nativeLog("Ehdr: $ehdr")
-
         putAll(ehdr.build(endianness))
     }
 
@@ -183,8 +180,6 @@ abstract class ELFGenerator(
 
             putAll(segment.phdr.build(endianness))
         }
-
-        nativeLog("Phdrs: ${segments.joinToString("\n") { it.phdr.toString() }}")
     }
 
     private fun ByteBuffer.writeSections(shdr: List<Pair<ELFSection, Shdr>>) {
@@ -207,7 +202,6 @@ abstract class ELFGenerator(
         shdrs.forEachIndexed { index, shdr ->
             putAll(shdr.build(endianness))
         }
-        nativeLog("Shdrs: ${shdrs.joinToString("\n") { it.toString() }}")
     }
 
     protected fun createAndAddSegment(p_type: Elf_Word, p_flags: Elf_Word, p_align: ULong = 1U): Segment {

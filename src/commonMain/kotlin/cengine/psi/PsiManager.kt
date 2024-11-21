@@ -2,18 +2,20 @@ package cengine.psi
 
 import cengine.lang.LanguageService
 import cengine.psi.core.PsiFile
+import cengine.psi.core.PsiParser
 import cengine.vfs.FPath
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VFileSystem
 import cengine.vfs.VirtualFile
 import kotlinx.coroutines.*
 
-class PsiManager<T : LanguageService>(
+class PsiManager<L : LanguageService, F: PsiFile>(
     private val vfs: VFileSystem,
-    val lang: T
+    val lang: L,
+    val psiParser: PsiParser<F>
 ) {
     private var job: Job? = null
-    private val psiCache = mutableMapOf<FPath, PsiFile>()
+    private val psiCache = mutableMapOf<FPath, F>()
     private val psiUpdateScope = CoroutineScope(Dispatchers.Default)
     private val listener = VFSListener()
 
@@ -21,51 +23,44 @@ class PsiManager<T : LanguageService>(
         vfs.addChangeListener(listener)
     }
 
-    fun queueUpdate(file: VirtualFile, onfinish: suspend (PsiFile) -> Unit = {}) {
+    fun queueUpdate(file: VirtualFile, onfinish: suspend (F) -> Unit = {}) {
         job?.cancel()
         job = psiUpdateScope.launch {
             delay(1000L)
-            updatePsi(file, onfinish)
+            onfinish(updatePsi(file))
         }
     }
 
-    suspend fun updatePsi(file: VirtualFile, onfinish: suspend (PsiFile) -> Unit = {}) {
+    suspend fun updatePsi(file: VirtualFile): F {
         val psiFile = psiCache[file.path]
-        if (psiFile == null) {
+        return if (psiFile == null) {
             val created = createPsiFile(file)
-            psiCache[file.path] = created
             lang.updateAnalytics(created)
-            onfinish(created)
+            created
         } else {
             psiFile.update()
-            psiCache.remove(file.path)
-            psiCache[file.path] = psiFile
             lang.updateAnalytics(psiFile)
-            onfinish(psiFile)
+            psiFile
         }
     }
 
-    fun inserted(file: VirtualFile, index: Int, length: Int): PsiFile? {
-        val psiFile = psiCache[file.path] ?: return null
-        psiCache.remove(file.path)
-        psiCache[file.path] = psiFile
+    fun inserted(file: VirtualFile, index: Int, length: Int): F? {
+        val psiFile = getPsiFile(file) ?: return null
 
         psiFile.inserted(index, length)
 
         return psiFile
     }
 
-    fun deleted(file: VirtualFile, start: Int, end: Int): PsiFile? {
-        val psiFile = psiCache[file.path] ?: return null
-        psiCache.remove(file.path)
-        psiCache[file.path] = psiFile
+    fun deleted(file: VirtualFile, start: Int, end: Int): F? {
+        val psiFile = getPsiFile(file) ?: return null
 
         psiFile.deleted(start, end)
 
         return psiFile
     }
 
-    fun queueInsertion(file: VirtualFile, index: Int, length: Int, onfinish: suspend (PsiFile) -> Unit = {}) {
+    fun queueInsertion(file: VirtualFile, index: Int, length: Int, onfinish: suspend (F) -> Unit = {}) {
         queueUpdate(file, onfinish)
         psiUpdateScope.launch {
             onfinish(inserted(file, index, length) ?: run {
@@ -74,7 +69,7 @@ class PsiManager<T : LanguageService>(
         }
     }
 
-    fun queueDeletion(file: VirtualFile, start: Int, end: Int, onfinish: suspend (PsiFile) -> Unit = {}) {
+    fun queueDeletion(file: VirtualFile, start: Int, end: Int, onfinish: suspend (F) -> Unit = {}) {
         queueUpdate(file, onfinish)
         psiUpdateScope.launch {
             onfinish(deleted(file, start, end) ?: run {
@@ -87,25 +82,33 @@ class PsiManager<T : LanguageService>(
         job?.cancel()
         job = psiUpdateScope.launch {
             val psiFile = createPsiFile(file)
-            psiCache[file.path] = psiFile
             lang.updateAnalytics(psiFile)
             onfinish(psiFile)
         }
+    }
+
+    private fun replacePsi(psiFile: F){
+        psiCache.remove(psiFile.file.path)
+        psiCache[psiFile.file.path] = psiFile
     }
 
     private fun removePsi(file: VirtualFile) {
         psiCache.remove(file.path)
     }
 
-    private suspend fun createPsiFile(file: VirtualFile): PsiFile {
+    private suspend fun createPsiFile(file: VirtualFile): F {
         return withContext(Dispatchers.Default) {
-            lang.psiParser.parse(file)
+            val psiFile = psiParser.parse(file)
+            replacePsi(psiFile)
+            psiFile
         }
     }
 
-    fun getPsiFile(file: VirtualFile): PsiFile? {
+    fun getPsiFile(file: VirtualFile): F? {
         return psiCache[file.path]
     }
+
+    fun printCache(): String = psiCache.toString()
 
     inner class VFSListener : FileChangeListener {
         override fun onFileChanged(file: VirtualFile) {

@@ -47,7 +47,7 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
         )
     }
 
-    fun Section.resolveReservations() {
+    private fun Section.resolveReservations() {
         reservations.forEach { def ->
             def.instr.nodes.filterIsInstance<ASNode.NumericExpr>().forEach { expr ->
                 // Assign all Labels

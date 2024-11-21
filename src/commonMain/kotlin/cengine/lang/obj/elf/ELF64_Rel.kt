@@ -2,8 +2,8 @@ package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.ELF64_Rel.Companion.R_SYM
 import cengine.lang.obj.elf.ELF64_Rel.Companion.R_TYPE
-import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.ByteBuffer
 
 
 /**
@@ -37,7 +37,7 @@ import cengine.util.Endianness
 data class ELF64_Rel(
     var r_offset: Elf64_Addr,
     var r_info: Elf_Xword
-): Rel {
+): Rel() {
 
     companion object{
         const val SIZE = 16

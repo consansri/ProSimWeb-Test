@@ -72,7 +72,7 @@ fun ObjectEditor(
 
 @Composable
 fun ELFHeaderInfos(
-    elfReader: ELFFile<*, *, *, *, *, *, *>,
+    elfReader: ELFFile,
     fileContent: ByteArray,
     codeStyle: TextStyle,
     titleStyle: TextStyle,
@@ -640,7 +640,7 @@ fun ELFHeaderInfos(
 }
 
 @Composable
-fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteArray, codeStyle: TextStyle, baseStyle: TextStyle) {
+fun ELFSectionInfos(elfReader: ELFFile, fileContent: ByteArray, codeStyle: TextStyle, baseStyle: TextStyle) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
@@ -652,7 +652,7 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
         )
 
         when (group) {
-            is ELFFile<*, *, *, *, *, *, *>.Section -> {
+            is ELFFile.Section -> {
                 val section = group.section
                 val index = group.index
 
@@ -711,7 +711,7 @@ fun ELFSectionInfos(elfReader: ELFFile<*, *, *, *, *, *, *>, fileContent: ByteAr
                 }
             }
 
-            is ELFFile<*, *, *, *, *, *, *>.Segment -> {
+            is ELFFile.Segment -> {
                 Row(
                     Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically

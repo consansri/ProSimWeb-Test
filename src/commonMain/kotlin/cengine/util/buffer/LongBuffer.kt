@@ -78,4 +78,6 @@ class LongBuffer(endianness: Endianness, initial: Array<Long> = emptyArray()) : 
     override fun set(index: Int, value: ULong) {
         data[index] = value.toLong()
     }
+
+    override fun dataAsString(index: Int, radix: Int): String = data[index].toString(radix)
 }

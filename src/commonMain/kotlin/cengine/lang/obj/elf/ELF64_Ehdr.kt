@@ -1,7 +1,7 @@
 package cengine.lang.obj.elf
 
-import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.ByteBuffer
 import cengine.util.string.hexDump
 
 data class ELF64_Ehdr(
@@ -19,7 +19,7 @@ data class ELF64_Ehdr(
     override var e_shentsize: Elf_Half,
     override var e_shnum: Elf_Half,
     override var e_shstrndx: Elf_Half
-) : Ehdr {
+) : Ehdr() {
 
     override fun build(endianness: Endianness): Array<Byte> {
         val buffer = ByteBuffer(endianness)

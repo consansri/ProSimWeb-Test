@@ -1,8 +1,8 @@
 package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.*
-import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.ByteBuffer
 
 /**
  * ELF Relocation Entry (with addend)
@@ -39,7 +39,7 @@ data class ELF32_Rela(
     var r_offset: Elf32_Addr,
     var r_info: Elf_Word,
     var r_addend: Elf_Sword
-): Rela {
+): Rela() {
     companion object{
         const val SIZE = 12
     }

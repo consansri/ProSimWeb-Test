@@ -1,8 +1,8 @@
 package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.*
-import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.ByteBuffer
 
 /**
  * ELF Program Header
@@ -52,7 +52,7 @@ data class ELF64_Phdr(
     var p_filesz: Elf_Xword = 0U,
     var p_memsz: Elf_Xword = 0U,
     var p_align: Elf_Xword
-) : Phdr {
+) : Phdr() {
     override fun build(endianness: Endianness): Array<Byte> {
         val b = ByteBuffer(endianness)
 

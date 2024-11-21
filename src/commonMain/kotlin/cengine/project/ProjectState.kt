@@ -86,7 +86,7 @@ data class ProjectState(
         private var _bottomHeight: Float = 200f,
         private var _rightWidth: Float = 200f
     ) {
-        var objFilePath: FPath?
+        var initFilePath: FPath?
             get() = _objFilePath
             set(value) {
                 _objFilePath = value

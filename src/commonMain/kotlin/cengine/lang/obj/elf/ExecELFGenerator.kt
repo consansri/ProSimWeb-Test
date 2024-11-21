@@ -2,7 +2,6 @@ package cengine.lang.obj.elf
 
 import cengine.lang.asm.ast.TargetSpec
 import cengine.psi.core.*
-import emulator.kit.nativeLog
 import kotlin.experimental.*
 
 /**
@@ -74,8 +73,6 @@ class ExecELFGenerator(
 
         // Set Entry Point
         entryPoint = textSegment.p_vaddr
-
-        nativeLog("Segments: $segments, $sections")
     }
 
     // PRIVATE METHODS

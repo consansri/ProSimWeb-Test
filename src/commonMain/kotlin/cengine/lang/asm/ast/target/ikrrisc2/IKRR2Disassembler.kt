@@ -3,22 +3,22 @@ package cengine.lang.asm.ast.target.ikrrisc2
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import cengine.lang.asm.Disassembler
-import cengine.util.buffer.ByteBuffer
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import cengine.util.integer.toValue
+import emulator.kit.nativeLog
 
 object IKRR2Disassembler : Disassembler {
     override val decoded: MutableState<List<Disassembler.DecodedSegment>> = mutableStateOf(emptyList())
 
-    override fun disassemble(byteBuffer: ByteBuffer, startAddr: Hex): List<Disassembler.Decoded> {
+    override fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Disassembler.Decoded> {
         var currIndex = 0
         var currInstr: IKRR2InstrProvider
         val decoded = mutableListOf<Disassembler.Decoded>()
 
-        while (currIndex < byteBuffer.size) {
+        while (currIndex < buffer.size) {
             currInstr = try {
-                IKRR2InstrProvider(byteBuffer.getUInt(currIndex))
+                IKRR2InstrProvider(buffer[currIndex].toULong().toUInt())
             } catch (e: IndexOutOfBoundsException) {
                 break
             }
@@ -27,6 +27,8 @@ object IKRR2Disassembler : Disassembler {
 
             currIndex += 4
         }
+
+        nativeLog("disassemble: $startAddr, $buffer -> $decoded")
 
         return decoded
     }

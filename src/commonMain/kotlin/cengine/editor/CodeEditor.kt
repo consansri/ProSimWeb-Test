@@ -25,7 +25,7 @@ interface CodeEditor : Editable {
     companion object {
         fun create(file: VirtualFile, project: Project, invalidateContent: (CodeEditor) -> Unit, invalidateAnalytics: (CodeEditor) -> Unit): CodeEditor {
             return object : CodeEditor {
-                override val psiManager: PsiManager<*>? = project.getManager(file)
+                override val psiManager: PsiManager<*,*>? = project.getManager(file)
                 override val file: VirtualFile = file
                 override val textModel: TextModel = RopeModel(file.getAsUTF8String())
                 override val selector: Selector = Selector(textModel)
@@ -46,7 +46,7 @@ interface CodeEditor : Editable {
         }
     }
 
-    val psiManager: PsiManager<*>?
+    val psiManager: PsiManager<*,*>?
     val file: VirtualFile
     val textModel: TextModel
     val textStateModel: TextStateModel

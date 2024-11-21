@@ -52,16 +52,16 @@ fun CodeEditor(
     codeStyle: TextStyle,
     codeSmallStyle: TextStyle,
     baseSmallStyle: TextStyle,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
     val icon = UIState.Icon.value
 
-    val manager = remember { project.getManager(file) }
-    val lang = remember { manager?.lang }
-    val service = remember { lang?.psiService }
+    val manager = project.getManager(file)
+    val lang = manager?.lang
+    val service = lang?.psiService
 
     val textMeasurer = rememberTextMeasurer()
     val coroutineScope = rememberCoroutineScope()
@@ -133,7 +133,7 @@ fun CodeEditor(
         }
     }
 
-    fun fetchStyledContent(code: String, psiFile: PsiFile? = null): AnnotatedString {
+    fun fetchStyledContent(code: String): AnnotatedString {
         // Fast Lexing Highlighting
         val spanStyles = mutableListOf<AnnotatedString.Range<SpanStyle>>()
         val hls = lang?.highlightProvider?.fastHighlight(code, visibleIndexRange) ?: emptyList()
@@ -142,6 +142,8 @@ fun CodeEditor(
                 AnnotatedString.Range<SpanStyle>(SpanStyle(color = Color(it.color or 0xFF000000.toInt())), it.range.first, it.range.last + 1)
             } else null
         })
+
+        val psiFile = manager?.getPsiFile(file)
 
         if (service == null || psiFile == null) return AnnotatedString(code, spanStyles)
 
@@ -196,7 +198,7 @@ fun CodeEditor(
             val caretIndex = new.selection.start
             scrollToIndex(caretIndex)
 
-            textFieldValue = new.copy(fetchStyledContent(newText.text, manager?.getPsiFile(file)))
+            textFieldValue = new.copy(fetchStyledContent(newText.text))
         }
         if (time.inWholeMilliseconds > 0) inputLag = time
     }
@@ -204,23 +206,37 @@ fun CodeEditor(
     suspend fun locatePSIElement() {
         val time = measureTime {
             val caretPosition = textFieldValue.selection.start
-            val psiFile = manager?.getPsiFile(file)
-            currentElement = if (psiFile != null) {
-                lang?.psiService?.findElementAt(psiFile, caretPosition)
-            } else null
+            currentElement = manager?.getPsiFile(file)?.let {
+                lang?.psiService?.findElementAt(it, caretPosition)
+            }
+
         }
         if (time.inWholeMilliseconds > 5) nativeLog("locatePSIElement took ${time.inWholeMilliseconds}ms")
+    }
+
+    suspend fun psiHasChanged(psiFile: PsiFile) {
+        allAnnotations = service?.collectNotations(psiFile) ?: emptySet()
+        onTextChange(textFieldValue.copy(psiFile.content))
+        locatePSIElement()
+        analyticsAreUpToDate = true
+    }
+
+    fun run() {
+        coroutineScope.launch {
+            withContext(Dispatchers.Default) {
+                lang?.runConfig?.onFile(project, file)
+                nativeLog("Run $manager ${manager?.printCache()} ${manager?.getPsiFile(file)}")
+                val psiFile = manager?.getPsiFile(file) ?: return@withContext
+                psiHasChanged(psiFile)
+            }
+        }
     }
 
     fun analyze() {
         coroutineScope.launch {
             withContext(Dispatchers.Default) {
-                manager?.updatePsi(file) {
-                    allAnnotations = service?.collectNotations(it) ?: emptySet()
-                    onTextChange(textFieldValue.copy(it.content))
-                    locatePSIElement()
-                    analyticsAreUpToDate = true
-                }
+                val psiFile = manager?.updatePsi(file) ?: return@withContext
+                psiHasChanged(psiFile)
             }
         }
     }
@@ -508,6 +524,11 @@ fun CodeEditor(
                     ) {
                         Row(Modifier.padding(scale.SIZE_INSET_MEDIUM), verticalAlignment = Alignment.CenterVertically) {
                             if (analyticsAreUpToDate) {
+                                CButton(icon = icon.chevronRight, iconType = IconType.SMALL, onClick = {
+                                    run()
+                                })
+                                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
                                 val errors = allAnnotations.count { it.severity == Severity.ERROR }
                                 val warnings = allAnnotations.count { it.severity == Severity.WARNING }
                                 val infos = allAnnotations.count { it.severity == Severity.INFO }
@@ -535,6 +556,10 @@ fun CodeEditor(
                                 }, iconType = IconType.SMALL, textStyle = baseSmallStyle, iconTint = theme.COLOR_RED)
                             } else {
                                 ComposeTools.Rotating { rotation ->
+                                    CButton(icon = icon.chevronRight, iconType = IconType.SMALL, onClick = {
+                                        run()
+                                    })
+                                    Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                                     Text("CTRL+SHIFT+S to analyze", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
                                     Icon(icon.statusLoading, "loading", Modifier.size(scale.SIZE_CONTROL_SMALL).rotate(rotation), tint = theme.COLOR_FG_0)
                                     Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -591,7 +616,6 @@ fun CodeEditor(
                             topLeft = Offset(x = size.width / 2, y = scrollRatio * size.height),
                             size = size.copy(width = size.width / 2, height = thumbHeightPx)
                         )
-
 
                         textLayout?.let { layout ->
                             // Draw Annotations
@@ -658,7 +682,7 @@ fun CodeEditor(
     LaunchedEffect(visibleIndexRange) {
         highlightJob?.cancel()
         highlightJob = coroutineScope.launch {
-            textFieldValue = textFieldValue.copy(fetchStyledContent(textFieldValue.text, manager?.getPsiFile(file)))
+            textFieldValue = textFieldValue.copy(fetchStyledContent(textFieldValue.text))
         }
     }
 

@@ -1,16 +1,21 @@
 package cengine.lang.mif
 
-import cengine.lang.asm.Initializer
-import cengine.lang.obj.elf.ELF32File
-import cengine.lang.obj.elf.ELF64File
-import cengine.lang.obj.elf.ELFFile
+import cengine.lang.mif.MifGenerator.Companion.rdx
+import cengine.lang.mif.MifGenerator.Radix
+import cengine.lang.mif.ast.MifNode
+import cengine.lang.mif.ast.MifPsiFile
+import cengine.lang.obj.elf.*
 import cengine.util.integer.*
 import emulator.kit.memory.Memory
+import kotlin.math.log2
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
-class MifConverter(val wordSize: Size, val addrSize: Size, override val id: String) : Initializer {
+class MifConverter(val depth: Double, val wordSize: Size) {
 
-    val depth: Double = 2.0.pow(addrSize.bitWidth)
+    constructor(wordSize: Size, addrSize: Size, id: String) : this(2.0.pow(addrSize.bitWidth), wordSize)
+
+    val addrSize: Size = Size.nearestSize(log2(depth).roundToInt())
     var addrRDX: Radix = Radix.HEX
     var dataRDX: Radix = Radix.HEX
 
@@ -20,53 +25,6 @@ class MifConverter(val wordSize: Size, val addrSize: Size, override val id: Stri
     init {
         // Initially, all addresses are filled with 0
         ranges.add(Range(0.toValue(addrSize), Bin("1".repeat(addrSize.bitWidth), addrSize), listOf(Hex("0", wordSize))))
-    }
-
-    override fun initialize(memory: Memory) {
-        ranges.forEach { range ->
-            range.init(memory)
-        }
-    }
-
-    companion object {
-        fun parseElf(file: ELFFile<*, *, *, *, *, *, *>): MifConverter {
-            return when(file){
-                is ELF32File -> parseElf32(file)
-                is ELF64File -> parseElf64(file)
-            }
-        }
-
-        private fun parseElf32(file: ELF32File): MifConverter {
-            val builder = MifConverter(Size.Bit8, Size.Bit32, file.name)
-            val bytes = file.content
-
-            file.programHeaders.forEach {
-                val startAddr = it.p_vaddr.toValue()
-                val startOffset = it.p_offset
-                val size = it.p_filesz
-
-                val segmentBytes = bytes.copyOfRange(startOffset.toInt(), (startOffset + size).toInt()).map { byte -> byte.toUByte().toValue() }
-                builder.addContent(startAddr, segmentBytes)
-            }
-
-            return builder
-        }
-
-        private fun parseElf64(file: ELF64File): MifConverter {
-            val builder = MifConverter(Size.Bit8, Size.Bit64, file.name)
-            val bytes = file.content
-
-            file.programHeaders.forEach {
-                val startAddr = it.p_vaddr.toValue()
-                val startOffset = it.p_offset
-                val size = it.p_filesz
-
-                val segmentBytes = bytes.copyOfRange(startOffset.toInt(), (startOffset + size).toInt()).map { byte -> byte.toUByte().toValue() }
-                builder.addContent(startAddr, segmentBytes)
-            }
-
-            return builder
-        }
     }
 
     fun build(): String {
@@ -86,7 +44,52 @@ class MifConverter(val wordSize: Size, val addrSize: Size, override val id: Stri
         return builder.toString()
     }
 
-    fun addContent(startAddr: Hex, data: List<Hex>): MifConverter {
+    fun addContent(startAddr: String, endAddr: String, data: String): MifConverter {
+        return addContent(startAddr.rdx(addrRDX, addrSize), endAddr.rdx(addrRDX, addrSize), data.rdx(dataRDX, wordSize))
+    }
+
+    fun addContent(startAddr: Value, endAddr: Value, data: Value): MifConverter {
+        // Find the range where the new content starts and modify accordingly
+        val modifiedRanges = mutableListOf<Range>()
+
+        ranges.forEach { range ->
+            when {
+                // Range is fully before the new content, keep it unchanged
+                range.end < startAddr -> modifiedRanges.add(range)
+
+                // Range is fully after the new content, keep it unchanged
+                range.start > endAddr -> modifiedRanges.add(range)
+
+                // The range overlaps with the new content
+                else -> {
+                    // Split the range into three parts: before, overlap, and after
+
+                    // Part before the new content
+                    if (range.start < startAddr) {
+                        modifiedRanges.add(Range(range.start, startAddr - 1.toValue(addrSize), range.data))
+                    }
+
+                    // The new content replaces this part of the range
+                    modifiedRanges.add(Range(startAddr, endAddr, listOf(data)))
+
+                    // Part after the new content
+                    if (range.end > endAddr) {
+                        modifiedRanges.add(Range(endAddr + 1.toValue(addrSize), range.end, range.data))
+                    }
+                }
+            }
+        }
+
+        ranges.clear()
+        ranges.addAll(modifiedRanges)
+        return this
+    }
+
+    fun addContent(startAddr: String, data: List<String>): MifConverter {
+        return addContent(startAddr.rdx(addrRDX, addrSize), data.map { it.rdx(dataRDX, wordSize) })
+    }
+
+    fun addContent(startAddr: Value, data: List<Value>): MifConverter {
         // Find the range where the new content starts and modify accordingly
         if (data.isEmpty()) return this
         val newEnd = startAddr + (data.size - 1).toValue(addrSize)
@@ -135,7 +138,7 @@ class MifConverter(val wordSize: Size, val addrSize: Size, override val id: Stri
         return this
     }
 
-    inner class Range(val start: Value, val end: Value, val data: List<Value>, val enroll: Boolean = true) {
+    inner class Range(val start: Value, val end: Value, val data: List<Value>) {
         // Helper function to check if a range contains a specific address
         fun contains(addr: Hex): Boolean = addr >= start && addr <= end
 
@@ -162,10 +165,6 @@ class MifConverter(val wordSize: Size, val addrSize: Size, override val id: Stri
             } else if (data.size == 1) {
                 // A range of addresses with a single repeating value
                 "  [${start.addrRDX()}..${end.addrRDX()}] : ${data[0].dataRDX()};\n"
-            } else if (enroll) {
-                data.mapIndexed { index, value ->
-                    "  ${(start + index.toValue(addrSize)).addrRDX()} : ${value.dataRDX()};\n"
-                }.joinToString("")
             } else {
                 // A range of addresses with alternating values
                 val dataStr = data.joinToString(" ") { it.dataRDX() }
@@ -175,8 +174,7 @@ class MifConverter(val wordSize: Size, val addrSize: Size, override val id: Stri
         }
 
         fun init(memory: Memory) {
-            val zero = 0U.toValue()
-            if (data.all { it == zero }) return
+            if (data.all { it.toULong() == 0UL }) return
 
             if (start == end) {
                 memory.storeArray(start.toHex(), *data.toTypedArray())
@@ -188,11 +186,6 @@ class MifConverter(val wordSize: Size, val addrSize: Size, override val id: Stri
                     if (currAddr == end) break
                     currAddr += inc
                 }
-            } else if (enroll) {
-                data.mapIndexed { index, value ->
-                    val addr = (start + index.toValue(addrSize)).toHex()
-                    memory.store(addr, value)
-                }
             } else {
                 memory.storeArray(start.toHex(), *data.toTypedArray())
             }
@@ -203,14 +196,7 @@ class MifConverter(val wordSize: Size, val addrSize: Size, override val id: Stri
     }
 
     // Word Radix Format
-    private fun Value.rdx(radix: Radix): String {
-        return when (radix) {
-            Radix.HEX -> toHex().toRawString()
-            Radix.OCT -> toOct().toRawString()
-            Radix.BIN -> toBin().toRawString()
-            Radix.DEC -> toUDec().toRawString()
-        }
-    }
+
 
     private fun Value.addrRDX(): String = rdx(addrRDX)
     private fun Value.dataRDX(): String = rdx(dataRDX)
@@ -219,10 +205,103 @@ class MifConverter(val wordSize: Size, val addrSize: Size, override val id: Stri
         return build()
     }
 
-    enum class Radix {
-        HEX,
-        OCT,
-        BIN,
-        DEC,
+    companion object {
+
+        fun parseMif(file: MifPsiFile): MifConverter {
+            var currWordSize: Size? = null
+            var currDepth: Double? = null
+            var dataRDX = Radix.HEX
+            var addrRDX = Radix.HEX
+
+            file.program.headers.forEach {
+                when (it.identifier.value) {
+                    "WIDTH" -> {
+                        currWordSize = Size.nearestSize(it.value.value.toInt())
+                    }
+
+                    "DEPTH" -> {
+                        currDepth = it.value.value.toDouble()
+                    }
+
+                    "ADDRESS_RADIX" -> {
+                        addrRDX = Radix.getRadix(it.value.value)
+                    }
+
+                    "DATA_RADIX" -> {
+                        dataRDX = Radix.getRadix(it.value.value)
+                    }
+                }
+            }
+
+            val wordSize = currWordSize
+            val depth = currDepth
+
+            if (wordSize == null) throw Exception("Invalid or missing WIDTH!")
+            if (depth == null) throw Exception("Invalid or missing DEPTH!")
+
+            val mifConverter = MifConverter(depth, wordSize)
+
+            mifConverter.setDataRadix(dataRDX)
+            mifConverter.setAddrRadix(addrRDX)
+
+            file.program.content?.assignments?.forEach {
+                when (it) {
+                    is MifNode.Assignment.Direct -> {
+                        mifConverter.addContent(it.addr.value, listOf(it.data.value))
+                    }
+
+                    is MifNode.Assignment.ListOfValues -> {
+                        mifConverter.addContent(it.addr.value, it.data.map { it.value })
+                    }
+
+                    is MifNode.Assignment.SingleValueRange -> {
+                        mifConverter.addContent(it.valueRange.first.value, it.valueRange.last.value, it.data.value)
+                    }
+                }
+            }
+
+            return mifConverter
+        }
+
+        fun parseElf(file: ELFFile): MifConverter {
+            return when (file) {
+                is ELF32File -> parseElf32(file)
+                is ELF64File -> parseElf64(file)
+            }
+        }
+
+        private fun parseElf32(file: ELF32File): MifConverter {
+            val builder = MifConverter(Size.Bit8, Size.Bit32, file.name)
+            val bytes = file.content
+
+            file.programHeaders.forEach {
+                if (it !is ELF32_Phdr) return@forEach
+                val startAddr = it.p_vaddr.toValue()
+                val startOffset = it.p_offset
+                val size = it.p_filesz
+
+                val segmentBytes = bytes.copyOfRange(startOffset.toInt(), (startOffset + size).toInt()).map { byte -> byte.toUByte().toValue() }
+                builder.addContent(startAddr, segmentBytes)
+            }
+
+            return builder
+        }
+
+        private fun parseElf64(file: ELF64File): MifConverter {
+            val builder = MifConverter(Size.Bit8, Size.Bit64, file.name)
+            val bytes = file.content
+
+            file.programHeaders.forEach {
+                if (it !is ELF64_Phdr) return@forEach
+                val startAddr = it.p_vaddr.toValue()
+                val startOffset = it.p_offset
+                val size = it.p_filesz
+
+                val segmentBytes = bytes.copyOfRange(startOffset.toInt(), (startOffset + size).toInt()).map { byte -> byte.toUByte().toValue() }
+                builder.addContent(startAddr, segmentBytes)
+            }
+
+            return builder
+        }
     }
 }

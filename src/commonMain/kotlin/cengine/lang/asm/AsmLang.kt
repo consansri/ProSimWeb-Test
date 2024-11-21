@@ -1,23 +1,20 @@
 package cengine.lang.asm
 
-import cengine.editor.annotation.Annotation
 import cengine.editor.annotation.AnnotationProvider
 import cengine.editor.completion.CompletionProvider
 import cengine.editor.formatting.Formatter
 import cengine.editor.highlighting.HighlightProvider
 import cengine.lang.LanguageService
-import cengine.lang.RunConfiguration
+import cengine.lang.Runner
 import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.features.AsmAnnotator
 import cengine.lang.asm.features.AsmCompleter
 import cengine.lang.asm.features.AsmFormatter
 import cengine.lang.asm.features.AsmHighlighter
-import cengine.lang.asm.run.AsmGenerateBinary
 import cengine.psi.core.PsiService
 import cengine.psi.impl.PsiServiceImpl
-import cengine.vfs.VirtualFile
 
-class AsmLang(spec: TargetSpec<*>) : LanguageService {
+class AsmLang(spec: TargetSpec<*>) : LanguageService() {
     companion object {
         const val OUTPUT_DIR = ".asm"
     }
@@ -32,8 +29,7 @@ class AsmLang(spec: TargetSpec<*>) : LanguageService {
             annotations.clear()
         }
 
-    override var runConfigurations: Set<RunConfiguration<LanguageService>> = setOf(AsmGenerateBinary)
-
+    override var runConfig: Runner<AsmLang> = AsmRunner(this)
     override val name: String = "Assembly"
     override val fileSuffix: String = ".s"
     override var psiParser: AsmPsiParser = AsmPsiParser(spec, this)
@@ -42,5 +38,4 @@ class AsmLang(spec: TargetSpec<*>) : LanguageService {
     override val annotationProvider: AnnotationProvider = AsmAnnotator()
     override var highlightProvider: HighlightProvider = AsmHighlighter(spec)
     override val formatter: Formatter = AsmFormatter()
-    override val annotations: MutableMap<VirtualFile, Set<Annotation>> = mutableMapOf()
 }

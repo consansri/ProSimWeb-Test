@@ -136,4 +136,6 @@ class ShortBuffer(endianness: Endianness, initial: Array<Short> = emptyArray()) 
             }
         }
     }
+
+    override fun dataAsString(index: Int, radix: Int): String = data[index].toString(radix)
 }

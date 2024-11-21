@@ -3,8 +3,6 @@ package ui.uilib.filetree
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.geometry.Offset
-import cengine.lang.LanguageService
-import cengine.lang.RunConfiguration
 import cengine.project.Project
 import cengine.vfs.VirtualFile
 import emulator.kit.nativeLog
@@ -27,7 +25,7 @@ fun FileContextMenu(
     onDismiss: () -> Unit,
     onRename: (VirtualFile) -> Unit,
     onDelete: (VirtualFile) -> Unit,
-    onCreate: (VirtualFile, isDirectory: Boolean) -> Unit
+    onCreate: (VirtualFile, isDirectory: Boolean) -> Unit,
 ) {
     val ioScope = rememberCoroutineScope()
 
@@ -45,12 +43,12 @@ fun FileContextMenu(
             onDelete(file)
         }
 
-        val lang = project.getLang(file)
-        lang?.runConfigurations?.forEach {
-            if (it is RunConfiguration.FileRun<LanguageService>) {
-                MenuItem(UIState.Icon.value.build, it.name) {
-                    onDismiss()
-                    it.run(file, lang, project.fileSystem)
+        val runConfig = project.getLang(file)?.runConfig
+        runConfig?.let {
+            MenuItem(UIState.Icon.value.build, it.name) {
+                onDismiss()
+                ioScope.launch {
+                    it.onFile(project, file)
                 }
             }
         }

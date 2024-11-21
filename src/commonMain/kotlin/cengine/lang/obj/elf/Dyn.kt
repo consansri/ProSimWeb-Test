@@ -7,7 +7,7 @@ package cengine.lang.obj.elf
  * @property d_val The integer value associated with the dynamic table entry.
  * @property d_ptr The address associated with the dynamic table entry.
  */
-sealed interface Dyn : BinaryProvider {
+sealed class Dyn : BinaryProvider {
 
     companion object {
         fun getDynamicType(tag: Elf_Sxword): String = when (tag) {

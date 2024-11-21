@@ -17,7 +17,7 @@ import ui.uilib.UIState
 @Composable
 fun ProjectViewScreen(state: ProjectState, close: () -> Unit) {
 
-    val project = Project(state, ObjLang, MifLang, CownLang())
+    val project = Project(state, ObjLang, MifLang, CownLang)
     val architecture = remember { state.getTarget()?.emuLink?.load() }
 
     val viewType = remember { mutableStateOf(state.viewType) }

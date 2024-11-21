@@ -31,19 +31,19 @@ package cengine.lang.obj.elf
  * information.
  *
  */
-sealed interface Ehdr : BinaryProvider {
+sealed class Ehdr : BinaryProvider {
 
-    var e_ident: E_IDENT
-    var e_type: Elf_Half
-    var e_machine: Elf_Half
-    var e_version: Elf_Word
-    var e_flags: Elf_Word
-    var e_ehsize: Elf_Half
-    var e_phentsize: Elf_Half
-    var e_phnum: Elf_Half
-    var e_shentsize: Elf_Half
-    var e_shnum: Elf_Half
-    var e_shstrndx: Elf_Half
+    abstract var e_ident: E_IDENT
+    abstract var e_type: Elf_Half
+    abstract var e_machine: Elf_Half
+    abstract var e_version: Elf_Word
+    abstract var e_flags: Elf_Word
+    abstract var e_ehsize: Elf_Half
+    abstract var e_phentsize: Elf_Half
+    abstract var e_phnum: Elf_Half
+    abstract var e_shentsize: Elf_Half
+    abstract var e_shnum: Elf_Half
+    abstract var e_shstrndx: Elf_Half
 
     companion object {
         fun getELFType(type: Elf_Half): String = when (type) {
@@ -274,6 +274,6 @@ sealed interface Ehdr : BinaryProvider {
         const val EV_CURRENT: Elf_Word = 1U
     }
 
-    override fun toString(): String
+    abstract override fun toString(): String
 
 }

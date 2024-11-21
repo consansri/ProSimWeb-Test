@@ -1,7 +1,7 @@
 package cengine.lang.obj.elf
 
-import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.ByteBuffer
 
 /**
  * ELF Program Header
@@ -51,7 +51,7 @@ data class ELF32_Phdr(
     var p_memsz: Elf_Word = 0U,
     override var p_flags: Elf_Word,
     var p_align: Elf_Word
-) : Phdr {
+) : Phdr() {
 
 
     override fun build(endianness: Endianness): Array<Byte> {

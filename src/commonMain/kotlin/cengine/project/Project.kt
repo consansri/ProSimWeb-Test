@@ -14,19 +14,19 @@ import cengine.vfs.VirtualFile
  */
 class Project(initialState: ProjectState, vararg languageServices: LanguageService) : FileChangeListener {
     val projectState: ProjectState = initialState
-    val services: Set<LanguageService> = languageServices.toSet() + AsmLang(TargetSpec.specs.firstOrNull { it.name == initialState.target   } ?: TargetSpec.specs.first())
+    val services: Set<LanguageService> = languageServices.toSet() + AsmLang(TargetSpec.specs.firstOrNull { it.name == initialState.target } ?: TargetSpec.specs.first())
     val fileSystem: VFileSystem = VFileSystem(projectState.absRootPath)
-    val psiManagers: List<PsiManager<*>> = services.map { PsiManager(fileSystem, it) }
+    val psiManagers: List<PsiManager<*, *>> = services.map { PsiManager(fileSystem, it, it.psiParser) }
     val currentEditors: MutableList<CodeEditor> = mutableListOf()
 
     init {
         fileSystem.addChangeListener(this)
     }
 
-    fun getManager(lang: LanguageService): PsiManager<*>? = psiManagers.firstOrNull { lang::class == it.lang::class }
+    fun getManager(lang: LanguageService): PsiManager<*, *>? = psiManagers.firstOrNull { lang::class == it.lang::class }
     fun getLang(file: VirtualFile): LanguageService? = getManager(file)?.lang
 
-    fun getManager(file: VirtualFile): PsiManager<*>? {
+    fun getManager(file: VirtualFile): PsiManager<*, *>? {
         val service = services.firstOrNull { file.name.endsWith(it.fileSuffix) } ?: return null
         return getManager(service)
     }

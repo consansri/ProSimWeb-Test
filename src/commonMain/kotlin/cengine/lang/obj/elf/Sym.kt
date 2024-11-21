@@ -1,11 +1,11 @@
 package cengine.lang.obj.elf
 
-sealed interface Sym : BinaryProvider {
+sealed class Sym : BinaryProvider {
 
-    var st_name: Elf_Word
-    var st_info: Elf_Byte
-    var st_other: Elf_Byte
-    var st_shndx: Elf_Half
+    abstract var st_name: Elf_Word
+    abstract var st_info: Elf_Byte
+    abstract var st_other: Elf_Byte
+    abstract var st_shndx: Elf_Half
 
     fun setValue(value: Elf_Xword) {
         when (this) {

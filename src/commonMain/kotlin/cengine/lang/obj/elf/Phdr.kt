@@ -39,10 +39,10 @@ package cengine.lang.obj.elf
  *
  *
  */
-sealed interface Phdr : BinaryProvider {
+sealed class Phdr : BinaryProvider {
 
-    var p_type: Elf_Word
-    var p_flags: Elf_Word
+    abstract var p_type: Elf_Word
+    abstract var p_flags: Elf_Word
 
     companion object {
         fun size(ei_class: Elf_Byte): Elf_Half {

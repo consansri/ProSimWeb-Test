@@ -4,9 +4,7 @@ import cengine.lang.asm.ast.AsmCodeGenerator
 import cengine.lang.obj.elf.LinkerScript
 import cengine.lang.obj.elf.Shdr
 import cengine.util.buffer.Buffer
-import cengine.util.integer.Hex
-import cengine.util.integer.Size
-import cengine.util.integer.toValue
+import cengine.util.integer.*
 
 class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size, val bufferInit: () -> T) : AsmCodeGenerator<AsmCodeGenerator.Section>(linkerScript) {
     override val fileSuffix: String
@@ -59,8 +57,8 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
     override fun writeFile(): ByteArray {
         val builder = MifConverter(text.content.wordWidth, addrSize, this::class.simpleName.toString())
 
-        builder.setAddrRadix(MifConverter.Radix.HEX)
-        builder.setDataRadix(MifConverter.Radix.HEX)
+        builder.setAddrRadix(Radix.HEX)
+        builder.setDataRadix(Radix.HEX)
 
         sections.filter {
             it.isProg()
@@ -85,6 +83,39 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
             override var address: Hex = Hex("0")
             override val content: Buffer<*> = bufferInit()
             override val reservations: MutableList<InstrReservation> = mutableListOf()
+        }
+    }
+
+    companion object{
+        fun String.rdx(radix: Radix, size: Size): Value {
+            return when (radix) {
+                Radix.HEX -> Hex(this, size)
+                Radix.OCT -> Oct(this, size)
+                Radix.BIN -> Bin(this, size)
+                Radix.DEC -> Dec(this, size)
+            }
+        }
+
+        fun Value.rdx(radix: Radix): String {
+            return when (radix) {
+                Radix.HEX -> toHex().toRawString()
+                Radix.OCT -> toOct().toRawString()
+                Radix.BIN -> toBin().toRawString()
+                Radix.DEC -> toUDec().toRawString()
+            }
+        }
+    }
+
+    enum class Radix(val radix: Int) {
+        HEX(16),
+        OCT(8),
+        BIN(2),
+        DEC(10);
+
+        companion object {
+            fun getRadix(string: String): Radix {
+                return entries.firstOrNull { it.name == string.uppercase() } ?: HEX
+            }
         }
     }
 }

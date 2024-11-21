@@ -4,7 +4,7 @@ import cengine.util.Endianness
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 
-abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<T>): Collection<T> {
+abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<T>) : Collection<T> {
 
     protected val data: MutableList<T> = initial.toMutableList()
     abstract val wordWidth: Size
@@ -76,7 +76,7 @@ abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<
 
     abstract fun putBytes(bytes: Array<Byte>)
 
-    fun putBytes(bytes: ByteArray){
+    fun putBytes(bytes: ByteArray) {
         putBytes(bytes.toTypedArray())
     }
 
@@ -138,4 +138,7 @@ abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<
 
     abstract operator fun set(index: Int, value: ULong)
 
+    abstract fun dataAsString(index: Int, radix: Int): String
+
+    fun mapAsString(radix: Int) = indices.map { index -> dataAsString(index, radix) }
 }

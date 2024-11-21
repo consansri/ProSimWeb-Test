@@ -4,7 +4,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.Disassembler.Decoded
-import cengine.util.buffer.ByteBuffer
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import cengine.util.integer.toValue
@@ -12,14 +11,15 @@ import cengine.util.integer.toValue
 object RVDisassembler : Disassembler {
     override val decoded: MutableState<List<Disassembler.DecodedSegment>> = mutableStateOf(emptyList())
 
-    override fun disassemble(byteBuffer: ByteBuffer, startAddr: Hex): List<Decoded> {
+    override fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Decoded> {
         var currIndex = 0
         var currInstr: RVInstrInfoProvider
         val decoded = mutableListOf<Decoded>()
+        val words = buffer.chunked(4){ bytes -> bytes.reversed().joinToString("") { it.toRawString() }.toUInt(16)}
 
-        while (currIndex < byteBuffer.size) {
+        while (currIndex < words.size) {
             currInstr = try {
-                RVInstrInfoProvider(byteBuffer.getUInt(currIndex))
+                RVInstrInfoProvider(words[currIndex])
             } catch (e: IndexOutOfBoundsException) {
                 break
             }

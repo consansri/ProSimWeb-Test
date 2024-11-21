@@ -3,19 +3,17 @@ package ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import cengine.lang.RunConfiguration
+import androidx.compose.ui.unit.dp
 import cengine.project.Project
 import cengine.vfs.VirtualFile
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import ui.uilib.UIState
 import ui.uilib.editor.CodeEditor
@@ -30,7 +28,7 @@ import ui.uilib.layout.*
 fun IDEView(
     project: Project,
     viewType: MutableState<ViewType>,
-    close: () -> Unit
+    close: () -> Unit,
 ) {
     val theme = UIState.Theme.value
     val icons = UIState.Icon.value
@@ -43,6 +41,8 @@ fun IDEView(
     val baseLargeStyle = UIState.BaseLargeStyle.current
     val codeSmallStyle = UIState.CodeSmallStyle.current
     val baseSmallStyle = UIState.BaseSmallStyle.current
+
+    val coroutineScope = rememberCoroutineScope()
 
     val fileEditors = remember {
         mutableStateListOf<TabItem<VirtualFile>>(*ideState.openFiles.mapNotNull { path ->
@@ -82,19 +82,27 @@ fun IDEView(
         top = {
             TopBar(project, viewType, onClose = { close() }) {
                 // Run Configurations Menu
-                val runConfigs = project.services.flatMap { it.runConfigurations.filterIsInstance<RunConfiguration.ProjectRun<*>>() }
+                val runConfigs = project.services.map { it.runConfig }
                 var runConfigExpanded by remember { mutableStateOf(false) }
-                CButton(onClick = { runConfigExpanded = true }, icon = icons.build)
+                CButton(onClick = {
+                    runConfigExpanded = true
+                }, icon = icons.build)
 
                 DropdownMenu(
                     expanded = runConfigExpanded,
-                    onDismissRequest = { runConfigExpanded = false }
+                    onDismissRequest = { runConfigExpanded = false },
+                    modifier = Modifier.padding(0.dp)
                 ) {
                     runConfigs.forEach { config ->
-                        DropdownMenuItem(onClick = {
-                            config.run(project)
-                            runConfigExpanded = false
-                        }) {
+                        DropdownMenuItem(
+                            onClick = {
+                                coroutineScope.launch {
+                                    config.global(project)
+                                }
+                                runConfigExpanded = false
+                            },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
                             CLabel(text = config.name, textStyle = baseStyle)
                         }
                     }

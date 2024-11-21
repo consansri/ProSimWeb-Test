@@ -1,5 +1,7 @@
 package cengine.lang
 
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import cengine.editor.annotation.Annotation
 import cengine.editor.annotation.AnnotationProvider
 import cengine.editor.completion.CompletionProvider
@@ -10,21 +12,21 @@ import cengine.psi.core.PsiParser
 import cengine.psi.core.PsiService
 import cengine.vfs.VirtualFile
 
-interface LanguageService {
+abstract class LanguageService {
 
-    val name: String
-    val fileSuffix: String
+    abstract val name: String
+    abstract val fileSuffix: String
 
-    val psiParser: PsiParser<*>
-    val psiService: PsiService
+    abstract val psiParser: PsiParser<*>
+    abstract val psiService: PsiService
 
-    val runConfigurations: Set<RunConfiguration<LanguageService>>
-    val completionProvider: CompletionProvider?
-    val annotationProvider: AnnotationProvider?
-    val highlightProvider: HighlightProvider?
-    val formatter: Formatter?
+    abstract val runConfig: Runner<*>
+    abstract val completionProvider: CompletionProvider?
+    abstract val annotationProvider: AnnotationProvider?
+    abstract val highlightProvider: HighlightProvider?
+    abstract val formatter: Formatter?
 
-    val annotations: MutableMap<VirtualFile, Set<Annotation>>
+    val annotations: SnapshotStateMap<VirtualFile, Set<Annotation>> = mutableStateMapOf()
 
     fun updateAnalytics(file: PsiFile) {
         completionProvider?.buildCompletionSet(file)

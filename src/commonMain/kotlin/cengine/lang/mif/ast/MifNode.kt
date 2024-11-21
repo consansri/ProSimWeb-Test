@@ -31,7 +31,7 @@ sealed class MifNode(override var range: IntRange, vararg children: PsiElement) 
     }
 
     class Program(
-        children: List<PsiElement>
+        children: List<PsiElement>,
     ) : MifNode(children.minOf { it.range.first }..children.maxOf { it.range.last }, *children.toTypedArray()) {
 
         val headers: List<Header> = children.filterIsInstance<Header>()
@@ -73,6 +73,16 @@ sealed class MifNode(override var range: IntRange, vararg children: PsiElement) 
                     }
                 }
             }
+        }
+
+        fun init() {
+
+            val addr_radix = headers.lastOrNull { it.identifier.value.uppercase() == "ADDRESS_RADIX" }?.value?.value ?: "HEX"
+            val data_radix = headers.lastOrNull { it.identifier.value.uppercase() == "DATA_RADIX" }?.value?.value ?: "HEX"
+
+
+
+
         }
 
     }
@@ -119,7 +129,7 @@ sealed class MifNode(override var range: IntRange, vararg children: PsiElement) 
                 val value = lexer.consume(true)
 
                 val semicolon = lexer.consume(true)
-                if(semicolon.value != ";"){
+                if (semicolon.value != ";") {
                     lexer.position = start
                     return null
                 }
@@ -129,7 +139,7 @@ sealed class MifNode(override var range: IntRange, vararg children: PsiElement) 
         }
     }
 
-    class Content(val content: MifToken, val begin: MifToken, val assignments: Array<Assignment>, val end: MifToken, val semicolon: MifToken) : Assignment(content.range.first..semicolon.range.last, content, begin, *assignments, end, semicolon) {
+    class Content(val content: MifToken, val begin: MifToken, val assignments: Array<Assignment>, val end: MifToken, val semicolon: MifToken) : MifNode(content.range.first..semicolon.range.last, content, begin, *assignments, end, semicolon) {
         override val pathName: String = "Content"
 
         companion object {

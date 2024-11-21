@@ -1,6 +1,6 @@
 package cengine.lang.obj.elf
 
-sealed interface Rela : BinaryProvider {
+sealed class Rela : BinaryProvider {
 
     companion object {
         fun size(ei_class: Elf_Byte): Elf_Half {

@@ -98,4 +98,6 @@ class IntBuffer(endianness: Endianness, initial: Array<Int> = emptyArray()) : Bu
             }
         }
     }
+
+    override fun dataAsString(index: Int, radix: Int): String = data[index].toString(radix)
 }

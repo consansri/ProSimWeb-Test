@@ -2,11 +2,20 @@ package cengine.lang.obj.elf
 
 import cengine.vfs.VirtualFile
 
-class ELF32File(name: String, content: ByteArray) : ELFFile<ELF32_Ehdr, ELF32_Shdr, ELF32_Phdr, ELF32_Sym, ELF32_Dyn, ELF32_Rel, ELF32_Rela>(name, content) {
+class ELF32File(name: String, content: ByteArray) : ELFFile(name, content) {
     constructor(file: VirtualFile) : this(file.name, file.getContent())
 
-    override fun getSectionName(section: ELF32_Shdr): String {
-        val stringTableOffset = shstrtab?.sh_offset?.toInt() ?: return "[shstrtab missing]"
+    override val id: String
+        get() = name
+
+    init {
+        if (ehdr !is ELF32_Ehdr) throw InvalidElfComponent(this, ehdr)
+    }
+
+    override fun getSectionName(section: Shdr): String {
+        if (section !is ELF32_Shdr) throw InvalidElfComponent(this, section)
+        if (shstrtab !is ELF32_Shdr) return "[shstrtab missing]"
+        val stringTableOffset = shstrtab.sh_offset.toInt()
         val nameOffset = section.sh_name.toInt()
         return content.sliceArray(stringTableOffset + nameOffset until content.size)
             .takeWhile { it != 0.toByte() }
@@ -16,6 +25,7 @@ class ELF32File(name: String, content: ByteArray) : ELFFile<ELF32_Ehdr, ELF32_Sh
 
     override fun getStrTabString(namendx: Int): String? {
         if (strTab == null) return null
+        if (strTab !is ELF32_Shdr) return "[strTab missing]"
         val strTabOffset = strTab.sh_offset.toInt()
         return content.sliceArray(strTabOffset + namendx until content.size)
             .takeWhile { it != 0.toByte() }
@@ -39,10 +49,10 @@ class ELF32File(name: String, content: ByteArray) : ELFFile<ELF32_Ehdr, ELF32_Sh
     override fun rela(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): ELF32_Rela = Rela.extractFrom(byteArray, eIdent, offset) as ELF32_Rela
 
 
-    override fun createSegment(phdr: ELF32_Phdr, sections: List<ELF32_Shdr>): ELF32Segment = ELF32Segment(phdr, sections)
+    override fun createSegment(phdr: Phdr, sections: List<Shdr>): Segment = ELF32Segment(phdr as ELF32_Phdr, sections.filterIsInstance<ELF32_Shdr>())
 
-    override fun createSection(shdr: ELF32_Shdr): ELF32Section = ELF32Section(shdr)
+    override fun createSection(shdr: Shdr): Section = ELF32Section(shdr as ELF32_Shdr)
 
-    inner class ELF32Section(shdr: ELF32_Shdr) : Section(shdr)
-    inner class ELF32Segment(phdr: ELF32_Phdr, sections: List<ELF32_Shdr>) : Segment(phdr, sections)
+    inner class ELF32Section(shdr: ELF32_Shdr) : Section(shdr, sectionHeaders)
+    inner class ELF32Segment(phdr: ELF32_Phdr, sections: List<ELF32_Shdr>) : Segment(phdr, sections, sectionHeaders)
 }

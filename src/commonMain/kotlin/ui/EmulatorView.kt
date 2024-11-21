@@ -16,8 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import cengine.lang.asm.Initializer
+import cengine.lang.mif.MifLang
+import cengine.lang.obj.ObjLang
 import cengine.lang.obj.elf.ELFFile
-import cengine.lang.mif.MifConverter
 import cengine.project.Project
 import cengine.vfs.FPath
 import emulator.kit.Architecture
@@ -57,41 +59,49 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
     var rightContentType by remember { mutableStateOf<EmulatorContentView?>(emuState.rightContent) }
     var bottomContentType by remember { mutableStateOf<EmulatorContentView?>(emuState.bottomContent) }
 
-    var emuObjFilePath by remember { mutableStateOf<FPath?>(project.projectState.emu.objFilePath) }
+    var emuInitFilePath by remember { mutableStateOf<FPath?>(project.projectState.emu.initFilePath) }
 
-    fun parseElf(): ELFFile<*, *, *, *, *, *, *>? {
-        emuState.objFilePath = emuObjFilePath
+    fun buildInitializer(): Initializer? {
+        emuState.initFilePath = emuInitFilePath
 
-        val objFilePath = emuObjFilePath ?: return null
-        val file = project.fileSystem.findFile(objFilePath) ?: return null
-        return try {
-            ELFFile.parse(file.name, file.getContent())
-        } catch (e: Exception) {
-            nativeError(e.toString())
-            null
+        val initFilePath = emuInitFilePath ?: return null
+        val file = project.fileSystem.findFile(initFilePath) ?: return null
+        val lang = project.getLang(file)
+        return when (lang) {
+            MifLang -> {
+                val mifPsiFile = MifLang.psiParser.parse(file)
+                val errors = mifPsiFile.printErrors()
+                if (errors != null) {
+                    nativeError(errors)
+                    return null
+                }
+                mifPsiFile
+            }
+
+            ObjLang -> {
+                ELFFile.parse(file.name, file.getContent())
+            }
+
+            else -> null
         }
     }
 
-    var elfFile by remember { mutableStateOf<ELFFile<*, *, *, *, *, *, *>?>(parseElf()) }
+    var initializer: Initializer? by remember { mutableStateOf<Initializer?>(buildInitializer()) }
 
-    LaunchedEffect(elfFile) {
+    LaunchedEffect(initializer) {
         architecture ?: return@LaunchedEffect
-        architecture.initializer = null
+        architecture.initializer = initializer
         architecture.disassembler?.decoded?.value = emptyList()
-        elfFile?.let {
-            try {
-                architecture.initializer = MifConverter.parseElf(it)
-                architecture.disassembler?.disassemble(it)
-                architecture.exeReset()
-            } catch (e: Exception) {
-                nativeError(e.toString())
-                nativeError(e.printStackTrace().toString())
+
+        initializer?.let { initializer ->
+            architecture.disassembler?.let {
+                it.decoded.value = it.disassemble(initializer)
             }
         }
     }
 
-    LaunchedEffect(emuObjFilePath) {
-        elfFile = parseElf()
+    LaunchedEffect(emuInitFilePath) {
+        initializer = buildInitializer()
     }
 
     val archOverview: (@Composable BoxScope.() -> Unit) = {
@@ -136,7 +146,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
         ) {
             // Left content
             FileTree(project) { file ->
-                emuObjFilePath = file.path
+                emuInitFilePath = file.path
             }
         }
     }
@@ -151,7 +161,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
         },
         center = {
 
-            with(LocalDensity.current){
+            with(LocalDensity.current) {
                 ResizableBorderPanels(
                     Modifier.fillMaxSize(),
                     initialLeftWidth = emuState.leftWidth.toDp(),
@@ -287,13 +297,13 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
         bottomBg = theme.COLOR_BG_1
     )
 
-    LaunchedEffect(leftContentType){
+    LaunchedEffect(leftContentType) {
         emuState.leftContent = leftContentType
     }
-    LaunchedEffect(rightContentType){
+    LaunchedEffect(rightContentType) {
         emuState.rightContent = rightContentType
     }
-    LaunchedEffect(bottomContentType){
+    LaunchedEffect(bottomContentType) {
         emuState.bottomContent = bottomContentType
     }
 }

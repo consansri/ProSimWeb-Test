@@ -1,11 +1,8 @@
 package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.*
-import cengine.lang.obj.elf.Ehdr.Companion.EV_CURRENT
-import cengine.lang.obj.elf.Ehdr.Companion.getELFMachine
-import cengine.lang.obj.elf.Ehdr.Companion.getELFType
-import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.ByteBuffer
 import cengine.util.string.hexDump
 
 
@@ -55,7 +52,7 @@ data class ELF32_Ehdr(
     override var e_shentsize: Elf_Half,
     override var e_shnum: Elf_Half,
     override var e_shstrndx: Elf_Half
-) : Ehdr {
+) : Ehdr() {
 
     /*constructor(
         ei_class: Elf_Byte,

@@ -231,5 +231,6 @@ class ByteBuffer(endianness: Endianness, initial: Array<Byte> = emptyArray()) : 
         }
     }
 
+    override fun dataAsString(index: Int, radix: Int): String = data[index].toString(radix)
 
 }

@@ -1,6 +1,6 @@
 package cengine.lang.obj.elf
 
-sealed interface Rel: BinaryProvider {
+sealed class Rel: BinaryProvider {
 
     companion object {
 

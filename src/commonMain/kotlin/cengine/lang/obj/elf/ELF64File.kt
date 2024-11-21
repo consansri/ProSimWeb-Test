@@ -2,11 +2,17 @@ package cengine.lang.obj.elf
 
 import cengine.vfs.VirtualFile
 
-class ELF64File(name: String, content: ByteArray) : ELFFile<ELF64_Ehdr, ELF64_Shdr, ELF64_Phdr, ELF64_Sym, ELF64_Dyn, ELF64_Rel, ELF64_Rela>(name, content) {
+class ELF64File(name: String, content: ByteArray) : ELFFile(name, content) {
     constructor(file: VirtualFile) : this(file.name, file.getContent())
 
-    override fun getSectionName(section: ELF64_Shdr): String {
-        val stringTableOffset = shstrtab?.sh_offset?.toInt() ?: return "[shstrtab missing]"
+    init {
+        if (ehdr !is ELF64_Ehdr) throw InvalidElfComponent(this, ehdr)
+    }
+
+    override fun getSectionName(section: Shdr): String {
+        if (section !is ELF64_Shdr) throw InvalidElfComponent(this, section)
+        if (shstrtab !is ELF64_Shdr) return "[shstrtab missing]"
+        val stringTableOffset = shstrtab.sh_offset.toInt()
         val nameOffset = section.sh_name.toInt()
         return content.sliceArray(stringTableOffset + nameOffset until content.size)
             .takeWhile { it != 0.toByte() }
@@ -14,8 +20,8 @@ class ELF64File(name: String, content: ByteArray) : ELFFile<ELF64_Ehdr, ELF64_Sh
             .decodeToString()
     }
 
-    override fun getStrTabString(namendx: Int): String? {
-        if (strTab == null) return null
+    override fun getStrTabString(namendx: Int): String {
+        if (strTab !is ELF64_Shdr) return "[strTab missing]"
         val strTabOffset = strTab.sh_offset.toInt()
         return content.sliceArray(strTabOffset + namendx until content.size)
             .takeWhile { it != 0.toByte() }
@@ -37,9 +43,9 @@ class ELF64File(name: String, content: ByteArray) : ELFFile<ELF64_Ehdr, ELF64_Sh
 
     override fun rela(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): ELF64_Rela = Rela.extractFrom(byteArray, eIdent, offset) as ELF64_Rela
 
-    override fun createSegment(phdr: ELF64_Phdr, sections: List<ELF64_Shdr>): ELF64Segment = ELF64Segment(phdr, sections)
-    override fun createSection(shdr: ELF64_Shdr): ELF64Section = ELF64Section(shdr)
+    override fun createSegment(phdr: Phdr, sections: List<Shdr>): Segment = ELF64Segment(phdr as ELF64_Phdr, sections.filterIsInstance<ELF64_Shdr>())
+    override fun createSection(shdr: Shdr): Section = ELF64Section(shdr as ELF64_Shdr)
 
-    inner class ELF64Section(shdr: ELF64_Shdr) : Section(shdr)
-    inner class ELF64Segment(phdr: ELF64_Phdr, sections: List<ELF64_Shdr>) : Segment(phdr, sections)
+    inner class ELF64Section(shdr: ELF64_Shdr) : Section(shdr, sectionHeaders)
+    inner class ELF64Segment(phdr: ELF64_Phdr, sections: List<ELF64_Shdr>) : Segment(phdr, sections, sectionHeaders)
 }
