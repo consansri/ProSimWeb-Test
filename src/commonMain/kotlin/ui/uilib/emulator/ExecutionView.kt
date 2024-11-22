@@ -69,7 +69,7 @@ fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, 
                         Text("ADDR", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
                     }
                     Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Box(Modifier.weight(0.75f), contentAlignment = Alignment.Center) {
                         Text("DATA", fontFamily = baseStyle.fontFamily, fontSize = baseStyle.fontSize, color = theme.COLOR_FG_1)
                     }
                     Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
@@ -121,10 +121,10 @@ fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, 
                                 }, verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                                Text(address.rawInput, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
+                                Text(address.toRawZeroTrimmedString(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
                             }
                             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-                            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            Box(Modifier.weight(0.75f), contentAlignment = Alignment.Center) {
                                 Text(decoded.data.rawInput, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
                             }
                             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
