@@ -5,6 +5,7 @@ import cengine.util.integer.Hex
 import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
 import emulator.kit.memory.Memory
+import emulator.kit.nativeError
 import kotlin.time.measureTime
 
 abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {
@@ -31,7 +32,9 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
         val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {
             super.exeSingleStep() // clears console
-            executeNext(tracker)
+            if (!executeNext(tracker).valid) {
+                nativeError("Couldn't execute instruction at ${regContainer.pc.get().toHex()}!")
+            }
         }
 
         Performance.updateExePerformance(1, measuredTime)
@@ -171,7 +174,6 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
 
 
     data class ExecutionResult(val valid: Boolean, val typeIsReturnFromSubroutine: Boolean, val typeIsBranchToSubroutine: Boolean)
-
 
 
 }

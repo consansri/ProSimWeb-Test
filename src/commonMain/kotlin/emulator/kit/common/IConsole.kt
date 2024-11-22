@@ -1,6 +1,10 @@
 package emulator.kit.common
 
 import emulator.kit.assembler.CodeStyle
+import emulator.kit.nativeError
+import emulator.kit.nativeInfo
+import emulator.kit.nativeLog
+import emulator.kit.nativeWarn
 import kotlinx.datetime.Clock
 
 /**
@@ -11,18 +15,22 @@ class IConsole(val name: String) {
     private val messageArray: MutableList<Message> = mutableListOf()
 
     fun info(message: String) {
+        nativeInfo(message)
         messageArray.add(Message(MSGType.INFO, message))
     }
 
     fun log(message: String) {
+        nativeLog(message)
         messageArray.add(Message(MSGType.LOG, message))
     }
 
     fun warn(message: String) {
+        nativeWarn(message)
         messageArray.add(Message(MSGType.WARNING, message))
     }
 
     fun error(message: String) {
+        nativeError(message)
         messageArray.add(Message(MSGType.ERROR, message))
     }
 
