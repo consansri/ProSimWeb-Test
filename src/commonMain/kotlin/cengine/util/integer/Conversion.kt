@@ -41,7 +41,7 @@ fun String.getType(): Value {
 fun Bin.getHex(): Hex {
     var hexStr = ""
 
-    var binStr = toRawString()
+    var binStr = rawInput
     binStr = if (binStr.length % 4 != 0) {
         "0".repeat(4 - (binStr.length % 4)) + binStr
     } else {
@@ -66,7 +66,7 @@ fun Bin.getHex(): Hex {
 fun Bin.getOct(): Oct {
     var octStr = ""
 
-    var binStr = toRawString()
+    var binStr = rawInput
     binStr = if (binStr.length % 3 != 0) {
         "0".repeat(3 - (binStr.length % 3)) + binStr
     } else {
@@ -91,7 +91,7 @@ fun Bin.getOct(): Oct {
 fun Oct.getBinary(): Bin {
     var binStr = ""
 
-    val hexStr = toRawString()
+    val hexStr = rawInput
 
     for (i in hexStr.indices) {
         binStr += BinaryTools.octToBinDigit[hexStr[i]]
@@ -108,7 +108,7 @@ fun Oct.getBinary(): Bin {
 fun Hex.getBinary(): Bin {
     var binStr = ""
 
-    val hexStr = toRawString().uppercase()
+    val hexStr = rawInput.uppercase()
 
     for (i in hexStr.indices) {
         binStr += BinaryTools.hexToBinDigit[hexStr[i]]
@@ -124,7 +124,7 @@ fun Hex.getBinary(): Bin {
  */
 fun Dec.getBinary(): Bin {
 
-    var decString = toRawString()
+    var decString = rawInput
 
     if (isNegative()) {
         decString = DecimalTools.negotiate(decString)
@@ -144,7 +144,7 @@ fun Dec.getBinary(): Bin {
     }
 
     if (binaryStr == "") {
-        nativeWarn("Conversion.getBinary(dec: Dec) : error in calculation ${toRawString()} to $binaryStr")
+        nativeWarn("Conversion.getBinary(dec: Dec) : error in calculation ${rawInput} to $binaryStr")
     }
 
     if (isNegative()) {
@@ -163,7 +163,7 @@ fun Dec.getBinary(): Bin {
  */
 fun UDec.getBinary(): Bin {
 
-    var udecString = toRawString()
+    var udecString = rawInput
 
     var binaryStr = ""
 
@@ -178,7 +178,7 @@ fun UDec.getBinary(): Bin {
     }
 
     if (binaryStr == "") {
-        nativeWarn("Conversion.getBinary(udec: UDec) : error in calculation ${toRawString()} to $binaryStr")
+        nativeWarn("Conversion.getBinary(udec: UDec) : error in calculation ${rawInput} to $binaryStr")
     }
 
     if (DebugTools.KIT_showValTypeConversionInfo) {
@@ -192,7 +192,7 @@ fun UDec.getBinary(): Bin {
  * Converts [Bin] to [Dec] representation.
  */
 fun Bin.getDec(): Dec {
-    var binString = toRawString()
+    var binString = rawInput
     var decString = "0"
     val negative: Boolean
 
@@ -232,7 +232,7 @@ fun Bin.getDec(): Dec {
  * Converts [Bin] to [UDec] representation.
  */
 fun Bin.getUDec(): UDec {
-    val binString = toRawString()
+    val binString = rawInput
 
     var udecString = "0"
     if (binString.isNotEmpty()) {
@@ -261,11 +261,11 @@ fun Value.getASCII(): String {
     val stringBuilder = StringBuilder()
 
     val hexString = when (this) {
-        is Hex -> toRawString()
-        is Oct -> toHex().toRawString()
-        is Bin -> toHex().toRawString()
-        is Dec -> toHex().toRawString()
-        is UDec -> toHex().toRawString()
+        is Hex -> rawInput
+        is Oct -> toHex().rawInput
+        is Bin -> toHex().rawInput
+        is Dec -> toHex().rawInput
+        is UDec -> toHex().rawInput
     }
 
     val trimmedHex = hexString.trim().removePrefix(Settings.PRESTRING_HEX)

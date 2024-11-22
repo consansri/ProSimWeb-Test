@@ -45,7 +45,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
     }
 
     override fun load(address: Hex, amount: Int, tracker: AccessTracker, endianess: Endianess): Hex {
-        val offsetIndex = address.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
+        val offsetIndex = address.toBin().rawInput.takeLast(model.offsetBits).toInt(2)
 
         if (offsetIndex + amount > model.offsetCount) {
             console.warn("Unaligned Cache Access!")
@@ -63,7 +63,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             val hexValues = mutableListOf<String>()
 
             repeat(amount) {
-                hexValues += rowData[offsetIndex + it].toHex().toRawString()
+                hexValues += rowData[offsetIndex + it].toHex().rawInput
             }
 
             when (endianess) {
@@ -85,7 +85,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
         val hexValues = mutableListOf<String>()
 
         repeat(amount) {
-            hexValues += rowData[offsetIndex + it].toHex().toRawString()
+            hexValues += rowData[offsetIndex + it].toHex().rawInput
         }
 
         when (globalEndianess()) {
@@ -97,7 +97,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
     }
 
     override fun store(address: Hex, value: Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
-        val offsetIndex = address.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
+        val offsetIndex = address.toBin().rawInput.takeLast(model.offsetBits).toInt(2)
         val values = value.toHex().splitToArray(instanceSize)
 
         if (offsetIndex + values.size > model.offsetCount) {
@@ -136,7 +136,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
         var currAddress: Value = address
 
         while (remaining > 0) {
-            val offsetIndex = currAddress.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
+            val offsetIndex = currAddress.toBin().rawInput.takeLast(model.offsetBits).toInt(2)
             val lastIndex = (remaining - 1) + offsetIndex
             val currAmount = if (lastIndex >= model.offsetCount) {
                 model.offsetCount - offsetIndex
@@ -158,7 +158,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             Endianess.LittleEndian -> values.reverse()
             Endianess.BigEndian -> {}
         }
-        return Hex(values.joinToString("") { it.toRawString() })
+        return Hex(values.joinToString("") { it.rawInput })
     }
 
     private fun storeUnaligned(address: Hex, value: Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
@@ -174,7 +174,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
         var currAddress: Value = address
 
         while (remaining.isNotEmpty()) {
-            val offsetIndex = currAddress.toBin().toRawString().takeLast(model.offsetBits).toInt(2)
+            val offsetIndex = currAddress.toBin().rawInput.takeLast(model.offsetBits).toInt(2)
             val lastIndex = (remaining.size - 1) + offsetIndex
             val currAmount = if (lastIndex >= model.offsetCount) {
                 model.offsetCount - offsetIndex
@@ -188,7 +188,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
         }
 
         ranges.forEach {
-            val joinedValue = Hex(it.second.joinToString("") { it.toRawString() })
+            val joinedValue = Hex(it.second.joinToString("") { it.rawInput })
             store(it.first, joinedValue, mark, readonly, tracker, Endianess.BigEndian)
         }
     }
@@ -219,7 +219,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
         }
 
         fun search(address: Hex): Pair<CacheRow, Int>? {
-            val addrBinStr = address.toBin().toRawString()
+            val addrBinStr = address.toBin().rawInput
             val tagBinStr = addrBinStr.take(tagBits)
             val indexBinStr = addrBinStr.substring(tagBits, tagBits + indexBits)
             rows.forEach {
@@ -233,7 +233,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
          * @return [CacheRow], [blockIndex], [neededWriteBack] (if block was valid and dirty)
          */
         fun fetch(address: Hex): Triple<CacheRow, Int, Boolean> {
-            val addrBinStr = address.toBin().toRawString()
+            val addrBinStr = address.toBin().rawInput
             val tagBinStr = addrBinStr.take(tagBits)
             val indexBinStr = addrBinStr.substring(tagBits, tagBits + indexBits)
             val row = rows.firstOrNull {
@@ -339,7 +339,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
                 }
 
             fun compare(tagBinStr: String): Boolean {
-                return tag?.toRawString() == tagBinStr
+                return tag?.rawInput == tagBinStr
             }
 
             fun read(): Array<Value> = data.map { it.value }.toTypedArray()
@@ -355,7 +355,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
             fun writeBackIfDirty(rowIndexBinStr: String): Boolean {
                 val tag = tag
                 if (!dirty || tag == null) return false
-                val rowAddr = Bin((tag.toRawString() + rowIndexBinStr).padEnd(addrSize.bitWidth, '0'), addrSize).toHex()
+                val rowAddr = Bin((tag.rawInput + rowIndexBinStr).padEnd(addrSize.bitWidth, '0'), addrSize).toHex()
                 backingMemory.storeArray(rowAddr, *data.map { it.value }.toTypedArray(), mark = InstanceType.DATA)
                 dirty = false
                 return true
@@ -455,7 +455,7 @@ sealed class Cache(protected val backingMemory: Memory, val console: IConsole, i
 
     data class CacheInstance(val value: Hex, val address: Hex?) {
         override fun toString(): String {
-            return value.toRawString()
+            return value.rawInput
         }
     }
 

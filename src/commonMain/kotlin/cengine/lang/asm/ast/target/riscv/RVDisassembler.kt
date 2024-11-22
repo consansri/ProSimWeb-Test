@@ -15,16 +15,19 @@ object RVDisassembler : Disassembler {
         var currIndex = 0
         var currInstr: RVInstrInfoProvider
         val decoded = mutableListOf<Decoded>()
-        val words = buffer.chunked(4){ bytes -> bytes.reversed().joinToString("") { it.toRawString() }.toUInt(16)}
+        val words = buffer.chunked(4) { bytes -> bytes.reversed().joinToString("") { it.rawInput }.toUInt(16) }
 
-        while (currIndex < words.size) {
+        while ((currIndex / 4) < words.size) {
             currInstr = try {
-                RVInstrInfoProvider(words[currIndex])
+                RVInstrInfoProvider(words[currIndex / 4])
             } catch (e: IndexOutOfBoundsException) {
                 break
             }
 
-            decoded.add(currInstr.decode(startAddr, currIndex.toULong()))
+            val instr = currInstr.decode(startAddr, currIndex.toULong())
+            decoded.add(instr)
+
+            // nativeLog("Instr: ${currInstr.binary.toString(16).padStart(32, '0')} -> ${currInstr.binaryAsHex}: ${instr.disassembled}")
 
             currIndex += 4
         }
@@ -32,7 +35,7 @@ object RVDisassembler : Disassembler {
         return decoded
     }
 
-    data class RVInstrInfoProvider(val binary: UInt): Disassembler.InstrProvider {
+    data class RVInstrInfoProvider(val binary: UInt) : Disassembler.InstrProvider {
         val binaryAsHex: Hex = binary.toValue()
         val opcode = binary and 0b1111111U
         val funct3 = (binary shr 12) and 0b111U

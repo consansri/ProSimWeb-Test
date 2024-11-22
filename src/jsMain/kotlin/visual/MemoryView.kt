@@ -314,14 +314,14 @@ val MemoryView = FC<MemViewProps> { props ->
                     type = InputType.text
                     pattern = "[0-9a-fA-F]+"
                     placeholder = Settings.PRESTRING_HEX
-                    defaultValue = editVar.variable.get().toHex().toRawString()
+                    defaultValue = editVar.variable.get().toHex().rawInput
 
                     onChange = {
                         val hex = Hex(it.currentTarget.value, props.archState.component1().memory.instanceSize)
                         if (hex.valid) {
                             editVar.variable.set(hex)
                         } else {
-                            it.currentTarget.value = editVar.variable.get().toHex().toRawString()
+                            it.currentTarget.value = editVar.variable.get().toHex().rawInput
                         }
                     }
                     onKeyDown = {
@@ -379,7 +379,7 @@ val MemoryView = FC<MemViewProps> { props ->
                         type = InputType.text
                         pattern = "[0-9a-fA-F]+"
                         placeholder = Settings.PRESTRING_HEX
-                        defaultValue = startAddr?.toRawString() ?: ""
+                        defaultValue = startAddr?.rawInput ?: ""
 
                         onChange = {
                             setStartAddr(if (it.currentTarget.value != "") Hex(it.currentTarget.value, props.archState.component1().memory.addressSize) else null)

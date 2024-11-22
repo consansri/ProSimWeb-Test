@@ -113,8 +113,8 @@ class IKRMiniSyntax {
             }
 
             val flags = getFlags(arch)
-            val acFirstBit = ac.get().toBin().getBit(0)?.toRawString() ?: "0"
-            val opFirstBit = operand.toBin().getBit(0)?.toRawString() ?: "0"
+            val acFirstBit = ac.get().toBin().getBit(0)?.rawInput ?: "0"
+            val opFirstBit = operand.toBin().getBit(0)?.rawInput ?: "0"
 
             when (this) {
                 LOAD -> ac.set(operand)
@@ -122,8 +122,8 @@ class IKRMiniSyntax {
                 STORE -> arch.dataMemory.store(address, ac.get(), Memory.InstanceType.DATA, tracker = tracker)
                 AND -> {
                     val result = ac.get().toBin() and operand.toBin()
-                    val n = result.getBit(0)?.toRawString() == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val n = result.getBit(0)?.rawInput == "1"
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
                     val c = false // TODO Check if should reset or not
                     ac.set(result)
@@ -132,8 +132,8 @@ class IKRMiniSyntax {
 
                 OR -> {
                     val result = ac.get().toBin() or operand.toBin()
-                    val n = result.getBit(0)?.toRawString() == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val n = result.getBit(0)?.rawInput == "1"
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
                     val c = false // TODO Check if should reset or not
                     ac.set(result)
@@ -142,8 +142,8 @@ class IKRMiniSyntax {
 
                 XOR -> {
                     val result = ac.get().toBin() xor operand.toBin()
-                    val n = result.getBit(0)?.toRawString() == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val n = result.getBit(0)?.rawInput == "1"
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
                     val c = false // TODO Check if should reset or not
                     ac.set(result)
@@ -153,9 +153,9 @@ class IKRMiniSyntax {
                 ADD -> {
                     val firstRes = ac.get().toBin().detailedPlus(operand)
                     val result = firstRes.result
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
-                    val n = result.getBit(0)?.toRawString() == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
+                    val n = result.getBit(0)?.rawInput == "1"
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = acFirstBit == opFirstBit && acFirstBit != resFirstBit
                     val c = firstRes.carry
                     ac.set(result)
@@ -166,9 +166,9 @@ class IKRMiniSyntax {
                     val firstRes = ac.get().toBin().detailedPlus(operand)
                     val secondRes = firstRes.result.detailedPlus(if (flags.c) Bin("1", WORDSIZE) else Bin("0", WORDSIZE))
                     val result = secondRes.result
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
-                    val n = result.getBit(0)?.toRawString() == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
+                    val n = result.getBit(0)?.rawInput == "1"
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = acFirstBit == opFirstBit && acFirstBit != resFirstBit
                     val c = firstRes.carry xor secondRes.carry
                     ac.set(result)
@@ -179,9 +179,9 @@ class IKRMiniSyntax {
                     val firstRes = ac.get().toBin().detailedMinus(operand)
                     val result = firstRes.result
 
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = acFirstBit != opFirstBit && opFirstBit == resFirstBit
                     val c = firstRes.borrow
                     ac.set(result)
@@ -190,9 +190,9 @@ class IKRMiniSyntax {
 
                 SUBC -> {
                     val result = (ac.get().toBin() - operand.toBin() - if (flags.c) Bin("1", WORDSIZE) else Bin("0", WORDSIZE)).toBin()
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = acFirstBit != opFirstBit && opFirstBit == resFirstBit
                     val c = acFirstBit == "0" && opFirstBit == "1"
                     ac.set(result)
@@ -201,31 +201,31 @@ class IKRMiniSyntax {
 
                 LSL -> {
                     val result = operand.toBin() ushl 1
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
-                    val c = operand.toBin().getBit(0)?.toRawString() == "1"
+                    val c = operand.toBin().getBit(0)?.rawInput == "1"
                     setFlags(arch, n, z, v, c)
                     ac.set(result)
                 }
 
                 LSR -> {
                     val result = operand.toBin() ushr 1
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
-                    val c = operand.toBin().getBit(15)?.toRawString() == "1"
+                    val c = operand.toBin().getBit(15)?.rawInput == "1"
                     setFlags(arch, n, z, v, c)
                     ac.set(result)
                 }
 
                 ROL -> {
                     val result = operand.toBin().rotateLeft(1)
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
                     val c = false // TODO Check if should reset or not
                     setFlags(arch, n, z, v, c)
@@ -234,9 +234,9 @@ class IKRMiniSyntax {
 
                 ROR -> {
                     val result = operand.toBin().rotateRight(1)
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
                     val c = false // TODO Check if should reset or not
                     setFlags(arch, n, z, v, c)
@@ -245,31 +245,31 @@ class IKRMiniSyntax {
 
                 ASL -> {
                     val result = operand.toBin() shl 1
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
-                    val c = operand.toBin().getBit(0)?.toRawString() == "1"
+                    val c = operand.toBin().getBit(0)?.rawInput == "1"
                     setFlags(arch, n, z, v, c)
                     ac.set(result)
                 }
 
                 ASR -> {
                     val result = operand.toBin() shr 1
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
-                    val c = operand.toBin().getBit(15)?.toRawString() == "1"
+                    val c = operand.toBin().getBit(15)?.rawInput == "1"
                     setFlags(arch, n, z, v, c)
                     ac.set(result)
                 }
 
                 RCL -> {
-                    val result = Bin(operand.toBin().toRawString().substring(1) + if (flags.c) "1" else "0", WORDSIZE)
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val result = Bin(operand.toBin().rawInput.substring(1) + if (flags.c) "1" else "0", WORDSIZE)
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
                     val c = false // TODO Check if should reset or not
                     setFlags(arch, n, z, v, c)
@@ -277,10 +277,10 @@ class IKRMiniSyntax {
                 }
 
                 RCR -> {
-                    val result = Bin((if (flags.c) "1" else "0") + operand.toBin().toRawString().substring(0, WORDSIZE.bitWidth - 1), WORDSIZE)
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val result = Bin((if (flags.c) "1" else "0") + operand.toBin().rawInput.substring(0, WORDSIZE.bitWidth - 1), WORDSIZE)
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
                     val c = false // TODO Check if should reset or not
                     setFlags(arch, n, z, v, c)
@@ -289,9 +289,9 @@ class IKRMiniSyntax {
 
                 NOT -> {
                     val result = operand.toBin().inv()
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
                     val c = false // TODO Check if should reset or not
                     setFlags(arch, n, z, v, c)
@@ -300,9 +300,9 @@ class IKRMiniSyntax {
 
                 NEG -> {
                     val result = (-operand).toBin()
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
                     val n = resFirstBit == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = false // TODO Check if should reset or not
                     val c = false // TODO Check if should reset or not
                     setFlags(arch, n, z, v, c)
@@ -324,9 +324,9 @@ class IKRMiniSyntax {
                     val one = Bin("1", WORDSIZE)
                     val detailedResult = operand.toBin().detailedPlus(one)
                     val result = detailedResult.result
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
-                    val n = result.getBit(0)?.toRawString() == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
+                    val n = result.getBit(0)?.rawInput == "1"
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = opFirstBit == "0" && opFirstBit != resFirstBit
                     val c = detailedResult.carry
                     ac.set(result)
@@ -337,9 +337,9 @@ class IKRMiniSyntax {
                     val one = Bin("1", WORDSIZE)
                     val detailedResult = operand.toBin().detailedMinus(one)
                     val result = detailedResult.result
-                    val resFirstBit = result.getBit(0)?.toRawString() ?: "0"
-                    val n = result.getBit(0)?.toRawString() == "1"
-                    val z = result.toRawString() == "0".repeat(WORDSIZE.bitWidth)
+                    val resFirstBit = result.getBit(0)?.rawInput ?: "0"
+                    val n = result.getBit(0)?.rawInput == "1"
+                    val z = result.rawInput == "0".repeat(WORDSIZE.bitWidth)
                     val v = opFirstBit == "1" && opFirstBit != resFirstBit
                     val c = detailedResult.borrow
                     ac.set(result)
@@ -472,10 +472,10 @@ class IKRMiniSyntax {
                 return Flags(false, false, false, false)
             }
 
-            val n = flags.get().toBin().getBit(0)?.toRawString() == "1"
-            val z = flags.get().toBin().getBit(1)?.toRawString() == "1"
-            val v = flags.get().toBin().getBit(2)?.toRawString() == "1"
-            val c = flags.get().toBin().getBit(3)?.toRawString() == "1"
+            val n = flags.get().toBin().getBit(0)?.rawInput == "1"
+            val z = flags.get().toBin().getBit(1)?.rawInput == "1"
+            val v = flags.get().toBin().getBit(2)?.rawInput == "1"
+            val c = flags.get().toBin().getBit(3)?.rawInput == "1"
             return Flags(n, z, v, c)
         }
 

@@ -9,23 +9,22 @@ import emulator.kit.nativeError
  * Provides the decimal representation of [Value].
  */
 class Dec(decString: String, size: Size) : Value(size) {
-    override val input: String
     override val valid: Boolean
-
+    override val rawInput: String
     private val negative: Boolean
 
     init {
         val result = check(decString, size)
-        input = result.corrected
         valid = result.valid
-        this.negative = DecimalTools.isNegative(result.corrected)
+        this.negative = DecimalTools.isNegative(result.correctedRawInput)
+        rawInput = result.correctedRawInput
     }
 
     constructor(decString: String) : this(decString, nearestDecSize(decString.trim().removePrefix(Settings.PRESTRING_DECIMAL)))
 
     fun isNegative(): Boolean = negative
 
-    fun getResized(size: Size): Dec = Dec(toRawString(), size)
+    fun getResized(size: Size): Dec = Dec(rawInput, size)
 
     override fun check(string: String, size: Size): CheckResult {
         val formatted = string.trim().removePrefix(Settings.PRESTRING_DECIMAL)
@@ -34,21 +33,21 @@ class Dec(decString: String, size: Size) : Value(size) {
             val zeroString = "0"
             message = "Dec.check(): $formatted does not match the dec Pattern (${Settings.PRESTRING_DECIMAL + "(-)" + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning $zeroString instead!"
             nativeError(message)
-            return CheckResult(false, Settings.PRESTRING_DECIMAL + zeroString, message)
+            return CheckResult(false, zeroString, message)
         } else {
             return if (DecimalTools.isGreaterThan(formatted, Bounds(size).max)) {
                 message = "Dec.check(): $formatted must be smaller equal ${Bounds(size).max} -> setting ${Bounds(size).max}"
-                CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).max, message)
+                CheckResult(false, Bounds(size).max, message)
             } else if (DecimalTools.isGreaterThan(Bounds(size).min, formatted)) {
                 message = "Dec.check(): $formatted must be bigger equal ${Bounds(size).min} -> setting ${Bounds(size).min}"
-                CheckResult(false, Settings.PRESTRING_DECIMAL + Bounds(size).min, message)
+                CheckResult(false, Bounds(size).min, message)
             } else {
-                CheckResult(true, Settings.PRESTRING_DECIMAL + formatted)
+                CheckResult(true, formatted)
             }
         }
     }
 
-    override fun check(size: Size): CheckResult = check(toRawString(), size)
+    override fun check(size: Size): CheckResult = check(rawInput, size)
 
     override fun checkSizeSigned(other: Size): Boolean = getResized(other).valid
     override fun checkSizeUnsigned(other: Size): Boolean = toBin().checkSizeUnsigned(other)
@@ -59,16 +58,16 @@ class Dec(decString: String, size: Size) : Value(size) {
     override fun toUDec(): UDec = getBinary().getUDec()
     override fun toASCII(): String = getASCII()
     override fun toULong(): ULong = toLong().toULong()
-    override fun toLong(): Long = toRawString().toLong()
-    fun toIntOrNull(): Int? = toRawString().toIntOrNull()
-    fun toDoubleOrNull(): Double? = toRawString().toDoubleOrNull()
+    override fun toLong(): Long = rawInput.toLong()
+    fun toIntOrNull(): Int? = rawInput.toIntOrNull()
+    fun toDoubleOrNull(): Double? = rawInput.toDoubleOrNull()
     override fun getBiggest(): Value = Dec(Bounds(size).max, size)
     override fun plus(operand: Value): Dec {
         val biggerSize = if (size.bitWidth > operand.size.bitWidth) size else operand.size
         val result = if (biggerSize.bitWidth <= 64) {
             (toLong() + operand.toLong()).toString()
         } else {
-            DecimalTools.add(toRawString(), operand.toDec().toRawString())
+            DecimalTools.add(rawInput, operand.toDec().rawInput)
         }
 
         return Dec(result, biggerSize)
@@ -79,7 +78,7 @@ class Dec(decString: String, size: Size) : Value(size) {
         val result = if (biggerSize.bitWidth <= 64) {
             (toLong() - operand.toLong()).toString()
         } else {
-            DecimalTools.sub(toRawString(), operand.toDec().toRawString())
+            DecimalTools.sub(rawInput, operand.toDec().rawInput)
         }
 
         return Dec(result, biggerSize)
@@ -90,7 +89,7 @@ class Dec(decString: String, size: Size) : Value(size) {
         val result = if (biggerSize.bitWidth <= 64) {
             (toLong() * operand.toLong()).toString()
         } else {
-            DecimalTools.multiply(toRawString(), operand.toDec().toRawString())
+            DecimalTools.multiply(rawInput, operand.toDec().rawInput)
         }
 
         return Dec(result, biggerSize)
@@ -101,7 +100,7 @@ class Dec(decString: String, size: Size) : Value(size) {
         val result = if (biggerSize.bitWidth <= 64) {
             (toLong() / operand.toLong()).toString()
         } else {
-            DecimalTools.divide(toRawString(), operand.toDec().toRawString()).result
+            DecimalTools.divide(rawInput, operand.toDec().rawInput).result
         }
 
         return Dec(result, biggerSize)
@@ -112,20 +111,20 @@ class Dec(decString: String, size: Size) : Value(size) {
         val result = if (biggerSize.bitWidth <= 64) {
             (toLong() % operand.toLong()).toString()
         } else {
-            DecimalTools.checkEmpty(DecimalTools.divide(toRawString(), operand.toDec().toRawString()).rest)
+            DecimalTools.checkEmpty(DecimalTools.divide(rawInput, operand.toDec().rawInput).rest)
         }
 
         return Dec(result, biggerSize)
     }
 
-    override fun unaryMinus(): Value = Dec(DecimalTools.negotiate(toRawString()), size)
-    override fun inc(): Value = Dec(DecimalTools.add(toRawString(), "1"), size)
-    override fun dec(): Value = Dec(DecimalTools.sub(toRawString(), "1"), size)
+    override fun unaryMinus(): Value = Dec(DecimalTools.negotiate(rawInput), size)
+    override fun inc(): Value = Dec(DecimalTools.add(rawInput, "1"), size)
+    override fun dec(): Value = Dec(DecimalTools.sub(rawInput, "1"), size)
     override fun compareTo(other: Value): Int {
         if (size.bitWidth <= 64 && other.size.bitWidth <= 64) return toLong().compareTo(other.toLong())
-        return if (DecimalTools.isEqual(toRawString(), other.toDec().toRawString())) {
+        return if (DecimalTools.isEqual(rawInput, other.toDec().rawInput)) {
             0
-        } else if (DecimalTools.isGreaterThan(toRawString(), other.toDec().toRawString())) {
+        } else if (DecimalTools.isGreaterThan(rawInput, other.toDec().rawInput)) {
             1
         } else {
             -1
@@ -134,11 +133,10 @@ class Dec(decString: String, size: Size) : Value(size) {
 
     override fun equals(other: Any?): Boolean {
         if (other is Value) {
-            return DecimalTools.isEqual(toRawString(), other.toDec().toRawString())
+            return DecimalTools.isEqual(rawInput, other.toDec().rawInput)
         }
         return false
     }
 
-    override fun toRawString(): String = input.removePrefix(Settings.PRESTRING_DECIMAL)
-    override fun toString(): String = input
+    override fun toString(): String = "${Settings.PRESTRING_DECIMAL}$rawInput"
 }

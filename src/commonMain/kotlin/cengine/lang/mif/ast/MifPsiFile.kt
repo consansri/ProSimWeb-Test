@@ -34,7 +34,7 @@ class MifPsiFile(
     override val additionalInfo: String = "MifFile"
     override var range: IntRange = (children.minOf { it.range.first })..(children.maxOf { it.range.last })
 
-    override val id: String = "Mif Initializer"
+    override val id: String = file.name
 
     override fun update() {
         // Reparse the file and update children

@@ -20,7 +20,7 @@ class Variable(private val initialBinary: String, val size: Size, initValue: Val
 
     constructor(initialBinary: String, size: Size) : this(initialBinary, size, Bin(initialBinary, size))
 
-    constructor(value: Value) : this(value.toBin().toRawString(), value.size, value)
+    constructor(value: Value) : this(value.toBin().rawInput, value.size, value)
 
     constructor(size: Size) : this("0", size, Bin("0", size))
 

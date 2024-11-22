@@ -1110,8 +1110,8 @@ enum class GASDirType(val disabled: Boolean = false, val contentStartsDirectly: 
                 if (padding == alignment.toIntOrNull()) return
 
                 val refToken = stmnt.dir.tokens().first()
-                val word = Hex(byte.toRawString().repeat(4), Bit32)
-                val short = Hex(byte.toRawString().repeat(2), Bit16)
+                val word = Hex(byte.rawInput.repeat(4), Bit32)
+                val short = Hex(byte.rawInput.repeat(2), Bit16)
                 var index = 0
                 while (index < padding) {
                     if (index + 3 < padding) {

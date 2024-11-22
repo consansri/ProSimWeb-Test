@@ -29,7 +29,7 @@ class ArchT6502 : BasicArchImpl(T6502.config, T6502.asmConfig) {
         var paramType: AModes? = null
         val instrType = InstrType.entries.firstOrNull { type ->
             paramType = type.opCode.entries.firstOrNull {
-                threeBytes.first().toHex().toRawString().uppercase() == it.value.toRawString().uppercase()
+                threeBytes.first().toHex().rawInput.uppercase() == it.value.rawInput.uppercase()
             }?.key
             paramType != null
         } ?: return ExecutionResult(false, false, false)

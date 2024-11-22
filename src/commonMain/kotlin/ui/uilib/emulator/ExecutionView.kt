@@ -92,11 +92,14 @@ fun ExecutionView(architecture: Architecture?, baseStyle: TextStyle, codeStyle: 
                 val values = disassembler.decoded.value.filter { it.decodedContent.isNotEmpty() }.flatMap { segment ->
                     segment.decodedContent.map { segment to it }
                 }
+                val labels = values.flatMap {(segment, decoded) ->
+                    segment.labels.map { label -> segment.addr + label.offset.toValue(segment.addr.size) to label }
+                }.toMap()
 
                 LazyColumn(Modifier.fillMaxSize()) {
 
                     items(values, key = {
-                        it.first.addr.toRawString() + it.second.offset
+                        it.first.addr.rawInput + it.second.offset
                     }) { (segment, decoded) ->
                         val address = (segment.addr + decoded.offset.toValue(segment.addr.size)).toHex()
                         val destOf = targetLinks.firstOrNull { it.first == decoded }
@@ -115,11 +118,11 @@ fun ExecutionView(architecture: Architecture?, baseStyle: TextStyle, codeStyle: 
                                 }, verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                                Text(address.toRawString(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
+                                Text(address.rawInput, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
                             }
                             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                                Text(decoded.data.toRawString(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
+                                Text(decoded.data.rawInput, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
                             }
                             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                             Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
@@ -143,7 +146,8 @@ fun ExecutionView(architecture: Architecture?, baseStyle: TextStyle, codeStyle: 
                             }
                             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                             Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                                Text(decoded.target?.toRawString() ?: "", fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = destOf?.third ?: theme.COLOR_FG_1)
+                                val targetName = labels[decoded.target]?.name ?: decoded.target?.rawInput ?: ""
+                                Text(targetName, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = destOf?.third ?: theme.COLOR_FG_1)
                             }
                         }
                     }

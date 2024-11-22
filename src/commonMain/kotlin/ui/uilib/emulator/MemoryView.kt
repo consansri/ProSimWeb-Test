@@ -69,7 +69,7 @@ fun MainMemoryView(memory: MainMemory, pc: MutableState<Value>, baseStyle: TextS
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
 
-    val fillValue = remember { memory.getInitialBinary().value.toHex().toRawString() }
+    val fillValue = remember { memory.getInitialBinary().value.toHex().rawInput }
 
     Column {
         Row(
@@ -106,7 +106,7 @@ fun MainMemoryView(memory: MainMemory, pc: MutableState<Value>, baseStyle: TextS
 
         LazyColumn {
             items(memory.memList.groupBy { it.row }.toList()) { (rowAddress, instances) ->
-                MemoryRow(rowAddress.toRawString(), instances, memory.entrysInRow, fillValue, codeStyle, theme.COLOR_FG_0, theme.COLOR_GREEN, pc)
+                MemoryRow(rowAddress.rawInput, instances, memory.entrysInRow, fillValue, codeStyle, theme.COLOR_FG_0, theme.COLOR_GREEN, pc)
             }
         }
     }
@@ -138,7 +138,7 @@ fun MemoryRow(rowAddress: String, instances: List<MainMemory.MemInstance>, entry
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(instance.variable.state.value.toHex().toRawString(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (instance.address == pc.value.toHex()) pcColor else fgColor)
+                        Text(instance.variable.state.value.toHex().rawInput, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (instance.address == pc.value.toHex()) pcColor else fgColor)
                     }
                 } else {
                     Box(
@@ -239,7 +239,7 @@ fun DMCacheView(memory: DMCache, pc: MutableState<Value>, baseStyle: TextStyle, 
                                     block.data.forEachIndexed { index, cacheInstance ->
                                         Box(Modifier.weight(1f)) {
                                             Text(
-                                                cacheInstance.value.toRawString(),
+                                                cacheInstance.value.rawInput,
                                                 Modifier.fillMaxWidth(),
                                                 fontFamily = codeStyle.fontFamily,
                                                 fontSize = codeStyle.fontSize,
@@ -337,7 +337,7 @@ fun SACacheView(memory: SACache, pc: MutableState<Value>, baseStyle: TextStyle, 
                                     block.data.forEachIndexed { index, cacheInstance ->
                                         Box(Modifier.weight(1f)) {
                                             Text(
-                                                cacheInstance.value.toRawString(),
+                                                cacheInstance.value.rawInput,
                                                 Modifier.fillMaxWidth(),
                                                 fontFamily = codeStyle.fontFamily,
                                                 fontSize = codeStyle.fontSize,
@@ -424,7 +424,7 @@ fun FACacheView(memory: FACache, pc: MutableState<Value>, baseStyle: TextStyle, 
                             block.data.forEachIndexed { index, cacheInstance ->
                                 Box(Modifier.weight(1f)) {
                                     Text(
-                                        cacheInstance.value.toRawString(),
+                                        cacheInstance.value.rawInput,
                                         Modifier.fillMaxWidth(),
                                         fontFamily = codeStyle.fontFamily,
                                         fontSize = codeStyle.fontSize,

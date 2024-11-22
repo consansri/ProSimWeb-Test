@@ -134,7 +134,7 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
     },
     AND1i("and1i", ParamType.I_TYPE, OpCode("000101 00000 00000 0000000000000000", OPCODE, RC, RB, IMM16), "verknüpfe logisch Und mit Konstante (höherwertiges Halbwort 11...1)") {
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
-            val imm = Bin("1".repeat(IKRRisc2.WORD_WIDTH.bitWidth / 2) + decodeResult.imm16.toRawString(), IKRRisc2.WORD_WIDTH)
+            val imm = Bin("1".repeat(IKRRisc2.WORD_WIDTH.bitWidth / 2) + decodeResult.imm16.rawInput, IKRRisc2.WORD_WIDTH)
             decodeResult.rc.set(decodeResult.rb.get().toBin() and imm)
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
         }
@@ -223,7 +223,7 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
     //
     SWAPB("swapb", ParamType.R1_TYPE, OpCode("111111 00000 00000 110010 00000 00000", FUNCT6, RC, RB, OPCODE, NONE5, FUNCT5), "vertausche Byte 3 mit Byte 2 und Byte 1 mit Byte 0") {
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
-            val binStr = decodeResult.rb.get().toBin().toRawString()
+            val binStr = decodeResult.rb.get().toBin().rawInput
             val swappedStr = binStr.substring(8, 16) + binStr.substring(0, 8) + binStr.substring(24, 32) + binStr.substring(16, 24)
             decodeResult.rc.set(Bin(swappedStr, IKRRisc2.WORD_WIDTH))
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
@@ -231,7 +231,7 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
     },
     SWAPH("swaph", ParamType.R1_TYPE, OpCode("111111 00000 00000 101100 00000 10000", FUNCT6, RC, RB, OPCODE, NONE5, FUNCT5), "vertausche höherwertiges Halbwort und niederwertiges Halbwort") {
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
-            val binStr = decodeResult.rb.get().toBin().toRawString()
+            val binStr = decodeResult.rb.get().toBin().rawInput
             val swappedStr = binStr.substring(16, 32) + binStr.substring(0, 16)
             decodeResult.rc.set(Bin(swappedStr, IKRRisc2.WORD_WIDTH))
             pc.set(pc.get() + IKRRisc2.WORD_WIDTH_ONE)
@@ -305,7 +305,7 @@ enum class InstrType(val id: String, val paramType: ParamType, val opCode: OpCod
     },
     BLT("blt", ParamType.B_DISP18_TYPE, OpCode("111110 00000 010 000000000000000000", OPCODE, RC, FUNCT3, DISP18), "verzweige, falls rc kleiner als 0 (Less Than 0)") {
         override fun execute(arch: ArchIKRRisc2, pc: RegContainer.PC, decodeResult: IKRRisc2BinMapper.DecodeResult, tracker: Memory.AccessTracker) {
-            val cond = decodeResult.rc.get().toBin().toRawString().firstOrNull() == '1'
+            val cond = decodeResult.rc.get().toBin().rawInput.firstOrNull() == '1'
             if (cond) {
                 pc.set(pc.get() + decodeResult.disp18.getResized(IKRRisc2.WORD_WIDTH))
             } else {

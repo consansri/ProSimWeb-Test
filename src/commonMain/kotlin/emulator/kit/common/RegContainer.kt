@@ -43,7 +43,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         for (registerFile in registerFileList) {
             if ((regFile == null && registerFile.name == standardRegFileName) xor (registerFile.name == regFile)) {
                 for (reg in registerFile.getRegisters(features)) {
-                    if (reg.address.toHex().toRawString() == address.toHex().toRawString()) {
+                    if (reg.address.toHex().rawInput == address.toHex().rawInput) {
                         return reg
                     }
                 }

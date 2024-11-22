@@ -5,10 +5,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -98,6 +95,8 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
                 it.decoded.value = it.disassemble(initializer)
             }
         }
+
+        architecture.exeReset()
     }
 
     LaunchedEffect(emuInitFilePath) {
@@ -136,17 +135,22 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
         val leftVScrollState = rememberScrollState()
         val leftHScrollState = rememberScrollState()
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(UIState.Theme.value.COLOR_BG_1)
-                .padding(UIState.Scale.value.SIZE_INSET_MEDIUM)
-                .scrollable(leftHScrollState, Orientation.Horizontal)
-                .scrollable(leftVScrollState, Orientation.Vertical)
-        ) {
-            // Left content
-            FileTree(project) { file ->
-                emuInitFilePath = file.path
+        Column {
+            CButton(modifier = Modifier.fillMaxWidth().background(theme.COLOR_BG_1), text = initializer?.id ?: "[not selected]", icon = icons.fileCompiled, softWrap = false, onClick = {
+                emuInitFilePath = null
+            })
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(UIState.Theme.value.COLOR_BG_1)
+                    .padding(UIState.Scale.value.SIZE_INSET_MEDIUM)
+                    .scrollable(leftHScrollState, Orientation.Horizontal)
+                    .scrollable(leftVScrollState, Orientation.Vertical)
+            ) {
+                // Left content
+                FileTree(project) { file ->
+                    emuInitFilePath = file.path
+                }
             }
         }
     }

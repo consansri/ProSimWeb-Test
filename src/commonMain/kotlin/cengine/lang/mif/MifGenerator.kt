@@ -98,10 +98,10 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
 
         fun Value.rdx(radix: Radix): String {
             return when (radix) {
-                Radix.HEX -> toHex().toRawString()
-                Radix.OCT -> toOct().toRawString()
-                Radix.BIN -> toBin().toRawString()
-                Radix.DEC -> toUDec().toRawString()
+                Radix.HEX -> toHex().rawInput
+                Radix.OCT -> toOct().rawInput
+                Radix.BIN -> toBin().rawInput
+                Radix.DEC -> toUDec().rawInput
             }
         }
     }

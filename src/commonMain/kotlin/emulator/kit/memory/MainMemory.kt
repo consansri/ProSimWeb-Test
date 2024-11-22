@@ -59,12 +59,12 @@ class MainMemory(override val addressSize: Size, override val instanceSize: Size
         val hexValues = mutableListOf<String>()
         var currAddr: Value = address
         repeat(amount) {
-            val addr: String = currAddr.toHex().getUResized(addressSize).toRawString()
+            val addr: String = currAddr.toHex().getUResized(addressSize).rawInput
             val value = memList.firstOrNull {
-                it.address.toRawString() == addr
+                it.address.rawInput == addr
             }?.variable?.value ?: getInitialBinary().get()
             currAddr += Hex("1", addressSize)
-            hexValues += value.toHex().toRawString()
+            hexValues += value.toHex().rawInput
         }
 
         when (endianess) {
@@ -82,11 +82,11 @@ class MainMemory(override val addressSize: Size, override val instanceSize: Size
         val words = if (endianess == Endianess.LittleEndian) hexValue.splitToArray(instanceSize).reversed() else hexValue.splitToArray(instanceSize).toList()
 
         if (DebugTools.KIT_showMemoryInfo) {
-            println("saving... ${endianess.name} ${hexValue.toRawString()}, $words to ${hexAddress.toRawString()}")
+            println("saving... ${endianess.name} ${hexValue.rawInput}, $words to ${hexAddress.rawInput}")
         }
 
         for (word in words) {
-            val instance = memList.firstOrNull { it.address.toRawString() == hexAddress.toRawString() }
+            val instance = memList.firstOrNull { it.address.rawInput == hexAddress.rawInput }
             if (instance != null) {
                 if (!instance.readonly) {
                     instance.variable.setHex(word.toString())
@@ -131,10 +131,10 @@ class MainMemory(override val addressSize: Size, override val instanceSize: Size
         private var entrysInRow = entrysInRow
             set(value) {
                 field = value
-                addrRelevantForOffset = address.toRawString().substring(address.toRawString().length - entrysInRow / 16 - 1).toIntOrNull(16) ?: throw Exception("couldn't extract relevant address part (from ${address.toRawString()}) for offset calculation!")
+                addrRelevantForOffset = address.rawInput.substring(address.rawInput.length - entrysInRow / 16 - 1).toIntOrNull(16) ?: throw Exception("couldn't extract relevant address part (from ${address.rawInput}) for offset calculation!")
             }
 
-        private var addrRelevantForOffset: Int = address.toRawString().substring(address.toRawString().length - entrysInRow / 16 - 1).toIntOrNull(16) ?: throw Exception("couldn't extract relevant address part (from ${address.toRawString()}) for offset calculation!")
+        private var addrRelevantForOffset: Int = address.rawInput.substring(address.rawInput.length - entrysInRow / 16 - 1).toIntOrNull(16) ?: throw Exception("couldn't extract relevant address part (from ${address.rawInput}) for offset calculation!")
             set(value) {
                 field = value
                 offset = addrRelevantForOffset % entrysInRow
@@ -151,7 +151,7 @@ class MainMemory(override val addressSize: Size, override val instanceSize: Size
         class EditableValue(address: Hex, value: Hex, entrysInRow: Int) : MemInstance(address, Variable(value), InstanceType.EDITABLE, entrysInRow = entrysInRow)
 
         override fun toString(): String {
-            return variable.get().toHex().toRawString()
+            return variable.get().toHex().rawInput
         }
     }
 

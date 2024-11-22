@@ -182,8 +182,8 @@ object RV32Assembler : AsmHeader {
                     val lower = resized.getResized(Bit12).getResized(Bit32)
                     val upper = (resized - lower).toBin()
 
-                    val imm20 = Bin(upper.toRawString().substring(0, 20), Bit20).toHex()
-                    val imm12 = Bin(lower.toRawString().substring(20), Bit12).toHex().toDec()
+                    val imm20 = Bin(upper.rawInput.substring(0, 20), Bit20).toHex()
+                    val imm12 = Bin(lower.rawInput.substring(20), Bit12).toHex().toDec()
 
                     return listOf(
                         RV32Instr(rawInstr, RV32Syntax.InstrType.LUI, arrayOf(regs[0]), imm20),

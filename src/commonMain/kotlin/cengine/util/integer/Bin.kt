@@ -8,16 +8,16 @@ import emulator.kit.nativeError
  * Provides the binary representation of [Value].
  */
 class Bin(binString: String, size: Size) : Value(size) {
-    override val input: String
     override val valid: Boolean
-
+    override val rawInput: String
+    
     constructor(size: Size) : this(Settings.PRESTRING_BINARY + "0", size)
 
     constructor(binString: String) : this(binString, Size.Original(binString.trim().removePrefix(Settings.PRESTRING_BINARY).length))
 
     init {
         val result = check(binString, size)
-        input = result.corrected
+        rawInput = result.correctedRawInput
         valid = result.valid
     }
 
@@ -34,35 +34,35 @@ class Bin(binString: String, size: Size) : Value(size) {
                 CheckResult(false, trimmedString, message)
             }
         } else {
-            val zeroString = Settings.PRESTRING_BINARY + "0".repeat(size.bitWidth)
+            val zeroString = "0".repeat(size.bitWidth)
             message = "Bin.check(): $string does not match the binary Pattern (${Settings.PRESTRING_BINARY + "X".repeat(size.bitWidth)} where X is element of [0,1]), returning $zeroString instead!"
             nativeError(message)
-            return CheckResult(false, formattedInput, message)
+            return CheckResult(false, zeroString, message)
         }
     }
 
-    override fun check(size: Size): CheckResult = check(toRawString(), size)
+    override fun check(size: Size): CheckResult = check(rawInput, size)
 
     fun getUResized(size: Size): Bin {
         val paddedBinString = if (size.bitWidth < size.bitWidth) {
-            toRawString().substring(toRawString().length - size.bitWidth)
+            rawInput.substring(rawInput.length - size.bitWidth)
         } else {
-            toRawString().padStart(size.bitWidth, '0')
+            rawInput.padStart(size.bitWidth, '0')
         }
         return Bin(paddedBinString, size)
     }
 
     fun getResized(size: Size): Bin {
         val paddedBinString = if (size.bitWidth < this.size.bitWidth) {
-            toRawString().substring(toRawString().length - size.bitWidth)
+            rawInput.substring(rawInput.length - size.bitWidth)
         } else {
-            toRawString().padStart(size.bitWidth, if (toRawString().first() == '1') '1' else '0')
+            rawInput.padStart(size.bitWidth, if (rawInput.first() == '1') '1' else '0')
         }
         return Bin(paddedBinString, size)
     }
 
     fun splitToByteArray(): Array<Bin> {
-        val paddedString = if (toRawString().length % 8 == 0) toRawString() else toRawString().padStart(toRawString().length + (8 - toRawString().length % 8), '0')
+        val paddedString = if (rawInput.length % 8 == 0) rawInput else rawInput.padStart(rawInput.length + (8 - rawInput.length % 8), '0')
         return paddedString.chunked(8).map { Bin(it, Size.Bit8) }.toTypedArray()
     }
 
@@ -76,12 +76,12 @@ class Bin(binString: String, size: Size) : Value(size) {
             }
 
             this.size.bitWidth > other.bitWidth -> {
-                val exceeding = toRawString().substring(0, this.size.bitWidth - other.bitWidth)
+                val exceeding = rawInput.substring(0, this.size.bitWidth - other.bitWidth)
                 exceeding.indexOf('1') == -1
             }
 
             this.size.bitWidth < other.bitWidth -> {
-                toRawString().first() != '1'
+                rawInput.first() != '1'
             }
 
             else -> {
@@ -101,7 +101,7 @@ class Bin(binString: String, size: Size) : Value(size) {
     override fun toUDec(): UDec = getUDec()
     override fun toASCII(): String = getASCII()
     override fun toLong(): Long = toULong().toLong()
-    override fun toULong(): ULong = toRawString().toULong(2)
+    override fun toULong(): ULong = rawInput.toULong(2)
     override fun getBiggest(): Value = Bin("1".repeat(size.bitWidth), size)
 
     override fun plus(operand: Value): Bin {
@@ -110,7 +110,7 @@ class Bin(binString: String, size: Size) : Value(size) {
             val result = toULong() + operand.toULong()
             Bin(result.toString(2), biggerSize)
         } else {
-            val result = BinaryTools.add(this.toRawString(), operand.toBin().toRawString())
+            val result = BinaryTools.add(this.rawInput, operand.toBin().rawInput)
             val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
             Bin(result, biggerSize)
         }
@@ -118,7 +118,7 @@ class Bin(binString: String, size: Size) : Value(size) {
 
     fun detailedPlus(operand: Value): AddResult {
 
-        val result = BinaryTools.addWithCarry(this.toRawString(), operand.toBin().toRawString())
+        val result = BinaryTools.addWithCarry(this.rawInput, operand.toBin().rawInput)
         val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
         return AddResult(Bin(result.result, biggerSize), result.carry == '1')
     }
@@ -129,14 +129,14 @@ class Bin(binString: String, size: Size) : Value(size) {
             val result = toULong() - operand.toULong()
             Bin(result.toString(2), biggerSize)
         } else {
-            val result = BinaryTools.sub(this.toRawString(), operand.toBin().toRawString())
+            val result = BinaryTools.sub(this.rawInput, operand.toBin().rawInput)
             val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
             Bin(result, biggerSize)
         }
     }
 
     fun detailedMinus(operand: Value): SubResult {
-        val result = BinaryTools.subWithBorrow(this.toRawString(), operand.toBin().toRawString())
+        val result = BinaryTools.subWithBorrow(this.rawInput, operand.toBin().rawInput)
         val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
         return SubResult(Bin(result.result, biggerSize), result.borrow == '1')
     }
@@ -147,7 +147,7 @@ class Bin(binString: String, size: Size) : Value(size) {
             val result = toULong() * operand.toULong()
             Bin(result.toString(2), biggerSize)
         } else {
-            val result = BinaryTools.multiply(this.toRawString(), operand.toBin().toRawString())
+            val result = BinaryTools.multiply(this.rawInput, operand.toBin().rawInput)
             val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
             Bin(result, biggerSize)
         }
@@ -157,7 +157,7 @@ class Bin(binString: String, size: Size) : Value(size) {
      * Flexible Multiplication Operation
      */
     fun flexTimesSigned(factor: Bin, resizeToLargestParamSize: Boolean = true, factorIsUnsigned: Boolean = false): Bin {
-        val result = if (factorIsUnsigned) BinaryTools.multiplyMixed(toRawString(), factor.toRawString()) else BinaryTools.multiplySigned(this.toRawString(), factor.toRawString())
+        val result = if (factorIsUnsigned) BinaryTools.multiplyMixed(rawInput, factor.rawInput) else BinaryTools.multiplySigned(this.rawInput, factor.rawInput)
         val biggerSize = if (this.size.bitWidth > factor.size.bitWidth) size else factor.size
 
         return if (resizeToLargestParamSize) Bin(result).getResized(biggerSize) else Bin(result)
@@ -169,14 +169,14 @@ class Bin(binString: String, size: Size) : Value(size) {
             val result = toULong() / operand.toULong()
             Bin(result.toString(2), biggerSize)
         } else {
-            val divResult = BinaryTools.divide(toRawString(), operand.toBin().toRawString())
+            val divResult = BinaryTools.divide(rawInput, operand.toBin().rawInput)
             val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) size else operand.size
             Bin(divResult.result).getUResized(biggerSize)
         }
     }
 
     fun flexDivSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true, dividendIsUnsigned: Boolean = false): Bin {
-        val divResult = if (dividendIsUnsigned) BinaryTools.divideMixed(toRawString(), divisor.toRawString()) else BinaryTools.divideSigned(toRawString(), divisor.toRawString())
+        val divResult = if (dividendIsUnsigned) BinaryTools.divideMixed(rawInput, divisor.rawInput) else BinaryTools.divideSigned(rawInput, divisor.rawInput)
         val biggerSize = if (this.size.bitWidth > divisor.size.bitWidth) size else divisor.size
         return if (resizeToLargestParamSize) Bin(divResult.result).getResized(biggerSize) else Bin(divResult.result)
     }
@@ -187,31 +187,31 @@ class Bin(binString: String, size: Size) : Value(size) {
             val result = toULong() % operand.toULong()
             Bin(result.toString(2), biggerSize)
         } else {
-            val divResult = BinaryTools.divide(toRawString(), operand.toBin().toRawString())
+            val divResult = BinaryTools.divide(rawInput, operand.toBin().rawInput)
             val biggerSize = if (this.size.bitWidth > operand.size.bitWidth) this.size else operand.size
             Bin(BinaryTools.checkEmpty(divResult.remainder), biggerSize)
         }
     }
 
     fun flexRemSigned(divisor: Bin, resizeToLargestParamSize: Boolean = true): Bin {
-        val divResult = BinaryTools.divideSigned(toRawString(), divisor.toRawString())
+        val divResult = BinaryTools.divideSigned(rawInput, divisor.rawInput)
         val biggerSize = if (this.size.bitWidth > divisor.size.bitWidth) this.size else divisor.size
         return if (resizeToLargestParamSize) Bin(BinaryTools.checkEmpty(divResult.remainder)).getResized(biggerSize) else Bin(divResult.remainder)
     }
 
-    override fun unaryMinus(): Value = Bin(BinaryTools.negotiate(this.toRawString()), size)
+    override fun unaryMinus(): Value = Bin(BinaryTools.negotiate(this.rawInput), size)
 
-    override fun inc(): Value = Bin(BinaryTools.add(toRawString(), "1"), size)
+    override fun inc(): Value = Bin(BinaryTools.add(rawInput, "1"), size)
 
-    override fun dec(): Value = Bin(BinaryTools.sub(toRawString(), "1"), size)
+    override fun dec(): Value = Bin(BinaryTools.sub(rawInput, "1"), size)
 
     override fun compareTo(other: Value): Int {
         return if (size.bitWidth <= 64 && other.size.bitWidth <= 64) {
             toULong().compareTo(other.toULong())
         } else {
-            if (BinaryTools.isEqual(toRawString(), other.toBin().toRawString())) {
+            if (BinaryTools.isEqual(rawInput, other.toBin().rawInput)) {
                 0
-            } else if (BinaryTools.isGreaterThan(toRawString(), other.toBin().toRawString())) {
+            } else if (BinaryTools.isGreaterThan(rawInput, other.toBin().rawInput)) {
                 1
             } else {
                 -1
@@ -221,71 +221,70 @@ class Bin(binString: String, size: Size) : Value(size) {
 
     override fun equals(other: Any?): Boolean {
         if (other is Value) {
-            return BinaryTools.isEqual(toRawString(), other.toBin().toRawString())
+            return BinaryTools.isEqual(rawInput, other.toBin().rawInput)
         }
         return false
     }
 
-    override fun toRawString(): String = input.removePrefix(Settings.PRESTRING_BINARY)
-    override fun toString(): String = input
-
     infix fun shl(bitCount: Int): Bin {
         if (bitCount > size.bitWidth) return Bin("0", size)
-        val shiftedBinary = toRawString().substring(bitCount).padEnd(size.bitWidth, '0')
+        val shiftedBinary = rawInput.substring(bitCount).padEnd(size.bitWidth, '0')
         return Bin(shiftedBinary, size)
     }
 
     infix fun ushl(bitCount: Int): Bin {
         if (bitCount > size.bitWidth) return Bin("0", size)
-        val shiftedBinary = toRawString().substring(bitCount).padEnd(size.bitWidth, '0')
+        val shiftedBinary = rawInput.substring(bitCount).padEnd(size.bitWidth, '0')
         return Bin(shiftedBinary, size)
     }
 
     infix fun shr(bitCount: Int): Bin {
-        val shiftedBinary = toRawString().padStart(size.bitWidth * 2, toRawString().first()).substring(0, size.bitWidth * 2 - bitCount).padStart(size.bitWidth * 2, toRawString().first())
+        val shiftedBinary = rawInput.padStart(size.bitWidth * 2, rawInput.first()).substring(0, size.bitWidth * 2 - bitCount).padStart(size.bitWidth * 2, rawInput.first())
         return Bin(shiftedBinary.substring(shiftedBinary.length - size.bitWidth), size)
     }
 
     infix fun ushr(bitCount: Int): Bin {
-        val shiftedBinary = toRawString().padStart(size.bitWidth * 2, '0').substring(0, size.bitWidth * 2 - bitCount).padStart(size.bitWidth * 2, '0')
+        val shiftedBinary = rawInput.padStart(size.bitWidth * 2, '0').substring(0, size.bitWidth * 2 - bitCount).padStart(size.bitWidth * 2, '0')
         return Bin(shiftedBinary.substring(shiftedBinary.length - size.bitWidth), size)
     }
 
     fun rotateLeft(bitCount: Int): Bin {
-        val normalizedShift = bitCount % toRawString().length
-        val doubled = toRawString() + toRawString()
-        val rotatedBinStr = doubled.substring(normalizedShift, normalizedShift + toRawString().length)
+        val normalizedShift = bitCount % rawInput.length
+        val doubled = rawInput + rawInput
+        val rotatedBinStr = doubled.substring(normalizedShift, normalizedShift + rawInput.length)
         return Bin(rotatedBinStr, size)
     }
 
     fun rotateRight(bitCount: Int): Bin {
-        val normalizedShift = bitCount % toRawString().length
-        val doubled = toRawString() + toRawString()
-        val rotatedBinStr = doubled.substring(toRawString().length - normalizedShift, 2 * toRawString().length - normalizedShift)
+        val normalizedShift = bitCount % rawInput.length
+        val doubled = rawInput + rawInput
+        val rotatedBinStr = doubled.substring(rawInput.length - normalizedShift, 2 * rawInput.length - normalizedShift)
         return Bin(rotatedBinStr, size)
     }
 
     infix fun xor(bin2: Bin): Bin {
         val biggestSize = if (size.bitWidth >= bin2.size.bitWidth) size else bin2.size
-        return Bin(BinaryTools.xor(toRawString(), bin2.toRawString()), biggestSize)
+        return Bin(BinaryTools.xor(rawInput, bin2.rawInput), biggestSize)
     }
 
     infix fun or(bin2: Bin): Bin {
         val biggestSize = if (size.bitWidth >= bin2.size.bitWidth) size else bin2.size
-        return Bin(BinaryTools.or(toRawString(), bin2.toRawString()), biggestSize)
+        return Bin(BinaryTools.or(rawInput, bin2.rawInput), biggestSize)
     }
 
     infix fun and(bin2: Bin): Bin {
         val biggestSize = if (size.bitWidth >= bin2.size.bitWidth) size else bin2.size
-        return Bin(BinaryTools.and(toRawString(), bin2.toRawString()), biggestSize)
+        return Bin(BinaryTools.and(rawInput, bin2.rawInput), biggestSize)
     }
 
     operator fun inv(): Bin {
-        return Bin(BinaryTools.inv(toRawString()), size)
+        return Bin(BinaryTools.inv(rawInput), size)
     }
 
     fun getBit(index: Int): Bin? {
-        val bit = toRawString().getOrNull(index) ?: return null
+        val bit = rawInput.getOrNull(index) ?: return null
         return Bin(bit.toString(), Size.Bit1)
     }
+
+    override fun toString(): String = "${Settings.PRESTRING_BINARY}$rawInput"
 }

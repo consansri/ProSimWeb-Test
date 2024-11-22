@@ -92,7 +92,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
 
     fun markPCLine() {
         val pcValue = props.archState.component1().regContainer.pc.variable.get()
-        val lineLocs = assemblyMap?.get(pcValue.toHex().toRawString())
+        val lineLocs = assemblyMap?.get(pcValue.toHex().rawInput)
         val firstValid = lineLocs?.firstOrNull { it.file.wsRelativeName == props.fileState.component1().getCurrent().getWSRelativeName() }
 
         if (firstValid != null) {
@@ -895,7 +895,7 @@ val CodeEditor = FC<CodeEditorProps> { props ->
                                     Severity.Type.entries.forEach {
                                         ".${it.name}" {
                                             textDecoration = important(TextDecoration.underline)
-                                            textDecorationColor = important(it.codeStyle.current.get(StyleAttr.mode))
+                                            textDecorationColor = important(it.codeStyle.get(StyleAttr.mode))
                                         }
                                     }
                                 }

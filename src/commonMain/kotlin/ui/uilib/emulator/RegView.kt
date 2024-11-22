@@ -130,10 +130,10 @@ fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: 
 
     fun getRegString(): String {
         return when (numberFormat) {
-            Value.Types.Bin -> regState.toBin().toRawString()
-            Value.Types.Hex -> regState.toHex().toRawString()
-            Value.Types.Dec -> regState.toDec().toRawString()
-            Value.Types.UDec -> regState.toUDec().toRawString()
+            Value.Types.Bin -> regState.toBin().rawInput
+            Value.Types.Hex -> regState.toHex().rawInput
+            Value.Types.Dec -> regState.toDec().rawInput
+            Value.Types.UDec -> regState.toUDec().rawInput
         }
     }
 

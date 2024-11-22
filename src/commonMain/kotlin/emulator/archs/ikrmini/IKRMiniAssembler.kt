@@ -120,11 +120,11 @@ object IKRMiniAssembler : AsmHeader {
 
         private fun getParamString(): String {
             val extString: String = when (aMode) {
-                IKRMiniSyntax.ParamType.INDIRECT_WITH_OFFSET -> "(${calculatedImm.getOrNull(0)}, ($${calculatedImm.getOrNull(1)?.toRawString()}))"
-                IKRMiniSyntax.ParamType.INDIRECT -> "(($${calculatedImm.firstOrNull()?.toRawString()}))"
-                IKRMiniSyntax.ParamType.DIRECT -> "($${calculatedImm.firstOrNull()?.toRawString()})"
-                IKRMiniSyntax.ParamType.IMMEDIATE -> "#$${calculatedImm.firstOrNull()?.toRawString()}"
-                IKRMiniSyntax.ParamType.DESTINATION -> "$${calculatedImm.firstOrNull()?.toRawString()}"
+                IKRMiniSyntax.ParamType.INDIRECT_WITH_OFFSET -> "(${calculatedImm.getOrNull(0)}, ($${calculatedImm.getOrNull(1)?.rawInput}))"
+                IKRMiniSyntax.ParamType.INDIRECT -> "(($${calculatedImm.firstOrNull()?.rawInput}))"
+                IKRMiniSyntax.ParamType.DIRECT -> "($${calculatedImm.firstOrNull()?.rawInput})"
+                IKRMiniSyntax.ParamType.IMMEDIATE -> "#$${calculatedImm.firstOrNull()?.rawInput}"
+                IKRMiniSyntax.ParamType.DESTINATION -> "$${calculatedImm.firstOrNull()?.rawInput}"
                 IKRMiniSyntax.ParamType.IMPLIED -> ""
             }
 

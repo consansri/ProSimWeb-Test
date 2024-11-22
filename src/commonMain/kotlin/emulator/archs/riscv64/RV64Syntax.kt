@@ -276,7 +276,7 @@ class RV64Syntax {
                     val imm20 = paramMap[MaskLabel.IMM20]
                     val pc = arch.regContainer.pc
                     if (rd != null && imm20 != null) {
-                        val imm20str = imm20.toRawString()
+                        val imm20str = imm20.rawInput
 
                         /**
                          *      RV64IDOC Index   20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
@@ -327,8 +327,8 @@ class RV64Syntax {
                     val imm5 = paramMap[MaskLabel.IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Size.Bit7).toRawString()
-                        val imm5str = imm5.getResized(Size.Bit5).toRawString()
+                        val imm7str = imm7.getResized(Size.Bit7).rawInput
+                        val imm5str = imm5.getResized(Size.Bit5).rawInput
                         val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
 
                         val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
@@ -356,8 +356,8 @@ class RV64Syntax {
                     val imm5 = paramMap[MaskLabel.IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Size.Bit7).toRawString()
-                        val imm5str = imm5.getResized(Size.Bit5).toRawString()
+                        val imm7str = imm7.getResized(Size.Bit7).rawInput
+                        val imm5str = imm5.getResized(Size.Bit5).rawInput
                         val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
                         val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                         if (rs1.get().toBin() != rs2.get().toBin()) {
@@ -384,8 +384,8 @@ class RV64Syntax {
                     val imm5 = paramMap[MaskLabel.IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Size.Bit7).toRawString()
-                        val imm5str = imm5.getResized(Size.Bit5).toRawString()
+                        val imm7str = imm7.getResized(Size.Bit7).rawInput
+                        val imm5str = imm5.getResized(Size.Bit5).rawInput
                         val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
                         val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                         if (rs1.get().toDec() < rs2.get().toDec()) {
@@ -412,8 +412,8 @@ class RV64Syntax {
                     val imm5 = paramMap[MaskLabel.IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Size.Bit7).toRawString()
-                        val imm5str = imm5.getResized(Size.Bit5).toRawString()
+                        val imm7str = imm7.getResized(Size.Bit7).rawInput
+                        val imm5str = imm5.getResized(Size.Bit5).rawInput
                         val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
                         val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                         if (rs1.get().toDec() >= rs2.get().toDec()) {
@@ -440,8 +440,8 @@ class RV64Syntax {
                     val imm5 = paramMap[MaskLabel.IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Size.Bit7).toRawString()
-                        val imm5str = imm5.getResized(Size.Bit5).toRawString()
+                        val imm7str = imm7.getResized(Size.Bit7).rawInput
+                        val imm5str = imm5.getResized(Size.Bit5).rawInput
                         val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
                         val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                         if (rs1.get().toUDec() < rs2.get().toUDec()) {
@@ -468,8 +468,8 @@ class RV64Syntax {
                     val imm5 = paramMap[MaskLabel.IMM5]
                     val pc = arch.regContainer.pc
                     if (rs2 != null && imm5 != null && imm7 != null && rs1 != null) {
-                        val imm7str = imm7.getResized(Size.Bit7).toRawString()
-                        val imm5str = imm5.getResized(Size.Bit5).toRawString()
+                        val imm7str = imm7.getResized(Size.Bit7).rawInput
+                        val imm5str = imm5.getResized(Size.Bit5).rawInput
                         val imm12 = Bin(imm7str[0].toString() + imm5str[4] + imm7str.substring(1) + imm5str.substring(0, 4), Size.Bit12)
                         val offset = imm12.toBin().getResized(RV64.XLEN) shl 1
                         if (rs1.get().toUDec() >= rs2.get().toUDec()) {
@@ -856,7 +856,7 @@ class RV64Syntax {
                     val shamt6 = paramMap[MaskLabel.SHAMT6]
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
-                        rd.set((rs1.get().toBin().getUResized(Size.Bit32) ushl shamt6.getUResized(Size.Bit5).toRawString().toInt(2)).getResized(RV64.XLEN))
+                        rd.set((rs1.get().toBin().getUResized(Size.Bit32) ushl shamt6.getUResized(Size.Bit5).rawInput.toInt(2)).getResized(RV64.XLEN))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -876,7 +876,7 @@ class RV64Syntax {
                     val shamt6 = paramMap[MaskLabel.SHAMT6]
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
-                        rd.set(rs1.get().toBin() ushr shamt6.toRawString().toInt(2))
+                        rd.set(rs1.get().toBin() ushr shamt6.rawInput.toInt(2))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -896,7 +896,7 @@ class RV64Syntax {
                     val shamt6 = paramMap[MaskLabel.SHAMT6]
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
-                        rd.set((rs1.get().toBin().getUResized(Size.Bit32) ushr shamt6.getUResized(Size.Bit5).toRawString().toInt(2)).getResized(RV64.XLEN))
+                        rd.set((rs1.get().toBin().getUResized(Size.Bit32) ushr shamt6.getUResized(Size.Bit5).rawInput.toInt(2)).getResized(RV64.XLEN))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -916,7 +916,7 @@ class RV64Syntax {
                     val shamt6 = paramMap[MaskLabel.SHAMT6]
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
-                        rd.set(rs1.get().toBin() shr shamt6.toRawString().toInt(2))
+                        rd.set(rs1.get().toBin() shr shamt6.rawInput.toInt(2))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -936,7 +936,7 @@ class RV64Syntax {
                     val shamt6 = paramMap[MaskLabel.SHAMT6]
                     val pc = arch.regContainer.pc
                     if (rd != null && shamt6 != null && rs1 != null) {
-                        rd.set((rs1.get().toBin().getUResized(Size.Bit32) shr shamt6.getUResized(Size.Bit5).toRawString().toInt(2)).getResized(RV64.XLEN))
+                        rd.set((rs1.get().toBin().getUResized(Size.Bit32) shr shamt6.getUResized(Size.Bit5).rawInput.toInt(2)).getResized(RV64.XLEN))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -1041,7 +1041,7 @@ class RV64Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(rs1.get().toBin() ushl rs2.get().toBin().getUResized(Size.Bit6).toRawString().toInt(2))
+                        rd.set(rs1.get().toBin() ushl rs2.get().toBin().getUResized(Size.Bit6).rawInput.toInt(2))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -1062,7 +1062,7 @@ class RV64Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(rs1.get().toBin().getUResized(Size.Bit32) ushl rs2.get().toBin().getUResized(Size.Bit5).toRawString().toInt(2))
+                        rd.set(rs1.get().toBin().getUResized(Size.Bit32) ushl rs2.get().toBin().getUResized(Size.Bit5).rawInput.toInt(2))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -1146,7 +1146,7 @@ class RV64Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(rs1.get().toBin() ushr rs2.get().toBin().getUResized(Size.Bit6).toRawString().toInt(2))
+                        rd.set(rs1.get().toBin() ushr rs2.get().toBin().getUResized(Size.Bit6).rawInput.toInt(2))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -1167,7 +1167,7 @@ class RV64Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(rs1.get().toBin().getUResized(Size.Bit32) ushr rs2.get().toBin().getUResized(Size.Bit5).toRawString().toInt(2))
+                        rd.set(rs1.get().toBin().getUResized(Size.Bit32) ushr rs2.get().toBin().getUResized(Size.Bit5).rawInput.toInt(2))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -1188,7 +1188,7 @@ class RV64Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(rs1.get().toBin() shr rs2.get().toBin().getUResized(Size.Bit6).toRawString().toInt(2))
+                        rd.set(rs1.get().toBin() shr rs2.get().toBin().getUResized(Size.Bit6).rawInput.toInt(2))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -1209,7 +1209,7 @@ class RV64Syntax {
                     val rs2 = arch.getRegByAddr(rs2Addr)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && rs2 != null) {
-                        rd.set(rs1.get().toBin().getUResized(Size.Bit32) shr rs2.get().toBin().getUResized(Size.Bit5).toRawString().toInt(2))
+                        rd.set(rs1.get().toBin().getUResized(Size.Bit32) shr rs2.get().toBin().getUResized(Size.Bit5).rawInput.toInt(2))
                         pc.set(pc.get() + Hex("4"))
                     }
                 }
@@ -1279,7 +1279,7 @@ class RV64Syntax {
                     val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && csr != null) {
-                        if (rd.address.toHex().toRawString() != "00000") {
+                        if (rd.address.toHex().rawInput != "00000") {
                             val t = csr.get().toBin().getUResized(RV64.XLEN)
                             rd.set(t)
                         }
@@ -1309,7 +1309,7 @@ class RV64Syntax {
                     val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && csr != null) {
-                        if (rd.address.toHex().toRawString() != "00000") {
+                        if (rd.address.toHex().rawInput != "00000") {
                             val t = csr.get().toBin().getUResized(RV64.XLEN)
                             rd.set(t)
                         }
@@ -1339,7 +1339,7 @@ class RV64Syntax {
                     val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
                     val pc = arch.regContainer.pc
                     if (rd != null && rs1 != null && csr != null) {
-                        if (rd.address.toHex().toRawString() != "00000") {
+                        if (rd.address.toHex().rawInput != "00000") {
                             val t = csr.get().toBin().getUResized(RV64.XLEN)
                             rd.set(t)
                         }
@@ -1368,7 +1368,7 @@ class RV64Syntax {
                     val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
                     val pc = arch.regContainer.pc
                     if (rd != null && csr != null) {
-                        if (rd.address.toHex().toRawString() != "00000") {
+                        if (rd.address.toHex().rawInput != "00000") {
                             val t = csr.get().toBin().getUResized(RV64.XLEN)
                             rd.set(t)
                         }
@@ -1397,7 +1397,7 @@ class RV64Syntax {
                     val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
                     val pc = arch.regContainer.pc
                     if (rd != null && csr != null) {
-                        if (rd.address.toHex().toRawString() != "00000") {
+                        if (rd.address.toHex().rawInput != "00000") {
                             val t = csr.get().toBin().getUResized(RV64.XLEN)
                             rd.set(t)
                         }
@@ -1426,7 +1426,7 @@ class RV64Syntax {
                     val csr = arch.getRegByAddr(csrAddr, RV64.CSR_REGFILE_NAME)
                     val pc = arch.regContainer.pc
                     if (rd != null && csr != null) {
-                        if (rd.address.toHex().toRawString() != "00000") {
+                        if (rd.address.toHex().rawInput != "00000") {
                             val t = csr.get().toBin().getUResized(RV64.XLEN)
                             rd.set(t)
                         }

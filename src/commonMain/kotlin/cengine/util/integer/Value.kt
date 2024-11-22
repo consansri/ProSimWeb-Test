@@ -25,8 +25,8 @@ import cengine.util.string.removeLeadingZeros
 @Immutable
 sealed class Value(val size: Size) {
 
-    abstract val input: String
     abstract val valid: Boolean
+    abstract val rawInput: String
 
     /**
      * This function implements the [String] format checks, of each specific type.
@@ -79,12 +79,11 @@ sealed class Value(val size: Size) {
     abstract operator fun dec(): Value
     abstract operator fun compareTo(other: Value): Int
     abstract override fun equals(other: Any?): Boolean
-    abstract fun toRawString(): String
-    fun toRawZeroTrimmedString(): String = toRawString().removeLeadingZeros()
+    fun toRawZeroTrimmedString(): String = rawInput.removeLeadingZeros()
     abstract override fun toString(): String
 
     override fun hashCode(): Int {
-        var result = input.hashCode()
+        var result = rawInput.hashCode()
         result = 31 * result + size.hashCode()
         return result
     }
@@ -106,7 +105,7 @@ sealed class Value(val size: Size) {
         }
     }
 
-    data class CheckResult(val valid: Boolean, val corrected: String, val message: String = "")
+    data class CheckResult(val valid: Boolean, val correctedRawInput: String, val message: String = "")
     data class AddResult(val result: Bin, val carry: Boolean)
     data class SubResult(val result: Bin, val borrow: Boolean)
 

@@ -914,46 +914,46 @@ sealed class GASNode(vararg children: Node) : Node.HNode(*children) {
                     when (number.type) {
                         Token.Type.INT_BIN -> {
                             val possibleInt = Bin(number.onlyNumber, Size.Bit32)
-                            intVal = if (possibleInt.getBit(0)?.toRawString() == "1") null else possibleInt
+                            intVal = if (possibleInt.getBit(0)?.rawInput == "1") null else possibleInt
 
                             val possibleBigNum64 = Bin(number.onlyNumber, Size.Bit64)
-                            bigNum64 = if (possibleBigNum64.getBit(0)?.toRawString() == "1") null else possibleBigNum64
+                            bigNum64 = if (possibleBigNum64.getBit(0)?.rawInput == "1") null else possibleBigNum64
 
                             val possibleBigNum128 = Bin(number.onlyNumber, Size.Bit128)
-                            bigNum128 = if (possibleBigNum128.getBit(0)?.toRawString() == "1") null else possibleBigNum128
+                            bigNum128 = if (possibleBigNum128.getBit(0)?.rawInput == "1") null else possibleBigNum128
                         }
 
                         Token.Type.INT_HEX -> {
                             val possibleInt = Hex(number.onlyNumber, Size.Bit32)
-                            intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
+                            intVal = if (possibleInt.toBin().getBit(0)?.rawInput == "1") null else possibleInt
 
                             val possibleBigNum = Hex(number.onlyNumber, Size.Bit64)
-                            bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
+                            bigNum64 = if (possibleBigNum.toBin().getBit(0)?.rawInput == "1") null else possibleBigNum
 
                             val possibleBigNum128 = Hex(number.onlyNumber, Size.Bit128)
-                            bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
+                            bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.rawInput == "1") null else possibleBigNum128
                         }
 
                         Token.Type.INT_OCT -> {
                             val possibleInt = Oct(number.onlyNumber, Size.Bit32)
-                            intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
+                            intVal = if (possibleInt.toBin().getBit(0)?.rawInput == "1") null else possibleInt
 
                             val possibleBigNum = Oct(number.onlyNumber, Size.Bit64)
-                            bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
+                            bigNum64 = if (possibleBigNum.toBin().getBit(0)?.rawInput == "1") null else possibleBigNum
 
                             val possibleBigNum128 = Oct(number.onlyNumber, Size.Bit128)
-                            bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
+                            bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.rawInput == "1") null else possibleBigNum128
                         }
 
                         Token.Type.INT_DEC -> {
                             val possibleInt = UDec(number.onlyNumber, Size.Bit32)
-                            intVal = if (possibleInt.toBin().getBit(0)?.toRawString() == "1") null else possibleInt
+                            intVal = if (possibleInt.toBin().getBit(0)?.rawInput == "1") null else possibleInt
 
                             val possibleBigNum = UDec(number.onlyNumber, Size.Bit64)
-                            bigNum64 = if (possibleBigNum.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum
+                            bigNum64 = if (possibleBigNum.toBin().getBit(0)?.rawInput == "1") null else possibleBigNum
 
                             val possibleBigNum128 = UDec(number.onlyNumber, Size.Bit128)
-                            bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.toRawString() == "1") null else possibleBigNum128
+                            bigNum128 = if (possibleBigNum128.toBin().getBit(0)?.rawInput == "1") null else possibleBigNum128
                         }
 
                         else -> {

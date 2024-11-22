@@ -46,21 +46,21 @@ object FileBuilder {
                     }
                 }
                 val depth = 2.0.pow(addrWidth) * dataWidth
-                val memInstances = architecture.memory.memList.sortedBy { it.address.toRawString() }.toMutableList()
+                val memInstances = architecture.memory.memList.sortedBy { it.address.rawInput }.toMutableList()
 
                 nativeLog("FileBuilder: AddrWidth: $addrWidth, DataWidth: $dataWidth from ${settings.joinToString(",") { it.toString() }}")
 
                 val vhdlItems = mutableListOf<VHDLItem>()
-                var itemsPerRow = Dec((dataWidth / 8).toString()).toRawString().toLongOrNull()
+                var itemsPerRow = Dec((dataWidth / 8).toString()).rawInput.toLongOrNull()
                 if (itemsPerRow == null) {
                     itemsPerRow = 1
                 }
 
                 for (instance in memInstances) {
-                    val rowAddr = instance.address.toRawString().toLong(16) / itemsPerRow
-                    val id = (instance.address % Dec((dataWidth / 8).toString())).toHex().toRawString().toIntOrNull(16)
+                    val rowAddr = instance.address.rawInput.toLong(16) / itemsPerRow
+                    val id = (instance.address % Dec((dataWidth / 8).toString())).toHex().rawInput.toIntOrNull(16)
                     if (id != null) {
-                        vhdlItems.add(VHDLItem(rowAddr, id, instance.variable.get().toHex().toRawString()))
+                        vhdlItems.add(VHDLItem(rowAddr, id, instance.variable.get().toHex().rawInput))
                     } else {
                         architecture.console.error("FileBuilder: problems by calculating instance id from address ${rowAddr}!")
                         return content

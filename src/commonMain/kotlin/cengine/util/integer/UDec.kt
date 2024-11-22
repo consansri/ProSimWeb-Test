@@ -11,22 +11,22 @@ import emulator.kit.nativeError
  * Provides the unsigned decimal representation of [Value].
  */
 class UDec(udecString: String, size: Size) : Value(size) {
-    override val input: String
     override val valid: Boolean
-
+    override val rawInput: String
+    
     init {
         val result = check(udecString, size)
-        input = result.corrected
         valid = result.valid
+        rawInput = result.correctedRawInput
     }
 
     constructor(udecString: String) : this(udecString, nearestUDecSize(udecString.trim().removePrefix(Settings.PRESTRING_UDECIMAL))) {
         if (DebugTools.KIT_showValCheckWarnings) {
-            println("UDec(): Calculated Size from $udecString as hex ${this.toHex().toRawString()} -> ${size.bitWidth}")
+            println("UDec(): Calculated Size from $udecString as hex ${this.toHex().rawInput} -> ${size.bitWidth}")
         }
     }
 
-    fun getUResized(size: Size): UDec = UDec(toRawString(), size)
+    fun getUResized(size: Size): UDec = UDec(rawInput, size)
 
     override fun check(string: String, size: Size): CheckResult {
         val formatted = string.trim().removePrefix(Settings.PRESTRING_UDECIMAL)
@@ -35,21 +35,21 @@ class UDec(udecString: String, size: Size) : Value(size) {
             val zeroString = "0"
             message = "UDec.check(): $formatted does not match the udec Pattern (${Settings.PRESTRING_UDECIMAL + "X".repeat(size.bitWidth)} where X is element of [0-9]), returning $zeroString instead!"
             nativeError(message)
-            return CheckResult(false, Settings.PRESTRING_UDECIMAL + zeroString, message)
+            return CheckResult(false, zeroString, message)
         } else {
             return if (DecimalTools.isGreaterThan(formatted, Bounds(size).umax)) {
                 message = "UDec.check(): $formatted must be smaller equal ${Bounds(size).umax} -> setting ${Bounds(size).umax}"
-                CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umax, message)
+                CheckResult(false, Bounds(size).umax, message)
             } else if (DecimalTools.isGreaterThan(Bounds(size).umin, formatted)) {
                 message = "UDec.check(): $formatted must be bigger equal ${Bounds(size).umin} -> setting ${Bounds(size).umin}"
-                CheckResult(false, Settings.PRESTRING_UDECIMAL + Bounds(size).umin, message)
+                CheckResult(false, Bounds(size).umin, message)
             } else {
-                CheckResult(true, Settings.PRESTRING_UDECIMAL + formatted)
+                CheckResult(true, formatted)
             }
         }
     }
 
-    override fun check(size: Size): CheckResult = check(toRawString(), size)
+    override fun check(size: Size): CheckResult = check(rawInput, size)
     override fun checkSizeSigned(other: Size): Boolean = toDec().checkSizeSigned(other)
     override fun checkSizeUnsigned(other: Size): Boolean = toBin().checkSizeUnsigned(other)
     override fun toBin(): Bin = getBinary()
@@ -60,10 +60,10 @@ class UDec(udecString: String, size: Size) : Value(size) {
     override fun toASCII(): String = getASCII()
     override fun toLong(): Long = toULong().toLong()
 
-    override fun toULong(): ULong = toRawString().toULong()
+    override fun toULong(): ULong = rawInput.toULong()
 
-    fun toIntOrNull(): Int? = toRawString().toIntOrNull()
-    fun toDoubleOrNull(): Double? = toRawString().toDoubleOrNull()
+    fun toIntOrNull(): Int? = rawInput.toIntOrNull()
+    fun toDoubleOrNull(): Double? = rawInput.toDoubleOrNull()
     override fun getBiggest(): Value = UDec(Bounds(size).umax, size)
 
     override fun plus(operand: Value): UDec {
@@ -72,7 +72,7 @@ class UDec(udecString: String, size: Size) : Value(size) {
         val result = if(biggerSize.bitWidth <= 64){
             (toULong() + operand.toULong()).toString()
         }else{
-            DecimalTools.add(this.toRawString(), operand.toUDec().toRawString())
+            DecimalTools.add(this.rawInput, operand.toUDec().rawInput)
         }
 
         return UDec(result, biggerSize)
@@ -84,7 +84,7 @@ class UDec(udecString: String, size: Size) : Value(size) {
         val result = if(biggerSize.bitWidth <= 64){
             (toULong() - operand.toULong()).toString()
         }else{
-            DecimalTools.sub(this.toRawString(), operand.toUDec().toRawString())
+            DecimalTools.sub(this.rawInput, operand.toUDec().rawInput)
         }
 
         return UDec(result, biggerSize)
@@ -96,7 +96,7 @@ class UDec(udecString: String, size: Size) : Value(size) {
         val result = if(biggerSize.bitWidth <= 64){
             (toULong() * operand.toULong()).toString()
         }else{
-            DecimalTools.multiply(this.toRawString(), operand.toUDec().toRawString())
+            DecimalTools.multiply(this.rawInput, operand.toUDec().rawInput)
         }
 
         return UDec(result, biggerSize)
@@ -108,7 +108,7 @@ class UDec(udecString: String, size: Size) : Value(size) {
         val result = if(biggerSize.bitWidth <= 64){
             (toULong() / operand.toULong()).toString()
         }else{
-            DecimalTools.divide(this.toRawString(), operand.toUDec().toRawString()).result
+            DecimalTools.divide(this.rawInput, operand.toUDec().rawInput).result
         }
 
         return UDec(result, biggerSize)
@@ -120,7 +120,7 @@ class UDec(udecString: String, size: Size) : Value(size) {
         val result = if(biggerSize.bitWidth <= 64){
             (toULong() % operand.toULong()).toString()
         }else{
-            DecimalTools.checkEmpty(DecimalTools.divide(this.toRawString(), operand.toUDec().toRawString()).rest)
+            DecimalTools.checkEmpty(DecimalTools.divide(this.rawInput, operand.toUDec().rawInput).rest)
         }
 
         return UDec(result, biggerSize)
@@ -130,27 +130,26 @@ class UDec(udecString: String, size: Size) : Value(size) {
         return -this.toDec()
     }
 
-    override fun inc(): Value = Dec(DecimalTools.add(this.toRawString(), "1"), size)
-    override fun dec(): Value = Dec(DecimalTools.sub(this.toRawString(), "1"), size)
+    override fun inc(): Value = Dec(DecimalTools.add(this.rawInput, "1"), size)
+    override fun dec(): Value = Dec(DecimalTools.sub(this.rawInput, "1"), size)
 
     override fun compareTo(other: Value): Int {
         if (size.bitWidth <= 64 && other.size.bitWidth <= 64) return toULong().compareTo(other.toULong())
 
-        return if (DecimalTools.isEqual(this.toRawString(), other.toUDec().toRawString())) {
+        return if (DecimalTools.isEqual(this.rawInput, other.toUDec().rawInput)) {
             0
-        } else if (DecimalTools.isGreaterThan(this.toRawString(), other.toUDec().toRawString())) {
+        } else if (DecimalTools.isGreaterThan(this.rawInput, other.toUDec().rawInput)) {
             1
         } else {
             -1
         }
     }
-
-    override fun toRawString(): String = input.removePrefix(Settings.PRESTRING_UDECIMAL)
-    override fun toString(): String = input
+    
+    override fun toString(): String = "${Settings.PRESTRING_UDECIMAL}$rawInput"
 
     override fun equals(other: Any?): Boolean {
         if (other is Value) {
-            return BinaryTools.isEqual(toBin().toRawString(), other.toBin().toRawString())
+            return BinaryTools.isEqual(toBin().rawInput, other.toBin().rawInput)
         }
         return false
     }

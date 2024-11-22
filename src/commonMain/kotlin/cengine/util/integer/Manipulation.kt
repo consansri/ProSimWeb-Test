@@ -10,7 +10,7 @@ fun Array<Bin>.mergeToChunks(currSize: Size, chunkSize: Size): Array<Bin> {
     }
 
     return source.chunked(amount).map { values ->
-        Bin(values.joinToString("") { it.toRawString() }, chunkSize)
+        Bin(values.joinToString("") { it.rawInput }, chunkSize)
     }.toTypedArray()
 }
 
@@ -24,6 +24,6 @@ fun Array<Hex>.mergeToChunks(currSize: Size, chunkSize: Size): Array<Hex> {
     }
 
     return source.chunked(amount).map { values ->
-        Hex(values.joinToString("") { it.toRawString() }, chunkSize)
+        Hex(values.joinToString("") { it.rawInput }, chunkSize)
     }.toTypedArray()
 }

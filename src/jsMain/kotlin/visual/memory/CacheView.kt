@@ -33,7 +33,7 @@ val CacheView = FC<CacheViewProps>() { props ->
                 if (block?.valid == true) ("1" to null) else "0" to StyleAttr.Main.DeleteColor.get(),
                 if (block?.dirty == true) ("1" to StyleAttr.Main.DeleteColor.get()) else "0" to null,
                 (block?.tag?.toHex()?.toRawZeroTrimmedString() ?: "invalid") to null,
-                *block?.data?.map { it.value.toHex().toRawZeroTrimmedString() to if (it.address?.toRawString() == currExeAddr) StyleAttr.Main.Table.FgPC else null }?.toTypedArray() ?: arrayOf(),
+                *block?.data?.map { it.value.toHex().toRawZeroTrimmedString() to if (it.address?.rawInput == currExeAddr) StyleAttr.Main.Table.FgPC else null }?.toTypedArray() ?: arrayOf(),
                 (block?.data?.joinToString("") { it.value.toASCII() } ?: "") to null
             )
         }
@@ -49,6 +49,6 @@ val CacheView = FC<CacheViewProps>() { props ->
         if (DebugTools.REACT_showUpdateInfo) {
             console.log("REACT: Exe Event!")
         }
-        setCurrExeAddr(props.archState.component1().regContainer.pc.variable.get().toHex().toRawString())
+        setCurrExeAddr(props.archState.component1().regContainer.pc.variable.get().toHex().rawInput)
     }
 }

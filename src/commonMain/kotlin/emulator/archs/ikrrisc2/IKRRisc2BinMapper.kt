@@ -18,7 +18,7 @@ object IKRRisc2BinMapper {
             val result = type.opCode.checkOpCode(bin)
             if (!result.matches) continue
 
-            val binStr = bin.toRawString()
+            val binStr = bin.rawInput
             val rc = arch.getRegByAddr(Bin(binStr.substring(6, 11), IKRRisc2.REG_SIZE)) ?: throw Error("Couldn't find valid register for ${binStr.substring(7, 12)}.")
             val rb = arch.getRegByAddr(Bin(binStr.substring(11, 16), IKRRisc2.REG_SIZE)) ?: throw Error("Couldn't find valid register for ${binStr.substring(12, 17)}.")
             val ra = arch.getRegByAddr(Bin(binStr.substring(27, 32), IKRRisc2.REG_SIZE)) ?: throw Error("Couldn't find valid register for ${binStr.substring(27, 32)}.")
@@ -150,7 +150,7 @@ object IKRRisc2BinMapper {
                 return CheckResult(false)
             }
             // Check OpCode
-            val binaryString = bin.toRawString()
+            val binaryString = bin.rawInput
 
             val binMap = mutableMapOf<MaskLabel, Bin>()
 
@@ -199,7 +199,7 @@ object IKRRisc2BinMapper {
                     if (param != null) {
                         val size = maskLabel.maxSize
                         if (size != null) {
-                            opCode[labelID] = param.getUResized(size).toRawString()
+                            opCode[labelID] = param.getUResized(size).rawInput
                         } else {
                             nativeWarn("BinMapper.OpCode.getOpCode(): can't insert ByteValue in OpMask without a maxSize! -> returning null")
                             return null

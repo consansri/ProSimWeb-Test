@@ -269,7 +269,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                     pattern = "[01]+"
                                                     placeholder = Settings.PRESTRING_BINARY
                                                     maxLength = reg.variable.size.bitWidth
-                                                    defaultValue = reg.variable.get().toBin().toRawString()
+                                                    defaultValue = reg.variable.get().toBin().rawInput
                                                 } else {
                                                     when (currRegType) {
                                                         Hex -> {
@@ -277,7 +277,7 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                             pattern = "[0-9a-fA-F]+"
                                                             placeholder = Settings.PRESTRING_HEX
                                                             maxLength = reg.variable.size.getByteCount() * 2
-                                                            defaultValue = reg.variable.get().toHex().toRawString()
+                                                            defaultValue = reg.variable.get().toHex().rawInput
                                                         }
 
                                                         Bin -> {
@@ -285,20 +285,20 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                             pattern = "[01]+"
                                                             placeholder = Settings.PRESTRING_BINARY
                                                             maxLength = reg.variable.size.bitWidth
-                                                            defaultValue = reg.variable.get().toBin().toRawString()
+                                                            defaultValue = reg.variable.get().toBin().rawInput
                                                         }
 
                                                         Dec -> {
                                                             type = InputType.number
                                                             pattern = "-?\\d+"
                                                             placeholder = Settings.PRESTRING_DECIMAL
-                                                            defaultValue = reg.variable.get().toDec().toRawString()
+                                                            defaultValue = reg.variable.get().toDec().rawInput
                                                         }
 
                                                         UDec -> {
                                                             type = InputType.number
                                                             placeholder = Settings.PRESTRING_DECIMAL
-                                                            defaultValue = reg.variable.get().toUDec().toRawString()
+                                                            defaultValue = reg.variable.get().toUDec().rawInput
                                                         }
                                                     }
                                                 }
@@ -345,23 +345,23 @@ val RegisterView = FC<RegisterViewProps> { props ->
                                                         // Get Actual Interpretation (for example padded binary number)
                                                         try {
                                                             if (reg.containsFlags) {
-                                                                currentTarget.value = reg.variable.get().toBin().toRawString()
+                                                                currentTarget.value = reg.variable.get().toBin().rawInput
                                                             } else {
                                                                 when (currRegType) {
                                                                     Hex -> {
-                                                                        currentTarget.value = reg.variable.get().toHex().toRawString()
+                                                                        currentTarget.value = reg.variable.get().toHex().rawInput
                                                                     }
 
                                                                     Bin -> {
-                                                                        currentTarget.value = reg.variable.get().toBin().toRawString()
+                                                                        currentTarget.value = reg.variable.get().toBin().rawInput
                                                                     }
 
                                                                     Dec -> {
-                                                                        currentTarget.value = reg.variable.get().toDec().toRawString()
+                                                                        currentTarget.value = reg.variable.get().toDec().rawInput
                                                                     }
 
                                                                     UDec -> {
-                                                                        currentTarget.value = reg.variable.get().toUDec().toRawString()
+                                                                        currentTarget.value = reg.variable.get().toUDec().rawInput
                                                                     }
                                                                 }
                                                             }
@@ -435,22 +435,22 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 val regID = regFile.getRegisters(props.archState.component1().features).indexOf(reg)
                 try {
                     val regRef = document.getElementById("${props.name}${regFile.name}$regID") as HTMLInputElement?
-                    regRef?.value = if (reg.containsFlags) reg.variable.get().toBin().toRawString() else {
+                    regRef?.value = if (reg.containsFlags) reg.variable.get().toBin().rawInput else {
                         when (currRegType) {
                             Hex -> {
-                                reg.variable.get().toHex().toRawString()
+                                reg.variable.get().toHex().rawInput
                             }
 
                             Bin -> {
-                                reg.variable.get().toBin().toRawString()
+                                reg.variable.get().toBin().rawInput
                             }
 
                             Dec -> {
-                                reg.variable.get().toDec().toRawString()
+                                reg.variable.get().toDec().rawInput
                             }
 
                             UDec -> {
-                                reg.variable.get().toUDec().toRawString()
+                                reg.variable.get().toUDec().rawInput
                             }
                         }
                     }
@@ -479,22 +479,22 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 val regID = regFile.getRegisters(props.archState.component1().features).indexOf(reg)
                 try {
                     val regRef = document.getElementById("${props.name}${regFile.name}$regID") as HTMLInputElement?
-                    regRef?.value = if (reg.containsFlags) reg.variable.get().toBin().toRawString() else {
+                    regRef?.value = if (reg.containsFlags) reg.variable.get().toBin().rawInput else {
                         when (currRegType) {
                             Hex -> {
-                                reg.variable.get().toHex().toRawString()
+                                reg.variable.get().toHex().rawInput
                             }
 
                             Bin -> {
-                                reg.variable.get().toBin().toRawString()
+                                reg.variable.get().toBin().rawInput
                             }
 
                             Dec -> {
-                                reg.variable.get().toDec().toRawString()
+                                reg.variable.get().toDec().rawInput
                             }
 
                             UDec -> {
-                                reg.variable.get().toUDec().toRawString()
+                                reg.variable.get().toUDec().rawInput
                             }
                         }
                     }
@@ -524,22 +524,22 @@ val RegisterView = FC<RegisterViewProps> { props ->
                 val regID = regFile.getRegisters(props.archState.component1().features).indexOf(reg)
                 try {
                     val regRef = document.getElementById("${props.name}${regFile.name}$regID") as HTMLInputElement?
-                    regRef?.value = if(reg.containsFlags) reg.variable.get().toBin().toRawString() else {
+                    regRef?.value = if(reg.containsFlags) reg.variable.get().toBin().rawInput else {
                         when (currRegType) {
                             Hex -> {
-                                reg.variable.get().toHex().toRawString()
+                                reg.variable.get().toHex().rawInput
                             }
 
                             Bin -> {
-                                reg.variable.get().toBin().toRawString()
+                                reg.variable.get().toBin().rawInput
                             }
 
                             Dec -> {
-                                reg.variable.get().toDec().toRawString()
+                                reg.variable.get().toDec().rawInput
                             }
 
                             UDec -> {
-                                reg.variable.get().toUDec().toRawString()
+                                reg.variable.get().toUDec().rawInput
                             }
                         }
                     }
