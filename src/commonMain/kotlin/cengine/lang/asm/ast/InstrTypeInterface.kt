@@ -5,7 +5,7 @@ import cengine.lang.asm.ast.impl.ASNode
 interface InstrTypeInterface {
     val typeName: String
     val paramRule: Rule?
-    val bytesNeeded: Int?
+    val addressInstancesNeeded: Int?
     val detectionName: String
     val inCodeInfo: String?
 

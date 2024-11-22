@@ -124,7 +124,7 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
     BLE("BLE", 0x610FU, IKRMiniParamType.DEST, "branch if less or equal", true);
 
     override val typeName: String = name
-    override val bytesNeeded: Int? = paramType.wordAmount * 2
+    override val addressInstancesNeeded: Int? = paramType.wordAmount * 2
     override val inCodeInfo: String? get() = description
     override val paramRule: Rule? get() = paramType.rule
 

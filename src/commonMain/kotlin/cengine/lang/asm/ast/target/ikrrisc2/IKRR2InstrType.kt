@@ -10,7 +10,7 @@ import cengine.util.integer.toUInt
 import cengine.util.integer.toValue
 
 
-enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", val labelDependent: Boolean = false, override val addressInstancesNeeded: Int? = 1) : InstrTypeInterface {
     ADD("add", IKRR2ParamType.R2_TYPE, "addiere"),
     ADDI("addi", IKRR2ParamType.I_TYPE, "addiere Konstante (erweitere Konstante vorzeichenrichtig)"),
     ADDLI("addli", IKRR2ParamType.I_TYPE, "addiere Konstante (erweitere Konstante vorzeichenlos)"),
@@ -286,7 +286,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
         }
 
         if (labelDependent) {
-            return builder.currentSection.queueLateInit(instr, bytesNeeded ?: 4)
+            return builder.currentSection.queueLateInit(instr, addressInstancesNeeded ?: 1)
         }
     }
 
@@ -347,7 +347,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
     }
 
     private fun ASNode.NumericExpr.targetAddr(builder: AsmCodeGenerator<*>): UInt {
-        return (evaluate(builder).toBin().toULong() shr 2).toUInt()
+        return evaluate(builder).toBin().toULong().toUInt()
     }
 
     private fun AsmCodeGenerator.Section.thisAddr(index: Int): UInt {

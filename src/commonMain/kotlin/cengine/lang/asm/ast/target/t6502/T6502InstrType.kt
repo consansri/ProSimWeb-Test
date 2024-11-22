@@ -204,7 +204,7 @@ enum class T6502InstrType(override val detectionName: String, val opCode: UByte,
     override val typeName: String
         get() = name
 
-    override val bytesNeeded: Int = aMode.byteAmount
+    override val addressInstancesNeeded: Int = aMode.byteAmount
     override val paramRule: Rule?
         get() = aMode.rule
 

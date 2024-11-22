@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.input.key.*
@@ -28,6 +27,7 @@ import androidx.compose.ui.unit.toSize
 import cengine.editor.annotation.Annotation
 import cengine.editor.annotation.Severity
 import cengine.editor.completion.Completion
+import cengine.editor.highlighting.HighlightProvider.Companion.spanStyles
 import cengine.lang.asm.CodeStyle
 import cengine.project.Project
 import cengine.psi.core.PsiElement
@@ -137,11 +137,7 @@ fun CodeEditor(
         // Fast Lexing Highlighting
         val spanStyles = mutableListOf<AnnotatedString.Range<SpanStyle>>()
         val hls = lang?.highlightProvider?.fastHighlight(code, visibleIndexRange) ?: emptyList()
-        spanStyles.addAll(hls.mapNotNull {
-            if (!it.range.isEmpty()) {
-                AnnotatedString.Range<SpanStyle>(SpanStyle(color = Color(it.color or 0xFF000000.toInt())), it.range.first, it.range.last + 1)
-            } else null
-        })
+        spanStyles.addAll(hls.spanStyles())
 
         val psiFile = manager?.getPsiFile(file)
 

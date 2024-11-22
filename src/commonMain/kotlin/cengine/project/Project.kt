@@ -23,6 +23,7 @@ class Project(initialState: ProjectState, vararg languageServices: LanguageServi
         fileSystem.addChangeListener(this)
     }
 
+    fun getAsmLang(): AsmLang? = services.filterIsInstance<AsmLang>().firstOrNull()
     fun getManager(lang: LanguageService): PsiManager<*, *>? = psiManagers.firstOrNull { lang::class == it.lang::class }
     fun getLang(file: VirtualFile): LanguageService? = getManager(file)?.lang
 

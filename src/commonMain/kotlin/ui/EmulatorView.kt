@@ -45,6 +45,8 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
     val projectState = project.projectState
     val emuState = projectState.emu
 
+    val asmHighlighter = project.getAsmLang()?.highlightProvider
+
     val baseStyle = UIState.BaseStyle.current
     val baseLargeStyle = UIState.BaseLargeStyle.current
     val codeStyle = UIState.CodeStyle.current
@@ -179,7 +181,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
                         null -> null
                     },
                     centerContent = {
-                        ExecutionView(architecture, baseStyle, codeStyle)
+                        ExecutionView(architecture, asmHighlighter, baseStyle, codeStyle)
                     },
                     rightContent = when (rightContentType) {
                         EmulatorContentView.ObjFileSelection -> objFileSelector

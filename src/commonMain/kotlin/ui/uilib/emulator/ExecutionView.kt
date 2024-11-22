@@ -18,7 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
+import cengine.editor.highlighting.HighlightProvider
+import cengine.editor.highlighting.HighlightProvider.Companion.spanStyles
 import cengine.lang.asm.Disassembler
 import cengine.util.integer.toValue
 import emulator.kit.Architecture
@@ -26,7 +29,7 @@ import ui.uilib.UIState
 import ui.uilib.label.CLabel
 
 @Composable
-fun ExecutionView(architecture: Architecture?, baseStyle: TextStyle, codeStyle: TextStyle) {
+fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, baseStyle: TextStyle, codeStyle: TextStyle) {
 
     val disassembler = remember { architecture?.disassembler }
 
@@ -136,7 +139,8 @@ fun ExecutionView(architecture: Architecture?, baseStyle: TextStyle, codeStyle: 
                             }
                             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                             Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                                Text(decoded.disassembled, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0)
+                                val hls = highlighter?.fastHighlight(decoded.disassembled) ?: emptyList()
+                                Text(AnnotatedString(decoded.disassembled, hls.spanStyles()), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0)
                             }
                             Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                             Row(Modifier.weight(0.3f), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {

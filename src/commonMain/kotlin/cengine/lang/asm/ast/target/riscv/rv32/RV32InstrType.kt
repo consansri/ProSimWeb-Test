@@ -23,7 +23,7 @@ import cengine.util.integer.toUInt
 import cengine.util.integer.toValue
 import emulator.kit.nativeLog
 
-enum class RV32InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV32ParamType, val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class RV32InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV32ParamType, val labelDependent: Boolean = false, override val addressInstancesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV32ParamType.RD_I20),
     AUIPC("AUIPC", false, RV32ParamType.RD_I20),
     JAL("JAL", false, RV32ParamType.RD_I20, true),
@@ -90,8 +90,8 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
     Nop("NOP", true, RV32ParamType.PS_NONE),
     Mv("MV", true, RV32ParamType.PS_RD_RS1),
-    Li("LI", true, RV32ParamType.PS_RD_I32, bytesNeeded = 8),
-    La("LA", true, RV32ParamType.PS_RD_ALBL, true, bytesNeeded = 8),
+    Li("LI", true, RV32ParamType.PS_RD_I32, addressInstancesNeeded = 8),
+    La("LA", true, RV32ParamType.PS_RD_ALBL, true, addressInstancesNeeded = 8),
     Not("NOT", true, RV32ParamType.PS_RD_RS1),
     Neg("NEG", true, RV32ParamType.PS_RD_RS1),
     Seqz("SEQZ", true, RV32ParamType.PS_RD_RS1),
@@ -113,10 +113,10 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
     Jr("JR", true, RV32ParamType.PS_RS1),
     JALR1("JALR", true, RV32ParamType.PS_RS1),
     Ret("RET", true, RV32ParamType.PS_NONE),
-    Call("CALL", true, RV32ParamType.PS_JLBL, true, bytesNeeded = 8),
-    Tail("TAIL", true, RV32ParamType.PS_JLBL, true, bytesNeeded = 8);
+    Call("CALL", true, RV32ParamType.PS_JLBL, true, addressInstancesNeeded = 8),
+    Tail("TAIL", true, RV32ParamType.PS_JLBL, true, addressInstancesNeeded = 8);
 
-    override val inCodeInfo: String? = if (isPseudo) "${bytesNeeded ?: "?"} bytes" else null
+    override val inCodeInfo: String? = if (isPseudo) "${addressInstancesNeeded ?: "?"} bytes" else null
 
     override val paramRule: Rule?
         get() = paramType.rule
@@ -542,7 +542,7 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
         }
 
         if (this.labelDependent) {
-            return builder.currentSection.queueLateInit(instr, bytesNeeded ?: 4)
+            return builder.currentSection.queueLateInit(instr, addressInstancesNeeded ?: 4)
         }
     }
 

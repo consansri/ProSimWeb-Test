@@ -27,7 +27,7 @@ import cengine.util.integer.toValue
 import debug.DebugTools
 import emulator.kit.nativeLog
 
-enum class RV64InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV64ParamType, val labelDependent: Boolean = false, override val bytesNeeded: Int? = 4) : InstrTypeInterface {
+enum class RV64InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV64ParamType, val labelDependent: Boolean = false, override val addressInstancesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV64ParamType.RD_I20),
     AUIPC("AUIPC", false, RV64ParamType.RD_I20),
     JAL("JAL", false, RV64ParamType.RD_I20, true),
@@ -116,8 +116,8 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
     Nop("NOP", true, RV64ParamType.PS_NONE),
     Mv("MV", true, RV64ParamType.PS_RD_RS1),
-    Li64("LI", true, RV64ParamType.PS_RD_LI_I64, bytesNeeded = null),
-    La("LA", true, RV64ParamType.PS_RD_Albl, true, bytesNeeded = 8),
+    Li64("LI", true, RV64ParamType.PS_RD_LI_I64, addressInstancesNeeded = null),
+    La("LA", true, RV64ParamType.PS_RD_Albl, true, addressInstancesNeeded = 8),
     Not("NOT", true, RV64ParamType.PS_RD_RS1),
     Neg("NEG", true, RV64ParamType.PS_RD_RS1),
     Seqz("SEQZ", true, RV64ParamType.PS_RD_RS1),
@@ -139,10 +139,10 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
     Jr("JR", true, RV64ParamType.PS_RS1),
     JALR1("JALR", true, RV64ParamType.PS_RS1),
     Ret("RET", true, RV64ParamType.PS_NONE),
-    Call("CALL", true, RV64ParamType.PS_lbl, true, bytesNeeded = 8),
-    Tail("TAIL", true, RV64ParamType.PS_lbl, true, bytesNeeded = 8);
+    Call("CALL", true, RV64ParamType.PS_lbl, true, addressInstancesNeeded = 8),
+    Tail("TAIL", true, RV64ParamType.PS_lbl, true, addressInstancesNeeded = 8);
 
-    override val inCodeInfo: String? = if (isPseudo) "${bytesNeeded ?: "?"} bytes" else null
+    override val inCodeInfo: String? = if (isPseudo) "${addressInstancesNeeded ?: "?"} bytes" else null
 
     override val paramRule: Rule? = paramType.rule
 
@@ -721,7 +721,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
         }
 
         if (labelDependent) {
-            return builder.currentSection.queueLateInit(instr, bytesNeeded ?: 4)
+            return builder.currentSection.queueLateInit(instr, addressInstancesNeeded ?: 4)
         }
     }
 
