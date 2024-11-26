@@ -25,6 +25,34 @@ import cengine.util.string.removeLeadingZeros
 @Immutable
 sealed class Value(val size: Size) {
 
+    companion object{
+        /**
+         * Quality of use extensions for [Value].
+         */
+
+
+        /**
+         * [Dec] from signed dec string.
+         */
+        fun String.asDec(size: Size): Dec = Dec(this, size)
+        fun String.asDec(): Dec = Dec(this, Size.nearestDecSize(this))
+        fun String.asHex(size: Size): Hex = Hex(this, size)
+        fun String.asHex(): Hex = Hex(this)
+        fun String.asOct(size: Size): Oct = Oct(this, size)
+        fun String.asOct(): Oct = Oct(this)
+        fun String.asBin(size: Size): Bin = Bin(this, size)
+        fun String.asBin(): Bin = Bin(this)
+
+        fun Byte.toValue(size: Size = Size.Bit8): Dec = Dec(this.toString(), size)
+        fun Short.toValue(size: Size = Size.Bit16): Dec = Dec(this.toString(), size)
+        fun Int.toValue(size: Size = Size.Bit32): Dec = Dec(this.toString(), size)
+        fun Long.toValue(size: Size = Size.Bit64): Dec = Dec(this.toString(), size)
+        fun UByte.toValue(size: Size = Size.Bit8): Hex = Hex(this.toString(16), size)
+        fun UShort.toValue(size: Size = Size.Bit16): Hex = Hex(this.toString(16), size)
+        fun UInt.toValue(size: Size = Size.Bit32): Hex = Hex(this.toString(16), size)
+        fun ULong.toValue(size: Size = Size.Bit64): Hex = Hex(this.toString(16), size)
+    }
+
     abstract val valid: Boolean
     abstract val rawInput: String
 
@@ -66,7 +94,13 @@ sealed class Value(val size: Size) {
     abstract fun toDec(): Dec
     abstract fun toUDec(): UDec
     abstract fun toASCII(): String
+    abstract fun toByte(): Byte
+    abstract fun toShort(): Short
+    abstract fun toInt(): Int
     abstract fun toLong(): Long
+    abstract fun toUByte(): UByte
+    abstract fun toUShort(): UShort
+    abstract fun toUInt(): UInt
     abstract fun toULong(): ULong
     abstract fun getBiggest(): Value
     abstract operator fun plus(operand: Value): Value

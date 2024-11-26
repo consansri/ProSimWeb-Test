@@ -59,9 +59,8 @@ class MainMemory(override val addressSize: Size, override val instanceSize: Size
         val hexValues = mutableListOf<String>()
         var currAddr: Value = address
         repeat(amount) {
-            val addr: String = currAddr.toHex().getUResized(addressSize).rawInput
             val value = memList.firstOrNull {
-                it.address.rawInput == addr
+                it.address == currAddr
             }?.variable?.value ?: getInitialBinary().get()
             currAddr += Hex("1", addressSize)
             hexValues += value.toHex().rawInput

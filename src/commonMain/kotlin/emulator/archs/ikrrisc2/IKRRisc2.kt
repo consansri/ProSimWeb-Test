@@ -1,7 +1,6 @@
 package emulator.archs.ikrrisc2
 
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler
-import cengine.util.integer.Bin
 import cengine.util.integer.Size.Bit32
 import cengine.util.integer.Size.Bit5
 import cengine.util.integer.Variable
@@ -10,7 +9,6 @@ import emulator.kit.common.Docs
 import emulator.kit.common.RegContainer
 import emulator.kit.common.RegContainer.Register
 import emulator.kit.common.RegContainer.RegisterFile
-import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
 import emulator.kit.memory.*
 import emulator.kit.optional.SetupSetting
@@ -19,47 +17,43 @@ data object IKRRisc2 {
 
     val WORD_WIDTH = Bit32
     val REG_SIZE = Bit5
-    val WORD_WIDTH_ONE = Bin("1", WORD_WIDTH)
-    val WORD_WIDTH_NEGATIVE_ONE = Bin("1".repeat(WORD_WIDTH.bitWidth), WORD_WIDTH).toBin()
-    val WORD_WIDTH_ZERO = Bin("0", WORD_WIDTH)
-    val R31_ADDR = Bin("11111", REG_SIZE)
     const val REG_INIT = "0"
 
     const val standardRegFileName = "main"
     val standardRegFile = RegisterFile(
         standardRegFileName, arrayOf(
-            Register(Bin("00000", REG_SIZE), listOf("r0"), listOf(), Variable(REG_INIT, WORD_WIDTH), "hardwired zero", hardwire = true),
-            Register(Bin("00001", REG_SIZE), listOf("r1"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("00010", REG_SIZE), listOf("r2"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("00011", REG_SIZE), listOf("r3"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("00100", REG_SIZE), listOf("r4"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("00101", REG_SIZE), listOf("r5"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("00110", REG_SIZE), listOf("r6"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("00111", REG_SIZE), listOf("r7"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("01000", REG_SIZE), listOf("r8"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("01001", REG_SIZE), listOf("r9"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("01010", REG_SIZE), listOf("r10"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("01011", REG_SIZE), listOf("r11"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("01100", REG_SIZE), listOf("r12"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("01101", REG_SIZE), listOf("r13"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("01110", REG_SIZE), listOf("r14"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("01111", REG_SIZE), listOf("r15"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("10000", REG_SIZE), listOf("r16"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("10001", REG_SIZE), listOf("r17"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("10010", REG_SIZE), listOf("r18"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("10011", REG_SIZE), listOf("r19"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("10100", REG_SIZE), listOf("r20"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("10101", REG_SIZE), listOf("r21"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("10110", REG_SIZE), listOf("r22"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("10111", REG_SIZE), listOf("r23"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("11000", REG_SIZE), listOf("r24"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("11001", REG_SIZE), listOf("r25"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("11010", REG_SIZE), listOf("r26"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("11011", REG_SIZE), listOf("r27"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("11100", REG_SIZE), listOf("r28"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("11101", REG_SIZE), listOf("r29"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(Bin("11110", REG_SIZE), listOf("r30"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
-            Register(R31_ADDR, listOf("r31"), listOf(), Variable(REG_INIT, WORD_WIDTH), "return address"),
+            Register(0U, listOf("r0"), listOf(), Variable(REG_INIT, WORD_WIDTH), "hardwired zero", hardwire = true),
+            Register(1U, listOf("r1"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(2U, listOf("r2"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(3U, listOf("r3"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(4U, listOf("r4"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(5U, listOf("r5"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(6U, listOf("r6"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(7U, listOf("r7"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(8U, listOf("r8"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(9U, listOf("r9"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(10U, listOf("r10"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(11U, listOf("r11"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(12U, listOf("r12"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(13U, listOf("r13"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(14U, listOf("r14"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(15U, listOf("r15"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(16U, listOf("r16"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(17U, listOf("r17"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(18U, listOf("r18"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(19U, listOf("r19"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(20U, listOf("r20"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(21U, listOf("r21"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(22U, listOf("r22"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(23U, listOf("r23"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(24U, listOf("r24"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(25U, listOf("r25"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(26U, listOf("r26"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(27U, listOf("r27"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(28U, listOf("r28"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(29U, listOf("r29"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(30U, listOf("r30"), listOf(), Variable(REG_INIT, WORD_WIDTH), ""),
+            Register(31U, listOf("r31"), listOf(), Variable(REG_INIT, WORD_WIDTH), "return address"),
         )
     )
 
@@ -97,18 +91,6 @@ data object IKRRisc2 {
     val implementationDoc = Docs.DocFile.DefinedFile(
         "IKR RISC-II Implemented",
         Docs.DocComponent.Chapter(
-            "Instructions",
-            Docs.DocComponent.Table(
-                listOf("instruction", "params", "opcode"),
-                contentRows = InstrType.entries.map { instr ->
-                    listOf(Docs.DocComponent.Text(instr.id), Docs.DocComponent.Text(instr.paramType.exampleString),
-                        Docs.DocComponent.Table(
-                            header = instr.opCode.maskLabels.map { it.name },
-                            contentRows = arrayOf(instr.opCode.opMaskList.map { Docs.DocComponent.Text(it) })))
-                }.toTypedArray()
-            )
-        ),
-        Docs.DocComponent.Chapter(
             "Registers",
             Docs.DocComponent.Text("address-width: $REG_SIZE"),
             Docs.DocComponent.Text("value-width: $WORD_WIDTH")
@@ -132,6 +114,4 @@ data object IKRRisc2 {
         IKRR2Disassembler,
         settings
     )
-
-    val asmConfig = AsmConfig(IKRRisc2Assembler)
 }

@@ -6,6 +6,7 @@ import cengine.lang.mif.ast.MifNode
 import cengine.lang.mif.ast.MifPsiFile
 import cengine.lang.obj.elf.*
 import cengine.util.integer.*
+import cengine.util.integer.Value.Companion.toValue
 import emulator.kit.memory.Memory
 import kotlin.math.log2
 import kotlin.math.pow

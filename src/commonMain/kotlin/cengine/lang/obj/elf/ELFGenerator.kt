@@ -9,7 +9,7 @@ import cengine.util.buffer.ByteBuffer.Companion.toASCIIByteArray
 import cengine.util.buffer.ByteBuffer.Companion.toASCIIString
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
-import cengine.util.integer.toValue
+import cengine.util.integer.Value.Companion.toValue
 
 abstract class ELFGenerator(
     val e_type: Elf_Half,

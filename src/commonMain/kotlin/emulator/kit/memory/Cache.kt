@@ -5,6 +5,7 @@ import cengine.util.integer.Value
 import debug.DebugTools
 import emulator.core.*
 import cengine.util.integer.*
+import cengine.util.integer.Value.Companion.toValue
 import emulator.kit.common.IConsole
 import emulator.kit.nativeLog
 import kotlin.math.pow

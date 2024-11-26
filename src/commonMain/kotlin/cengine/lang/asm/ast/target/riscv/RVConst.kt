@@ -192,6 +192,45 @@ data object RVConst {
     fun UInt.mask12bType7(): UInt = (bit(12) shl 6) or (this shr 5).lowest6()
 
     fun UInt.mask12bType5(): UInt = (shr(1).lowest4() shl 1) or bit(11)
+
+    /**
+     * Sign extensions
+     */
+    fun Long.signExtend(bitWidth: Int): Long {
+        require(bitWidth in 1..32) { "bitWidth must be between 1 and 32" }
+
+        // Mask the input value to the specified bit width
+        val mask = (1L shl bitWidth) - 1L // Creates a mask with `bitWidth` bits set
+        val maskedValue = this and mask
+
+        // Check the sign bit (highest bit in the specified bit width)
+        val signBit = 1L shl (bitWidth - 1)
+        return if (maskedValue and signBit != 0L) {
+            // If the sign bit is set, extend with 1s
+            (maskedValue or (0xFFFFFFFFL shl bitWidth))
+        } else {
+            // If the sign bit is not set, return as-is
+            maskedValue
+        }
+    }
+
+    fun Int.signExtend(bitWidth: Int): Int {
+        require(bitWidth in 1..32) { "bitWidth must be between 1 and 32" }
+
+        // Mask the input value to the specified bit width
+        val mask = (1 shl bitWidth) - 1 // Creates a mask with `bitWidth` bits set
+        val maskedValue = this and mask
+
+        // Check the sign bit (highest bit in the specified bit width)
+        val signBit = 1 shl (bitWidth - 1)
+        return if (maskedValue and signBit != 0) {
+            // If the sign bit is set, extend with 1s
+            (maskedValue or (0xFFFFFFFF shl bitWidth).toInt())
+        } else {
+            // If the sign bit is not set, return as-is
+            maskedValue
+        }
+    }
 }
 
 

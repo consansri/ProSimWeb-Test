@@ -4,11 +4,8 @@ import cengine.lang.asm.Disassembler
 import cengine.lang.asm.Initializer
 import cengine.util.integer.*
 import cengine.util.integer.Size.*
-import debug.DebugTools
 import emulator.core.*
-import emulator.kit.assembler.*
 import emulator.kit.common.*
-import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
 import emulator.kit.memory.MainMemory
 import emulator.kit.optional.Feature
@@ -41,20 +38,14 @@ import emulator.kit.optional.SetupSetting
  *  @property cache Not Essential: Possibly given by Config
  *
  */
-abstract class Architecture(config: Config, asmConfig: AsmConfig) {
+abstract class Architecture(config: Config) {
     val description: Config.Description = config.description
     val fileEnding: String = config.fileEnding
     val regContainer: RegContainer = config.regContainer
     val memory: MainMemory = config.memory
     val console: IConsole = IConsole("${config.description.name} Console")
-    val assembler: Assembler = Assembler(
-        this,
-        asmConfig.asmHeader
-    )
-    val features: List<Feature> = asmConfig.features
+    val features: List<Feature> = config.features
     val settings: List<SetupSetting<*>> = config.settings
-    private var lastFile: AsmFile? = null
-    private val asmHeader: AsmHeader = asmConfig.asmHeader
     var initializer: Initializer? = null
     val disassembler: Disassembler? = config.disassembler
 
@@ -64,13 +55,10 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
         MicroSetup.append(memory)
     }
 
-    fun getFormattedFile(type: FileBuilder.ExportFormat, currentFile: AsmFile, others: List<AsmFile>, vararg settings: FileBuilder.Setting): List<String> = FileBuilder.buildFileContentLines(this, type, currentFile, others, *settings)
     fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
     fun getAllRegs(): List<RegContainer.Register> = regContainer.getAllRegs(features)
-    fun getAllInstrTypes(): List<InstrTypeInterface> = assembler.parser.getInstrs(features)
-    fun getAllDirTypes(): List<DirTypeInterface> = assembler.parser.getDirs(features)
     fun getRegByName(name: String, regFile: String? = null): RegContainer.Register? = regContainer.getReg(name, features, regFile)
-    fun getRegByAddr(addr: Value, regFile: String? = null): RegContainer.Register? = regContainer.getReg(addr, features, regFile)
+    fun getRegByAddr(addr: UInt, regFile: String? = null): RegContainer.Register? = regContainer.getReg(addr, features, regFile)
 
     /**
      * Execution Event: continuous
@@ -113,14 +101,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
     }
 
     /**
-     * Execution Event: until line
-     * should be implemented by specific archs
-     */
-    open fun exeUntilLine(lineID: Int, wsRelativeFileName: String) {
-        console.clear()
-    }
-
-    /**
      * Execution Event: until address
      * should be implemented by specific archs
      */
@@ -157,25 +137,6 @@ abstract class Architecture(config: Config, asmConfig: AsmConfig) {
      */
     open fun setupMicroArch() {
         MicroSetup.append(memory)
-    }
-
-    /**
-     * Compilation Event
-     * already implemented
-     */
-    fun compile(mainFile: AsmFile, others: List<AsmFile>, build: Boolean = true): Process.Result {
-        if (build) {
-            exeReset()
-        }
-
-        if (DebugTools.KIT_showCheckCodeEvents) {
-            println("Architecture.check(): input \n $mainFile \n")
-        }
-
-        val mode = if (build) Process.Mode.FULLBUILD else Process.Mode.STOP_AFTER_ANALYSIS
-
-        val compilationResult = assembler.compile(mainFile, others, mode)
-        return compilationResult
     }
 
 }

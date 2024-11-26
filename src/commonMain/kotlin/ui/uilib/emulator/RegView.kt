@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import cengine.util.integer.Value
+import cengine.util.integer.Value.Companion.toValue
 import emulator.kit.Architecture
 import emulator.kit.common.RegContainer
 import ui.uilib.UIState
@@ -117,7 +118,7 @@ fun RegTable(regFile: RegContainer.RegisterFile) {
     LaunchedEffect(sortByAddress) {
         regs.clear()
         regs.addAll(if (sortByAddress) {
-            regFile.unsortedRegisters.sortedBy { it.address.toHex().toULong() ?: 0U }
+            regFile.unsortedRegisters.sortedBy { it.address.toValue().toULong() }
         } else {
             regFile.unsortedRegisters.toList()
         })

@@ -5,6 +5,7 @@ import cengine.lang.obj.elf.LinkerScript
 import cengine.lang.obj.elf.Shdr
 import cengine.util.buffer.Buffer
 import cengine.util.integer.*
+import cengine.util.integer.Value.Companion.toValue
 
 class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size, val bufferInit: () -> T) : AsmCodeGenerator<AsmCodeGenerator.Section>(linkerScript) {
     override val fileSuffix: String

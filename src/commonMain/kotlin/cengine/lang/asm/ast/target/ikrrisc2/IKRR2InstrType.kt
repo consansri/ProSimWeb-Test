@@ -6,8 +6,7 @@ import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.util.integer.Size
-import cengine.util.integer.toUInt
-import cengine.util.integer.toValue
+import cengine.util.integer.Value.Companion.toValue
 
 
 enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", val labelDependent: Boolean = false, override val addressInstancesNeeded: Int? = 1) : InstrTypeInterface {

@@ -22,8 +22,7 @@ import cengine.lang.asm.ast.target.riscv.RVConst.mask32Lo12
 import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.obj.elf.ELFGenerator
 import cengine.util.integer.Size
-import cengine.util.integer.toUInt
-import cengine.util.integer.toValue
+import cengine.util.integer.Value.Companion.toValue
 import debug.DebugTools
 import emulator.kit.nativeLog
 
@@ -91,9 +90,6 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
     CSRRSI("CSRRSI", false, RV64ParamType.CSR_RD_OFF12_UIMM5),
     CSRRCI("CSRRCI", false, RV64ParamType.CSR_RD_OFF12_UIMM5),
 
-    CSRW("CSRW", true, RV64ParamType.PS_CSR_RS1),
-    CSRR("CSRR", true, RV64ParamType.PS_RD_CSR),
-
     // M Extension
     MUL("MUL", false, RV64ParamType.RD_RS1_RS2),
     MULH("MULH", false, RV64ParamType.RD_RS1_RS2),
@@ -113,6 +109,9 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
 
     // Pseudo
+
+    CSRW("CSRW", true, RV64ParamType.PS_CSR_RS1),
+    CSRR("CSRR", true, RV64ParamType.PS_RD_CSR),
 
     Nop("NOP", true, RV64ParamType.PS_NONE),
     Mv("MV", true, RV64ParamType.PS_RD_RS1),

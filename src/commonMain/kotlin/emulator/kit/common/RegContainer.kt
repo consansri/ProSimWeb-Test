@@ -1,9 +1,7 @@
 package emulator.kit.common
 
-import cengine.util.integer.Bin
-import cengine.util.integer.Size
-import cengine.util.integer.Value
-import cengine.util.integer.Variable
+import cengine.util.integer.*
+import cengine.util.integer.Value.Companion.toValue
 import emulator.kit.common.RegContainer.PC
 import emulator.kit.common.RegContainer.RegisterFile
 import emulator.kit.optional.Feature
@@ -39,11 +37,11 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
         return null
     }
 
-    fun getReg(address: Value, features: List<Feature>, regFile: String? = null): Register? {
+    fun getReg(address: UInt, features: List<Feature>, regFile: String? = null): Register? {
         for (registerFile in registerFileList) {
             if ((regFile == null && registerFile.name == standardRegFileName) xor (registerFile.name == regFile)) {
                 for (reg in registerFile.getRegisters(features)) {
-                    if (reg.address.toHex().rawInput == address.toHex().rawInput) {
+                    if (reg.address == address) {
                         return reg
                     }
                 }
@@ -68,7 +66,7 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
      * To identify registers more easily a [description] is needed in the constructor.
      */
     open class Register(
-        val address: Value,
+        val address: UInt,
         val names: List<String>,
         val aliases: List<String>,
         val variable: Variable,
@@ -119,6 +117,10 @@ class RegContainer(private val registerFileList: List<RegisterFile>, val pcSize:
     data class PC(val variable: Variable, val initial: Value) {
         val name = "program counter"
         val shortName = "pc"
+
+        fun inc(by: UInt){
+            set(get() + by.toValue(variable.size))
+        }
 
         fun get(): Value = variable.get()
 

@@ -3,7 +3,7 @@ package cengine.lang.obj.elf
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.Initializer
 import cengine.util.integer.Hex
-import cengine.util.integer.toValue
+import cengine.util.integer.Value.Companion.toValue
 import emulator.kit.memory.Memory
 
 sealed class ELFFile(val name: String, val content: ByteArray) : Initializer {

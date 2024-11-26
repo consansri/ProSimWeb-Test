@@ -5,7 +5,7 @@ import cengine.lang.obj.elf.LinkerScript
 import cengine.lang.obj.elf.Shdr
 import cengine.util.buffer.Buffer
 import cengine.util.integer.Hex
-import cengine.util.integer.toValue
+import cengine.util.integer.Value.Companion.toValue
 
 abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val linkerScript: LinkerScript) {
 

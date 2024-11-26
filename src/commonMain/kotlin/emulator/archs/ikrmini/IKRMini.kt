@@ -1,13 +1,12 @@
 package emulator.archs.ikrmini
 
-import cengine.util.integer.Hex
 import cengine.util.integer.Size.*
 import cengine.util.integer.Variable
 import emulator.archs.ArchIKRMini
 import emulator.kit.common.Docs
-import emulator.kit.common.Docs.DocComponent.*
+import emulator.kit.common.Docs.DocComponent.Chapter
+import emulator.kit.common.Docs.DocComponent.Text
 import emulator.kit.common.RegContainer
-import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
 import emulator.kit.memory.*
 import emulator.kit.optional.SetupSetting
@@ -29,20 +28,6 @@ data object IKRMini {
                     "Memory",
                     Text("address-width: $MEM_ADDRESS_WIDTH"),
                     Text("value-width: $BYTESIZE")
-                ),
-                Chapter(
-                    "Instructions",
-                    Table(
-                        listOf("instruction", "param", "opcode", "description"),
-                        *IKRMiniSyntax.InstrType.entries.map { instr ->
-                            listOf(
-                                Text(instr.name),
-                                Text(instr.paramMap.entries.map { it.key }.joinToString("\n") { it.exampleString }),
-                                Text(instr.paramMap.entries.joinToString("\n") { "${it.value} <- ${it.key.name}" }),
-                                Text(instr.descr)
-                            )
-                        }.toTypedArray()
-                    )
                 )
             ),
         )
@@ -86,8 +71,8 @@ data object IKRMini {
             listOf(
                 RegContainer.RegisterFile(
                     "common", arrayOf(
-                        RegContainer.Register(Hex("0", Bit1), listOf("AC"), listOf(), Variable("0", WORDSIZE), description = "Accumulator"),
-                        RegContainer.Register(Hex("1", Bit1), listOf("NZVC"), listOf(), Variable("0", Bit4), description = "NZVC ALU flags", containsFlags = true)
+                        RegContainer.Register(0U, listOf("AC"), listOf(), Variable("0", WORDSIZE), description = "Accumulator"),
+                        RegContainer.Register(1U, listOf("NZVC"), listOf(), Variable("0", Bit4), description = "NZVC ALU flags", containsFlags = true)
                     )
                 )
             ),
@@ -98,8 +83,4 @@ data object IKRMini {
         null,
         settings
     )
-
-    val asmConfig = AsmConfig(IKRMiniAssembler)
-
-
 }

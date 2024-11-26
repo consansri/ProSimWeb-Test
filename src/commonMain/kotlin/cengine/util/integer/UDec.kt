@@ -58,10 +58,14 @@ class UDec(udecString: String, size: Size) : Value(size) {
     override fun toDec(): Dec = getBinary().getDec()
     override fun toUDec(): UDec = this
     override fun toASCII(): String = getASCII()
+    override fun toByte(): Byte = toUByte().toByte()
+    override fun toShort(): Short = toUShort().toShort()
+    override fun toInt(): Int = toUInt().toInt()
     override fun toLong(): Long = toULong().toLong()
-
+    override fun toUByte(): UByte = rawInput.toUByte()
+    override fun toUShort(): UShort = rawInput.toUShort()
+    override fun toUInt(): UInt = rawInput.toUInt()
     override fun toULong(): ULong = rawInput.toULong()
-
     fun toIntOrNull(): Int? = rawInput.toIntOrNull()
     fun toDoubleOrNull(): Double? = rawInput.toDoubleOrNull()
     override fun getBiggest(): Value = UDec(Bounds(size).umax, size)

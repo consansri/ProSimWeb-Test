@@ -19,8 +19,7 @@ import cengine.lang.asm.ast.target.riscv.RVConst.mask32Lo12
 import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.obj.elf.ELFGenerator
 import cengine.util.integer.Size
-import cengine.util.integer.toUInt
-import cengine.util.integer.toValue
+import cengine.util.integer.Value.Companion.toValue
 import emulator.kit.nativeLog
 
 enum class RV32InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV32ParamType, val labelDependent: Boolean = false, override val addressInstancesNeeded: Int? = 4) : InstrTypeInterface {

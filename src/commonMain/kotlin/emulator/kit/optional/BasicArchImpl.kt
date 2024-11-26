@@ -2,13 +2,12 @@ package emulator.kit.optional
 
 import Performance
 import cengine.util.integer.Hex
-import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
 import emulator.kit.memory.Memory
 import emulator.kit.nativeError
 import kotlin.time.measureTime
 
-abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.kit.Architecture(config, asmConfig) {
+abstract class BasicArchImpl(config: Config) : emulator.kit.Architecture(config) {
     override fun exeContinuous() {
         var instrCount = 0L
         val tracker = Memory.AccessTracker()
@@ -130,50 +129,11 @@ abstract class BasicArchImpl(config: Config, asmConfig: AsmConfig) : emulator.ki
         console.exeInfo("until $address \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
     }
 
-    override fun exeUntilLine(lineID: Int, wsRelativeFileName: String) {
-        var instrCount = 0L
-        val tracker = Memory.AccessTracker()
-        val measuredTime = measureTime {
-            super.exeUntilLine(lineID, wsRelativeFileName)
-
-            val lineAddressMap = assembler.lastInvertedLineMap(wsRelativeFileName).toList()
-
-            var closestID: Int? = null
-            for (entry in lineAddressMap) {
-                if (entry.first.lineID >= lineID && entry.first.lineID != closestID) {
-                    if (closestID != null) {
-                        if (entry.first.lineID < closestID) {
-                            closestID = entry.first.lineID
-                        }
-                    } else {
-                        closestID = entry.first.lineID
-                    }
-                }
-                if (closestID == lineID) break
-            }
-            val destAddrString = lineAddressMap.map { it.first.lineID to it.second }.firstOrNull { it.first == closestID }?.second ?: ""
-
-            var result: ExecutionResult? = null
-
-            while (result?.valid != false && instrCount <= 1000) {
-                instrCount++
-                result = executeNext(tracker)
-                if (regContainer.pc.get().toHex().rawInput.uppercase() == destAddrString.uppercase()) {
-                    break
-                }
-            }
-        }
-
-        Performance.updateExePerformance(instrCount, measuredTime)
-
-        console.exeInfo("until line ${lineID + 1} \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
-    }
-
 
     abstract fun executeNext(tracker: Memory.AccessTracker): ExecutionResult
 
 
-    data class ExecutionResult(val valid: Boolean, val typeIsReturnFromSubroutine: Boolean, val typeIsBranchToSubroutine: Boolean)
+    data class ExecutionResult(val valid: Boolean, val typeIsReturnFromSubroutine: Boolean = false, val typeIsBranchToSubroutine: Boolean = false)
 
 
 }

@@ -1,6 +1,6 @@
 package emulator.kit.common
 
-import emulator.kit.assembler.CodeStyle
+import cengine.lang.asm.CodeStyle
 import emulator.kit.nativeError
 import emulator.kit.nativeInfo
 import emulator.kit.nativeLog

@@ -5,7 +5,7 @@ import cengine.util.integer.Variable
 import emulator.kit.common.RegContainer
 
 class CSRegister(
-    address: Value,
+    address: UInt,
     val privilege: Privilege,
     names: List<String>,
     aliases: List<String>,

@@ -3,7 +3,7 @@ package cengine.util.buffer
 import cengine.util.Endianness
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
-import cengine.util.integer.toValue
+import cengine.util.integer.Value.Companion.toValue
 
 class LongBuffer(endianness: Endianness, initial: Array<Long> = emptyArray()) : Buffer<Long>(endianness, initial) {
 

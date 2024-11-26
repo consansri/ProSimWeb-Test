@@ -10,7 +10,7 @@ import emulator.kit.nativeError
 class Bin(binString: String, size: Size) : Value(size) {
     override val valid: Boolean
     override val rawInput: String
-    
+
     constructor(size: Size) : this(Settings.PRESTRING_BINARY + "0", size)
 
     constructor(binString: String) : this(binString, Size.Original(binString.trim().removePrefix(Settings.PRESTRING_BINARY).length))
@@ -100,8 +100,14 @@ class Bin(binString: String, size: Size) : Value(size) {
     override fun toDec(): Dec = getDec()
     override fun toUDec(): UDec = getUDec()
     override fun toASCII(): String = getASCII()
+    override fun toByte(): Byte = toUByte().toByte()
+    override fun toShort(): Short = toUShort().toShort()
+    override fun toInt(): Int = toUInt().toInt()
     override fun toLong(): Long = toULong().toLong()
-    override fun toULong(): ULong = rawInput.toULong(2)
+    override fun toUByte(): UByte = rawInput.takeLast(8).toUByte(2)
+    override fun toUShort(): UShort = rawInput.takeLast(16).toUShort(2)
+    override fun toUInt(): UInt = rawInput.takeLast(32).toUInt(2)
+    override fun toULong(): ULong = rawInput.takeLast(64).toULong(2)
     override fun getBiggest(): Value = Bin("1".repeat(size.bitWidth), size)
 
     override fun plus(operand: Value): Bin {

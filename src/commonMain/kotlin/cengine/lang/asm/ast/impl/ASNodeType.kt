@@ -1,8 +1,6 @@
 package cengine.lang.asm.ast.impl
 
-import emulator.kit.assembler.syntax.Rule
-
-enum class ASNodeType(val rule: Rule? = null) {
+enum class ASNodeType {
     INT_EXPR,
     STRING_EXPR,
     ANY_EXPR,

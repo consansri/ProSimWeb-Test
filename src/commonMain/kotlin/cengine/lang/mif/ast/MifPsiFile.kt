@@ -11,7 +11,7 @@ import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
-import cengine.util.integer.toValue
+import cengine.util.integer.Value.Companion.toValue
 import cengine.vfs.VirtualFile
 import emulator.kit.memory.Memory
 import emulator.kit.nativeError

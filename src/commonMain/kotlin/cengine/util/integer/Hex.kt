@@ -62,7 +62,13 @@ class Hex(hexString: String, size: Size) : Value(size) {
     override fun toDec(): Dec = getBinary().getDec()
     override fun toUDec(): UDec = getBinary().getUDec()
     override fun toASCII(): String = getASCII()
+    override fun toByte(): Byte = toUByte().toByte()
+    override fun toShort(): Short = toUShort().toShort()
+    override fun toInt(): Int = toUInt().toInt()
     override fun toLong(): Long = toULong().toLong()
+    override fun toUByte(): UByte = rawInput.takeLast(2).toUByte(16)
+    override fun toUShort(): UShort = rawInput.takeLast(4).toUShort(16)
+    override fun toUInt(): UInt = rawInput.takeLast(8).toUInt(16)
     override fun toULong(): ULong = rawInput.toULong(16)
     override fun getBiggest(): Value = Bin("1".repeat(size.bitWidth), size)
 
@@ -137,6 +143,7 @@ class Hex(hexString: String, size: Size) : Value(size) {
             -1
         }
     }
+
     override fun toString(): String = "${Settings.PRESTRING_HEX}$rawInput"
     override fun toHex(): Hex = this
 

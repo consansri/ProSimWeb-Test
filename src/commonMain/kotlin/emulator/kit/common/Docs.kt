@@ -1,7 +1,6 @@
 package emulator.kit.common
 
 import Constants
-import emulator.kit.assembler.gas.GASDirType
 import emulator.kit.common.Docs.DocComponent.*
 
 /**
@@ -436,16 +435,7 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
             }
         }*/
         )
-    ) + if (usingProSimAS) DocFile.DefinedFile(
-        "ProSimAS",
-        Chapter(
-            "Directives",
-            Table(
-                listOf("type", "rule"),
-                *GASDirType.entries.map { listOf(Text(it.name), Code(it.rule.toString())) }.toTypedArray()
-            )
-        ),
-    ) else null).filterNotNull().toMutableList()
+    )).toMutableList()
 
     init {
         files.addAll(docFiles.toList())

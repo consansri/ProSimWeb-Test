@@ -1,7 +1,6 @@
 package emulator.archs.t6502
 
 
-import cengine.util.integer.Hex
 import cengine.util.integer.Size.Bit16
 import cengine.util.integer.Size.Bit8
 import cengine.util.integer.Variable
@@ -9,7 +8,6 @@ import emulator.archs.ArchT6502
 import emulator.kit.common.Docs
 import emulator.kit.common.Docs.DocComponent.*
 import emulator.kit.common.RegContainer
-import emulator.kit.config.AsmConfig
 import emulator.kit.config.Config
 import emulator.kit.memory.*
 import emulator.kit.optional.SetupSetting
@@ -34,27 +32,14 @@ data object T6502 {
 
     val MEM_ADDR_SIZE = WORD_SIZE
 
-    enum class TSCompiledRow {
-        ADDRESS,
-        LABEL,
-        INSTRUCTION,
-        EXTENSION
-    }
-
-    enum class TSDisassembledRow {
-        ADDRESS,
-        INSTRUCTION,
-        EXTENSION
-    }
-
     val commonRegFile = RegContainer.RegisterFile(
         name = "common",
         unsortedRegisters = arrayOf(
-            RegContainer.Register(Hex("00", WORD_SIZE), listOf("AC"), listOf(), Variable("00000000", BYTE_SIZE), description = "accumulator"),
-            RegContainer.Register(Hex("01", WORD_SIZE), listOf("X"), listOf(), Variable("00000000", BYTE_SIZE), description = "X register"),
-            RegContainer.Register(Hex("02", WORD_SIZE), listOf("Y"), listOf(), Variable("00000000", BYTE_SIZE), description = "Y register"),
-            RegContainer.Register(Hex("03", WORD_SIZE), listOf("SR"), listOf(), Variable("00100000", BYTE_SIZE), description = "status register [NV-BDIZC]", containsFlags = true),
-            RegContainer.Register(Hex("04", WORD_SIZE), listOf("SP"), listOf(), Variable("11111111", BYTE_SIZE), description = "stack pointer")
+            RegContainer.Register(0U, listOf("AC"), listOf(), Variable("00000000", BYTE_SIZE), description = "accumulator"),
+            RegContainer.Register(1U, listOf("X"), listOf(), Variable("00000000", BYTE_SIZE), description = "X register"),
+            RegContainer.Register(2U, listOf("Y"), listOf(), Variable("00000000", BYTE_SIZE), description = "Y register"),
+            RegContainer.Register(3U, listOf("SR"), listOf(), Variable("00100000", BYTE_SIZE), description = "status register [NV-BDIZC]", containsFlags = true),
+            RegContainer.Register(4U, listOf("SP"), listOf(), Variable("11111111", BYTE_SIZE), description = "stack pointer")
         )
     )
 
@@ -70,20 +55,6 @@ data object T6502 {
                     UnlinkedList(
                         Text("address-width: $MEM_ADDR_SIZE"),
                         Text("value-width: $BYTE_SIZE")
-                    )
-                ),
-                Chapter(
-                    "Instructions",
-                    Table(
-                        listOf("instruction", "params", "opcode", "description"),
-                        *InstrType.entries.map { instr ->
-                            listOf(
-                                Text(instr.name),
-                                Text(instr.opCode.entries.map { it.key }.joinToString("\n") { it.exampleString }),
-                                Text(instr.opCode.entries.joinToString("\n") { "${it.value} <- ${it.key.description}" }),
-                                Text(instr.description)
-                            )
-                        }.toTypedArray()
                     )
                 )
             )
@@ -128,10 +99,6 @@ data object T6502 {
         MainMemory(MEM_ADDR_SIZE, BYTE_SIZE, Memory.Endianess.LittleEndian),
         null,
         settings
-    )
-
-    val asmConfig = AsmConfig(
-        T6502Assembler
     )
 
 

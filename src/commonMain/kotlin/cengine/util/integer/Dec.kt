@@ -57,8 +57,15 @@ class Dec(decString: String, size: Size) : Value(size) {
     override fun toDec(): Dec = this
     override fun toUDec(): UDec = getBinary().getUDec()
     override fun toASCII(): String = getASCII()
-    override fun toULong(): ULong = toLong().toULong()
+    override fun toByte(): Byte = rawInput.toByte()
+    override fun toShort(): Short = rawInput.toShort()
+    override fun toInt(): Int = rawInput.toInt()
     override fun toLong(): Long = rawInput.toLong()
+    override fun toUByte(): UByte = toByte().toUByte()
+    override fun toUShort(): UShort = toShort().toUShort()
+    override fun toUInt(): UInt = toInt().toUInt()
+    override fun toULong(): ULong = toLong().toULong()
+
     fun toIntOrNull(): Int? = rawInput.toIntOrNull()
     fun toDoubleOrNull(): Double? = rawInput.toDoubleOrNull()
     override fun getBiggest(): Value = Dec(Bounds(size).max, size)

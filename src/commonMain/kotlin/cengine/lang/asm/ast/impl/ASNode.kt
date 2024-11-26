@@ -14,6 +14,11 @@ import cengine.psi.core.*
 import cengine.psi.feature.Highlightable
 import cengine.psi.lexer.core.Token
 import cengine.util.integer.*
+import cengine.util.integer.Value.Companion.asBin
+import cengine.util.integer.Value.Companion.asDec
+import cengine.util.integer.Value.Companion.asHex
+import cengine.util.integer.Value.Companion.asOct
+import cengine.util.integer.Value.Companion.toValue
 import debug.DebugTools
 import emulator.kit.nativeLog
 

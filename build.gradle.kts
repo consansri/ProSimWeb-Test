@@ -57,6 +57,7 @@ version = DIST_VERSION
 repositories {
     google()
     mavenCentral()
+    maven("https://repo.kotlin.link")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
     maven {
         url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev")
@@ -64,17 +65,6 @@ repositories {
 }
 
 kotlin {
-    js(IR) {
-        binaries.executable()
-        browser {
-            commonWebpackConfig {
-                cssSupport {
-                    enabled.set(true)
-                }
-            }
-        }
-    }
-
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs("composeWeb") {
         browser()
@@ -133,15 +123,6 @@ kotlin {
                 implementation(compose.desktop.currentOs)
             }
         }
-
-        val jsMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlin-wrappers:kotlin-react:18.3.1-pre.757")
-                implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:18.3.1-pre.757")
-                implementation("org.jetbrains.kotlin-wrappers:kotlin-emotion:11.11.4-pre.757")
-                implementation("org.jetbrains.kotlin-wrappers:kotlin-tanstack-react-virtual:3.5.1-pre.757")
-            }
-        }
     }
 }
 
@@ -177,14 +158,6 @@ val composeDesktopFatJar by tasks.register<Jar>("composeDesktopFatJar") {
 
     // Include all files from the main output
     with(tasks.getByName("composeDesktopJar") as CopySpec)
-}
-
-val copyDistZipToJsDistribution by tasks.registering(Copy::class) {
-    group = "distribution"
-    description = "Copy distZip output to js distribution folder"
-    dependsOn("distZip", "distTar")
-    from("build/distributions")
-    into("build/dist/js/productionExecutable")
 }
 
 val copyComposeDesktopJarToWeb by tasks.registering(Copy::class) {

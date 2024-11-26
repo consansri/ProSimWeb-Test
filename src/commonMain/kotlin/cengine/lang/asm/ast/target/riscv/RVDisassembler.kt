@@ -4,9 +4,11 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.Disassembler.Decoded
+import cengine.lang.asm.ast.target.riscv.RVConst.signExtend
+import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.*
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
-import cengine.util.integer.toValue
+import cengine.util.integer.Value.Companion.toValue
 
 object RVDisassembler : Disassembler {
     override val decoded: MutableState<List<Disassembler.DecodedSegment>> = mutableStateOf(emptyList())
@@ -44,182 +46,231 @@ object RVDisassembler : Disassembler {
         val rs1 = (binary shr 15) and 0b11111U
         val rs2 = (binary shr 20) and 0b11111U
         val imm12iType = (binary shr 20) and 0b111111111111U
+        val iTypeImm get() = imm12iType.toLong().signExtend(12)
         val imm12sType = ((binary shr 25) shl 5) or rd
-        val imm12bType = ((binary shr 31) shl 12) or (((binary shr 7) and 0b1U) shl 11) or (((binary shr 25) and 0b111111U) shl 5) or (((binary shr 8) and 0b1111U)) shl 1
+        val sTypeImm get() = imm12sType.toLong().signExtend(12)
+        val imm12bType = ((binary shr 31) shl 12) or (((binary shr 7) and 0b1U) shl 11) or (((binary shr 25) and 0b111111U) shl 5) or (((binary shr 8) and 0b1111U) shl 1)
+        val bTypeOffset get() = imm12bType.toLong().signExtend(13)
         val imm20uType = binary shr 12
         val imm20jType = ((binary shr 31) shl 20) or (((binary shr 12) and 0b11111111U) shl 12) or (((binary shr 20) and 0b1U) shl 11) or (((binary shr 21) and 0b1111111111U) shl 1)
+        val jTypeOffset get() = imm20jType.toLong().signExtend(21)
         val shamt = (imm12iType and 0b111111U)
+        val pred = binary shr 24 and 0b1111U
+        val succ = binary shr 20 and 0b1111U
+        val type: InstrType? = when (opcode) {
+            RVConst.OPC_LUI -> LUI
+            RVConst.OPC_AUIPC -> AUIPC
+            RVConst.OPC_JAL -> JAL
+            RVConst.OPC_JALR -> JALR
+            RVConst.OPC_OS -> {
+                when (funct3) {
+                    RVConst.FUNCT3_CSR_RW -> CSRRW
+                    RVConst.FUNCT3_CSR_RS -> CSRRS
+                    RVConst.FUNCT3_CSR_RC -> CSRRC
+                    RVConst.FUNCT3_CSR_RWI -> CSRRWI
+                    RVConst.FUNCT3_CSR_RSI -> CSRRSI
+                    RVConst.FUNCT3_CSR_RCI -> CSRRCI
+                    RVConst.FUNCT3_E -> when (imm12iType) {
+                        1U -> EBREAK
+                        else -> ECALL
+                    }
+
+                    else -> null
+                }
+            }
+
+            RVConst.OPC_CBRA -> {
+                when (funct3) {
+                    RVConst.FUNCT3_CBRA_BEQ -> BEQ
+                    RVConst.FUNCT3_CBRA_BNE -> BNE
+                    RVConst.FUNCT3_CBRA_BLT -> BLT
+                    RVConst.FUNCT3_CBRA_BGE -> BGE
+                    RVConst.FUNCT3_CBRA_BLTU -> BLTU
+                    RVConst.FUNCT3_CBRA_BGEU -> BGEU
+                    else -> null
+                }
+            }
+
+            RVConst.OPC_LOAD -> {
+                when (funct3) {
+                    RVConst.FUNCT3_LOAD_B -> LB
+                    RVConst.FUNCT3_LOAD_H -> LH
+                    RVConst.FUNCT3_LOAD_W -> LW
+                    RVConst.FUNCT3_LOAD_D -> LD
+                    RVConst.FUNCT3_LOAD_BU -> LBU
+                    RVConst.FUNCT3_LOAD_HU -> LHU
+                    RVConst.FUNCT3_LOAD_WU -> LWU
+                    else -> null
+                }
+            }
+
+            RVConst.OPC_STORE -> {
+                when (funct3) {
+                    RVConst.FUNCT3_STORE_B -> SB
+                    RVConst.FUNCT3_STORE_H -> SH
+                    RVConst.FUNCT3_STORE_W -> SW
+                    RVConst.FUNCT3_STORE_D -> SD
+                    else -> null
+                }
+            }
+
+            RVConst.OPC_ARITH -> {
+                when (funct7) {
+                    RVConst.FUNCT7_SHIFT_ARITH_OR_SUB -> {
+                        when (funct3) {
+                            RVConst.FUNCT3_SHIFT_RIGHT -> SRA
+                            RVConst.FUNCT3_OPERATION -> SUB
+                            else -> null
+                        }
+                    }
+
+                    RVConst.FUNCT7_M -> {
+                        when (funct3) {
+                            RVConst.FUNCT3_M_MUL -> MUL
+                            RVConst.FUNCT3_M_MULH -> MULH
+                            RVConst.FUNCT3_M_MULHSU -> MULHSU
+                            RVConst.FUNCT3_M_MULHU -> MULHU
+                            RVConst.FUNCT3_M_DIV -> DIV
+                            RVConst.FUNCT3_M_DIVU -> DIVU
+                            RVConst.FUNCT3_M_REM -> REM
+                            RVConst.FUNCT3_M_REMU -> REMU
+                            else -> null
+                        }
+                    }
+
+                    else -> {
+                        when (funct3) {
+                            RVConst.FUNCT3_SHIFT_LEFT -> SLL
+                            RVConst.FUNCT3_SHIFT_RIGHT -> SRL
+                            RVConst.FUNCT3_SLT -> SLT
+                            RVConst.FUNCT3_SLTU -> SLTU
+                            RVConst.FUNCT3_OR -> OR
+                            RVConst.FUNCT3_AND -> AND
+                            RVConst.FUNCT3_XOR -> XOR
+                            RVConst.FUNCT3_OPERATION -> ADD
+                            else -> null
+                        }
+                    }
+                }
+            }
+
+            RVConst.OPC_ARITH_WORD -> {
+                when (funct7) {
+                    RVConst.FUNCT7_SHIFT_ARITH_OR_SUB -> {
+                        when (funct3) {
+                            RVConst.FUNCT3_SHIFT_RIGHT -> SRAW
+                            RVConst.FUNCT3_OPERATION -> SUBW
+                            else -> null
+                        }
+                    }
+
+                    RVConst.FUNCT7_M -> {
+                        when (funct3) {
+                            RVConst.FUNCT3_M_MUL -> MULW
+                            RVConst.FUNCT3_M_DIV -> DIVW
+                            RVConst.FUNCT3_M_DIVU -> DIVUW
+                            RVConst.FUNCT3_M_REM -> REMW
+                            RVConst.FUNCT3_M_REMU -> REMUW
+                            else -> null
+                        }
+                    }
+
+                    else -> {
+                        when (funct3) {
+                            RVConst.FUNCT3_SHIFT_LEFT -> SLLW
+                            RVConst.FUNCT3_SHIFT_RIGHT -> SRLW
+                            RVConst.FUNCT3_OPERATION -> ADDW
+                            else -> null
+                        }
+                    }
+                }
+            }
+
+            RVConst.OPC_ARITH_IMM -> {
+                when (funct3) {
+                    RVConst.FUNCT3_OPERATION -> ADDI
+                    RVConst.FUNCT3_SLT -> SLTI
+                    RVConst.FUNCT3_SLTU -> SLTIU
+                    RVConst.FUNCT3_XOR -> XORI
+                    RVConst.FUNCT3_OR -> ORI
+                    RVConst.FUNCT3_AND -> ANDI
+                    RVConst.FUNCT3_SHIFT_LEFT -> SLLI
+                    RVConst.FUNCT3_SHIFT_RIGHT -> when (funct7) {
+                        RVConst.FUNCT7_SHIFT_ARITH_OR_SUB -> SRAI
+                        else -> SRLI
+                    }
+
+                    else -> null
+                }
+            }
+
+            RVConst.OPC_ARITH_IMM_WORD -> {
+                when (funct3) {
+                    RVConst.FUNCT3_OPERATION -> ADDIW
+                    RVConst.FUNCT3_SHIFT_LEFT -> SLLIW
+                    RVConst.FUNCT3_SHIFT_RIGHT -> when (funct7) {
+                        RVConst.FUNCT7_SHIFT_ARITH_OR_SUB -> SRAIW
+                        else -> SRLIW
+                    }
+
+                    else -> null
+                }
+            }
+
+            RVConst.OPC_FENCE -> {
+                when (funct3) {
+                    0U -> FENCE
+                    RVConst.FUNCT3_FENCE_I -> FENCEI
+                    else -> null
+                }
+            }
+
+            else -> null
+        }
 
         override fun decode(segmentAddr: Hex, offset: ULong): Decoded {
-            return when (opcode) {
-                RVConst.OPC_LUI -> Decoded(offset, binaryAsHex, "lui    ${rdName()}, 0x${imm20uType.toString(16)}")
-                RVConst.OPC_AUIPC -> Decoded(offset, binaryAsHex, "auipc  ${rdName()}, 0x${imm20uType.toString(16)}")
-                RVConst.OPC_JAL -> Decoded(offset, binaryAsHex, "jal    ${rdName()}, ${imm20jType.toValue(Size.Bit20).toDec()}", (segmentAddr + offset.toValue(segmentAddr.size) + imm20jType.toValue(Size.Bit20).toDec().getResized(segmentAddr.size)).toHex())
-                RVConst.OPC_JALR -> Decoded(offset, binaryAsHex, "jalr   ${rdName()}, ${rs1Name()}, ${imm12iType.toInt()}")
-                RVConst.OPC_OS -> {
-                    when (funct3) {
-                        RVConst.FUNCT3_CSR_RW -> Decoded(offset, binaryAsHex, "csrrw  ${rdName()}, ${csrName()}, ${rs1Name()}")
-                        RVConst.FUNCT3_CSR_RS -> Decoded(offset, binaryAsHex, "csrrs  ${rdName()}, ${csrName()}, ${rs1Name()}")
-                        RVConst.FUNCT3_CSR_RC -> Decoded(offset, binaryAsHex, "csrrc  ${rdName()}, ${csrName()}, ${rs1Name()}")
-                        RVConst.FUNCT3_CSR_RWI -> Decoded(offset, binaryAsHex, "csrrwi ${rdName()}, ${csrName()}, 0b${rs1.toString(2)}")
-                        RVConst.FUNCT3_CSR_RSI -> Decoded(offset, binaryAsHex, "csrrsi ${rdName()}, ${csrName()}, 0b${rs1.toString(2)}")
-                        RVConst.FUNCT3_CSR_RCI -> Decoded(offset, binaryAsHex, "csrrci ${rdName()}, ${csrName()}, 0b${rs1.toString(2)}")
-                        RVConst.FUNCT3_E -> when (imm12iType) {
-                            1U -> Decoded(offset, binaryAsHex, "ebreak")
-                            else -> Decoded(offset, binaryAsHex, "ecall")
-                        }
-
-                        else -> Decoded(offset, binaryAsHex, "[invalid]")
-                    }
+            return when (type) {
+                LUI -> Decoded(offset, binaryAsHex, "lui    ${rdName()}, 0x${imm20uType.toString(16)}")
+                AUIPC -> Decoded(offset, binaryAsHex, "auipc  ${rdName()}, 0x${imm20uType.toString(16)}")
+                JAL -> {
+                    val target = (segmentAddr.toLong() + offset.toLong() + jTypeOffset).toULong().toValue(segmentAddr.size)
+                    Decoded(offset, binaryAsHex, "jal    ${rdName()}, ${imm20jType.toValue(Size.Bit20).toDec()}", target)
                 }
 
-                RVConst.OPC_CBRA -> {
-                    val offset12 = imm12bType.toValue(Size.Bit12).toDec().getResized(segmentAddr.size)
-                    val target = (segmentAddr + offset.toValue(segmentAddr.size) + offset12).toHex()
-                    when (funct3) {
-                        RVConst.FUNCT3_CBRA_BEQ -> Decoded(offset, binaryAsHex, "beq    ${rs1Name()}, ${rs2Name()}, $offset12", target)
-                        RVConst.FUNCT3_CBRA_BNE -> Decoded(offset, binaryAsHex, "bne    ${rs1Name()}, ${rs2Name()}, $offset12", target)
-                        RVConst.FUNCT3_CBRA_BLT -> Decoded(offset, binaryAsHex, "blt    ${rs1Name()}, ${rs2Name()}, $offset12", target)
-                        RVConst.FUNCT3_CBRA_BGE -> Decoded(offset, binaryAsHex, "bge    ${rs1Name()}, ${rs2Name()}, $offset12", target)
-                        RVConst.FUNCT3_CBRA_BLTU -> Decoded(offset, binaryAsHex, "bltu   ${rs1Name()}, ${rs2Name()}, $offset12", target)
-                        RVConst.FUNCT3_CBRA_BGEU -> Decoded(offset, binaryAsHex, "bgeu   ${rs1Name()}, ${rs2Name()}, $offset12", target)
-                        else -> Decoded(offset, binaryAsHex, "[invalid]")
-                    }
+                JALR -> Decoded(offset, binaryAsHex, "jalr   ${rdName()}, ${rs1Name()}, ${imm12iType.toLong().signExtend(12)}")
+                ECALL -> Decoded(offset, binaryAsHex, "ecall")
+                EBREAK -> Decoded(offset, binaryAsHex, "ebreak")
+                BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
+                    val target = (segmentAddr.toLong() + offset.toLong() + bTypeOffset).toULong().toValue(segmentAddr.size)
+                    Decoded(offset, binaryAsHex, "${type.lc6char} ${rs1Name()}, ${rs2Name()}, $jTypeOffset", target)
                 }
 
-                RVConst.OPC_LOAD -> {
-                    val offset12 = imm12iType.toValue(Size.Bit12).toDec()
-                    when (funct3) {
-                        RVConst.FUNCT3_LOAD_B -> Decoded(offset, binaryAsHex, "lb     ${rdName()}, $offset12(${rs1Name()})")
-                        RVConst.FUNCT3_LOAD_H -> Decoded(offset, binaryAsHex, "lh     ${rdName()}, $offset12(${rs1Name()})")
-                        RVConst.FUNCT3_LOAD_W -> Decoded(offset, binaryAsHex, "lw     ${rdName()}, $offset12(${rs1Name()})")
-                        RVConst.FUNCT3_LOAD_D -> Decoded(offset, binaryAsHex, "ld     ${rdName()}, $offset12(${rs1Name()})")
-                        RVConst.FUNCT3_LOAD_BU -> Decoded(offset, binaryAsHex, "lbu    ${rdName()}, $offset12(${rs1Name()})")
-                        RVConst.FUNCT3_LOAD_HU -> Decoded(offset, binaryAsHex, "lhu    ${rdName()}, $offset12(${rs1Name()})")
-                        RVConst.FUNCT3_LOAD_WU -> Decoded(offset, binaryAsHex, "lwu    ${rdName()}, $offset12(${rs1Name()})")
-                        else -> Decoded(offset, binaryAsHex, "[invalid]")
-                    }
+                LB, LH, LW, LD, LBU, LHU, LWU -> {
+                    Decoded(offset, binaryAsHex, "${type.lc6char} ${rdName()}, $iTypeImm(${rs1Name()})")
                 }
 
-                RVConst.OPC_STORE -> {
-                    val offset12 = imm12sType.toValue(Size.Bit12).toDec()
-                    when (funct3) {
-                        RVConst.FUNCT3_STORE_B -> Decoded(offset, binaryAsHex, "sb     ${rs2Name()}, $offset12(${rs1Name()})")
-                        RVConst.FUNCT3_STORE_H -> Decoded(offset, binaryAsHex, "sh     ${rs2Name()}, $offset12(${rs1Name()})")
-                        RVConst.FUNCT3_STORE_W -> Decoded(offset, binaryAsHex, "sw     ${rs2Name()}, $offset12(${rs1Name()})")
-                        RVConst.FUNCT3_STORE_D -> Decoded(offset, binaryAsHex, "sd     ${rs2Name()}, $offset12(${rs1Name()})")
-                        else -> Decoded(offset, binaryAsHex, "[invalid]")
-                    }
+                SB, SH, SW, SD -> {
+                    Decoded(offset, binaryAsHex, "${type.lc6char} ${rs2Name()}, $sTypeImm(${rs1Name()})")
                 }
 
-                RVConst.OPC_ARITH -> {
-                    when (funct7) {
-                        RVConst.FUNCT7_SHIFT_ARITH_OR_SUB -> {
-                            when (funct3) {
-                                RVConst.FUNCT3_SHIFT_RIGHT -> Decoded(offset, binaryAsHex, "sra    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_OPERATION -> Decoded(offset, binaryAsHex, "sub    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                else -> Decoded(offset, binaryAsHex, "[invalid]")
-                            }
-                        }
-
-                        RVConst.FUNCT7_M -> {
-                            when (funct3) {
-                                RVConst.FUNCT3_M_MUL -> Decoded(offset, binaryAsHex, "mul    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_MULH -> Decoded(offset, binaryAsHex, "mulh   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_MULHSU -> Decoded(offset, binaryAsHex, "mulhsu ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_MULHU -> Decoded(offset, binaryAsHex, "mulhu  ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_DIV -> Decoded(offset, binaryAsHex, "div    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_DIVU -> Decoded(offset, binaryAsHex, "divu   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_REM -> Decoded(offset, binaryAsHex, "rem    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_REMU -> Decoded(offset, binaryAsHex, "remu   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                else -> Decoded(offset, binaryAsHex, "[invalid]")
-                            }
-                        }
-
-                        else -> {
-                            when (funct3) {
-                                RVConst.FUNCT3_SHIFT_LEFT -> Decoded(offset, binaryAsHex, "sll    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_SHIFT_RIGHT -> Decoded(offset, binaryAsHex, "srl    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_SLT -> Decoded(offset, binaryAsHex, "slt    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_SLTU -> Decoded(offset, binaryAsHex, "sltu   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_OR -> Decoded(offset, binaryAsHex, "or     ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_AND -> Decoded(offset, binaryAsHex, "and    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_XOR -> Decoded(offset, binaryAsHex, "xor    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_OPERATION -> Decoded(offset, binaryAsHex, "add    ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                else -> Decoded(offset, binaryAsHex, "[invalid]")
-                            }
-                        }
-                    }
-                }
-
-                RVConst.OPC_ARITH_WORD -> {
-                    when (funct7) {
-                        RVConst.FUNCT7_SHIFT_ARITH_OR_SUB -> {
-                            when (funct3) {
-                                RVConst.FUNCT3_SHIFT_RIGHT -> Decoded(offset, binaryAsHex, "sraw   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_OPERATION -> Decoded(offset, binaryAsHex, "subw   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                else -> Decoded(offset, binaryAsHex, "[invalid]")
-                            }
-                        }
-
-                        RVConst.FUNCT7_M -> {
-                            when (funct3) {
-                                RVConst.FUNCT3_M_MUL -> Decoded(offset, binaryAsHex, "mulw   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_DIV -> Decoded(offset, binaryAsHex, "divw   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_DIVU -> Decoded(offset, binaryAsHex, "divuw  ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_REM -> Decoded(offset, binaryAsHex, "remw   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_M_REMU -> Decoded(offset, binaryAsHex, "remuw  ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                else -> Decoded(offset, binaryAsHex, "[invalid]")
-                            }
-                        }
-
-                        else -> {
-                            when (funct3) {
-                                RVConst.FUNCT3_SHIFT_LEFT -> Decoded(offset, binaryAsHex, "sllw   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_SHIFT_RIGHT -> Decoded(offset, binaryAsHex, "srlw   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                RVConst.FUNCT3_OPERATION -> Decoded(offset, binaryAsHex, "addw   ${rdName()}, ${rs1Name()}, ${rs2Name()}")
-                                else -> Decoded(offset, binaryAsHex, "[invalid]")
-                            }
-                        }
-                    }
-                }
-
-                RVConst.OPC_ARITH_IMM -> {
+                ADDI, ADDIW, SLTI, SLTIU, XORI, ORI, ANDI -> {
                     val imm12 = imm12iType.toValue(Size.Bit12).toDec()
-
-                    when (funct3) {
-                        RVConst.FUNCT3_OPERATION -> Decoded(offset, binaryAsHex, "addi   ${rdName()}, ${rs1Name()}, $imm12")
-                        RVConst.FUNCT3_SLT -> Decoded(offset, binaryAsHex, "slti   ${rdName()}, ${rs1Name()}, $imm12")
-                        RVConst.FUNCT3_SLTU -> Decoded(offset, binaryAsHex, "sltiu  ${rdName()}, ${rs1Name()}, $imm12")
-                        RVConst.FUNCT3_XOR -> Decoded(offset, binaryAsHex, "xori   ${rdName()}, ${rs1Name()}, $imm12")
-                        RVConst.FUNCT3_OR -> Decoded(offset, binaryAsHex, "ori    ${rdName()}, ${rs1Name()}, $imm12")
-                        RVConst.FUNCT3_AND -> Decoded(offset, binaryAsHex, "andi   ${rdName()}, ${rs1Name()}, $imm12")
-                        RVConst.FUNCT3_SHIFT_LEFT -> Decoded(offset, binaryAsHex, "slli   ${rdName()}, ${rs1Name()}, $shamt")
-                        RVConst.FUNCT3_SHIFT_RIGHT -> when (funct7) {
-                            RVConst.FUNCT7_SHIFT_ARITH_OR_SUB -> Decoded(offset, binaryAsHex, "srai   ${rdName()}, ${rs1Name()}, $shamt")
-                            else -> Decoded(offset, binaryAsHex, "srli   ${rdName()}, ${rs1Name()}, $shamt")
-                        }
-
-                        else -> Decoded(offset, binaryAsHex, "[invalid]")
-                    }
+                    Decoded(offset, binaryAsHex, "${type.lc6char} ${rdName()}, ${rs1Name()}, $imm12")
                 }
 
-                RVConst.OPC_ARITH_IMM_WORD -> {
-                    val imm12 = imm12iType.toValue(Size.Bit12).toDec()
+                SLLI, SLLIW, SRLI, SRLIW, SRAI, SRAIW -> Decoded(offset, binaryAsHex, "${type.lc6char} ${rdName()}, ${rs1Name()}, $shamt")
+                ADD, ADDW, SUB, SUBW, SLL, SLLW,
+                SLT, SLTU, XOR, SRL, SRLW, SRA,
+                SRAW, OR, AND, MUL, MULH, MULHSU,
+                MULHU, DIV, DIVU, REM, REMU, MULW,
+                DIVW, DIVUW, REMW, REMUW,
+                -> Decoded(offset, binaryAsHex, "${type.lc6char} ${rdName()}, ${rs1Name()}, ${rs2Name()}")
 
-                    when (funct3) {
-                        RVConst.FUNCT3_OPERATION -> Decoded(offset, binaryAsHex, "addiw  ${rdName()}, ${rs1Name()}, $imm12")
-                        RVConst.FUNCT3_SHIFT_LEFT -> Decoded(offset, binaryAsHex, "slliw  ${rdName()}, ${rs1Name()}, $shamt")
-                        RVConst.FUNCT3_SHIFT_RIGHT -> when (funct7) {
-                            RVConst.FUNCT7_SHIFT_ARITH_OR_SUB -> Decoded(offset, binaryAsHex, "sraiw  ${rdName()}, ${rs1Name()}, $shamt")
-                            else -> Decoded(offset, binaryAsHex, "srliw  ${rdName()}, ${rs1Name()}, $shamt")
-                        }
-
-                        else -> Decoded(offset, binaryAsHex, "[invalid]")
-                    }
-                }
-
-                else -> Decoded(offset, binaryAsHex, "[invalid]")
+                FENCE -> Decoded(offset, binaryAsHex, "${type.lc6char} $pred,$succ")
+                FENCEI -> Decoded(offset, binaryAsHex, type.lc6char)
+                CSRRW, CSRRS, CSRRC -> Decoded(offset, binaryAsHex, "${type.lc6char} ${rdName()}, ${csrName()}, ${rs1Name()}")
+                CSRRWI, CSRRSI, CSRRCI -> Decoded(offset, binaryAsHex, "${type.lc6char} ${rdName()}, ${csrName()}, 0b${rs1.toString(2)}")
+                null -> Decoded(offset, binaryAsHex, "[invalid]")
             }
         }
 
@@ -227,6 +278,83 @@ object RVDisassembler : Disassembler {
         fun rdName(): String = RVBaseRegs.entries.getOrNull(rd.toInt())?.displayName ?: "[invalid reg]"
         fun rs1Name(): String = RVBaseRegs.entries.getOrNull(rs1.toInt())?.displayName ?: "[invalid reg]"
         fun rs2Name(): String = RVBaseRegs.entries.getOrNull(rs2.toInt())?.displayName ?: "[invalid reg]"
+    }
+
+    enum class InstrType(val special: String? = null) {
+        LUI,
+        AUIPC,
+        JAL,
+        JALR,
+        ECALL,
+        EBREAK,
+        BEQ,
+        BNE,
+        BLT,
+        BGE,
+        BLTU,
+        BGEU,
+        LB,
+        LH,
+        LW,
+        LD,
+        LBU,
+        LHU,
+        LWU,
+        SB,
+        SH,
+        SW,
+        SD,
+        ADDI,
+        ADDIW,
+        SLTI,
+        SLTIU,
+        XORI,
+        ORI,
+        ANDI,
+        SLLI,
+        SLLIW,
+        SRLI,
+        SRLIW,
+        SRAI,
+        SRAIW,
+        ADD,
+        ADDW,
+        SUB,
+        SUBW,
+        SLL,
+        SLLW,
+        SLT,
+        SLTU,
+        XOR,
+        SRL,
+        SRLW,
+        SRA,
+        SRAW,
+        OR,
+        AND,
+        FENCE,
+        FENCEI("fence.i"),
+        CSRRW,
+        CSRRS,
+        CSRRC,
+        CSRRWI,
+        CSRRSI,
+        CSRRCI,
+        MUL,
+        MULH,
+        MULHSU,
+        MULHU,
+        DIV,
+        DIVU,
+        REM,
+        REMU,
+        MULW,
+        DIVW,
+        DIVUW,
+        REMW,
+        REMUW;
+
+        val lc6char: String = (special ?: name).lowercase().padEnd(6, ' ')
     }
 
 }

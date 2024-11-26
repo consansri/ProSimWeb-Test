@@ -50,9 +50,14 @@ class Oct(octString: String, size: Size) : Value(size) {
     override fun toDec(): Dec = getBinary().getDec()
     override fun toUDec(): UDec = getBinary().getUDec()
     override fun toASCII(): String = getASCII()
+    override fun toByte(): Byte = toUByte().toByte()
+    override fun toShort(): Short = toUShort().toShort()
+    override fun toInt(): Int = toUInt().toInt()
     override fun toLong(): Long = toULong().toLong()
-    override fun toULong(): ULong = rawInput.toULong(8)
-
+    override fun toUByte(): UByte = rawInput.takeLast(3).toUByte(8)
+    override fun toUShort(): UShort = rawInput.takeLast(6).toUShort(8)
+    override fun toUInt(): UInt = rawInput.takeLast(11).toUInt(8)
+    override fun toULong(): ULong = rawInput.takeLast(22).toULong(8)
     override fun getBiggest(): Value = Bin("1".repeat(size.bitWidth), size)
 
     override fun plus(operand: Value): Oct {

@@ -3,7 +3,7 @@ package cengine.util.buffer
 import cengine.util.Endianness
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
-import cengine.util.integer.toValue
+import cengine.util.integer.Value.Companion.toValue
 
 class ShortBuffer(endianness: Endianness, initial: Array<Short> = emptyArray()) : Buffer<Short>(endianness, initial) {
     override val wordWidth: Size get() = Size.Bit16
