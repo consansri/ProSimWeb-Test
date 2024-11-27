@@ -1417,10 +1417,6 @@ enum class ASDirType(
                 for (expr in exprs) {
                     try {
                         val uint32 = expr.evaluate(builder).toHex().toUInt()
-                        if (uint32 == null) {
-                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit32}!"))
-                            continue
-                        }
                         builder.currentSection.content.put(uint32)
                     } catch (e: Exception) {
                         expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
@@ -1434,10 +1430,6 @@ enum class ASDirType(
                 for (expr in exprs) {
                     try {
                         val short = expr.evaluate(builder).toShort()
-                        if (short == null) {
-                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit16}!"))
-                            continue
-                        }
                         builder.currentSection.content.put(short)
                     } catch (e: Exception) {
                         expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
@@ -1450,10 +1442,6 @@ enum class ASDirType(
                 for (expr in exprs) {
                     try {
                         val int = expr.evaluate(builder).toInt()
-                        if (int == null) {
-                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit32}!"))
-                            continue
-                        }
                         builder.currentSection.content.put(int)
                     } catch (e: Exception) {
                         expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
