@@ -1,12 +1,12 @@
 package emulator.archs
 
-import cengine.lang.asm.ast.target.riscv.RVConst.signExtend
 import cengine.lang.asm.ast.target.riscv.RVDisassembler
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.JAL
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.JALR
 import cengine.util.integer.Size
 import cengine.util.integer.Value.Companion.toValue
 import cengine.util.integer.multiplyWithHighLow
+import cengine.util.integer.signExtend
 import emulator.archs.riscv64.RV64
 import emulator.kit.MicroSetup
 import emulator.kit.memory.Memory
@@ -55,6 +55,7 @@ class ArchRV64 : BasicArchImpl(RV64.config) {
                 val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
                 rd.set(currentPc + 4U.toValue())
                 val target = currentPc.toLong() + decoded.jTypeOffset
+
                 pc.set(target.toValue())
             }
 

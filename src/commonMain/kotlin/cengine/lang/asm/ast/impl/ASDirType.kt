@@ -9,7 +9,7 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.obj.elf.Shdr
-import cengine.util.integer.*
+import cengine.util.integer.Hex
 import cengine.util.integer.Size.*
 
 enum class ASDirType(
@@ -1213,10 +1213,6 @@ enum class ASDirType(
                 for (expr in exprs) {
                     try {
                         val byte = expr.evaluate(builder).toByte()
-                        if (byte == null) {
-                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit8}!"))
-                            continue
-                        }
                         builder.currentSection.content.put(byte)
                     } catch (e: Exception) {
                         expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
@@ -1356,10 +1352,6 @@ enum class ASDirType(
                 for (expr in exprs) {
                     try {
                         val short = expr.evaluate(builder).toShort()
-                        if (short == null) {
-                            expr.annotations.add(Annotation.error(expr, "${expr.evaluated} exceeds ${Bit8}!"))
-                            continue
-                        }
                         builder.currentSection.content.put(short)
                     } catch (e: Exception) {
                         expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))

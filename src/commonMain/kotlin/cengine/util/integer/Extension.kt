@@ -2,6 +2,50 @@ package cengine.util.integer
 
 
 /**
+ * Sign extends an Integer of [bitWidth] to a 64-Bit Integer.
+ */
+fun Long.signExtend(bitWidth: Int): Long {
+    require(bitWidth in 1..32) { "bitWidth must be between 1 and 32" }
+
+    // Mask the input value to the specified bit width
+    val mask = (1L shl bitWidth) - 1L // Creates a mask with `bitWidth` bits set
+    val maskedValue = this and mask
+
+    // Check the sign bit (highest bit in the specified bit width)
+    val signBit = 1L shl (bitWidth - 1)
+    val result = if (maskedValue and signBit != 0L) {
+        // If the sign bit is set, extend with 1s
+        (maskedValue or (-1L shl bitWidth))
+    } else {
+        // If the sign bit is not set, return as-is
+        maskedValue
+    }
+
+    return result
+}
+
+/**
+ * Sign extends an Integer of [bitWidth] to a 32-Bit Integer.
+ */
+fun Int.signExtend(bitWidth: Int): Int {
+    require(bitWidth in 1..32) { "bitWidth must be between 1 and 32" }
+
+    // Mask the input value to the specified bit width
+    val mask = (1 shl bitWidth) - 1 // Creates a mask with `bitWidth` bits set
+    val maskedValue = this and mask
+
+    // Check the sign bit (highest bit in the specified bit width)
+    val signBit = 1 shl (bitWidth - 1)
+    return if (maskedValue and signBit != 0) {
+        // If the sign bit is set, extend with 1s
+        (maskedValue or (-1 shl bitWidth))
+    } else {
+        // If the sign bit is not set, return as-is
+        maskedValue
+    }
+}
+
+/**
  * Rotate left
  */
 fun UInt.rol(bits: Int): UInt{

@@ -4,11 +4,11 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.Disassembler.Decoded
-import cengine.lang.asm.ast.target.riscv.RVConst.signExtend
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.*
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import cengine.util.integer.Value.Companion.toValue
+import cengine.util.integer.signExtend
 
 object RVDisassembler : Disassembler {
     override val decoded: MutableState<List<Disassembler.DecodedSegment>> = mutableStateOf(emptyList())
@@ -234,7 +234,7 @@ object RVDisassembler : Disassembler {
                 AUIPC -> Decoded(offset, binaryAsHex, "auipc  ${rdName()}, 0x${imm20uType.toString(16)}")
                 JAL -> {
                     val target = (segmentAddr.toLong() + offset.toLong() + jTypeOffset).toULong().toValue(segmentAddr.size)
-                    Decoded(offset, binaryAsHex, "jal    ${rdName()}, ${imm20jType.toValue(Size.Bit20).toDec()}", target)
+                    Decoded(offset, binaryAsHex, "jal    ${rdName()}, $jTypeOffset", target)
                 }
 
                 JALR -> Decoded(offset, binaryAsHex, "jalr   ${rdName()}, ${rs1Name()}, ${imm12iType.toLong().signExtend(12)}")

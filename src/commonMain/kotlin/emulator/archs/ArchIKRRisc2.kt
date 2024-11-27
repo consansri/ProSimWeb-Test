@@ -2,10 +2,10 @@ package emulator.archs
 
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.IKRR2InstrProvider
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.InstrType.*
-import cengine.lang.asm.ast.target.riscv.RVConst.signExtend
 import cengine.util.integer.Value.Companion.toValue
 import cengine.util.integer.rol
 import cengine.util.integer.ror
+import cengine.util.integer.signExtend
 import emulator.archs.ikrrisc2.IKRRisc2
 import emulator.kit.MicroSetup
 import emulator.kit.memory.Memory

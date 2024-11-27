@@ -187,50 +187,23 @@ data object RVConst {
      *
      * @return the jType starting from index 0 (needs to be shifted for 12 bit to the left when used in opcode)
      */
-    fun UInt.mask20jType(): UInt = (bit(20) shl 19) or (shr(1).lowest10() shl 9) or (bit(11) shl 8) or shr(12).lowest8()
+    fun UInt.mask20jType(): UInt {
+        val bit20 = (this shr 19) and 1U
+        val bits10to1 = (this shr 1) and 0x3ffU
+        val bit11 = (this shr 11) and 1U
+        val bits19to12 = (this shr 12) and 0xffU
+
+        return (bit20 shl 19) or
+                (bits19to12) or
+                (bit11 shl 8) or
+                (bits10to1 shl 9)
+    }
 
     fun UInt.mask12bType7(): UInt = (bit(12) shl 6) or (this shr 5).lowest6()
 
     fun UInt.mask12bType5(): UInt = (shr(1).lowest4() shl 1) or bit(11)
 
-    /**
-     * Sign extensions
-     */
-    fun Long.signExtend(bitWidth: Int): Long {
-        require(bitWidth in 1..32) { "bitWidth must be between 1 and 32" }
 
-        // Mask the input value to the specified bit width
-        val mask = (1L shl bitWidth) - 1L // Creates a mask with `bitWidth` bits set
-        val maskedValue = this and mask
-
-        // Check the sign bit (highest bit in the specified bit width)
-        val signBit = 1L shl (bitWidth - 1)
-        return if (maskedValue and signBit != 0L) {
-            // If the sign bit is set, extend with 1s
-            (maskedValue or (0xFFFFFFFFL shl bitWidth))
-        } else {
-            // If the sign bit is not set, return as-is
-            maskedValue
-        }
-    }
-
-    fun Int.signExtend(bitWidth: Int): Int {
-        require(bitWidth in 1..32) { "bitWidth must be between 1 and 32" }
-
-        // Mask the input value to the specified bit width
-        val mask = (1 shl bitWidth) - 1 // Creates a mask with `bitWidth` bits set
-        val maskedValue = this and mask
-
-        // Check the sign bit (highest bit in the specified bit width)
-        val signBit = 1 shl (bitWidth - 1)
-        return if (maskedValue and signBit != 0) {
-            // If the sign bit is set, extend with 1s
-            (maskedValue or (0xFFFFFFFF shl bitWidth).toInt())
-        } else {
-            // If the sign bit is not set, return as-is
-            maskedValue
-        }
-    }
 }
 
 
