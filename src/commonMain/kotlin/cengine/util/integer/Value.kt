@@ -113,6 +113,10 @@ sealed class Value(val size: Size) {
     abstract operator fun dec(): Value
     abstract operator fun compareTo(other: Value): Int
     abstract override fun equals(other: Any?): Boolean
+    abstract infix fun and(other: Value): Value
+    abstract infix fun or(other: Value): Value
+    abstract infix fun xor(other: Value): Value
+
     fun toRawZeroTrimmedString(): String = rawInput.removeLeadingZeros()
     abstract override fun toString(): String
 

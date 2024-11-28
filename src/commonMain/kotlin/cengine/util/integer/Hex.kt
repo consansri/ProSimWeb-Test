@@ -153,4 +153,10 @@ class Hex(hexString: String, size: Size) : Value(size) {
         }
         return false
     }
+
+    override fun and(other: Value): Hex = toBin().and(other.toBin()).toHex()
+
+    override fun or(other: Value): Hex = toBin().or(other.toBin()).toHex()
+
+    override fun xor(other: Value): Hex =toBin().xor(other.toBin()).toHex()
 }

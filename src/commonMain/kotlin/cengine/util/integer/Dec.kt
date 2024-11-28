@@ -145,5 +145,11 @@ class Dec(decString: String, size: Size) : Value(size) {
         return false
     }
 
+    override fun and(other: Value): Dec = toBin().and(other.toBin()).toDec()
+
+    override fun or(other: Value): Dec = toBin().or(other.toBin()).toDec()
+
+    override fun xor(other: Value): Dec = toBin().xor(other.toBin()).toDec()
+
     override fun toString(): String = "${Settings.PRESTRING_DECIMAL}$rawInput"
 }

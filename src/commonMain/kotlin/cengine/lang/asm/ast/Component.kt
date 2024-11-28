@@ -79,11 +79,11 @@ sealed class Component {
             val matchingTokens = mutableListOf<AsmToken>()
 
             for (comp in comps) {
-                val result = comp.matchStart(lexer, targetSpec)
-
                 if (print) {
-                    nativeInfo("${this::class.simpleName}: ${comp.print("")} == [${lexer.peek(true)}] -> ${result.matches}")
+                    nativeInfo("${this::class.simpleName}: ${comp.print("")} == ${lexer.peek(true)}")
                 }
+
+                val result = comp.matchStart(lexer, targetSpec)
 
                 if (!result.matches) {
                     lexer.position = initialPosition

@@ -214,7 +214,15 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
 
                     validTypes.forEach {
                         val rule = it.paramRule ?: return Instruction(it, first, emptyList(), emptyList())
+                        nativeLog(
+                            "----------------------------" +
+                                    "\nMatching $rule"
+                        )
                         val result = rule.matchStart(lexer, targetSpec)
+                        nativeLog(
+                            "$result" +
+                                    "\n----------------------------"
+                        )
                         if (result.matches) {
                             return Instruction(it, first, result.matchingTokens, result.matchingNodes)
                         }
@@ -663,6 +671,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                                 relevantTokens.add(token)
                             } else {
                                 if (openingBracketCount <= closingBracketCount) {
+                                    lexer.position = token.start
                                     break
                                 }
                                 closingBracketCount++
@@ -681,6 +690,8 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                 if (relevantTokens.lastOrNull()?.type?.isOpeningBracket == true) {
                     lexer.position = relevantTokens.removeLast().range.first
                 }
+
+                nativeLog("NumericExpr.validTokens: $relevantTokens")
 
                 if (relevantTokens.isEmpty()) {
                     lexer.position = initialPos

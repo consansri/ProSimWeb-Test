@@ -232,6 +232,21 @@ class Bin(binString: String, size: Size) : Value(size) {
         return false
     }
 
+    override fun and(other: Value): Bin {
+        val biggestSize = if (size.bitWidth >= other.size.bitWidth) size else other.size
+        return Bin(BinaryTools.and(rawInput, other.toBin().rawInput), biggestSize)
+    }
+
+    override fun or(other: Value): Bin {
+        val biggestSize = if (size.bitWidth >= other.size.bitWidth) size else other.size
+        return Bin(BinaryTools.or(rawInput, other.toBin().rawInput), biggestSize)
+    }
+
+    override fun xor(other: Value): Bin {
+        val biggestSize = if (size.bitWidth >= other.size.bitWidth) size else other.size
+        return Bin(BinaryTools.xor(rawInput, other.toBin().rawInput), biggestSize)
+    }
+
     infix fun shl(bitCount: Int): Bin {
         if (bitCount > size.bitWidth) return Bin("0", size)
         val shiftedBinary = rawInput.substring(bitCount).padEnd(size.bitWidth, '0')
@@ -266,21 +281,6 @@ class Bin(binString: String, size: Size) : Value(size) {
         val doubled = rawInput + rawInput
         val rotatedBinStr = doubled.substring(rawInput.length - normalizedShift, 2 * rawInput.length - normalizedShift)
         return Bin(rotatedBinStr, size)
-    }
-
-    infix fun xor(bin2: Bin): Bin {
-        val biggestSize = if (size.bitWidth >= bin2.size.bitWidth) size else bin2.size
-        return Bin(BinaryTools.xor(rawInput, bin2.rawInput), biggestSize)
-    }
-
-    infix fun or(bin2: Bin): Bin {
-        val biggestSize = if (size.bitWidth >= bin2.size.bitWidth) size else bin2.size
-        return Bin(BinaryTools.or(rawInput, bin2.rawInput), biggestSize)
-    }
-
-    infix fun and(bin2: Bin): Bin {
-        val biggestSize = if (size.bitWidth >= bin2.size.bitWidth) size else bin2.size
-        return Bin(BinaryTools.and(rawInput, bin2.rawInput), biggestSize)
     }
 
     operator fun inv(): Bin {

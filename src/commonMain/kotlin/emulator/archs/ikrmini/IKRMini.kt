@@ -1,5 +1,6 @@
 package emulator.archs.ikrmini
 
+import cengine.lang.asm.ast.target.ikrmini.IKRMiniDisassembler
 import cengine.util.integer.Size.*
 import cengine.util.integer.Variable
 import emulator.archs.ArchIKRMini
@@ -80,7 +81,7 @@ data object IKRMini {
             "common"
         ),
         MainMemory(WORDSIZE, BYTESIZE, Memory.Endianess.BigEndian),
-        null,
+        IKRMiniDisassembler,
         settings
     )
 }

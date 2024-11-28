@@ -4,6 +4,7 @@ import cengine.lang.asm.ast.AsmCodeGenerator
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
+import cengine.util.integer.Size
 
 enum class IKRMiniInstrType(override val detectionName: String, val opCode: UShort, val paramType: IKRMiniParamType, val description: String, val labelDependent: Boolean = false) : InstrTypeInterface {
     // Data Transport
@@ -47,42 +48,42 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
     SUBC_IND("SUBC", 0x03AEU, IKRMiniParamType.IND, "sub with carry"),
     SUBC_IND_OFF("SUBC", 0x04AEU, IKRMiniParamType.IND_OFF, "sub with carry"),
 
-    LSL_IMPL("LSL", 0x00A0U, IKRMiniParamType.IMPL, "logic shift left"),
+    LSL("LSL", 0x00A0U, IKRMiniParamType.IMPL, "logic shift left"),
     LSL_DIR("LSL", 0x0220U, IKRMiniParamType.DIR, "logic shift left"),
     LSL_IND("LSL", 0x0320U, IKRMiniParamType.IND, "logic shift left"),
     LSL_IND_OFF("LSL", 0x0420U, IKRMiniParamType.IND_OFF, "logic shift left"),
-    LSR_IMPL("LSR", 0x00A1U, IKRMiniParamType.IMPL, "logic shift right"),
+    LSR("LSR", 0x00A1U, IKRMiniParamType.IMPL, "logic shift right"),
     LSR_DIR("LSR", 0x0221U, IKRMiniParamType.DIR, "logic shift right"),
     LSR_IND("LSR", 0x0321U, IKRMiniParamType.IND, "logic shift right"),
     LSR_IND_OFF("LSR", 0x0421U, IKRMiniParamType.IND_OFF, "logic shift right"),
-    ROL_IMPL("ROL", 0x00A2U, IKRMiniParamType.IMPL, "rotate left"),
+    ROL("ROL", 0x00A2U, IKRMiniParamType.IMPL, "rotate left"),
     ROL_DIR("ROL", 0x0222U, IKRMiniParamType.DIR, "rotate left"),
     ROL_IND("ROL", 0x0322U, IKRMiniParamType.IND, "rotate left"),
     ROL_IND_OFF("ROL", 0x0422U, IKRMiniParamType.IND_OFF, "rotate left"),
-    ROR_IMPL("ROR", 0x00A3U, IKRMiniParamType.IMPL, "rotate right"),
+    ROR("ROR", 0x00A3U, IKRMiniParamType.IMPL, "rotate right"),
     ROR_DIR("ROR", 0x0223U, IKRMiniParamType.DIR, "rotate right"),
     ROR_IND("ROR", 0x0323U, IKRMiniParamType.IND, "rotate right"),
     ROR_IND_OFF("ROR", 0x0423U, IKRMiniParamType.IND_OFF, "rotate right"),
-    ASL_IMPL("ASL", 0x00A4U, IKRMiniParamType.IMPL, "arithmetic shift left"),
+    ASL("ASL", 0x00A4U, IKRMiniParamType.IMPL, "arithmetic shift left"),
     ASL_DIR("ASL", 0x0224U, IKRMiniParamType.DIR, "arithmetic shift left"),
     ASL_IND("ASL", 0x0324U, IKRMiniParamType.IND, "arithmetic shift left"),
     ASL_IND_OFF("ASL", 0x0424U, IKRMiniParamType.IND_OFF, "arithmetic shift left"),
-    ASR_IMPL("ASR", 0x00A5U, IKRMiniParamType.IMPL, "arithmetic shift right"),
+    ASR("ASR", 0x00A5U, IKRMiniParamType.IMPL, "arithmetic shift right"),
     ASR_DIR("ASR", 0x0225U, IKRMiniParamType.DIR, "arithmetic shift right"),
     ASR_IND("ASR", 0x0325U, IKRMiniParamType.IND, "arithmetic shift right"),
     ASR_IND_OFF("ASR", 0x0425U, IKRMiniParamType.IND_OFF, "arithmetic shift right"),
 
-    RCL_IMPL("RCL", 0x00A6U, IKRMiniParamType.IMPL, "rotate left with carry"),
+    RCL("RCL", 0x00A6U, IKRMiniParamType.IMPL, "rotate left with carry"),
     RCL_IMM("RCL", 0x0126U, IKRMiniParamType.IMM, "rotate left with carry"),
     RCL_DIR("RCL", 0x0226U, IKRMiniParamType.DIR, "rotate left with carry"),
     RCL_IND("RCL", 0x0326U, IKRMiniParamType.IND, "rotate left with carry"),
     RCL_IND_OFF("RCL", 0x0426U, IKRMiniParamType.IND_OFF, "rotate left with carry"),
-    RCR_IMPL("RCR", 0x00A7U, IKRMiniParamType.IMPL, "rotate right with carry"),
+    RCR("RCR", 0x00A7U, IKRMiniParamType.IMPL, "rotate right with carry"),
     RCR_IMM("RCR", 0x0127U, IKRMiniParamType.IMM, "rotate right with carry"),
     RCR_DIR("RCR", 0x0227U, IKRMiniParamType.DIR, "rotate right with carry"),
     RCR_IND("RCR", 0x0327U, IKRMiniParamType.IND, "rotate right with carry"),
     RCR_IND_OFF("RCR", 0x0427U, IKRMiniParamType.IND_OFF, "rotate right with carry"),
-    NOT_IMPL("NOT", 0x008BU, IKRMiniParamType.IMPL, "invert (logic not)"),
+    NOT("NOT", 0x008BU, IKRMiniParamType.IMPL, "invert (logic not)"),
     NOT_DIR("NOT", 0x020BU, IKRMiniParamType.DIR, "invert (logic not)"),
     NOT_IND("NOT", 0x030BU, IKRMiniParamType.IND, "invert (logic not)"),
     NOT_IND_OFF("NOT", 0x040BU, IKRMiniParamType.IND_OFF, "invert (logic not)"),
@@ -93,11 +94,11 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
 
     CLR("CLR", 0x004CU, IKRMiniParamType.IMPL, "clear"),
 
-    INC_IMPL("INC", 0x009CU, IKRMiniParamType.IMPL, "increment (+1)"),
+    INC("INC", 0x009CU, IKRMiniParamType.IMPL, "increment (+1)"),
     INC_DIR("INC", 0x021CU, IKRMiniParamType.DIR, "increment (+1)"),
     INC_IND("INC", 0x031CU, IKRMiniParamType.IND, "increment (+1)"),
     INC_IND_OFF("INC", 0x041CU, IKRMiniParamType.IND_OFF, "increment (+1)"),
-    DEC_IMPL("DEC", 0x009FU, IKRMiniParamType.IMPL, "decrement (-1)"),
+    DEC("DEC", 0x009FU, IKRMiniParamType.IMPL, "decrement (-1)"),
     DEC_DIR("DEC", 0x021FU, IKRMiniParamType.DIR, "decrement (-1)"),
     DEC_IND("DEC", 0x031FU, IKRMiniParamType.IND, "decrement (-1)"),
     DEC_IND_OFF("DEC", 0x041FU, IKRMiniParamType.IND_OFF, "decrement (-1)"),
@@ -129,11 +130,139 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
     override val paramRule: Rule? get() = paramType.rule
 
     override fun resolve(builder: AsmCodeGenerator<*>, instr: ASNode.Instruction) {
-        TODO("Not yet implemented")
+        when (this) {
+            LOAD_IMM, AND_IMM, OR_IMM, XOR_IMM, ADD_IMM, ADDC_IMM, SUB_IMM, SUBC_IMM, RCL_IMM, RCR_IMM,
+            -> {
+                val expr = instr.nodes.filterIsInstance<ASNode.NumericExpr>().firstOrNull()
+                if (expr == null) {
+                    instr.addError("Numeric Expression is missing!")
+                    return
+                }
+
+                builder.currentSection.content.put(opCode)
+
+                val evaluated = expr.evaluate(builder).getResized(Size.Bit16)
+                try {
+                    builder.currentSection.content.put(evaluated.toUShort())
+                } catch (e: Exception) {
+                    try {
+                        builder.currentSection.content.put(evaluated.toShort())
+                    } catch (e: Exception) {
+                        expr.addError("$evaluated exceeds 16Bit")
+                    }
+                }
+            }
+
+            LOAD_DIR, STORE_DIR, AND_DIR, OR_DIR, XOR_DIR, ADD_DIR, ADDC_DIR, SUB_DIR, SUBC_DIR,
+            LSL_DIR, LSR_DIR, ROL_DIR, ROR_DIR, ASL_DIR, ASR_DIR, RCL_DIR, RCR_DIR, NOT_DIR, NEG_DIR, INC_DIR, DEC_DIR,
+            -> {
+                val expr = instr.nodes.filterIsInstance<ASNode.NumericExpr>().firstOrNull()
+                if (expr == null) {
+                    instr.addError("Numeric Expression is missing!")
+                    return
+                }
+
+                builder.currentSection.content.put(opCode)
+
+                val evaluated = expr.evaluate(builder).getResized(Size.Bit16)
+                try {
+                    builder.currentSection.content.put(evaluated.toUShort())
+                } catch (e: Exception) {
+                    try {
+                        builder.currentSection.content.put(evaluated.toShort())
+                    } catch (e: Exception) {
+                        expr.addError("$evaluated exceeds 16Bit")
+                    }
+                }
+            }
+
+            LOAD_IND, STORE_IND, AND_IND, OR_IND, XOR_IND, ADD_IND, ADDC_IND, SUB_IND, SUBC_IND, LSL_IND, LSR_IND, ROL_IND,
+            ROR_IND, ASL_IND, ASR_IND, RCL_IND, RCR_IND, NOT_IND, NEG_IND, INC_IND, DEC_IND,
+            -> {
+                val expr = instr.nodes.filterIsInstance<ASNode.NumericExpr>().firstOrNull()
+                if (expr == null) {
+                    instr.addError("Numeric Expression is missing!")
+                    return
+                }
+
+                builder.currentSection.content.put(opCode)
+
+                val evaluated = expr.evaluate(builder).getResized(Size.Bit16)
+                try {
+                    builder.currentSection.content.put(evaluated.toUShort())
+                } catch (e: Exception) {
+                    try {
+                        builder.currentSection.content.put(evaluated.toShort())
+                    } catch (e: Exception) {
+                        expr.addError("$evaluated exceeds 16Bit")
+                    }
+                }
+            }
+
+            LOAD_IND_OFF, STORE_IND_OFF, AND_IND_OFF, OR_IND_OFF, XOR_IND_OFF, ADD_IND_OFF, ADDC_IND_OFF, SUB_IND_OFF, SUBC_IND_OFF,
+            LSL_IND_OFF, LSR_IND_OFF, ROL_IND_OFF, ROR_IND_OFF, ASL_IND_OFF, ASR_IND_OFF, RCL_IND_OFF, RCR_IND_OFF, NOT_IND_OFF, NEG_IND_OFF,
+            INC_IND_OFF, DEC_IND_OFF,
+            -> {
+                val exprs = instr.nodes.filterIsInstance<ASNode.NumericExpr>()
+                if (exprs.size != 2) {
+                    instr.addError("Expected 2 Numeric Expressions but received $exprs!")
+                    return
+                }
+
+                val offsetExpr = exprs[0]
+                val addressExpr = exprs[1]
+
+                val offsetEval = offsetExpr.evaluate(builder).getResized(Size.Bit16)
+                val addressEval = addressExpr.evaluate(builder).getResized(Size.Bit16)
+
+                val offset16 = try {
+                    offsetEval.toShort()
+                } catch (e: Exception) {
+                    offsetExpr.addError("$offsetEval exceeds 16 Bit")
+                    0
+                }
+
+                val address16 = try {
+                    addressEval.toUShort()
+                } catch (e: Exception) {
+                    addressExpr.addError("$addressEval exceeds 16 Bit")
+                    0U
+                }
+
+                builder.currentSection.content.put(opCode)
+                builder.currentSection.content.put(address16)
+                builder.currentSection.content.put(offset16)
+            }
+
+            LOADI, LSL, LSR, ROL, ROR, ASL, ASR, RCL, RCR, NOT, CLR, INC, DEC, JMP,
+            -> builder.currentSection.content.put(opCode)
+
+            BSR, BRA, BHI, BLS, BCC, BCS, BNE, BEQ, BVC, BVS, BPL, BMI, BGE, BLT, BGT, BLE -> {
+                builder.currentSection.queueLateInit(instr, 2)
+            }
+        }
     }
 
     override fun lateEvaluation(builder: AsmCodeGenerator<*>, section: AsmCodeGenerator.Section, instr: ASNode.Instruction, index: Int) {
-        TODO("Not yet implemented")
+        when (this) {
+            BRA, BSR, BHI, BLS, BCC, BCS, BNE, BEQ, BVC, BVS, BPL, BMI, BGE, BLT, BGT, BLE -> {
+                val targetExpr = instr.nodes.filterIsInstance<ASNode.NumericExpr>().firstOrNull()
+                if (targetExpr == null) {
+                    instr.addError("Expected Numeric Expression!")
+                    return
+                }
+
+                val targetEval = targetExpr.evaluate(builder).toHex().toUShort()
+                val pcEval = (section.address.toUShort() + index.toUShort())
+                val relative = (targetEval - pcEval).toShort()
+                section.content[index] = opCode
+                section.content[index + 1] = relative
+            }
+
+            else -> {
+                // Nothing to do here
+            }
+        }
     }
 
 

@@ -48,24 +48,40 @@ fun Int.signExtend(bitWidth: Int): Int {
 /**
  * Rotate left
  */
-fun UInt.rol(bits: Int): UInt{
+infix fun UInt.rol(bits: Int): UInt {
     val shift = bits % 32 // Ensure the shift is within 0-31
     return (this shl shift) or (this shr (32 - shift))
 }
 
 /**
+ * Rotate left
+ */
+infix fun UShort.rol(bits: Int): UShort {
+    val shift = bits % 16
+    return (this.toUInt() shl shift).toUShort() or (this.toUInt() shr (16 - shift)).toUShort()
+}
+
+/**
  * Rotate right
  */
-fun UInt.ror(bits: Int): UInt{
+infix fun UInt.ror(bits: Int): UInt {
     val shift = bits % 32 // Ensure the shift is within 0-31
     return (this shr shift) or (this shl (32 - shift))
+}
+
+/**
+ * Rotate right
+ */
+infix fun UShort.ror(bits: Int): UShort {
+    val shift = bits % 32 // Ensure the shift is within 0-31
+    return (this.toUInt() shr shift).toUShort() or (this.toUInt() shl (32 - shift)).toUShort()
 }
 
 fun IntRange.overlaps(other: IntRange): Boolean {
     return this.first <= other.last && other.first <= this.last
 }
 
-fun Long.multiplyWithHighLow(other: Long): Pair<Long, Long>{
+fun Long.multiplyWithHighLow(other: Long): Pair<Long, Long> {
     // Split the longs into high and low 32-bit parts
     val aLow = this and 0xFFFFFFFFL
     val aHigh = (this shr 32)
@@ -86,7 +102,7 @@ fun Long.multiplyWithHighLow(other: Long): Pair<Long, Long>{
     return high to low
 }
 
-fun ULong.multiplyWithHighLow(other: ULong): Pair<ULong, ULong>{
+fun ULong.multiplyWithHighLow(other: ULong): Pair<ULong, ULong> {
     // Split the longs into high and low 32-bit parts
     val aLow = this and 0xFFFFFFFFUL
     val aHigh = (this shr 32)
@@ -107,7 +123,7 @@ fun ULong.multiplyWithHighLow(other: ULong): Pair<ULong, ULong>{
     return high to low
 }
 
-fun Long.multiplyWithHighLow(other: ULong): Pair<Long, Long>{
+fun Long.multiplyWithHighLow(other: ULong): Pair<Long, Long> {
     // Split the longs into high and low 32-bit parts
     val aLow = this and 0xFFFFFFFFL
     val aHigh = (this shr 32)

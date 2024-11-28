@@ -9,9 +9,6 @@ object DebugTools {
      * EXTENDABLE
      */
 
-    const val RV32_showBinMapperInfo = false
-
-    const val RV64_showBinMapperInfo = false
     const val RV64_showLIDecisions = false
 
     /**
@@ -24,15 +21,11 @@ object DebugTools {
      * KIT
      */
 
-    const val KIT_showCheckCodeEvents = false
-    const val KIT_showFileHandlerInfo = false
     const val KIT_showMemoryInfo = false
     const val KIT_showCacheInfo = false
 
-    const val KIT_showFilteredTokens = false
-    const val KIT_showSections = false
     const val KIT_showRuleChecks = false
-    const val KIT_showGrammarTree = false
+    const val KIT_showPSITree = false
     const val KIT_showPostFixExpressions = false
 
     val KIT_ValBinaryToolsDivisionLoopLimit: Long? = null
@@ -41,19 +34,5 @@ object DebugTools {
     const val KIT_showValBinaryToolsCalculations = false
     const val KIT_showValDecToolsCalculations = false
     const val KIT_showValDecToolsCalculationDetails = false
-
-    /**
-     * JS
-     */
-
-    const val REACT_showUpdateInfo = false
-
-    /**
-     * JVM
-     */
-
-    const val JVM_showWSConfigInfo = false
-    const val JVM_showStateManagerInfo = false
-    const val JVM_showEventManagerInfo = false
 
 }

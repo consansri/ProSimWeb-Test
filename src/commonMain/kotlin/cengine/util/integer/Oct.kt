@@ -136,4 +136,10 @@ class Oct(octString: String, size: Size) : Value(size) {
         }
         return false
     }
+
+    override fun and(other: Value): Oct = toBin().and(other.toBin()).toOct()
+
+    override fun or(other: Value): Oct =toBin().or(other.toBin()).toOct()
+
+    override fun xor(other: Value): Oct = toBin().xor(other.toBin()).toOct()
 }

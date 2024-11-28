@@ -11,12 +11,13 @@ import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
 import cengine.psi.core.PsiParser
 import cengine.vfs.VirtualFile
+import debug.DebugTools
 import emulator.kit.nativeLog
 
 class AsmPsiParser(val spec: TargetSpec<*>, val languageService: AsmLang) : PsiParser<AsmFile> {
 
     override fun parse(file: VirtualFile): AsmFile {
-        nativeLog("Parsing file ...")
+        nativeLog("Parsing ${file.path} ...")
 
         val content = file.getAsUTF8String()
 
@@ -38,6 +39,10 @@ class AsmPsiParser(val spec: TargetSpec<*>, val languageService: AsmLang) : PsiP
         generator.generate(program)
 
         val asmFile = AsmFile(file, languageService, program)
+
+        if (DebugTools.KIT_showPSITree) {
+            nativeLog(asmFile.print(file.name))
+        }
 
         return asmFile
     }
@@ -153,7 +158,6 @@ class AsmPsiParser(val spec: TargetSpec<*>, val languageService: AsmLang) : PsiP
             }
         }
     }
-
 
 
 }

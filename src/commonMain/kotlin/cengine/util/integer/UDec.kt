@@ -157,4 +157,10 @@ class UDec(udecString: String, size: Size) : Value(size) {
         }
         return false
     }
+
+    override fun and(other: Value): UDec = toBin().and(other.toBin()).toUDec()
+
+    override fun or(other: Value): UDec = toBin().or(other.toBin()).toUDec()
+
+    override fun xor(other: Value): UDec = toBin().xor(other.toBin()).toUDec()
 }
