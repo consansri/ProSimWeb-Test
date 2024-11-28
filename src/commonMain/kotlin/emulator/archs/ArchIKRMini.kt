@@ -33,8 +33,8 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config) {
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
         val currPc = pc.get().toHex()
         val opCode = instrMemory.load(currPc, tracker = tracker).toHex().toUShort()
-        val second = instrMemory.load(currPc, tracker = tracker).toHex().toUShort()
-        val third = instrMemory.load(currPc, tracker = tracker).toHex().toUShort()
+        val second = instrMemory.load(currPc + 1U.toValue(Size.Bit16), tracker = tracker).toHex().toUShort()
+        val third = instrMemory.load(currPc + 2U.toValue(Size.Bit16), tracker = tracker).toHex().toUShort()
 
         val decoded = IKRMiniDisassembler.IKRMiniInstrProvider(opCode, second, third)
         when (decoded.type) {

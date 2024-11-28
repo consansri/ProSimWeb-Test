@@ -38,7 +38,7 @@ class FACache(
         backingMemory,
         console,
         blockCount = (cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toInt(),
-        offsetBits = log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.getByteCount()).toDouble(), 2.0).roundToInt(),
+        offsetBits = log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.byteCount).toDouble(), 2.0).roundToInt(),
         replaceAlgo = replaceAlgo,
         name = "$name($cacheSize FA ${replaceAlgo})"
     )

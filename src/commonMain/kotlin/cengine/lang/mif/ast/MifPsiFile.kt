@@ -49,8 +49,8 @@ class MifPsiFile(
 
     override fun initialize(memory: Memory) {
         analyzeHeader { addrSize, wordSize, addrRDX, dataRDX, assignments ->
-            assignments.filter {
-                it !is MifNode.Assignment.SingleValueRange || it.data.value.rdx(dataRDX, wordSize).toHex() != 0U.toValue()
+            assignments.filter { assignment ->
+                assignment !is MifNode.Assignment.RepeatingValueRange || assignment.data.all { it.value.rdx(dataRDX, wordSize).toHex() != 0U.toValue() }
             }.forEach { assignment ->
                 when (assignment) {
                     is MifNode.Assignment.Direct -> {
@@ -64,8 +64,8 @@ class MifPsiFile(
                         memory.storeArray(startAddr, *values.toTypedArray())
                     }
 
-                    is MifNode.Assignment.SingleValueRange -> {
-                        val value = assignment.data.value.rdx(dataRDX, wordSize)
+                    is MifNode.Assignment.RepeatingValueRange -> {
+                        val values = assignment.data.map { it.value.rdx(dataRDX, wordSize) }
                         val startAddr = assignment.valueRange.first.value.rdx(addrRDX, addrSize).toHex()
                         val endAddr = assignment.valueRange.last.value.rdx(addrRDX, addrSize).toHex()
                         val length = (endAddr - startAddr).toULong().toInt() + 1
@@ -73,7 +73,11 @@ class MifPsiFile(
                             nativeError("MifPsiFile ${file.name}: Length of ${assignment::class.simpleName} exceeds ${Int.MAX_VALUE} -> $length = $endAddr - $startAddr")
                             return@analyzeHeader
                         }
-                        memory.storeArray(startAddr, *Array(length) { value })
+                        val initArray = Array(length) {
+                            values[it % values.size]
+                        }
+                        nativeLog("Init Memory: ${initArray.joinToString { it.toString() }}")
+                        memory.storeArray(startAddr, *initArray)
                     }
                 }
             }
@@ -81,11 +85,10 @@ class MifPsiFile(
     }
 
     override fun contents(): Map<Hex, Pair<List<Hex>, List<Disassembler.Label>>> {
-        nativeLog("contents()")
         val contents = mutableMapOf<Hex, Pair<List<Hex>, List<Disassembler.Label>>>()
         analyzeHeader { addrSize, wordSize, addrRDX, dataRDX, assignments ->
-            contents.putAll(assignments.filter {
-                it !is MifNode.Assignment.SingleValueRange || it.data.value.rdx(dataRDX, wordSize).toHex() != 0U.toValue()
+            contents.putAll(assignments.filter { assignment ->
+                assignment !is MifNode.Assignment.RepeatingValueRange || assignment.data.all { it.value.rdx(dataRDX, wordSize).toHex() != 0U.toValue() }
             }.associate { assignment ->
                 when (assignment) {
                     is MifNode.Assignment.Direct -> {
@@ -100,8 +103,8 @@ class MifPsiFile(
                         startAddr to (value to emptyList())
                     }
 
-                    is MifNode.Assignment.SingleValueRange -> {
-                        val value = assignment.data.value.rdx(dataRDX, wordSize).toHex()
+                    is MifNode.Assignment.RepeatingValueRange -> {
+                        val values = assignment.data.map { it.value.rdx(dataRDX, wordSize).toHex() }
                         val startAddr = assignment.valueRange.first.value.rdx(addrRDX, addrSize).toHex()
                         val endAddr = assignment.valueRange.last.value.rdx(addrRDX, addrSize).toHex()
                         val length = (endAddr - startAddr).toULong().toInt() + 1
@@ -109,15 +112,18 @@ class MifPsiFile(
                             nativeError("MifPsiFile ${file.name}: Length of ${assignment::class.simpleName} exceeds ${Int.MAX_VALUE} -> $length = $endAddr - $startAddr")
                             return@analyzeHeader
                         }
-                        startAddr to (List(length) { value } to emptyList())
+                        startAddr to (List(length) {
+                            values[it % values.size]
+                        } to emptyList())
                     }
                 }
             })
         }
+        nativeLog("contents() = $contents")
         return contents
     }
 
-    fun analyzeHeader(result: (addrSize: Size, wordSize: Size, addrRDX: Radix, dataRDX: Radix, assignments: List<MifNode.Assignment>) -> Unit) {
+    private fun analyzeHeader(result: (addrSize: Size, wordSize: Size, addrRDX: Radix, dataRDX: Radix, assignments: List<MifNode.Assignment>) -> Unit) {
         var currWordSize: Size? = null
         var currDepth: Double? = null
         var dataRDX = Radix.HEX

@@ -38,7 +38,7 @@ class DMCache(
         backingMemory,
         console,
         log((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toDouble(), 2.0).roundToInt(),
-        log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.getByteCount()).toDouble(),2.0).roundToInt(),
+        log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.byteCount).toDouble(),2.0).roundToInt(),
         "$name($cacheSize DM)"
     )
 }

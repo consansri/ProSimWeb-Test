@@ -74,17 +74,6 @@ sealed class MifNode(override var range: IntRange, vararg children: PsiElement) 
                 }
             }
         }
-
-        fun init() {
-
-            val addr_radix = headers.lastOrNull { it.identifier.value.uppercase() == "ADDRESS_RADIX" }?.value?.value ?: "HEX"
-            val data_radix = headers.lastOrNull { it.identifier.value.uppercase() == "DATA_RADIX" }?.value?.value ?: "HEX"
-
-
-
-
-        }
-
     }
 
     class Header(val identifier: MifToken, val assign: MifToken, val value: MifToken, val semicolon: MifToken) : MifNode(identifier.range.first..semicolon.range.last, identifier, assign, value, semicolon) {
@@ -227,19 +216,28 @@ sealed class MifNode(override var range: IntRange, vararg children: PsiElement) 
                             return null
                         }
 
-                        val data = lexer.consume(true)
-                        if (data.type != MifToken.Type.NUMBER) {
-                            lexer.position = start
-                            return null
+                        val data = mutableListOf<MifToken>()
+                        var currToken = lexer.consume(true)
+
+                        while (currToken.type == MifToken.Type.NUMBER) {
+                            data.add(currToken)
+
+                            currToken = lexer.consume(true)
                         }
 
-                        val semicolon = lexer.consume(true)
+                        val semicolon = currToken
+
                         if (semicolon.value != ";") {
                             lexer.position = start
                             return null
                         }
 
-                        return SingleValueRange(range, colon, data, semicolon)
+                        if (data.isEmpty()) {
+                            lexer.position = start
+                            return null
+                        }
+
+                        return RepeatingValueRange(range, colon, data.toTypedArray(), semicolon)
                     }
 
                     else -> {
@@ -254,12 +252,13 @@ sealed class MifNode(override var range: IntRange, vararg children: PsiElement) 
             override val pathName: String = "DirectAssignment"
         }
 
-        class SingleValueRange(val valueRange: ValueRange, val colon: MifToken, val data: MifToken, val semicolon: MifToken) : Assignment(valueRange.range.first..semicolon.range.last, valueRange, colon, data, semicolon) {
-            override val pathName: String = "RangeAssignment"
-        }
-
         class ListOfValues(val addr: MifToken, val colon: MifToken, val data: Array<MifToken>, val semicolon: MifToken) : Assignment(addr.range.first..semicolon.range.last, addr, colon, *data, semicolon) {
             override val pathName: String = "ListAssignment"
+        }
+
+        class RepeatingValueRange(val valueRange: ValueRange, val colon: MifToken, val data: Array<MifToken>, val semicolon: MifToken) : Assignment(valueRange.range.first..semicolon.range.last, valueRange, colon, *data, semicolon) {
+            override val pathName: String
+                get() = "RepetitiveRangeAssignment"
         }
     }
 

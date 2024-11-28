@@ -115,5 +115,4 @@ data class AsmToken(
     override val style: CodeStyle?
         get() = type.style
 
-    override fun toString(): String = "{${type.name}:$value}"
 }

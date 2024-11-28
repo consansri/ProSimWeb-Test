@@ -41,7 +41,7 @@ abstract class Token : PsiElement {
         visitor.visitElement(this)
     }
 
-    override fun print(prefix: String): String = "$prefix${type}: $value"
+    override fun print(prefix: String): String = "{$prefix${type}:$value}"
 
     final override fun equals(other: Any?): Boolean {
         if (other !is Token) return false
@@ -58,6 +58,10 @@ abstract class Token : PsiElement {
         result = 31 * result + value.hashCode()
         result = 31 * result + range.hashCode()
         return result
+    }
+
+    final override fun toString(): String {
+        return print("")
     }
 
 

@@ -18,40 +18,40 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
     override var currentSection: Section = text
 
     override fun orderSectionsAndResolveAddresses() {
-        linkerScript.textStart?.let {
-            // .text
-            var addr = it
+        var globalAddress = 0U.toValue(addrSize)
 
-            sections.filter { section ->
-                section.isText()
-            }.forEach { section ->
-                section.address = addr
-                addr += section.content.size.toULong().toValue()
-            }
+        // .text
+        var addr = linkerScript.textStart ?: globalAddress
+
+        sections.filter { section ->
+            section.isText()
+        }.forEach { section ->
+            section.address = addr
+            addr += section.content.size.toULong().toValue(addrSize)
         }
 
-        linkerScript.dataStart?.let {
-            // .data, .bss
-            var addr = it
+        globalAddress = addr
 
-            sections.filter { section ->
-                section.isData()
-            }.forEach { section ->
-                section.address = addr
-                addr += section.content.size.toULong().toValue()
-            }
+        // .data, .bss
+        addr = linkerScript.dataStart ?: globalAddress
+
+        sections.filter { section ->
+            section.isData()
+        }.forEach { section ->
+            section.address = addr
+            addr += section.content.size.toULong().toValue(addrSize)
         }
 
-        linkerScript.rodataStart?.let {
-            // .rodata
-            var addr = it
+        globalAddress = addr
 
-            sections.filter { section ->
-                section.isRoData()
-            }.forEach { section ->
-                section.address = addr
-                addr += section.content.size.toULong().toValue()
-            }
+        // .rodata
+        addr = linkerScript.rodataStart ?: globalAddress
+
+        sections.filter { section ->
+            section.isRoData()
+        }.forEach { section ->
+            section.address = addr
+            addr += section.content.size.toULong().toValue(addrSize)
         }
     }
 
@@ -64,11 +64,8 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
         sections.filter {
             it.isProg()
         }.forEach { section ->
-            var addr = section.address
-            section.content.toHexList().forEachIndexed { index, hex ->
-                builder.addContent(addr, listOf(hex))
-                addr += 1U.toValue(Size.Bit8)
-            }
+            val addr = section.address
+            builder.addContent(addr, section.content.toHexList())
         }
 
         return builder.build().encodeToByteArray()
@@ -87,7 +84,7 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
         }
     }
 
-    companion object{
+    companion object {
         fun String.rdx(radix: Radix, size: Size): Value {
             return when (radix) {
                 Radix.HEX -> Hex(this, size)

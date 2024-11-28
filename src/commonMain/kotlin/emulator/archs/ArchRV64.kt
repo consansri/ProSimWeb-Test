@@ -31,7 +31,7 @@ class ArchRV64 : BasicArchImpl(RV64.config) {
 
         // IF
         val currentPc = pc.get().toHex()
-        val instrBin = instrMemory.load(currentPc, RV64.WORD_WIDTH.getByteCount(), tracker).toUInt()
+        val instrBin = instrMemory.load(currentPc, RV64.WORD_WIDTH.byteCount, tracker).toUInt()
 
         // DC
         val decoded = RVDisassembler.RVInstrInfoProvider(instrBin)

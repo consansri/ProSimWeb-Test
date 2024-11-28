@@ -13,6 +13,7 @@ sealed class Size(val name: String, val bitWidth: Int) {
 
     val hexChars = bitWidth / 4 + if (bitWidth % 4 == 0) 0 else 1
     val octChars = bitWidth / 3 + if (bitWidth % 3 == 0) 0 else 1
+    val byteCount = (bitWidth.toFloat() / 8.0f).roundToInt()
 
     override fun equals(other: Any?): Boolean {
         when (other) {
@@ -25,10 +26,6 @@ sealed class Size(val name: String, val bitWidth: Int) {
 
     override fun toString(): String {
         return "$bitWidth Bits"
-    }
-
-    fun getByteCount(): Int {
-        return (bitWidth.toFloat() / 8.0f).roundToInt()
     }
 
     override fun hashCode(): Int {

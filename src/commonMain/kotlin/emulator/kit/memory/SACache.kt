@@ -25,7 +25,7 @@ class SACache(
         console,
         blockCount = blockCount,
         rowBits = log(((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW) / blockCount).toDouble(), 2.0).roundToInt(),
-        offsetBits = log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.getByteCount()).toDouble(), 2.0).roundToInt(),
+        offsetBits = log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.byteCount).toDouble(), 2.0).roundToInt(),
         replaceAlgo = replaceAlgo,
         name = "$name($cacheSize ${blockCount}SA ${replaceAlgo})"
     )

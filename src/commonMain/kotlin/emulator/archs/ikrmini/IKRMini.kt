@@ -80,7 +80,7 @@ data object IKRMini {
             WORDSIZE,
             "common"
         ),
-        MainMemory(WORDSIZE, BYTESIZE, Memory.Endianess.BigEndian),
+        MainMemory(WORDSIZE, WORDSIZE, Memory.Endianess.BigEndian),
         IKRMiniDisassembler,
         settings
     )

@@ -142,15 +142,7 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
                 builder.currentSection.content.put(opCode)
 
                 val evaluated = expr.evaluate(builder).getResized(Size.Bit16)
-                try {
-                    builder.currentSection.content.put(evaluated.toUShort())
-                } catch (e: Exception) {
-                    try {
-                        builder.currentSection.content.put(evaluated.toShort())
-                    } catch (e: Exception) {
-                        expr.addError("$evaluated exceeds 16Bit")
-                    }
-                }
+                builder.currentSection.content.put(evaluated.toUShort())
             }
 
             LOAD_DIR, STORE_DIR, AND_DIR, OR_DIR, XOR_DIR, ADD_DIR, ADDC_DIR, SUB_DIR, SUBC_DIR,
@@ -165,15 +157,7 @@ enum class IKRMiniInstrType(override val detectionName: String, val opCode: USho
                 builder.currentSection.content.put(opCode)
 
                 val evaluated = expr.evaluate(builder).getResized(Size.Bit16)
-                try {
-                    builder.currentSection.content.put(evaluated.toUShort())
-                } catch (e: Exception) {
-                    try {
-                        builder.currentSection.content.put(evaluated.toShort())
-                    } catch (e: Exception) {
-                        expr.addError("$evaluated exceeds 16Bit")
-                    }
-                }
+                builder.currentSection.content.put(evaluated.toShort())
             }
 
             LOAD_IND, STORE_IND, AND_IND, OR_IND, XOR_IND, ADD_IND, ADDC_IND, SUB_IND, SUBC_IND, LSL_IND, LSR_IND, ROL_IND,

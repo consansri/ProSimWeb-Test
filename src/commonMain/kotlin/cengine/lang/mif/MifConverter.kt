@@ -5,7 +5,10 @@ import cengine.lang.mif.MifGenerator.Radix
 import cengine.lang.mif.ast.MifNode
 import cengine.lang.mif.ast.MifPsiFile
 import cengine.lang.obj.elf.*
-import cengine.util.integer.*
+import cengine.util.integer.Bin
+import cengine.util.integer.Hex
+import cengine.util.integer.Size
+import cengine.util.integer.Value
 import cengine.util.integer.Value.Companion.toValue
 import emulator.kit.memory.Memory
 import kotlin.math.log2
@@ -45,11 +48,11 @@ class MifConverter(val depth: Double, val wordSize: Size) {
         return builder.toString()
     }
 
-    fun addContent(startAddr: String, endAddr: String, data: String): MifConverter {
-        return addContent(startAddr.rdx(addrRDX, addrSize), endAddr.rdx(addrRDX, addrSize), data.rdx(dataRDX, wordSize))
+    fun addContent(startAddr: String, endAddr: String, data: List<String>): MifConverter {
+        return addContent(startAddr.rdx(addrRDX, addrSize), endAddr.rdx(addrRDX, addrSize), data.map { it.rdx(dataRDX, wordSize) })
     }
 
-    fun addContent(startAddr: Value, endAddr: Value, data: Value): MifConverter {
+    fun addContent(startAddr: Value, endAddr: Value, data: List<Value>): MifConverter {
         // Find the range where the new content starts and modify accordingly
         val modifiedRanges = mutableListOf<Range>()
 
@@ -71,7 +74,7 @@ class MifConverter(val depth: Double, val wordSize: Size) {
                     }
 
                     // The new content replaces this part of the range
-                    modifiedRanges.add(Range(startAddr, endAddr, listOf(data)))
+                    modifiedRanges.add(Range(startAddr, endAddr, data))
 
                     // Part after the new content
                     if (range.end > endAddr) {
@@ -255,8 +258,8 @@ class MifConverter(val depth: Double, val wordSize: Size) {
                         mifConverter.addContent(it.addr.value, it.data.map { it.value })
                     }
 
-                    is MifNode.Assignment.SingleValueRange -> {
-                        mifConverter.addContent(it.valueRange.first.value, it.valueRange.last.value, it.data.value)
+                    is MifNode.Assignment.RepeatingValueRange -> {
+                        mifConverter.addContent(it.valueRange.first.value, it.valueRange.last.value, it.data.map { token -> token.value })
                     }
                 }
             }

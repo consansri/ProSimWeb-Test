@@ -54,7 +54,7 @@ sealed class Memory {
         var curraddr: Value = address
         for (value in values) {
             store(curraddr.toHex(), value, mark, readonly, tracker)
-            curraddr += value.size.getByteCount().toValue(addressSize)
+            curraddr += (value.size.byteCount / instanceSize.byteCount).toValue(addressSize)
         }
     }
 
