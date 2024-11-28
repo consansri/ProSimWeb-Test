@@ -1,11 +1,12 @@
 package cengine.lang.asm
 
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import cengine.util.integer.Hex
 
-interface Disassembler {
+abstract class Disassembler {
 
-    val decoded: MutableState<List<DecodedSegment>>
+    val decoded: MutableState<List<DecodedSegment>> = mutableStateOf(emptyList())
 
     fun disassemble(initializer: Initializer): List<DecodedSegment> {
         val contents = initializer.contents()
@@ -20,7 +21,7 @@ interface Disassembler {
         }
     }
 
-    fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Decoded>
+    abstract fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Decoded>
 
     interface InstrProvider {
 

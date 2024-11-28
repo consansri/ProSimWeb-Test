@@ -50,7 +50,7 @@ abstract class Architecture(config: Config) {
     val disassembler: Disassembler? = config.disassembler
 
     init {
-        // Starting with non micro setup
+        // Starting with non-micro setup
         MicroSetup.clear()
         MicroSetup.append(memory)
     }

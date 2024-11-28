@@ -1,18 +1,13 @@
 package cengine.lang.asm.ast.target.riscv
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import cengine.lang.asm.Disassembler
-import cengine.lang.asm.Disassembler.Decoded
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.*
 import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import cengine.util.integer.Value.Companion.toValue
 import cengine.util.integer.signExtend
 
-object RVDisassembler : Disassembler {
-    override val decoded: MutableState<List<Disassembler.DecodedSegment>> = mutableStateOf(emptyList())
-
+object RVDisassembler : Disassembler() {
     override fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Decoded> {
         var currIndex = 0
         var currInstr: RVInstrInfoProvider

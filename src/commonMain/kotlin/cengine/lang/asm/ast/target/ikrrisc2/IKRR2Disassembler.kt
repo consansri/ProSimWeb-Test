@@ -8,9 +8,7 @@ import cengine.util.integer.Hex
 import cengine.util.integer.Size
 import cengine.util.integer.Value.Companion.toValue
 
-object IKRR2Disassembler : Disassembler {
-    override val decoded: MutableState<List<Disassembler.DecodedSegment>> = mutableStateOf(emptyList())
-
+object IKRR2Disassembler : Disassembler() {
     override fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Disassembler.Decoded> {
         var currIndex = 0
         var currInstr: IKRR2InstrProvider
