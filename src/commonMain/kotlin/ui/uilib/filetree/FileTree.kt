@@ -21,6 +21,10 @@ import cengine.project.Project
 import cengine.vfs.FPath
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VirtualFile
+import emulator.kit.nativeLog
+import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.core.PickerMode
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import ui.uilib.UIState
 import ui.uilib.dialog.InputDialog
@@ -31,7 +35,7 @@ import ui.uilib.params.IconType
 @Composable
 fun FileTree(
     project: Project,
-    onDoubleClick: (VirtualFile) -> Unit
+    onDoubleClick: (VirtualFile) -> Unit,
 ) {
     val expandedItems = remember { mutableStateListOf<VirtualFile>() }
     val vfs by remember { mutableStateOf(project.fileSystem) }
@@ -48,16 +52,34 @@ fun FileTree(
     // Variables to keep track of clicks and timing
     var lastClickTime = remember { 0L }
     val doubleClickThreshold = 300L // milliseconds threshold for detecting double click
+    val ioScope = rememberCoroutineScope()
 
-    fun forceReload() {
-        //root = vfs.root
-        expandedItems.remove(vfs.root)
-        expandedItems.add(vfs.root)
+    fun forceReload(file: VirtualFile){
+        expandedItems.remove(file)
+        expandedItems.add(file)
     }
 
-    if (showMenu && selectedFile != null) {
+    fun forceReload() = forceReload(vfs.root)
+
+    val fileKitLauncher = rememberFilePickerLauncher(mode = PickerMode.Multiple()) { files ->
+        val currSelectedFile = selectedFile
+        nativeLog("File Launcher Dismiss: $files")
+        if (files != null && currSelectedFile != null) {
+            files.forEach { file ->
+                val vfile = vfs.createFile(currSelectedFile.path + file.name)
+                ioScope.launch {
+                    vfile.setContent(file.readBytes())
+                }
+            }
+            forceReload(currSelectedFile)
+        }
+    }
+
+    val currSelectedFile = selectedFile
+
+    if (showMenu && currSelectedFile != null) {
         FileContextMenu(
-            file = selectedFile!!,
+            file = currSelectedFile,
             project = project,
             position = contextMenuPosition,
             onDismiss = { showMenu = false },
@@ -85,6 +107,9 @@ fun FileTree(
                 vfs.deleteFile(file.path)
                 forceReload()
                 showMenu = false
+            },
+            onImport = { file ->
+                fileKitLauncher.launch()
             }
         )
     }
@@ -167,7 +192,7 @@ fun LazyListScope.nodes(
     onLeftClick: (VirtualFile) -> Unit,
     onRightClick: (VirtualFile, Offset) -> Unit,
     depth: Dp,
-    expandWidth: Dp
+    expandWidth: Dp,
 ) {
     nodes.sortedBy { it.name }.forEach {
         node(
@@ -192,7 +217,7 @@ fun LazyListScope.node(
     onLeftClick: (VirtualFile) -> Unit,
     onRightClick: (VirtualFile, Offset) -> Unit,
     depth: Dp,
-    expandWidth: Dp
+    expandWidth: Dp,
 ) {
     val icon = UIState.Icon.value
 

@@ -4,11 +4,9 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import cengine.project.Project
-import emulator.kit.nativeLog
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
 import ui.uilib.layout.AppBar
@@ -56,10 +54,4 @@ fun TopBar(
             CButton(onClick = onClose, icon = icons.close)
         }
     )
-
-    LaunchedEffect(UIState.Theme.value) {
-        nativeLog("Theme switched!")
-    }
-
-
 }

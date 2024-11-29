@@ -27,7 +27,7 @@ abstract class Theme {
                 } else {
                     UIState.Theme.value = LightTheme
                 }
-                nativeLog("Switched to ${theme.name}")
+                nativeLog("Theme switched to ${theme.name}")
             }, icon = theme.icon)
         }
     }

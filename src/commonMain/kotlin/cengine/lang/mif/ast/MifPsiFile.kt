@@ -15,7 +15,6 @@ import cengine.util.integer.Value.Companion.toValue
 import cengine.vfs.VirtualFile
 import emulator.kit.memory.Memory
 import emulator.kit.nativeError
-import emulator.kit.nativeLog
 import kotlin.math.log2
 import kotlin.math.roundToInt
 
@@ -76,7 +75,6 @@ class MifPsiFile(
                         val initArray = Array(length) {
                             values[it % values.size]
                         }
-                        nativeLog("Init Memory: ${initArray.joinToString { it.toString() }}")
                         memory.storeArray(startAddr, *initArray)
                     }
                 }
@@ -119,7 +117,6 @@ class MifPsiFile(
                 }
             })
         }
-        nativeLog("contents() = $contents")
         return contents
     }
 
