@@ -27,6 +27,7 @@ import ui.uilib.params.IconType
 fun CButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
     icon: ImageVector? = null,
     iconType: IconType = IconType.MEDIUM,
     iconTint: Color? = null,
@@ -34,9 +35,11 @@ fun CButton(
     textAlign: TextAlign = TextAlign.Center,
     textStyle: TextStyle = UIState.BaseStyle.current,
     softWrap: Boolean = false,
+    tooltip: String? = null,
+    tooltipStyle: TextStyle = UIState.BaseSmallStyle.current,
     withHoverBg: Boolean = true,
     withPressedBg: Boolean = true,
-    active: Boolean = true
+    active: Boolean = true,
 ) {
 
     val scaling by UIState.Scale
@@ -65,7 +68,7 @@ fun CButton(
             .padding(scaling.SIZE_INSET_MEDIUM)
             .wrapContentWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = horizontalArrangement
     ) {
 
         if (icon != null) {
@@ -90,6 +93,19 @@ fun CButton(
                 fontSize = textStyle.fontSize,
                 softWrap = softWrap,
                 color = if (!active) UIState.Theme.value.COLOR_FG_0.copy(0.5f) else UIState.Theme.value.COLOR_FG_0,
+            )
+        }
+
+        if (tooltip != null) {
+            Spacer(Modifier.width(scaling.SIZE_INSET_MEDIUM))
+            Text(
+                tooltip,
+                overflow = TextOverflow.Clip,
+                textAlign = TextAlign.Left,
+                fontFamily = tooltipStyle.fontFamily,
+                fontSize = tooltipStyle.fontSize,
+                softWrap = false,
+                color = theme.COLOR_FG_1,
             )
         }
     }

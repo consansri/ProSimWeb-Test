@@ -1,4 +1,4 @@
-package ui.uilib.editor
+package ui.uilib.ide.editor
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectVerticalDragGestures

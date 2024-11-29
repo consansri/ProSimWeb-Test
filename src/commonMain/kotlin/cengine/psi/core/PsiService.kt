@@ -48,34 +48,22 @@ interface PsiService {
     }
 
     fun collectNotations(file: PsiFile, inRange: IntRange? = null): Set<Annotation> {
-        class NotationRangeCollector : PsiElementVisitor {
-            val annotations = mutableSetOf<Annotation>()
-            override fun visitFile(file: PsiFile) {
-                if (inRange != null && !file.range.overlaps(inRange)) return
-
-                annotations.addAll(file.annotations)
-
-                file.children.forEach {
-                    it.accept(this)
-                }
-            }
-
-            override fun visitElement(element: PsiElement) {
-                if (inRange != null && !file.range.overlaps(inRange)) return
-
-                annotations.addAll(element.annotations)
-
-                element.children.forEach {
-                    it.accept(this)
-                }
-            }
+        val all = mutableListOf<Annotation>()
+        val collector = NotationRangeCollector(inRange){ element, annotations ->
+            all.addAll(annotations)
         }
-
-        val collector = NotationRangeCollector()
         file.accept(collector)
-        return collector.annotations
+        return all.toSet()
     }
 
+    fun annotationsMapped(file: PsiFile, inRange: IntRange? = null): Map<PsiElement, List<Annotation>> {
+        val map = mutableMapOf<PsiElement, List<Annotation>>()
+        val collector = NotationRangeCollector(inRange){ element, annotations ->
+            map[element] = annotations
+        }
+        file.accept(collector)
+        return map
+    }
 
     fun path(of: PsiElement): List<PsiElement> {
 
@@ -95,5 +83,31 @@ interface PsiService {
         }
 
         return path
+    }
+
+    private class NotationRangeCollector(val inRange: IntRange? = null, val found: (PsiElement, List<Annotation>) -> Unit) : PsiElementVisitor {
+        override fun visitFile(file: PsiFile) {
+            if (inRange != null && !file.range.overlaps(inRange)) return
+
+            if (file.annotations.isNotEmpty()) {
+                found(file, file.annotations)
+            }
+
+            file.children.forEach {
+                it.accept(this)
+            }
+        }
+
+        override fun visitElement(element: PsiElement) {
+            if (inRange != null && !element.range.overlaps(inRange)) return
+
+            if (element.annotations.isNotEmpty()) {
+                found(element, element.annotations)
+            }
+
+            element.children.forEach {
+                it.accept(this)
+            }
+        }
     }
 }

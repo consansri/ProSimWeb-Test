@@ -16,9 +16,10 @@ import cengine.vfs.VirtualFile
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import ui.uilib.UIState
-import ui.uilib.editor.CodeEditor
-import ui.uilib.editor.ObjectEditor
 import ui.uilib.filetree.FileTree
+import ui.uilib.ide.analyze.PsiAnalyzerView
+import ui.uilib.ide.editor.CodeEditor
+import ui.uilib.ide.editor.ObjectEditor
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.CToggle
 import ui.uilib.label.CLabel
@@ -51,6 +52,8 @@ fun IDEView(
             TabItem(file, icons.file, file.name)
         }.toTypedArray())
     }
+    var fileEditorSelectedIndex by remember { mutableStateOf(0) }
+
     var leftContentType by remember { mutableStateOf<ToolContentType?>(ideState.leftContent) }
     var rightContentType by remember { mutableStateOf<ToolContentType?>(ideState.rightContent) }
     var bottomContentType by remember { mutableStateOf<ToolContentType?>(ideState.bottomContent) }
@@ -75,6 +78,22 @@ fun IDEView(
                 }
             }
         }
+    }
+
+    val psiAnalyzer: (@Composable BoxScope.() -> Unit) = {
+        val psiManagers = project.psiManagers.map { TabItem(it, title = it.lang.name) }
+        TabbedPane(psiManagers, content = {
+            PsiAnalyzerView(psiManagers[it].value) { psiFile, index ->
+                val editorIndex = fileEditors.indexOfFirst { it.value == psiFile.file }
+                if (editorIndex == -1) {
+                    fileEditors.add(TabItem(psiFile.file, icons.file, psiFile.file.name))
+                    fileEditorSelectedIndex = fileEditors.size - 1
+                    ideState.openFiles = fileEditors.map { it.value.path }
+                }else{
+                    fileEditorSelectedIndex = editorIndex
+                }
+            }
+        })
     }
 
     BorderLayout(
@@ -118,6 +137,7 @@ fun IDEView(
                     initialRightWidth = ideState.rightWidth.toDp(),
                     leftContent = when (leftContentType) {
                         ToolContentType.FileTree -> fileTree
+                        ToolContentType.PsiAnalyzer -> psiAnalyzer
                         null -> null
                     },
                     centerContent = {
@@ -149,7 +169,7 @@ fun IDEView(
                                     }
                                 }
 
-                            }, baseStyle) {
+                            }, selectedTabIndex = fileEditorSelectedIndex, baseStyle = baseStyle) {
                                 fileEditors.remove(it)
                                 ideState.openFiles = fileEditors.map { it.value.path }
                             }
@@ -157,10 +177,12 @@ fun IDEView(
                     },
                     rightContent = when (rightContentType) {
                         ToolContentType.FileTree -> fileTree
+                        ToolContentType.PsiAnalyzer -> psiAnalyzer
                         null -> null
                     },
                     bottomContent = when (bottomContentType) {
                         ToolContentType.FileTree -> fileTree
+                        ToolContentType.PsiAnalyzer -> psiAnalyzer
                         null -> null
                     },
                     onLeftWidthChange = {
@@ -187,7 +209,9 @@ fun IDEView(
                 },
                 lower = {
                     CToggle(onClick = {
-
+                        bottomContentType = if (bottomContentType != ToolContentType.PsiAnalyzer) {
+                            ToolContentType.PsiAnalyzer
+                        } else null
                     }, value = false, icon = icons.statusError)
 
                     CToggle(onClick = {
@@ -237,5 +261,6 @@ fun IDEView(
 
 @Serializable
 enum class ToolContentType {
-    FileTree;
+    FileTree,
+    PsiAnalyzer;
 }

@@ -1,4 +1,4 @@
-package ui.uilib.editor
+package ui.uilib.ide.editor
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

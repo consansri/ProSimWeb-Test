@@ -770,8 +770,6 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
                 val imm20 = relative.toUInt().mask20jType()
 
-                nativeLog("jal -> relative: ${relative.toString(16)} -> jtype: ${imm20.toString(16)}")
-
                 val rd = regs[0].ordinal.toUInt()
                 val opcode = RVConst.OPC_JAL
 

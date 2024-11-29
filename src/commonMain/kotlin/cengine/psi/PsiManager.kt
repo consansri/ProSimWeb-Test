@@ -1,5 +1,6 @@
 package cengine.psi
 
+import androidx.compose.runtime.mutableStateMapOf
 import cengine.lang.LanguageService
 import cengine.psi.core.PsiFile
 import cengine.psi.core.PsiParser
@@ -15,7 +16,7 @@ class PsiManager<L : LanguageService, F: PsiFile>(
     val psiParser: PsiParser<F>
 ) {
     private var job: Job? = null
-    private val psiCache = mutableMapOf<FPath, F>()
+    val psiCache = mutableStateMapOf<FPath, F>()
     private val psiUpdateScope = CoroutineScope(Dispatchers.Default)
     private val listener = VFSListener()
 

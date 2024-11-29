@@ -25,7 +25,7 @@ fun RegView(arch: Architecture) {
 
     val tabs = remember { arch.regContainer.getRegFileList().map { TabItem(it, title = it.name) } }
 
-    TabbedPane(tabs, false, content = { tabIndex ->
+    TabbedPane(tabs, closeable = false, content = { tabIndex ->
 
         val tab = tabs[tabIndex]
 

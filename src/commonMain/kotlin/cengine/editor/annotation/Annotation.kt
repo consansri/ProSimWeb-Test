@@ -27,11 +27,13 @@ data class Annotation(val range: IntRange, val message: String, override val sev
         }
     }
 
-    fun createConsoleMessage(file: PsiFile): String {
+    fun location(file: PsiFile): String {
         val (line, column) = file.content.lineAndColumn(range.first)
-        val location = "${line + 1}:${column + 1}"
+        return "${line + 1}:${column + 1}"
+    }
 
-        return "${file.file.path}:$location $message"
+    fun createConsoleMessage(file: PsiFile): String {
+        return "${file.file.path}:${location(file)} $message"
     }
 
     override val displayText: String get() = message

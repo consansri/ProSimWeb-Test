@@ -26,7 +26,6 @@ class AsmLang(spec: TargetSpec<*>) : LanguageService() {
             psiService = PsiServiceImpl(psiParser)
             completionProvider = AsmCompleter(value)
             highlightProvider = AsmHighlighter(value)
-            annotations.clear()
         }
 
     override var runConfig: Runner<AsmLang> = AsmRunner(this)

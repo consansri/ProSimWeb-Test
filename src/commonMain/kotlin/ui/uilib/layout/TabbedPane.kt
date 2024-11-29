@@ -24,14 +24,15 @@ data class TabItem<T : Any>(
 @Composable
 fun <T : Any> TabbedPane(
     tabs: List<TabItem<T>>,
+    selectedTabIndex: Int = 0,
     closeable: Boolean = false,
     content: @Composable (Int) -> Unit,
-    baseStyle: TextStyle,
+    baseStyle: TextStyle = UIState.BaseStyle.current,
     modifier: Modifier = Modifier,
     onCloseTab: (TabItem<T>) -> Unit = {}
 ) {
-    var selectedTabIndex by remember { mutableStateOf(0) }
 
+    var selectedTabIndexInt by remember { mutableStateOf(selectedTabIndex) }
     Column(
         modifier = modifier
     ) {
@@ -48,7 +49,7 @@ fun <T : Any> TabbedPane(
                     Modifier
                         .weight(1f)
                         .clickable {
-                            selectedTabIndex = index
+                            selectedTabIndexInt = index
                         }
                 ) {
                     Row(
@@ -68,8 +69,8 @@ fun <T : Any> TabbedPane(
                                     onCloseTab(tabItem)
 
                                     // If closing the selected tab, adjust the selected index
-                                    if (index == selectedTabIndex) {
-                                        selectedTabIndex = (selectedTabIndex - 1).coerceAtLeast(0)
+                                    if (index == selectedTabIndexInt) {
+                                        selectedTabIndexInt = (selectedTabIndexInt - 1).coerceAtLeast(0)
                                     }
                                 }
                             )
@@ -80,7 +81,7 @@ fun <T : Any> TabbedPane(
                         Modifier
                             .fillMaxWidth()
                             .height(UIState.Scale.value.SIZE_BORDER_THICKNESS_MARKED)
-                            .background(if (index == selectedTabIndex) UIState.Theme.value.COLOR_SELECTION else Color.Transparent, RoundedCornerShape(UIState.Scale.value.SIZE_CORNER_RADIUS))
+                            .background(if (index == selectedTabIndexInt) UIState.Theme.value.COLOR_SELECTION else Color.Transparent, RoundedCornerShape(UIState.Scale.value.SIZE_CORNER_RADIUS))
                     )
                 }
             }
@@ -93,13 +94,13 @@ fun <T : Any> TabbedPane(
                 .background(UIState.Theme.value.COLOR_BORDER)
         )
 
-        if (selectedTabIndex in tabs.indices) {
+        if (selectedTabIndexInt in tabs.indices) {
             // Display the content of the selected tab
             Box(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                content(selectedTabIndex)
+                content(selectedTabIndexInt)
             }
         } else {
             // Display a message when no tabs are open
