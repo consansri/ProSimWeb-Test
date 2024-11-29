@@ -21,7 +21,6 @@ import cengine.project.Project
 import cengine.vfs.FPath
 import cengine.vfs.FileChangeListener
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import kotlinx.coroutines.launch
@@ -63,7 +62,6 @@ fun FileTree(
 
     val fileKitLauncher = rememberFilePickerLauncher(mode = PickerMode.Multiple()) { files ->
         val currSelectedFile = selectedFile
-        nativeLog("File Launcher Dismiss: $files")
         if (files != null && currSelectedFile != null) {
             files.forEach { file ->
                 val vfile = vfs.createFile(currSelectedFile.path + file.name)

@@ -5,7 +5,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.geometry.Offset
 import cengine.project.Project
 import cengine.vfs.VirtualFile
-import emulator.kit.nativeLog
 import io.github.vinceglb.filekit.core.FileKit
 import kotlinx.coroutines.launch
 import ui.uilib.UIState
@@ -62,7 +61,6 @@ fun FileContextMenu(
 
         if (file.isDirectory) {
             MenuItem(UIState.Icon.value.import, "Import") {
-                nativeLog("Launch fileKitLauncher")
                 onDismiss()
                 onImport(file)
             }
@@ -71,7 +69,6 @@ fun FileContextMenu(
                 onCreate(file, false)
             }
             MenuItem(UIState.Icon.value.folder, "Create New Folder") {
-                nativeLog("Create New Folder")
                 onDismiss()
                 onCreate(file, true)
             }
