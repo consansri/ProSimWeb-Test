@@ -69,7 +69,7 @@ fun PsiAnalyzerView(
 
                     CButton(onClick = {
                         onOpen(psiFile, annotation.range.first)
-                    }, Modifier.fillMaxWidth(), Arrangement.Start, icon = icon, textAlign = TextAlign.Left, iconTint = iconColor, text ="$psiPath: ${annotation.message}", tooltip = annotation.location(psiFile))
+                    }, Modifier.fillMaxWidth(), Arrangement.Start, icon = icon, textAlign = TextAlign.Left, iconTint = iconColor, text = "$psiPath: ${annotation.message}", tooltip = annotation.location(psiFile))
                 }
             }
         }

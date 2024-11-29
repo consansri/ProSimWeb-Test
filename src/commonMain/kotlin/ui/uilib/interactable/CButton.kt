@@ -65,8 +65,7 @@ fun CButton(
                 {}
             })
             .hoverable(interactionSource)
-            .padding(scaling.SIZE_INSET_MEDIUM)
-            .wrapContentWidth(),
+            .padding(scaling.SIZE_INSET_MEDIUM),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = horizontalArrangement
     ) {
