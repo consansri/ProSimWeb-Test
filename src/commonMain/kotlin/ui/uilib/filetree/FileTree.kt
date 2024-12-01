@@ -26,6 +26,7 @@ import io.github.vinceglb.filekit.core.PickerMode
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import ui.uilib.UIState
+import ui.uilib.dialog.ConfirmDialog
 import ui.uilib.dialog.InputDialog
 import ui.uilib.interactable.CButton
 import ui.uilib.label.CLabel
@@ -41,19 +42,28 @@ fun FileTree(
     var root by remember { mutableStateOf(vfs.root) }
 
     var selectedFile by remember { mutableStateOf<VirtualFile?>(null) }
+
+    // Context Menu
     var showMenu by remember { mutableStateOf(false) }
     var contextMenuPosition by remember { mutableStateOf(Offset.Zero) }
+
+    // Input Dialog
     var showInputDialog by remember { mutableStateOf(false) }
-    var dialogTitle by remember { mutableStateOf("") }
-    var dialogInitText by remember { mutableStateOf("") }
-    val onConfirm = remember { mutableStateOf<(String) -> Unit>({}) }
+    var inputDialogTitle by remember { mutableStateOf("") }
+    var inputDialogInitText by remember { mutableStateOf("") }
+    val onInputConfirm = remember { mutableStateOf<(String) -> Unit>({}) }
+
+    // Delete Dialog
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var deleteDialogTitle by remember { mutableStateOf("") }
+    val onDeleteConfirm = remember { mutableStateOf<(Boolean) -> Unit>({}) }
 
     // Variables to keep track of clicks and timing
     var lastClickTime = remember { 0L }
     val doubleClickThreshold = 300L // milliseconds threshold for detecting double click
     val ioScope = rememberCoroutineScope()
 
-    fun forceReload(file: VirtualFile){
+    fun forceReload(file: VirtualFile) {
         expandedItems.remove(file)
         expandedItems.add(file)
     }
@@ -82,9 +92,9 @@ fun FileTree(
             position = contextMenuPosition,
             onDismiss = { showMenu = false },
             onRename = { file ->
-                dialogTitle = "Rename File"
-                dialogInitText = file.name
-                onConfirm.value = { newName ->
+                inputDialogTitle = "Rename File"
+                inputDialogInitText = file.name
+                onInputConfirm.value = { newName ->
                     vfs.renameFile(file.path, newName)
                     forceReload()
                     showInputDialog = false
@@ -92,9 +102,9 @@ fun FileTree(
                 showInputDialog = true
             },
             onCreate = { file, isDirectory ->
-                dialogTitle = if (isDirectory) "Create Directory" else "Create File"
-                dialogInitText = "new"
-                onConfirm.value = { newName ->
+                inputDialogTitle = if (isDirectory) "Create Directory" else "Create File"
+                inputDialogInitText = "new"
+                onInputConfirm.value = { newName ->
                     vfs.createFile(file.path + FPath.delimited(newName), isDirectory)
                     forceReload()
                     showInputDialog = false
@@ -102,8 +112,14 @@ fun FileTree(
                 showInputDialog = true
             },
             onDelete = { file ->
-                vfs.deleteFile(file.path)
-                forceReload()
+                deleteDialogTitle = "You are about to delete ${file.path}!"
+                onDeleteConfirm.value = {
+                    if (it) {
+                        vfs.deleteFile(file.path)
+                        forceReload()
+                    }
+                }
+                showDeleteConfirm = true
                 showMenu = false
             },
             onImport = { file ->
@@ -115,9 +131,9 @@ fun FileTree(
     // Input Dialog for creating or renaming files
     if (showInputDialog) {
         InputDialog(
-            dialogTitle,
-            dialogInitText,
-            onConfirm.value,
+            inputDialogTitle,
+            inputDialogInitText,
+            onInputConfirm.value,
             onDismiss = {
                 showInputDialog = false
             },
@@ -126,6 +142,15 @@ fun FileTree(
                 vfs.findFile(path) != null
             }
         )
+    }
+
+    if (showDeleteConfirm) {
+        ConfirmDialog(
+            deleteDialogTitle
+        ) {
+            showDeleteConfirm = false
+            onDeleteConfirm.value(it)
+        }
     }
 
     LazyColumn(
