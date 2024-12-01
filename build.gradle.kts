@@ -13,7 +13,7 @@ val DIST_VERSION: String by project
 val DIST_YEAR: String by project
 val DIST_DEV: String by project
 val DIST_ORG: String by project
-val DIST_FILENAME = "$DIST_NAME - $DIST_VERSION"
+val DIST_FILENAME = "$DIST_NAME-$DIST_VERSION"
 
 plugins {
     kotlin("multiplatform") version "2.0.21"
@@ -39,7 +39,7 @@ val buildConfigGenerator by tasks.registering(Sync::class) {
                     const val YEAR = "$DIST_YEAR"
                     const val DEV = "$DIST_DEV"
                     const val ORG = "$DIST_ORG"
-                    const val FILENAME = "$DIST_NAME - $DIST_VERSION"
+                    const val FILENAME = "$DIST_FILENAME"
                 }
                 
             """.trimIndent()
