@@ -20,7 +20,7 @@ enum class AsmTokenType(
     val isCharLiteral: Boolean = false
 ) : TokenType {
     WHITESPACE(Regex("""[\t ]+""")),
-    LINEBREAK(Regex("\\n")),
+    LINEBREAK(Regex("(\\n|\\r\\n)")),
     COMMENT_SL(Regex("//.*"), CodeStyle.comment),
     COMMENT_ML(Regex("""/\*([^*]|\*+[^*/])*\*/"""), CodeStyle.comment),
     COMMENT_NATIVE(Regex("#.+"), CodeStyle.comment),
