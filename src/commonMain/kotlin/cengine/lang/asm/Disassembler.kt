@@ -3,14 +3,16 @@ package cengine.lang.asm
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import cengine.util.integer.Hex
+import emulator.kit.nativeLog
 
 abstract class Disassembler {
 
-    val decoded: MutableState<List<DecodedSegment>> = mutableStateOf(emptyList())
+    val decodedContent: MutableState<List<DecodedSegment>> = mutableStateOf(emptyList())
 
     fun disassemble(initializer: Initializer): List<DecodedSegment> {
+        nativeLog("Disassemble Segments: Starting!")
         val contents = initializer.contents()
-        return contents.map { (addr, content) ->
+        val mapped = contents.map { (addr, content) ->
             val (data, labels) = content
 
             DecodedSegment(
@@ -19,6 +21,10 @@ abstract class Disassembler {
                 disassemble(addr, data)
             )
         }
+
+        nativeLog("Disassemble Segments: Finished!")
+
+        return mapped
     }
 
     abstract fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Decoded>

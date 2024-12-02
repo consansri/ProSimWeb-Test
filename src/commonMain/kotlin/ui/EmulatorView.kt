@@ -87,24 +87,6 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
 
     var initializer: Initializer? by remember { mutableStateOf<Initializer?>(buildInitializer()) }
 
-    LaunchedEffect(initializer) {
-        architecture ?: return@LaunchedEffect
-        architecture.initializer = initializer
-        architecture.disassembler?.decoded?.value = emptyList()
-
-        initializer?.let { initializer ->
-            architecture.disassembler?.let {
-                it.decoded.value = it.disassemble(initializer)
-            }
-        }
-
-        architecture.exeReset()
-    }
-
-    LaunchedEffect(emuInitFilePath) {
-        initializer = buildInitializer()
-    }
-
     val archOverview: (@Composable BoxScope.() -> Unit) = {
         ArchitectureOverview(architecture, baseStyle, baseLargeStyle)
     }
@@ -302,6 +284,24 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
         rightBg = theme.COLOR_BG_1,
         bottomBg = theme.COLOR_BG_1
     )
+
+    LaunchedEffect(initializer) {
+        architecture ?: return@LaunchedEffect
+        architecture.initializer = initializer
+        architecture.disassembler?.decodedContent?.value = emptyList()
+
+        initializer?.let { initializer ->
+            architecture.disassembler?.let {
+                it.decodedContent.value = it.disassemble(initializer)
+            }
+        }
+
+        architecture.exeReset()
+    }
+
+    LaunchedEffect(emuInitFilePath) {
+        initializer = buildInitializer()
+    }
 
     LaunchedEffect(leftContentType) {
         emuState.leftContent = leftContentType

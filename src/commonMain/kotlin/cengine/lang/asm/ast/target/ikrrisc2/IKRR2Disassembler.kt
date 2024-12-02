@@ -13,15 +13,12 @@ object IKRR2Disassembler : Disassembler() {
         val decoded = mutableListOf<Decoded>()
 
         while (currIndex < buffer.size) {
-            currInstr = try {
-                IKRR2InstrProvider(buffer[currIndex].toULong().toUInt())
-            } catch (e: IndexOutOfBoundsException) {
-                break
-            }
+            currInstr = IKRR2InstrProvider(buffer[currIndex].toULong().toUInt())
 
             decoded.add(currInstr.decode(startAddr, currIndex.toULong()))
 
             currIndex += 1
+            if(currIndex >= buffer.size) break
         }
 
         return decoded
@@ -110,27 +107,28 @@ object IKRR2Disassembler : Disassembler() {
 
         override fun decode(segmentAddr: Hex, offset: ULong): Decoded {
             val hexPrefix = IKRR2Spec.prefices.hex
-            val wordAlignedOffset = offset shr 2
             return when (type) {
-                ADD, ADDX, SUB, SUBX, AND, OR, XOR, CMPU, CMPS -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg, $raReg")
-                ADDI, ADDLI, ADDHI, CMPUI, CMPSI, AND0I, AND1I, ORI, XORI -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg, #$hexPrefix${imm16.toString(16)}")
-                LSL, LSR, ASL, ASR, ROL, ROR, SWAPH, SWAPB, EXTB, EXTH, NOT -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg")
-                LDD -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := ($rbReg, $hexPrefix${disp16.toString(16)})")
-                LDR -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := ($rbReg, $raReg)")
-                STD -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} ($rbReg, $hexPrefix${disp16.toString(16)}) := $rcReg")
-                STR -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} ($rbReg, $raReg) := $rcReg")
+                ADD, ADDX, SUB, SUBX, AND, OR, XOR, CMPU, CMPS -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg, $raReg")
+                ADDI, ADDLI, ADDHI, CMPUI, CMPSI, AND0I, AND1I, ORI, XORI -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg, #$hexPrefix${imm16.toString(16)}")
+                LSL, LSR, ASL, ASR, ROL, ROR, SWAPH, SWAPB, EXTB, EXTH, NOT -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg")
+                LDD -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rcReg := ($rbReg, $hexPrefix${disp16.toString(16)})")
+                LDR -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rcReg := ($rbReg, $raReg)")
+                STD -> Decoded(offset, binaryAsHex, "${type.lc5Name} ($rbReg, $hexPrefix${disp16.toString(16)}) := $rcReg")
+                STR -> Decoded(offset, binaryAsHex, "${type.lc5Name} ($rbReg, $raReg) := $rcReg")
                 BEQ, BNE, BLT, BGT, BLE, BGE -> {
                     val offset18 = disp18.toValue(Size.Bit18).toDec().getResized(segmentAddr.size)
-                    val target = (segmentAddr + wordAlignedOffset.toValue(segmentAddr.size) + offset18).toHex()
-                    Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $hexPrefix${disp18.toString(16)}", target)
+                    val target = (segmentAddr + offset.toValue(segmentAddr.size) + offset18).toHex()
+                    Decoded(offset, binaryAsHex, "${type.lc5Name} $hexPrefix${disp18.toString(16)}", target)
                 }
+
                 BRA, BSR -> {
                     val offset26 = disp26.toValue(Size.Bit26).toDec().getResized(segmentAddr.size)
-                    val target = (segmentAddr + wordAlignedOffset.toValue(segmentAddr.size) + offset26).toHex()
-                    Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $hexPrefix${disp26.toString(16)}", target)
+                    val target = (segmentAddr + offset.toValue(segmentAddr.size) + offset26).toHex()
+                    Decoded(offset, binaryAsHex, "${type.lc5Name} $hexPrefix${disp26.toString(16)}", target)
                 }
-                JMP, JSR -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rbReg")
-                null -> Decoded(wordAlignedOffset, binaryAsHex, "[invalid]")
+
+                JMP, JSR -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rbReg")
+                null -> Decoded(offset, binaryAsHex, "[invalid]")
             }
         }
     }

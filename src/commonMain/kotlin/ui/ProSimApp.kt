@@ -40,6 +40,7 @@ object ProSimApp {
 
     @Composable
     fun launch() {
+
         UIState.Theme.value = ProjectStateManager.appState.getTheme()
         UIState.Scale.value = ProjectStateManager.appState.getScaling()
 

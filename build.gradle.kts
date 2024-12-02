@@ -21,13 +21,12 @@ plugins {
     kotlin("plugin.compose") version "2.1.0"
     id("org.jetbrains.compose") version "1.7.1"
     kotlin("plugin.serialization") version "2.1.0"
-    id("com.gradleup.shadow") version "8.3.5"
     distribution
 }
 
-
 // execute when config was changed
 val buildConfigGenerator by tasks.registering(Sync::class) {
+    group = "build"
     from(
         resources.text.fromString(
             """
@@ -67,8 +66,11 @@ repositories {
 kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs("composeWeb") {
-        browser()
         binaries.executable()
+        browser()
+        compilerOptions {
+            freeCompilerArgs.add("-Xwasm-debugger-custom-formatters")
+        }
     }
 
     jvm("composeDesktop") {
@@ -174,5 +176,3 @@ val copyComposeDesktopJarToWeb by tasks.registering(Copy::class) {
 tasks.named("composeWebBrowserDistribution").configure {
     dependsOn(copyComposeDesktopJarToWeb)
 }
-
-//tasks.getByName("jsBrowserDistribution").dependsOn(copyDistZipToJsDistribution)
