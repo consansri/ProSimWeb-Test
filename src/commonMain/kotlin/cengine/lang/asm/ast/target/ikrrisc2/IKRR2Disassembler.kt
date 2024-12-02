@@ -1,7 +1,5 @@
 package cengine.lang.asm.ast.target.ikrrisc2
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.InstrType.*
 import cengine.util.integer.Hex
@@ -9,10 +7,10 @@ import cengine.util.integer.Size
 import cengine.util.integer.Value.Companion.toValue
 
 object IKRR2Disassembler : Disassembler() {
-    override fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Disassembler.Decoded> {
+    override fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Decoded> {
         var currIndex = 0
         var currInstr: IKRR2InstrProvider
-        val decoded = mutableListOf<Disassembler.Decoded>()
+        val decoded = mutableListOf<Decoded>()
 
         while (currIndex < buffer.size) {
             currInstr = try {
@@ -23,13 +21,13 @@ object IKRR2Disassembler : Disassembler() {
 
             decoded.add(currInstr.decode(startAddr, currIndex.toULong()))
 
-            currIndex += 4
+            currIndex += 1
         }
 
         return decoded
     }
 
-    data class IKRR2InstrProvider(val binary: UInt) : Disassembler.InstrProvider {
+    data class IKRR2InstrProvider(val binary: UInt) : InstrProvider {
         val binaryAsHex = binary.toValue()
 
         val opcodeRType = binary.shr(10) and 0b111111U
@@ -110,29 +108,29 @@ object IKRR2Disassembler : Disassembler() {
             else -> null
         }
 
-        override fun decode(segmentAddr: Hex, offset: ULong): Disassembler.Decoded {
+        override fun decode(segmentAddr: Hex, offset: ULong): Decoded {
             val hexPrefix = IKRR2Spec.prefices.hex
             val wordAlignedOffset = offset shr 2
             return when (type) {
-                ADD, ADDX, SUB, SUBX, AND, OR, XOR, CMPU, CMPS -> Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg, $raReg")
-                ADDI, ADDLI, ADDHI, CMPUI, CMPSI, AND0I, AND1I, ORI, XORI -> Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg, #$hexPrefix${imm16.toString(16)}")
-                LSL, LSR, ASL, ASR, ROL, ROR, SWAPH, SWAPB, EXTB, EXTH, NOT -> Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg")
-                LDD -> Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := ($rbReg, $hexPrefix${disp16.toString(16)})")
-                LDR -> Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := ($rbReg, $raReg)")
-                STD -> Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} ($rbReg, $hexPrefix${disp16.toString(16)}) := $rcReg")
-                STR -> Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} ($rbReg, $raReg) := $rcReg")
+                ADD, ADDX, SUB, SUBX, AND, OR, XOR, CMPU, CMPS -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg, $raReg")
+                ADDI, ADDLI, ADDHI, CMPUI, CMPSI, AND0I, AND1I, ORI, XORI -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg, #$hexPrefix${imm16.toString(16)}")
+                LSL, LSR, ASL, ASR, ROL, ROR, SWAPH, SWAPB, EXTB, EXTH, NOT -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg")
+                LDD -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := ($rbReg, $hexPrefix${disp16.toString(16)})")
+                LDR -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rcReg := ($rbReg, $raReg)")
+                STD -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} ($rbReg, $hexPrefix${disp16.toString(16)}) := $rcReg")
+                STR -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} ($rbReg, $raReg) := $rcReg")
                 BEQ, BNE, BLT, BGT, BLE, BGE -> {
                     val offset18 = disp18.toValue(Size.Bit18).toDec().getResized(segmentAddr.size)
                     val target = (segmentAddr + wordAlignedOffset.toValue(segmentAddr.size) + offset18).toHex()
-                    Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $hexPrefix${disp18.toString(16)}", target)
+                    Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $hexPrefix${disp18.toString(16)}", target)
                 }
                 BRA, BSR -> {
                     val offset26 = disp26.toValue(Size.Bit26).toDec().getResized(segmentAddr.size)
                     val target = (segmentAddr + wordAlignedOffset.toValue(segmentAddr.size) + offset26).toHex()
-                    Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $hexPrefix${disp26.toString(16)}", target)
+                    Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $hexPrefix${disp26.toString(16)}", target)
                 }
-                JMP, JSR -> Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rbReg")
-                null -> Disassembler.Decoded(wordAlignedOffset, binaryAsHex, "[invalid]")
+                JMP, JSR -> Decoded(wordAlignedOffset, binaryAsHex, "${type.lc5Name} $rbReg")
+                null -> Decoded(wordAlignedOffset, binaryAsHex, "[invalid]")
             }
         }
     }
