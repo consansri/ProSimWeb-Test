@@ -105,7 +105,7 @@ class Scaling(val scale: Float = 1f) {
         get() = field * scale
     val SIZE_DIVIDER_THICKNESS: Dp = 4.dp
         get() = field * scale
-    val SIZE_SCROLL_THUMB: Dp = 8.dp
+    val SIZE_SCROLL_THUMB: Dp = 10.dp
         get() = field * scale
 
     val SIZE_BORDER_THICKNESS_MARKED: Dp

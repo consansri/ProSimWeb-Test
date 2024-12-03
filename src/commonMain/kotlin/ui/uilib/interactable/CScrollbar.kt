@@ -1,25 +1,27 @@
 package ui.uilib.interactable
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.onDrag
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.times
+import androidx.compose.ui.unit.toSize
 import kotlinx.coroutines.launch
 import ui.uilib.UIState
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CVerticalScrollBar(scrollState: ScrollState, modifier: Modifier = Modifier, drawScope: DrawScope.() -> Unit = {}) {
+fun CVerticalScrollBar(scrollState: ScrollState, modifier: Modifier = Modifier, below: @Composable BoxScope.() -> Unit = {}) {
     val coroutineScope = rememberCoroutineScope()
 
     val containerHeight = scrollState.maxValue.toFloat() + scrollState.viewportSize.toFloat()
@@ -29,32 +31,43 @@ fun CVerticalScrollBar(scrollState: ScrollState, modifier: Modifier = Modifier, 
     val thumbHeightRatio = if (containerHeight == 0f) 1f else scrollState.viewportSize.toFloat() / containerHeight
     val thumbHeightPx = thumbHeightRatio * scrollState.viewportSize.toFloat()
 
-    Canvas(
-        modifier.fillMaxHeight().width(UIState.Scale.value.SIZE_CONTROL_MEDIUM)
-            .pointerInput(Unit) {
-                detectVerticalDragGestures { _, dragAmount ->
-                    // Calculate new scroll position based on drag amount
-                    val newScroll = (scrollState.value + (dragAmount / thumbHeightRatio)).toInt().coerceIn(0, scrollState.maxValue)
-                    coroutineScope.launch {
-                        scrollState.scrollTo(newScroll)
-                    }
-                }
-            }) {
-        // Draw the scrollbar thumb
-        drawRect(
-            color = UIState.Theme.value.COLOR_FG_1,
-            style = Fill,
-            topLeft = Offset(x = size.width / 2, y = vScrollRatio * size.height),
-            size = size.copy(width = size.width / 2, height = thumbHeightPx)
-        )
+    var scrollBarSize by remember { mutableStateOf<Size>(Size.Zero) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
 
-        drawScope()
+    with(LocalDensity.current) {
+        Box(
+            modifier = modifier
+                .fillMaxHeight()
+                .onGloballyPositioned {
+                    scrollBarSize = it.size.toSize()
+                }
+        ) {
+
+            below()
+
+            Box(
+                Modifier
+                    .size(DpSize(UIState.Scale.value.SIZE_SCROLL_THUMB, thumbHeightPx.toDp()))
+                    .offset(x = scrollBarSize.width.toDp() - UIState.Scale.value.SIZE_SCROLL_THUMB, y = vScrollRatio * scrollBarSize.height.toDp())
+                    .onDrag { offset ->
+                        // Calculate new scroll position based on drag amount
+                        val newScroll = (scrollState.value + (offset.y / thumbHeightRatio)).toInt().coerceIn(0, scrollState.maxValue)
+                        coroutineScope.launch {
+                            scrollState.scrollTo(newScroll)
+                        }
+                    }
+                    .hoverable(interactionSource)
+                    .background(if(isHovered) UIState.Theme.value.COLOR_BORDER.copy(alpha = 0.6f) else UIState.Theme.value.COLOR_BORDER.copy(alpha = 0.4f))
+            )
+        }
     }
 
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CHorizontalScrollBar(scrollState: ScrollState, modifier: Modifier = Modifier, drawScope: DrawScope.() -> Unit = {}) {
+fun CHorizontalScrollBar(scrollState: ScrollState, modifier: Modifier = Modifier, below: @Composable BoxScope.() -> Unit = {}) {
     val coroutineScope = rememberCoroutineScope()
 
     val containerWidth = scrollState.maxValue.toFloat() + scrollState.viewportSize.toFloat()
@@ -64,26 +77,37 @@ fun CHorizontalScrollBar(scrollState: ScrollState, modifier: Modifier = Modifier
     val thumbWidthRatio = if (containerWidth == 0f) 1f else scrollState.viewportSize.toFloat() / containerWidth
     val thumbWidthPx = thumbWidthRatio * scrollState.viewportSize.toFloat()
 
-    Canvas(
-        modifier.fillMaxWidth().height(UIState.Scale.value.SIZE_CONTROL_MEDIUM)
-            .pointerInput(Unit) {
-                detectHorizontalDragGestures { _, dragAmount ->
-                    // Calculate new scroll position based on drag amount
-                    val newScroll = (scrollState.value + (dragAmount / thumbWidthRatio)).toInt().coerceIn(0, scrollState.maxValue)
-                    coroutineScope.launch {
-                        scrollState.scrollTo(newScroll)
-                    }
-                }
-            }) {
-        // Draw the scrollbar thumb
-        drawRect(
-            color = UIState.Theme.value.COLOR_FG_1,
-            style = Fill,
-            topLeft = Offset(vScrollRatio * size.width, size.height / 2),
-            size = size.copy(thumbWidthPx, size.height / 2)
-        )
+    var scrollBarSize by remember { mutableStateOf<Size>(Size.Zero) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
 
-        drawScope()
+    with(LocalDensity.current) {
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .onGloballyPositioned {
+                    scrollBarSize = it.size.toSize()
+                }
+        ) {
+
+            below()
+
+            Box(
+                Modifier
+                    .size(DpSize(thumbWidthPx.toDp(), UIState.Scale.value.SIZE_SCROLL_THUMB))
+                    .offset(vScrollRatio * scrollBarSize.width.toDp(), y = scrollBarSize.height.toDp() - UIState.Scale.value.SIZE_SCROLL_THUMB)
+                    .onDrag { offset ->
+                        val newScroll = (scrollState.value + (offset.x / thumbWidthRatio)).toInt().coerceIn(0, scrollState.maxValue)
+                        coroutineScope.launch {
+                            scrollState.scrollTo(newScroll)
+                        }
+                    }
+                    .hoverable(interactionSource)
+                    .background(if(isHovered) UIState.Theme.value.COLOR_BORDER.copy(alpha = 0.6f) else UIState.Theme.value.COLOR_BORDER.copy(alpha = 0.4f))
+
+            )
+        }
     }
+
 
 }
