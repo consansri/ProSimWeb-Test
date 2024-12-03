@@ -141,7 +141,7 @@ fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, 
                         }
                         Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                            val targetName = decodedRenderingLabels[decoded.target]?.name ?: decoded.target?.rawInput ?: ""
+                            val targetName = decodedRenderingLabels[decoded.target]?.name ?: decoded.target?.toRawZeroTrimmedString() ?: ""
                             Text(targetName, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = destOf?.third ?: theme.COLOR_FG_1)
                         }
                     }
