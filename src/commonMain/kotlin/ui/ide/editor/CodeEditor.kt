@@ -1,7 +1,6 @@
-package ui.uilib.ide.editor
+package ui.ide.editor
 
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Icon
@@ -40,6 +39,8 @@ import kotlinx.coroutines.*
 import ui.uilib.ComposeTools
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
+import ui.uilib.interactable.CHorizontalScrollBar
+import ui.uilib.interactable.CVerticalScrollBar
 import ui.uilib.params.IconType
 import kotlin.math.roundToInt
 import kotlin.time.Duration
@@ -373,7 +374,7 @@ fun CodeEditor(
         ) { textField ->
 
             Box(
-                Modifier
+                modifier
                     .fillMaxSize()
             ) {
                 Box(
@@ -510,143 +511,122 @@ fun CodeEditor(
                     }
                 }
 
-                Row(
-                    Modifier.align(Alignment.CenterEnd).fillMaxHeight()
-                ) {
-
-                    Column(
-                        Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween,
-                        horizontalAlignment = Alignment.End
+                    Row(
+                        Modifier.align(Alignment.CenterEnd)
                     ) {
-                        Row(Modifier.padding(scale.SIZE_INSET_MEDIUM), verticalAlignment = Alignment.CenterVertically) {
-                            if (analyticsAreUpToDate) {
-                                CButton(icon = icon.chevronRight, iconType = IconType.SMALL, onClick = {
-                                    run()
-                                })
-                                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
 
-                                val errors = allAnnotations.count { it.severity == Severity.ERROR }
-                                val warnings = allAnnotations.count { it.severity == Severity.WARNING }
-                                val infos = allAnnotations.count { it.severity == Severity.INFO }
-
-                                CButton(icon = icon.statusFine, text = "$infos", onClick = {
-                                    val firstInfo = allAnnotations.firstOrNull { it.severity == Severity.INFO } ?: return@CButton
-                                    val index = firstInfo.range.first
-                                    scrollToIndex(index)
-                                }, iconType = IconType.SMALL, textStyle = baseSmallStyle, iconTint = theme.COLOR_GREEN)
-
-                                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-
-                                CButton(icon = icon.info, text = "$warnings", onClick = {
-                                    val firstWarning = allAnnotations.firstOrNull { it.severity == Severity.WARNING } ?: return@CButton
-                                    val index = firstWarning.range.first
-                                    scrollToIndex(index)
-                                }, iconType = IconType.SMALL, textStyle = baseSmallStyle, iconTint = theme.COLOR_YELLOW)
-
-                                Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-
-                                CButton(icon = icon.statusError, text = "$errors", onClick = {
-                                    val firstError = allAnnotations.firstOrNull { it.severity == Severity.ERROR } ?: return@CButton
-                                    val index = firstError.range.first
-                                    scrollToIndex(index)
-                                }, iconType = IconType.SMALL, textStyle = baseSmallStyle, iconTint = theme.COLOR_RED)
-                            } else {
-                                ComposeTools.Rotating { rotation ->
+                        Column(
+                            Modifier, verticalArrangement = Arrangement.SpaceBetween,
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            Row(Modifier.padding(scale.SIZE_INSET_MEDIUM), verticalAlignment = Alignment.CenterVertically) {
+                                if (analyticsAreUpToDate) {
                                     CButton(icon = icon.chevronRight, iconType = IconType.SMALL, onClick = {
                                         run()
                                     })
                                     Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-                                    Text("CTRL+SHIFT+S to analyze", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
-                                    Icon(icon.statusLoading, "loading", Modifier.size(scale.SIZE_CONTROL_SMALL).rotate(rotation), tint = theme.COLOR_FG_0)
+
+                                    val errors = allAnnotations.count { it.severity == Severity.ERROR }
+                                    val warnings = allAnnotations.count { it.severity == Severity.WARNING }
+                                    val infos = allAnnotations.count { it.severity == Severity.INFO }
+
+                                    CButton(icon = icon.statusFine, text = "$infos", onClick = {
+                                        val firstInfo = allAnnotations.firstOrNull { it.severity == Severity.INFO } ?: return@CButton
+                                        val index = firstInfo.range.first
+                                        scrollToIndex(index)
+                                    }, iconType = IconType.SMALL, textStyle = baseSmallStyle, iconTint = theme.COLOR_GREEN)
+
                                     Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-                                    CButton(icon = icon.build, iconType = IconType.SMALL, onClick = {
-                                        analyze()
-                                    })
+
+                                    CButton(icon = icon.info, text = "$warnings", onClick = {
+                                        val firstWarning = allAnnotations.firstOrNull { it.severity == Severity.WARNING } ?: return@CButton
+                                        val index = firstWarning.range.first
+                                        scrollToIndex(index)
+                                    }, iconType = IconType.SMALL, textStyle = baseSmallStyle, iconTint = theme.COLOR_YELLOW)
+
+                                    Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
+                                    CButton(icon = icon.statusError, text = "$errors", onClick = {
+                                        val firstError = allAnnotations.firstOrNull { it.severity == Severity.ERROR } ?: return@CButton
+                                        val index = firstError.range.first
+                                        scrollToIndex(index)
+                                    }, iconType = IconType.SMALL, textStyle = baseSmallStyle, iconTint = theme.COLOR_RED)
+                                } else {
+                                    ComposeTools.Rotating { rotation ->
+                                        CButton(icon = icon.chevronRight, iconType = IconType.SMALL, onClick = {
+                                            run()
+                                        })
+                                        Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                                        Text("CTRL+SHIFT+S to analyze", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_0)
+                                        Icon(icon.statusLoading, "loading", Modifier.size(scale.SIZE_CONTROL_SMALL).rotate(rotation), tint = theme.COLOR_FG_0)
+                                        Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                                        CButton(icon = icon.build, iconType = IconType.SMALL, onClick = {
+                                            analyze()
+                                        })
+                                    }
                                 }
                             }
-                        }
 
-                        Row(Modifier.padding(scale.SIZE_INSET_MEDIUM), verticalAlignment = Alignment.CenterVertically) {
-                            val selection = textFieldValue.selection
-                            val line = textLayout?.getLineForOffset(selection.start) ?: 0
-                            val column = selection.start - (textLayout?.getLineStart(line) ?: 0)
+                            Row(Modifier.padding(scale.SIZE_INSET_MEDIUM), verticalAlignment = Alignment.CenterVertically) {
+                                val selection = textFieldValue.selection
+                                val line = textLayout?.getLineForOffset(selection.start) ?: 0
+                                val column = selection.start - (textLayout?.getLineStart(line) ?: 0)
 
-                            Text("${inputLag.inWholeMilliseconds}ms", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_1)
-
-                            Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
-
-                            currentElement?.let { element ->
-                                val path = service?.path(element) ?: return@let
-                                Text(path.joinToString(" > ") { it.pathName }, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
+                                Text("${inputLag.inWholeMilliseconds}ms", fontFamily = baseSmallStyle.fontFamily, fontSize = baseSmallStyle.fontSize, color = theme.COLOR_FG_1)
 
                                 Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+
+                                currentElement?.let { element ->
+                                    val path = service?.path(element) ?: return@let
+                                    Text(path.joinToString(" > ") { it.pathName }, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
+
+                                    Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
+                                }
+
+                                Text("${line + 1}:${column + 1}", fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
                             }
-
-                            Text("${line + 1}:${column + 1}", fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_1)
                         }
-                    }
 
-                    // Draw Vertical ScrollBar
+                        // Draw Vertical ScrollBar
+                        CVerticalScrollBar(scrollVertical) {
+                            textLayout?.let { layout ->
+                                // Draw Annotations
+                                allAnnotations.forEach {
+                                    val range = it.range
+                                    val line = layout.getLineForOffset(range.first)
+                                    val ratioTop = layout.getLineTop(line) / layout.size.height
+                                    val ratioBottom = layout.getLineBottom(line) / layout.size.height
+                                    val ratioHeight = ratioBottom - ratioTop
 
-                    val containerHeight = scrollVertical.maxValue.toFloat() + scrollVertical.viewportSize.toFloat()
-                    val scrollRatio = if (containerHeight == 0f) 0f else scrollVertical.value.toFloat() / containerHeight
+                                    drawRect(theme.getColor(it.severity.color), topLeft = Offset(0f, ratioTop * size.height), size = Size(size.width / 2, ratioHeight * size.height), style = Fill)
+                                }
 
-                    // Calculate scrollbar thumb height based on the content height and viewport
-                    val thumbHeightRatio = if (containerHeight == 0f) 1f else scrollVertical.viewportSize.toFloat() / containerHeight
-                    val thumbHeightPx = thumbHeightRatio * scrollVertical.viewportSize.toFloat()
+                                // Draw References
+                                val root = references.firstOrNull()?.referencedElement ?: return@let
+                                val rootRange = root.range
+                                val rootLine = layout.getLineForOffset(rootRange.first)
+                                val rootRatioTop = layout.getLineTop(rootLine) / layout.size.height
+                                val rootRatioBottom = layout.getLineBottom(rootLine) / layout.size.height
+                                val rootRatioHeight = rootRatioBottom - rootRatioTop
 
-                    Canvas(Modifier.fillMaxHeight().width(scale.SIZE_CONTROL_MEDIUM)
-                        .pointerInput(Unit) {
-                            detectVerticalDragGestures { _, dragAmount ->
-                                // Calculate new scroll position based on drag amount
-                                val newScroll = (scrollVertical.value + (dragAmount / thumbHeightRatio)).toInt().coerceIn(0, scrollVertical.maxValue)
-                                coroutineScope.launch {
-                                    scrollVertical.scrollTo(newScroll)
+                                drawRect(theme.COLOR_SEARCH_RESULT, topLeft = Offset(0f, rootRatioTop * size.height), size = Size(size.width / 2, rootRatioHeight * size.height), style = Fill)
+
+                                references.forEach {
+                                    val range = it.element.range
+                                    val line = layout.getLineForOffset(range.first)
+                                    val ratioTop = layout.getLineTop(line) / layout.size.height
+                                    val ratioBottom = layout.getLineBottom(line) / layout.size.height
+                                    val ratioHeight = ratioBottom - ratioTop
+
+                                    drawRect(theme.COLOR_SEARCH_RESULT, topLeft = Offset(0f, ratioTop * size.height), size = Size(size.width / 2, ratioHeight * size.height), style = Fill)
                                 }
                             }
-                        }) {
-                        // Draw the scrollbar thumb
-                        drawRect(
-                            color = theme.COLOR_FG_1,
-                            style = Fill,
-                            topLeft = Offset(x = size.width / 2, y = scrollRatio * size.height),
-                            size = size.copy(width = size.width / 2, height = thumbHeightPx)
-                        )
-
-                        textLayout?.let { layout ->
-                            // Draw Annotations
-                            allAnnotations.forEach {
-                                val range = it.range
-                                val line = layout.getLineForOffset(range.first)
-                                val ratioTop = layout.getLineTop(line) / layout.size.height
-                                val ratioBottom = layout.getLineBottom(line) / layout.size.height
-                                val ratioHeight = ratioBottom - ratioTop
-
-                                drawRect(theme.getColor(it.severity.color), topLeft = Offset(0f, ratioTop * size.height), size = Size(size.width / 2, ratioHeight * size.height), style = Fill)
-                            }
-
-                            // Draw References
-                            val root = references.firstOrNull()?.referencedElement ?: return@let
-                            val rootRange = root.range
-                            val rootLine = layout.getLineForOffset(rootRange.first)
-                            val rootRatioTop = layout.getLineTop(rootLine) / layout.size.height
-                            val rootRatioBottom = layout.getLineBottom(rootLine) / layout.size.height
-                            val rootRatioHeight = rootRatioBottom - rootRatioTop
-
-                            drawRect(theme.COLOR_SEARCH_RESULT, topLeft = Offset(0f, rootRatioTop * size.height), size = Size(size.width / 2, rootRatioHeight * size.height), style = Fill)
-
-                            references.forEach {
-                                val range = it.element.range
-                                val line = layout.getLineForOffset(range.first)
-                                val ratioTop = layout.getLineTop(line) / layout.size.height
-                                val ratioBottom = layout.getLineBottom(line) / layout.size.height
-                                val ratioHeight = ratioBottom - ratioTop
-
-                                drawRect(theme.COLOR_SEARCH_RESULT, topLeft = Offset(0f, ratioTop * size.height), size = Size(size.width / 2, ratioHeight * size.height), style = Fill)
-                            }
                         }
                     }
-                }
+
+
+                // Draw Horizontal ScrollBar
+                CHorizontalScrollBar(scrollHorizontal, Modifier.align(Alignment.BottomCenter))
             }
         }
     }

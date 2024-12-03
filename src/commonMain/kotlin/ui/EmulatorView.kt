@@ -23,10 +23,10 @@ import emulator.kit.Architecture
 import emulator.kit.nativeError
 import kotlinx.serialization.Serializable
 import ui.uilib.UIState
-import ui.uilib.emulator.ArchitectureOverview
-import ui.uilib.emulator.ExecutionView
-import ui.uilib.emulator.MemView
-import ui.uilib.emulator.RegView
+import ui.emulator.ArchitectureOverview
+import ui.emulator.ExecutionView
+import ui.emulator.MemView
+import ui.emulator.RegView
 import ui.uilib.filetree.FileTree
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.CToggle
@@ -66,22 +66,27 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
         val initFilePath = emuInitFilePath ?: return null
         val file = project.fileSystem.findFile(initFilePath) ?: return null
         val lang = project.getLang(file)
-        return when (lang) {
-            MifLang -> {
-                val mifPsiFile = MifLang.psiParser.parse(file)
-                val errors = mifPsiFile.printErrors()
-                if (errors != null) {
-                    nativeError(errors)
-                    return null
+        return try {
+            when (lang) {
+                MifLang -> {
+                    val mifPsiFile = MifLang.psiParser.parse(file)
+                    val errors = mifPsiFile.printErrors()
+                    if (errors != null) {
+                        nativeError(errors)
+                        return null
+                    }
+                    mifPsiFile
                 }
-                mifPsiFile
-            }
 
-            ObjLang -> {
-                ELFFile.parse(file.name, file.getContent())
-            }
+                ObjLang -> {
+                    ELFFile.parse(file.name, file.getContent())
+                }
 
-            else -> null
+                else -> null
+            }
+        } catch (e: Throwable) {
+            nativeError(e.message.toString())
+            null
         }
     }
 

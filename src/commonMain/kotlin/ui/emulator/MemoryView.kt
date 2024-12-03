@@ -1,4 +1,4 @@
-package ui.uilib.emulator
+package ui.emulator
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,8 +21,6 @@ import ui.uilib.layout.TabbedPane
 
 @Composable
 fun MemView(arch: Architecture) {
-
-    val theme = UIState.Theme.value
 
     val pc = arch.regContainer.pc.variable.state
     val memoryList = remember { MicroSetup.memory }

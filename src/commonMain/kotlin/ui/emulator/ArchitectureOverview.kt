@@ -1,4 +1,4 @@
-package ui.uilib.emulator
+package ui.emulator
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

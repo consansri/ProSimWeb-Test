@@ -1,4 +1,4 @@
-package ui.uilib.ide.analyze
+package ui.ide.analyze
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

@@ -1,4 +1,4 @@
-package ui.uilib.ide.editor
+package ui.ide.editor
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

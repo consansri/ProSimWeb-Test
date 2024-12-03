@@ -1,4 +1,4 @@
-package ui.uilib.emulator
+package ui.emulator
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -92,10 +92,11 @@ fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, 
             LazyColumn(Modifier.fillMaxSize()) {
 
                 items(decodedRenderingValues, key = {
+                    /**
+                     * @throws WebAssembly.Exception if key isn't unique!
+                     */
                     it.first.addr.toString() + it.second.offset
                 }) { (segment, decoded) ->
-
-
                     val address = (segment.addr + decoded.offset.toValue(segment.addr.size)).toHex()
                     val destOf = targetLinks.firstOrNull { it.first == decoded }
                     val pcPointsOn = architecture.regContainer.pc.variable.state.value == address

@@ -17,9 +17,9 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import ui.uilib.UIState
 import ui.uilib.filetree.FileTree
-import ui.uilib.ide.analyze.PsiAnalyzerView
-import ui.uilib.ide.editor.CodeEditor
-import ui.uilib.ide.editor.ObjectEditor
+import ui.ide.analyze.PsiAnalyzerView
+import ui.ide.editor.CodeEditor
+import ui.ide.editor.ObjectEditor
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.CToggle
 import ui.uilib.label.CLabel
