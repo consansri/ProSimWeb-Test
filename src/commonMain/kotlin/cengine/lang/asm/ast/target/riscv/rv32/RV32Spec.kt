@@ -42,7 +42,7 @@ data object RV32Spec : TargetSpec<ELFGenerator> {
         override val symbol: Regex = Regex("""[a-zA-Z$._][a-zA-Z0-9$._]*""")
     }
 
-    override val allRegs: List<RegTypeInterface> = RVBaseRegs.entries + RVCsr.regs
+    override val allRegs: List<RegTypeInterface> = RVBaseRegs.entries + RVCsr.regs + RVCsr32Only.entries
     override val allInstrs: List<InstrTypeInterface> = RV32InstrType.entries
     override val allDirs: List<DirTypeInterface> = RVDirType.entries + ASDirType.entries
     override fun createGenerator(): ELFGenerator = ExecELFGenerator(this)
