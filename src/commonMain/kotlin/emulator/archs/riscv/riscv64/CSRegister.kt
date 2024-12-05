@@ -1,4 +1,4 @@
-package emulator.archs.riscv64
+package emulator.archs.riscv.riscv64
 
 import cengine.util.integer.Value
 import cengine.util.integer.Variable

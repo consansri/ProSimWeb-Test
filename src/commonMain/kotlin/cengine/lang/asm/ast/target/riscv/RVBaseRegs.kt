@@ -37,4 +37,6 @@ enum class RVBaseRegs(val names: List<String>, val aliases: List<String>) : RegT
     T6(listOf("t6"), listOf("x31"));
 
     override val recognizable: List<String> = names + aliases
+    override val numericalValue: UInt
+        get() = ordinal.toUInt()
 }

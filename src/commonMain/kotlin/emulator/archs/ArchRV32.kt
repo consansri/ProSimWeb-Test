@@ -5,8 +5,8 @@ import cengine.lang.asm.ast.target.riscv.RVDisassembler
 import cengine.util.integer.Size
 import cengine.util.integer.Value.Companion.toValue
 import cengine.util.integer.signExtend
-import emulator.archs.riscv32.RV32
-import emulator.archs.riscv64.RV64
+import emulator.archs.riscv.riscv32.RV32
+import emulator.archs.riscv.riscv64.RV64
 import emulator.kit.MicroSetup
 import emulator.kit.memory.Memory
 import emulator.kit.optional.BasicArchImpl

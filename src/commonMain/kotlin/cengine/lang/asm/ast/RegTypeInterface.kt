@@ -6,4 +6,5 @@ interface RegTypeInterface {
         get() = name.lowercase()
 
     val recognizable: List<String>
+    val numericalValue: UInt
 }

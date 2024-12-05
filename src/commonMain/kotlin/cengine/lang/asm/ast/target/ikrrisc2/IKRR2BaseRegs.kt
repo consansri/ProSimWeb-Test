@@ -37,4 +37,5 @@ enum class IKRR2BaseRegs : RegTypeInterface {
     R31;
 
     override val recognizable: List<String> = listOf(name.lowercase(), "x$ordinal")
+    override val numericalValue: UInt = ordinal.toUInt()
 }

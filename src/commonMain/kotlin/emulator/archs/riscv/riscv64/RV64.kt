@@ -1,48 +1,35 @@
-package emulator.archs.riscv32
+package emulator.archs.riscv.riscv64
 
 import cengine.lang.asm.ast.target.riscv.RVDisassembler
+import cengine.util.integer.Size
 import cengine.util.integer.Size.*
 import cengine.util.integer.Variable
-import emulator.archs.ArchRV32
-import emulator.archs.riscv32.RV32.config
-import emulator.archs.riscv32.RV32.riscVDocs
-import emulator.archs.riscv64.CSRegister
-import emulator.archs.riscv64.CSRegister.Privilege
+import emulator.archs.ArchRV64
+import emulator.archs.riscv.riscv64.CSRegister.Privilege
 import emulator.kit.common.Docs
 import emulator.kit.common.Docs.DocComponent.*
 import emulator.kit.common.RegContainer
-import emulator.kit.common.RegContainer.CallingConvention
-import emulator.kit.common.RegContainer.Register
+import emulator.kit.common.RegContainer.*
 import emulator.kit.config.Config
-import emulator.kit.config.Config.Description
 import emulator.kit.memory.*
+import emulator.kit.memory.Cache.Setting
 import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
 
-/**
- * Stores and defines **RV32 configurations**.
- *
- *
- * The implemented docs are generated in [riscVDocs].
- *
- * [RV32Syntax] and [RV32Assembler] are linked through the [asmConfig], while every other architecture configuration is defined in [config] such as the name, [Description], [RegContainer] and [Memory].
- *
- */
-data object RV32 {
+data object RV64 {
 
-    private const val MEM_INIT: String = "0"
     private const val REG_INIT: String = "0"
-    val XLEN = Bit32
-    val WORD_WIDTH = Bit32
 
+    val XLEN: Size = Bit64
+    val WORD_WIDTH: Size = Bit32
     private val REG_VALUE_SIZE = XLEN
     private val REG_ADDRESS_SIZE = Bit5
     private val CSR_REG_ADDRESS_SIZE = Bit12
     private val MEM_VALUE_WIDTH = Bit8
     val MEM_ADDRESS_WIDTH = XLEN
 
-    private const val MAIN_REGFILE_NAME = "common"
     const val CSR_REGFILE_NAME = "csr"
+    private const val MAIN_REGFILE_NAME = "common"
 
     /**
      * RV64 Extensions supplied through feature functionality
@@ -77,11 +64,13 @@ data object RV32 {
         Z(false, "Reserved", invisible = true),
     }
 
+    /**
+     * RV64 Generated Documenation
+     */
     private val riscVDocs = Docs(
         usingProSimAS = true,
         Docs.DocFile.DefinedFile(
-            "RV32 Implemented",
-
+            "RV64 Implemented",
             Chapter(
                 "Extensions",
                 UnlinkedList(entrys = EXTENSION.entries.filter { !it.invisible }.map { feature -> Text("${feature.name} (${if (feature.static) "fixed" else "switchable"}): ${feature.descr}") }.toTypedArray())
@@ -99,44 +88,49 @@ data object RV32 {
         )
     )
 
-    val standardRegFile = RegContainer.RegisterFile(
+    /**
+     * Standard Registers
+     */
+
+    val standardRegFile = RegisterFile(
         MAIN_REGFILE_NAME, arrayOf(
-            Register(0b00000U, listOf("x0"), listOf("zero"), Variable(REG_INIT, REG_VALUE_SIZE), description = "hardwired zero", hardwire = true),
-            Register(0b00001U, listOf("x1"), listOf("ra"), Variable(REG_INIT, REG_VALUE_SIZE), "return address", CallingConvention.CALLER),
-            Register(0b00010U, listOf("x2"), listOf("sp"), Variable(REG_INIT, REG_VALUE_SIZE), "stack pointer", CallingConvention.CALLEE),
-            Register(0b00011U, listOf("x3"), listOf("gp"), Variable(REG_INIT, REG_VALUE_SIZE), description = "global pointer"),
-            Register(0b00100U, listOf("x4"), listOf("tp"), Variable(REG_INIT, REG_VALUE_SIZE), description = "thread pointer"),
+            Register(0U, listOf("x0"), listOf("zero"), Variable(REG_INIT, REG_VALUE_SIZE), description = "hardwired zero", hardwire = true),
+            Register(1U, listOf("x1"), listOf("ra"), Variable(REG_INIT, REG_VALUE_SIZE), "return address", CallingConvention.CALLER),
+            Register(2U, listOf("x2"), listOf("sp"), Variable(REG_INIT, REG_VALUE_SIZE), "stack pointer", CallingConvention.CALLEE),
+            Register(3U, listOf("x3"), listOf("gp"), Variable(REG_INIT, REG_VALUE_SIZE), description = "global pointer"),
+            Register(4U, listOf("x4"), listOf("tp"), Variable(REG_INIT, REG_VALUE_SIZE), description = "thread pointer"),
 
-            Register(0b00101U, listOf("x5"), listOf("t0"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 0", CallingConvention.CALLER),
-            Register(0b00110U, listOf("x6"), listOf("t1"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 1", CallingConvention.CALLER),
-            Register(0b00111U, listOf("x7"), listOf("t2"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 2", CallingConvention.CALLER),
-            Register(0b11100U, listOf("x28"), listOf("t3"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 3", CallingConvention.CALLER),
-            Register(0b11101U, listOf("x29"), listOf("t4"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 4", CallingConvention.CALLER),
-            Register(0b11110U, listOf("x30"), listOf("t5"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 5", CallingConvention.CALLER),
-            Register(0b11111U, listOf("x31"), listOf("t6"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 6", CallingConvention.CALLER),
+            Register(5U, listOf("x5"), listOf("t0"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 0", CallingConvention.CALLER),
+            Register(6U, listOf("x6"), listOf("t1"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 1", CallingConvention.CALLER),
+            Register(7U, listOf("x7"), listOf("t2"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 2", CallingConvention.CALLER),
+            Register(28U, listOf("x28"), listOf("t3"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 3", CallingConvention.CALLER),
+            Register(29U, listOf("x29"), listOf("t4"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 4", CallingConvention.CALLER),
+            Register(30U, listOf("x30"), listOf("t5"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 5", CallingConvention.CALLER),
+            Register(31U, listOf("x31"), listOf("t6"), Variable(REG_INIT, REG_VALUE_SIZE), "temporary register 6", CallingConvention.CALLER),
 
-            Register(0b01010U, listOf("x10"), listOf("a0"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 0 / return value 0", CallingConvention.CALLER),
-            Register(0b01011U, listOf("x11"), listOf("a1"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 1 / return value 1", CallingConvention.CALLER),
-            Register(0b01100U, listOf("x12"), listOf("a2"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 2", CallingConvention.CALLER),
-            Register(0b01101U, listOf("x13"), listOf("a3"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 3", CallingConvention.CALLER),
-            Register(0b01110U, listOf("x14"), listOf("a4"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 4", CallingConvention.CALLER),
-            Register(0b01111U, listOf("x15"), listOf("a5"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 5", CallingConvention.CALLER),
-            Register(0b10000U, listOf("x16"), listOf("a6"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 6", CallingConvention.CALLER),
-            Register(0b10001U, listOf("x17"), listOf("a7"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 7", CallingConvention.CALLER),
+            Register(10U, listOf("x10"), listOf("a0"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 0 / return value 0", CallingConvention.CALLER),
+            Register(11U, listOf("x11"), listOf("a1"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 1 / return value 1", CallingConvention.CALLER),
+            Register(12U, listOf("x12"), listOf("a2"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 2", CallingConvention.CALLER),
+            Register(13U, listOf("x13"), listOf("a3"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 3", CallingConvention.CALLER),
+            Register(14U, listOf("x14"), listOf("a4"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 4", CallingConvention.CALLER),
+            Register(15U, listOf("x15"), listOf("a5"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 5", CallingConvention.CALLER),
+            Register(16U, listOf("x16"), listOf("a6"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 6", CallingConvention.CALLER),
+            Register(17U, listOf("x17"), listOf("a7"), Variable(REG_INIT, REG_VALUE_SIZE), "function argument 7", CallingConvention.CALLER),
 
-            Register(0b01000U, listOf("x8"), listOf("s0", "fp"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 0 / frame pointer", CallingConvention.CALLEE),
-            Register(0b01001U, listOf("x9"), listOf("s1"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 1", CallingConvention.CALLEE),
-            Register(0b10010U, listOf("x18"), listOf("s2"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 2", CallingConvention.CALLEE),
-            Register(0b10011U, listOf("x19"), listOf("s3"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 3", CallingConvention.CALLEE),
-            Register(0b10100U, listOf("x20"), listOf("s4"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 4", CallingConvention.CALLEE),
-            Register(0b10101U, listOf("x21"), listOf("s5"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 5", CallingConvention.CALLEE),
-            Register(0b10110U, listOf("x22"), listOf("s6"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 6", CallingConvention.CALLEE),
-            Register(0b10111U, listOf("x23"), listOf("s7"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 7", CallingConvention.CALLEE),
-            Register(0b11000U, listOf("x24"), listOf("s8"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 8", CallingConvention.CALLEE),
-            Register(0b11001U, listOf("x25"), listOf("s9"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 9", CallingConvention.CALLEE),
-            Register(0b11010U, listOf("x26"), listOf("s10"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 10", CallingConvention.CALLEE),
-            Register(0b11011U, listOf("x27"), listOf("s11"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 11", CallingConvention.CALLEE),
-        )
+            Register(8U, listOf("x8"), listOf("s0", "fp"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 0 / frame pointer", CallingConvention.CALLEE),
+            Register(9U, listOf("x9"), listOf("s1"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 1", CallingConvention.CALLEE),
+            Register(18U, listOf("x18"), listOf("s2"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 2", CallingConvention.CALLEE),
+            Register(19U, listOf("x19"), listOf("s3"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 3", CallingConvention.CALLEE),
+            Register(20U, listOf("x20"), listOf("s4"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 4", CallingConvention.CALLEE),
+            Register(21U, listOf("x21"), listOf("s5"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 5", CallingConvention.CALLEE),
+            Register(22U, listOf("x22"), listOf("s6"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 6", CallingConvention.CALLEE),
+            Register(23U, listOf("x23"), listOf("s7"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 7", CallingConvention.CALLEE),
+            Register(24U, listOf("x24"), listOf("s8"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 8", CallingConvention.CALLEE),
+            Register(25U, listOf("x25"), listOf("s9"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 9", CallingConvention.CALLEE),
+            Register(26U, listOf("x26"), listOf("s10"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 10", CallingConvention.CALLEE),
+            Register(27U, listOf("x27"), listOf("s11"), Variable(REG_INIT, REG_VALUE_SIZE), "saved register 11", CallingConvention.CALLEE),
+
+            )
     )
 
     /**
@@ -384,56 +378,54 @@ data object RV32 {
         CSRegister(0x5A8U, Privilege.SRW, listOf("x5A8"), listOf("scontext"), Variable(REG_INIT, XLEN), "Supervisor-mode context register.", listOf(EXTENSION.S.ordinal)),
     )
 
-    private val csrRegFile = RegContainer.RegisterFile(CSR_REGFILE_NAME, arrayOf(*csrUnprivileged, *csrDebug, *csrMachine, *csrSupervisor), hasPrivileges = true)
-
+    private val csrRegFile = RegisterFile(CSR_REGFILE_NAME, arrayOf(*csrUnprivileged, *csrDebug, *csrMachine, *csrSupervisor), hasPrivileges = true)
 
     /**
      * Configuration
      */
-
     val settings = listOf(
-        SetupSetting.Enumeration("Instruction Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
-            if (arch is ArchRV32) {
+        SetupSetting.Enumeration("Instruction Cache", Setting.entries, Setting.NONE) { arch, setting ->
+            if (arch is ArchRV64) {
                 arch.instrMemory = when (setting.get()) {
-                    Cache.Setting.NONE -> arch.memory
-                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32, "Instruction")
-                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
-                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
-                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
-                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
-                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
+                    Setting.NONE -> arch.memory
+                    Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32, "Instruction")
+                    Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
+                    Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
+                    Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
+                    Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
+                    Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
+                    Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
                 }
             }
         },
-        SetupSetting.Enumeration("Data Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
-            if (arch is ArchRV32) {
+        SetupSetting.Enumeration("Data Cache", Setting.entries, Setting.NONE) { arch, setting ->
+            if (arch is ArchRV64) {
                 arch.dataMemory = when (setting.get()) {
-                    Cache.Setting.NONE -> arch.memory
-                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32, "Data")
-                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
-                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
-                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
-                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
-                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
+                    Setting.NONE -> arch.memory
+                    Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32, "Data")
+                    Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
+                    Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
+                    Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
+                    Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
+                    Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
+                    Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
                 }
             }
         }
     )
 
     val config = Config(
-        Description("RV32I", "RISC-V 32Bit", riscVDocs),
+        Config.Description("RV64I", "RISC-V 64Bit", riscVDocs),
         fileEnding = "s",
         RegContainer(
-            listOf(standardRegFile, csrRegFile),
-            pcSize = Bit32,
+            mutableListOf(standardRegFile, csrRegFile),
+            pcSize = REG_VALUE_SIZE,
             standardRegFileName = MAIN_REGFILE_NAME
         ),
         MainMemory(MEM_ADDRESS_WIDTH, MEM_VALUE_WIDTH, Memory.Endianess.LittleEndian),
         RVDisassembler,
         settings,
-        RV32.EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) }
+        EXTENSION.entries.map { Feature(it.ordinal, it.name, it.initialValue, it.static, it.invisible, it.descr, it.enables.map { ext -> ext.ordinal }) }
     )
 
 

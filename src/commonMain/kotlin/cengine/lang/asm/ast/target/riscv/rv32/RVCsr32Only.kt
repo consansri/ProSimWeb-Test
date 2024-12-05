@@ -73,7 +73,7 @@ enum class RVCsr32Only(val alias: String, val description: String): RVCsr {
 
     ;
 
-    override val address: UInt = name.removePrefix("X").toUInt(16)
+    override val numericalValue: UInt = name.removePrefix("X").toUInt(16)
 
     override val recognizable: List<String> = listOf(alias, name.lowercase())
 

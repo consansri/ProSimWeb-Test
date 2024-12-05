@@ -43,7 +43,7 @@ enum class RVCsrUnprivileged(val alias: String, val description: String = "") : 
     XC1F("hpmcounter31", "Performance-monitoring counter"),
     ;
 
-    override val address: UInt = name.removePrefix("X").toUInt(16)
+    override val numericalValue: UInt = name.removePrefix("X").toUInt(16)
 
     override val recognizable: List<String> = listOf(alias, name.lowercase())
 

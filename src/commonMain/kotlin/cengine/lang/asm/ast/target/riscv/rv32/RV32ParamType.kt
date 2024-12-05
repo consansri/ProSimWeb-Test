@@ -75,7 +75,10 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
 
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                Reg(isNotContainedBy = RVBaseRegs.entries),
+                XOR(
+                    Reg(isNotContainedBy = RVBaseRegs.entries),
+                    SpecNode(ASNodeType.INT_EXPR)
+                ),
                 Specific(","),
                 Reg(RVBaseRegs.entries)
             )
@@ -86,7 +89,10 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                Reg(isNotContainedBy = RVBaseRegs.entries),
+                XOR(
+                    Reg(isNotContainedBy = RVBaseRegs.entries),
+                    SpecNode(ASNodeType.INT_EXPR)
+                ),
                 Specific(","),
                 SpecNode(ASNodeType.INT_EXPR)
             )
@@ -153,8 +159,10 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
     PS_CSR_RS1(
         true, "csr, rs1", Rule {
             Seq(
-
-                Reg(isNotContainedBy = RVBaseRegs.entries),
+                XOR(
+                    Reg(isNotContainedBy = RVBaseRegs.entries),
+                    SpecNode(ASNodeType.INT_EXPR)
+                ),
                 Specific(","),
                 Reg(RVBaseRegs.entries)
             )
@@ -165,7 +173,10 @@ enum class RV32ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                Reg(isNotContainedBy = RVBaseRegs.entries)
+                XOR(
+                    Reg(isNotContainedBy = RVBaseRegs.entries),
+                    SpecNode(ASNodeType.INT_EXPR)
+                )
             )
         }
     ),

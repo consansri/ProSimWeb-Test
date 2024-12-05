@@ -340,7 +340,15 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                     else -> 0U
                 }
 
-                val csr = csrs[0].address
+                val csr = if (csrs.isEmpty()) {
+                    instr.nodes.filterIsInstance<ASNode.NumericExpr>().first().evaluate(builder).toUInt()
+                } else {
+                    csrs[0].numericalValue
+                }
+
+                if(csr shr 12 != 0U){
+                    instr.addError("Invalid CSR Offset 0x${csr.toString(16)}")
+                }
 
                 val rd = regs[0].ordinal.toUInt()
                 val rs1 = regs[1].ordinal.toUInt()
@@ -360,7 +368,15 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                     else -> 0U
                 }
 
-                val csr = csrs[0].address
+                val csr = if (csrs.isEmpty()) {
+                    instr.nodes.filterIsInstance<ASNode.NumericExpr>().first().evaluate(builder).toUInt()
+                } else {
+                    csrs[0].numericalValue
+                }
+
+                if(csr shr 12 != 0U){
+                    instr.addError("Invalid CSR Offset 0x${csr.toString(16)}")
+                }
 
                 val rd = regs[0].ordinal.toUInt()
                 val expr = exprs[0]
@@ -657,7 +673,16 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val csrs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVCsr.regs.firstOrNull { it.recognizable.contains(token.value) } }
                 val opcode = RVConst.OPC_OS
                 val funct3 = RVConst.FUNCT3_CSR_RW
-                val csr = csrs[0].address
+                val csr = if (csrs.isEmpty()) {
+                    instr.nodes.filterIsInstance<ASNode.NumericExpr>().first().evaluate(builder).toUInt()
+                } else {
+                    csrs[0].numericalValue
+                }
+
+                if(csr shr 12 != 0U){
+                    instr.addError("Invalid CSR Offset 0x${csr.toString(16)}")
+                }
+
                 val rs1 = regs[0].ordinal.toUInt()
                 val bundle = (csr shl 20) or (rs1 shl 15) or (funct3 shl 12) or opcode
                 builder.currentSection.content.put(bundle)
@@ -667,7 +692,16 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val csrs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> RVCsr.regs.firstOrNull { it.recognizable.contains(token.value) } }
                 val opcode = RVConst.OPC_OS
                 val funct3 = RVConst.FUNCT3_CSR_RS
-                val csr = csrs[0].address
+                val csr = if (csrs.isEmpty()) {
+                    instr.nodes.filterIsInstance<ASNode.NumericExpr>().first().evaluate(builder).toUInt()
+                } else {
+                    csrs[0].numericalValue
+                }
+
+                if(csr shr 12 != 0U){
+                    instr.addError("Invalid CSR Offset 0x${csr.toString(16)}")
+                }
+
                 val rd = regs[0].ordinal.toUInt()
                 val bundle = (csr shl 20) or (funct3 shl 12) or (rd shl 7) or opcode
                 builder.currentSection.content.put(bundle)

@@ -89,7 +89,7 @@ enum class RV64ParamType(val pseudo: Boolean, val exampleString: String, val rul
             SpecNode(ASNodeType.INT_EXPR)
         )
     }),
-    PRED_SUCC(false, "pred, succ",  Rule{
+    PRED_SUCC(false, "pred, succ", Rule {
         Seq(
             SpecNode(ASNodeType.INT_EXPR),
             Specific(","),
@@ -102,7 +102,10 @@ enum class RV64ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                Reg(isNotContainedBy = RVBaseRegs.entries),
+                XOR(
+                    Reg(isNotContainedBy = RVBaseRegs.entries),
+                    SpecNode(ASNodeType.INT_EXPR)
+                ),
                 Specific(","),
                 Reg(RVBaseRegs.entries)
             )
@@ -114,7 +117,10 @@ enum class RV64ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                Reg(isNotContainedBy = RVBaseRegs.entries),
+                XOR(
+                    Reg(isNotContainedBy = RVBaseRegs.entries),
+                    SpecNode(ASNodeType.INT_EXPR)
+                ),
                 Specific(","),
                 SpecNode(ASNodeType.INT_EXPR)
             )
@@ -165,7 +171,8 @@ enum class RV64ParamType(val pseudo: Boolean, val exampleString: String, val rul
             )
         }
     ), // rd, rs
-    PS_RS1(true, "rs1",
+    PS_RS1(
+        true, "rs1",
         Rule {
             Seq(Reg(RVBaseRegs.entries))
         }
@@ -174,7 +181,10 @@ enum class RV64ParamType(val pseudo: Boolean, val exampleString: String, val rul
         true, "csr, rs1",
         Rule {
             Seq(
-                Reg(isNotContainedBy = RVBaseRegs.entries),
+                XOR(
+                    Reg(isNotContainedBy = RVBaseRegs.entries),
+                    SpecNode(ASNodeType.INT_EXPR)
+                ),
                 Specific(","),
                 Reg(RVBaseRegs.entries)
             )
@@ -186,7 +196,10 @@ enum class RV64ParamType(val pseudo: Boolean, val exampleString: String, val rul
             Seq(
                 Reg(RVBaseRegs.entries),
                 Specific(","),
-                Reg(isNotContainedBy = RVBaseRegs.entries)
+                XOR(
+                    Reg(isNotContainedBy = RVBaseRegs.entries),
+                    SpecNode(ASNodeType.INT_EXPR)
+                ),
             )
         }
     ),

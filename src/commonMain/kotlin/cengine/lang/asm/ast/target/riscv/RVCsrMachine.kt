@@ -174,7 +174,7 @@ enum class RVCsrMachine(val alias: String, val description: String): RVCsr {
     X7A3("tdata3", "Third Debug/Trace trigger data register"),
     X7A8("mcontext", "Machine-mode context register");
 
-    override val address: UInt = name.removePrefix("X").toUInt(16)
+    override val numericalValue: UInt = name.removePrefix("X").toUInt(16)
 
     override val recognizable: List<String> = listOf(alias, name.lowercase())
 }
