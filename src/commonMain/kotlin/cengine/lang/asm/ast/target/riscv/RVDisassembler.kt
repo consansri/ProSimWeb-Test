@@ -269,7 +269,7 @@ object RVDisassembler : Disassembler() {
             }
         }
 
-        fun csrName(): String = RVCsr.regs.firstOrNull { it.numericalValue == imm12iType }?.displayName ?: "[invalid csr]"
+        fun csrName(): String = RVCsr.regs.firstOrNull { it.numericalValue == imm12iType }?.displayName ?: "0x${imm12iType.toString(16)}"
         fun rdName(): String = RVBaseRegs.entries.getOrNull(rd.toInt())?.displayName ?: "[invalid reg]"
         fun rs1Name(): String = RVBaseRegs.entries.getOrNull(rs1.toInt())?.displayName ?: "[invalid reg]"
         fun rs2Name(): String = RVBaseRegs.entries.getOrNull(rs2.toInt())?.displayName ?: "[invalid reg]"
