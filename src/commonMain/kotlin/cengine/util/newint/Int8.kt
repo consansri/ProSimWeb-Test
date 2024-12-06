@@ -62,7 +62,7 @@ class Int8(private val value: Byte) : IntNumber<Int8> {
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
 
     override fun toString(radix: Int): String = value.toString(radix)
-    override fun int8s(): Array<Int8> = arrayOf(this)
+    override fun int8s() = listOf(this)
 
     override fun hashCode(): Int {
         return value.hashCode()

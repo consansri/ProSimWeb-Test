@@ -63,6 +63,6 @@ class UInt8(private val value: UByte) : IntNumber<UInt8> {
         return value.hashCode()
     }
 
-    override fun int8s(): Array<Int8> = arrayOf(this.toInt8())
+    override fun int8s() = listOf(this.toInt8())
 
 }

@@ -66,6 +66,6 @@ class Int16(private val value: Short) : IntNumber<Int16> {
         return value.hashCode()
     }
 
-    override fun int8s(): Array<Int8> = (this shr bitWidth / 2).toInt8().int8s() + this.toInt8().int8s()
+    override fun int8s() = (this shr bitWidth / 2).toInt8().int8s() + this.toInt8().int8s()
 
 }

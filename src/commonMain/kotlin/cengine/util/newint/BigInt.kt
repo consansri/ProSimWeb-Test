@@ -66,6 +66,6 @@ data class BigInt(val value: BigInteger) : IntNumber<BigInt> {
 
     override fun hashCode(): Int = value.hashCode()
 
-    override fun int8s(): Array<Int8> = value.toByteArray().map { it.toInt8() }.toTypedArray()
+    override fun int8s() = value.toByteArray().map { it.toInt8() }
 
 }

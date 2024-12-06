@@ -60,7 +60,7 @@ class Int32(val value: Int) : IntNumber<Int32> {
         return value.hashCode()
     }
 
-    override fun int8s(): Array<Int8> = (this shr bitWidth / 2).toInt16().int8s() + this.toInt16().int8s()
+    override fun int8s() = (this shr bitWidth / 2).toInt16().int8s() + this.toInt16().int8s()
 
 
 }

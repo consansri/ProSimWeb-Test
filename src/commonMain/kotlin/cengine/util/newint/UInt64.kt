@@ -59,6 +59,6 @@ class UInt64(val value: ULong) : IntNumber<UInt64> {
 
     override fun hashCode(): Int = value.hashCode()
 
-    override fun int8s(): Array<Int8> = (this shr bitWidth / 2).toUInt32().int8s() + this.toUInt32().int8s()
+    override fun int8s() = (this shr bitWidth / 2).toUInt32().int8s() + this.toUInt32().int8s()
 
 }

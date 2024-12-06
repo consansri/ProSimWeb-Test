@@ -70,43 +70,43 @@ sealed interface IntNumber<T : Any> : Comparable<T> {
     fun toUInt32(): UInt32
     fun toUInt64(): UInt64
 
-    fun int8s(): Array<Int8>
-    fun int16s(): Array<Int16> = int8s().toList().chunked(2) { bytes ->
+    fun int8s(): List<Int8>
+    fun int16s(): List<Int16> = int8s().toList().chunked(2) { bytes ->
         bytes.fold(Int16(0)) { acc, byte ->
             (acc shl 8) or (byte.toInt16() and 0xFF)
         }
-    }.toTypedArray()
+    }
 
-    fun int32s(): Array<Int32> = int8s().toList().chunked(4) { bytes ->
+    fun int32s(): List<Int32> = int8s().toList().chunked(4) { bytes ->
         bytes.fold(Int32(0)) { acc, byte ->
             (acc shl 8) or (byte.toInt32() and 0xFF)
         }
-    }.toTypedArray()
+    }
 
-    fun int64s(): Array<Int64> = int8s().toList().chunked(8) { bytes ->
+    fun int64s(): List<Int64> = int8s().toList().chunked(8) { bytes ->
         bytes.fold(Int64(0)) { acc, byte ->
             (acc shl 8) or (byte.toInt64() and 0xFF)
         }
-    }.toTypedArray()
+    }
 
-    fun uInt8s(): Array<UInt8> = int8s().map { it.toUInt8() }.toTypedArray()
-    fun uInt16s(): Array<UInt16> = int8s().toList().chunked(2) { bytes ->
+    fun uInt8s(): List<UInt8> = int8s().map { it.toUInt8() }
+    fun uInt16s(): List<UInt16> = int8s().toList().chunked(2) { bytes ->
         bytes.fold(UInt16(0U)) { acc, byte ->
             (acc shl 8) or (byte.toUInt16() and 0xFF)
         }
-    }.toTypedArray()
+    }
 
-    fun uInt32s(): Array<UInt32> = int8s().toList().chunked(4) { bytes ->
+    fun uInt32s(): List<UInt32> = int8s().toList().chunked(4) { bytes ->
         bytes.fold(UInt32(0U)) { acc, byte ->
             (acc shl 8) or (byte.toUInt32() and 0xFF)
         }
-    }.toTypedArray()
+    }
 
-    fun uInt64s(): Array<UInt64> = int8s().toList().chunked(8) { bytes ->
+    fun uInt64s(): List<UInt64> = int8s().toList().chunked(8) { bytes ->
         bytes.fold(UInt64(0U)) { acc, byte ->
             (acc shl 8) or (byte.toUInt64() and 0xFF)
         }
-    }.toTypedArray()
+    }
 
     // Transformation
     fun toString(radix: Int = 10): String
