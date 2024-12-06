@@ -32,7 +32,7 @@ object RVDisassembler : Disassembler() {
         return decoded
     }
 
-    data class RVInstrInfoProvider(val binary: UInt) : Disassembler.InstrProvider {
+    data class RVInstrInfoProvider(val binary: UInt) : InstrProvider {
         val binaryAsHex: Hex = binary.toValue()
         val opcode = binary and 0b1111111U
         val funct3 = (binary shr 12) and 0b111U

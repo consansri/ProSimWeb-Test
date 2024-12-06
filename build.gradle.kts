@@ -89,6 +89,7 @@ kotlin {
 
             dependencies {
                 //implementation(kotlin("reflect"))
+                implementation("com.ionspin.kotlin:bignum:0.3.10") // For BigNum and BigInteger support
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutine_version")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetime_version")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version")
