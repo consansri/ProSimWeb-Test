@@ -1,9 +1,9 @@
 package cengine.util.buffer
 
 import cengine.util.Endianness
-import cengine.util.integer.Hex
 import cengine.util.integer.Size
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.Int8
+import cengine.util.newint.Int8.Companion.toInt8
 
 class ByteBuffer(endianness: Endianness, initial: Array<Byte> = emptyArray()) : Buffer<Byte>(endianness, initial) {
 
@@ -17,7 +17,7 @@ class ByteBuffer(endianness: Endianness, initial: Array<Byte> = emptyArray()) : 
 
 
     // -------------------------- CONVERSION
-    override fun toHexList(): List<Hex> = data.map { it.toUByte().toValue() }
+    override fun toIntList(): List<Int8> = data.map { it.toInt8() }
     override fun toArray(): Array<Byte> = data.toTypedArray()
 
     override fun pad(length: Int) {

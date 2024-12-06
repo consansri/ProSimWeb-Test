@@ -1,14 +1,14 @@
 package cengine.util.buffer
 
 import cengine.util.Endianness
-import cengine.util.integer.Hex
 import cengine.util.integer.Size
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.Int16
+import cengine.util.newint.Int16.Companion.toInt16
 
 class ShortBuffer(endianness: Endianness, initial: Array<Short> = emptyArray()) : Buffer<Short>(endianness, initial) {
     override val wordWidth: Size get() = Size.Bit16
 
-    override fun toHexList(): List<Hex> = data.map { it.toUShort().toValue() }
+    override fun toIntList(): List<Int16> = data.map { it.toInt16() }
     override fun toArray(): Array<Short> = data.toTypedArray()
 
     override fun getUByte(index: Int): UByte = data[index].toUByte()

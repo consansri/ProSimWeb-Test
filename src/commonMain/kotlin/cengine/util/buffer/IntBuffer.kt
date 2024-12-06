@@ -1,15 +1,15 @@
 package cengine.util.buffer
 
 import cengine.util.Endianness
-import cengine.util.integer.Hex
 import cengine.util.integer.Size
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.Int32
+import cengine.util.newint.Int32.Companion.toInt32
 
 class IntBuffer(endianness: Endianness, initial: Array<Int> = emptyArray()) : Buffer<Int>(endianness, initial) {
 
     override val wordWidth: Size get() = Size.Bit32
 
-    override fun toHexList(): List<Hex> = data.map { it.toUInt().toValue() }
+    override fun toIntList(): List<Int32> = data.map { it.toInt32() }
     override fun toArray(): Array<Int> = data.toTypedArray()
 
     override fun getUByte(index: Int): UByte = data[index].toUByte()

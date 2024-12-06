@@ -1,8 +1,8 @@
 package cengine.util.buffer
 
 import cengine.util.Endianness
-import cengine.util.integer.Hex
 import cengine.util.integer.Size
+import cengine.util.newint.IntNumber
 
 abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<T>) : Collection<T> {
 
@@ -19,7 +19,7 @@ abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<
 
     // -------------------------- CONVERSION
 
-    abstract fun toHexList(): List<Hex>
+    abstract fun toIntList(): List<IntNumber<*>>
 
     abstract fun toArray(): Array<T>
 
