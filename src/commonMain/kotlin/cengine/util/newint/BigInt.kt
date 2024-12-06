@@ -2,7 +2,7 @@ package cengine.util.newint
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-data class BigInt(private val value: BigInteger): IntNumber {
+data class BigInt(private val value: BigInteger): IntNumber() {
 
     override fun plus(other: IntNumber): BigInt = if (other is BigInt) BigInt(value + other.value) else throw IllegalArgumentException("$other must be a BigInt integer!")
     override fun minus(other: IntNumber): BigInt = if (other is BigInt) BigInt(value - other.value) else throw IllegalArgumentException("$other must be a BigInt integer!")

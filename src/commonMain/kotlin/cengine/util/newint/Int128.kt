@@ -3,7 +3,7 @@ package cengine.util.newint
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.Sign
 
-class Int128(value: BigInteger) : IntNumber {
+class Int128(value: BigInteger) : IntNumber() {
 
     private val value: BigInteger = value.truncateTo128Bits()
 

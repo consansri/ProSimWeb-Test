@@ -2,7 +2,7 @@ package cengine.util.newint
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class UInt64(private val value: ULong): IntNumber {
+class UInt64(private val value: ULong): IntNumber() {
 
     override fun plus(other: IntNumber): UInt64 = if (other is UInt64) UInt64(value + other.value) else throw IllegalArgumentException("$other must be an UInt64 integer!")
     override fun minus(other: IntNumber): UInt64 = if (other is UInt64) UInt64(value - other.value) else throw IllegalArgumentException("$other must be an UInt64 integer!")
