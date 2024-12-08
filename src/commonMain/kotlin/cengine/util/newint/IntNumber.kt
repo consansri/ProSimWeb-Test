@@ -21,6 +21,7 @@ sealed interface IntNumber<T : Any> : Comparable<T> {
     // Arithmetic Operations
 
     val bitWidth: Int
+    val byteCount: Int
 
     /**
      * @param other will be converted to same type as first operand.

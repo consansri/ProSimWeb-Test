@@ -13,11 +13,17 @@ class Int8(private val value: Byte) : IntNumber<Int8> {
     companion object {
         fun Byte.toInt8() = Int8(this)
 
+        val ZERO = Int8(0)
+        val ONE = Int8(1)
+
         fun String.parseInt8(radix: Int): Int8 = Int8(toByte(radix))
     }
 
     override val bitWidth: Int
         get() = 8
+
+    override val byteCount: Int
+        get() = 1
 
 
     override fun plus(other: Int8): Int8 = Int8(value + other.value)

@@ -14,11 +14,17 @@ class Int128(value: BigInteger) : IntNumber<Int128> {
         /** Enforces 128-bit range by truncating the value. */
         private fun BigInteger.truncateTo128Bits(): BigInteger = and(MASK_128)
 
+        val ZERO = Int128(BigInteger.ZERO)
+        val ONE = Int128(BigInteger.ONE)
+
         fun String.parseInt128(radix: Int): Int128 = Int128(BigInteger.parseString(this, radix))
     }
 
     override val bitWidth: Int
         get() = 128
+
+    override val byteCount: Int
+        get() = 16
 
     override fun plus(other: Int128): Int128 = Int128(value + other.value)
     override fun minus(other: Int128): Int128 = Int128(value - other.value)

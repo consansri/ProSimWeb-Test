@@ -9,10 +9,15 @@ data class BigInt(val value: BigInteger) : IntNumber<BigInt> {
     override val bitWidth: Int
         get() = value.bitLength()
 
+    override val byteCount: Int
+        get() = value.toByteArray().size
 
 
     companion object {
         fun String.parseBigInt(radix: Int): BigInt = BigInt(BigInteger.parseString(this, radix))
+
+        val ZERO = BigInt(BigInteger.ZERO)
+        val ONE = BigInt(BigInteger.ONE)
 
         fun Int.toBigInt(): BigInt = BigInt(this.toBigInteger())
         fun Long.toBigInt(): BigInt = BigInt(this.toBigInteger())

@@ -13,11 +13,17 @@ class Int16(private val value: Short) : IntNumber<Int16> {
     companion object {
         fun Short.toInt16() = Int16(this)
 
+        val ZERO = Int16(0)
+        val ONE = Int16(1)
+
         fun String.parseInt16(radix: Int): Int16 = Int16(toShort(radix))
     }
 
     override val bitWidth: Int
         get() = 16
+
+    override val byteCount: Int
+        get() = 2
 
     override fun plus(other: Int16): Int16 = Int16(value + other.value)
     override fun minus(other: Int16): Int16 = Int16(value - other.value)

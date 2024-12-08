@@ -9,11 +9,17 @@ class UInt16(private val value: UShort) : IntNumber<UInt16> {
     companion object {
         fun UShort.toUInt16() = UInt16(this)
 
+        val ZERO = UInt16(0U)
+        val ONE = UInt16(1U)
+
         fun String.parseUInt16(radix: Int): UInt16 = UInt16(toUShort(radix))
     }
 
     override val bitWidth: Int
         get() = 16
+
+    override val byteCount: Int
+        get() = 2
 
     override fun plus(other: UInt16): UInt16 = UInt16(value + other.value)
     override fun minus(other: UInt16): UInt16 = UInt16(value - other.value)

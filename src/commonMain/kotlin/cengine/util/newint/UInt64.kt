@@ -7,11 +7,17 @@ class UInt64(val value: ULong) : IntNumber<UInt64> {
     companion object {
         fun ULong.toUInt64() = UInt64(this)
 
+        val ZERO = UInt64(0U)
+        val ONE = UInt64(1U)
+
         fun String.parseUInt64(radix: Int): UInt64 = UInt64(toULong(radix))
     }
 
     override val bitWidth: Int
         get() = 64
+
+    override val byteCount: Int
+        get() = 8
 
     override fun plus(other: UInt64): UInt64 = UInt64(value + other.value)
     override fun minus(other: UInt64): UInt64 = UInt64(value - other.value)

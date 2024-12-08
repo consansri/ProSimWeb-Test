@@ -9,11 +9,17 @@ class UInt8(private val value: UByte) : IntNumber<UInt8> {
     companion object {
         fun UByte.toUInt8() = UInt8(this)
 
+        val ZERO = UInt8(0U)
+        val ONE = UInt8(1U)
+
         fun String.parseUInt8(radix: Int): UInt8 = UInt8(toUByte(radix))
     }
 
     override val bitWidth: Int
         get() = 8
+
+    override val byteCount: Int
+        get() = 1
 
     override fun plus(other: UInt8): UInt8 = UInt8(value + other.value)
     override fun minus(other: UInt8): UInt8 = UInt8(value - other.value)

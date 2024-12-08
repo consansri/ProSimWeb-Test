@@ -7,11 +7,17 @@ class Int64(val value: Long) : IntNumber<Int64> {
     companion object {
         fun Long.toInt64() = Int64(this)
 
+        val ZERO = Int64(0)
+        val ONE = Int64(1)
+
         fun String.parseInt32(radix: Int): Int64 = Int64(toLong(radix))
     }
 
     override val bitWidth: Int
         get() = 64
+
+    override val byteCount: Int
+        get() = 8
 
     override fun plus(other: Int64): Int64 = Int64(value + other.value)
     override fun minus(other: Int64): Int64 = Int64(value - other.value)

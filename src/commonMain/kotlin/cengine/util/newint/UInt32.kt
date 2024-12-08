@@ -7,11 +7,17 @@ class UInt32(val value: UInt) : IntNumber<UInt32> {
     companion object {
         fun UInt.toUInt32(): UInt32 = UInt32(this)
 
+        val ZERO = UInt32(0U)
+        val ONE = UInt32(1U)
+
         fun String.parseUInt32(radix: Int): UInt32 = UInt32(toUInt(radix))
     }
 
     override val bitWidth: Int
         get() = 32
+
+    override val byteCount: Int
+        get() = 4
 
     override fun plus(other: UInt32): UInt32 = UInt32(value + other.value)
     override fun minus(other: UInt32): UInt32 = UInt32(value - other.value)
