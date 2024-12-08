@@ -42,6 +42,10 @@ class UInt16(private val value: UShort) : IntNumber<UInt16> {
 
     override fun plus(other: Int): UInt16 = UInt16(value + other.toUInt())
     override fun minus(other: Int): UInt16 = UInt16(value - other.toUInt())
+    override fun times(other: Int): UInt16 = UInt16(value * other.toUInt())
+    override fun div(other: Int): UInt16 = UInt16(value / other.toUInt())
+    override fun rem(other: Int): UInt16 = UInt16(value % other.toUInt())
+
     override fun and(other: Int): UInt16 = UInt16(value and other.toUShort())
     override fun or(other: Int): UInt16 = UInt16(value or other.toUShort())
     override fun xor(other: Int): UInt16 = UInt16(value xor other.toUShort())

@@ -47,6 +47,9 @@ sealed interface IntNumber<T : Any> : Comparable<T> {
     // Operations with other Int
     operator fun plus(other: Int): IntNumber<T>
     operator fun minus(other: Int): IntNumber<T>
+    operator fun div(other: Int): IntNumber<T>
+    operator fun times(other: Int): IntNumber<T>
+    operator fun rem(other: Int): IntNumber<T>
     infix fun and(other: Int): IntNumber<T>
     infix fun or(other: Int): IntNumber<T>
     infix fun xor(other: Int): IntNumber<T>

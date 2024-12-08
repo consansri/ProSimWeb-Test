@@ -39,6 +39,10 @@ class Int32(val value: Int) : IntNumber<Int32> {
 
     override fun plus(other: Int): Int32 = Int32(value + other)
     override fun minus(other: Int): Int32 = Int32(value - other)
+    override fun times(other: Int): Int32 = Int32(value * other)
+    override fun div(other: Int): Int32 = Int32(value / other)
+    override fun rem(other: Int): Int32 = Int32(value % other)
+
     override fun and(other: Int): Int32 = Int32(value and other)
     override fun or(other: Int): Int32 = Int32(value or other)
     override fun xor(other: Int): Int32 = Int32(value xor other)

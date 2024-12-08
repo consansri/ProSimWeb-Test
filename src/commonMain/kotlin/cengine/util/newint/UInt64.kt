@@ -40,6 +40,10 @@ class UInt64(val value: ULong) : IntNumber<UInt64> {
 
     override fun plus(other: Int): UInt64 = UInt64(value + other.toUInt())
     override fun minus(other: Int): UInt64 = UInt64(value - other.toUInt())
+    override fun times(other: Int): UInt64 = UInt64(value * other.toUInt())
+    override fun div(other: Int): UInt64 = UInt64(value / other.toUInt())
+    override fun rem(other: Int): UInt64 = UInt64(value % other.toUInt())
+
     override fun and(other: Int): UInt64 = UInt64(value and other.toULong())
     override fun or(other: Int): UInt64 = UInt64(value or other.toULong())
     override fun xor(other: Int): UInt64 = UInt64(value xor other.toULong())

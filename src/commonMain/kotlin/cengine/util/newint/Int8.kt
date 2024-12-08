@@ -31,6 +31,9 @@ class Int8(private val value: Byte) : IntNumber<Int8> {
     override fun times(other: Int8): Int8 = Int8(value * other.value)
     override fun div(other: Int8): Int8 = Int8(value / other.value)
     override fun rem(other: Int8): Int8 = Int8(value % other.value)
+    override fun times(other: Int): Int8 = Int8(value * other)
+    override fun div(other: Int): Int8 = Int8(value / other)
+    override fun rem(other: Int): Int8 = Int8(value % other)
 
     override fun unaryMinus(): Int8 = Int8(-value)
     override fun inc(): Int8 = Int8(value.inc())

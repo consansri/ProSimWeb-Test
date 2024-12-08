@@ -46,6 +46,10 @@ class Int16(private val value: Short) : IntNumber<Int16> {
 
     override fun plus(other: Int): Int16 = Int16(value + other)
     override fun minus(other: Int): Int16 = Int16(value - other)
+    override fun times(other: Int): Int16 = Int16(value * other)
+    override fun div(other: Int): Int16 = Int16(value / other)
+    override fun rem(other: Int): Int16 = Int16(value % other)
+
     override fun and(other: Int): Int16 = Int16(value and other.toShort())
     override fun or(other: Int): Int16 = Int16(value or other.toShort())
     override fun xor(other: Int): Int16 = Int16(value xor other.toShort())

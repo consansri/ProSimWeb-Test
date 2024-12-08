@@ -39,6 +39,9 @@ data class BigInt(val value: BigInteger) : IntNumber<BigInt> {
 
     override fun plus(other: Int): BigInt = BigInt(value + other)
     override fun minus(other: Int): BigInt = BigInt(value - other)
+    override fun times(other: Int): BigInt = BigInt(value * other)
+    override fun div(other: Int): BigInt = BigInt(value / other)
+    override fun rem(other: Int): BigInt = BigInt(value % other)
     override fun and(other: Int): BigInt = BigInt(value and other.toBigInteger())
     override fun or(other: Int): BigInt = BigInt(value or other.toBigInteger())
     override fun xor(other: Int): BigInt = BigInt(value xor other.toBigInteger())

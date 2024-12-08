@@ -42,6 +42,10 @@ class UInt8(private val value: UByte) : IntNumber<UInt8> {
 
     override fun plus(other: Int): UInt8 = UInt8(value + other.toUInt())
     override fun minus(other: Int): UInt8 = UInt8(value - other.toUInt())
+    override fun times(other: Int): UInt8 = UInt8(value * other.toUInt())
+    override fun div(other: Int): UInt8 = UInt8(value / other.toUInt())
+    override fun rem(other: Int): UInt8 = UInt8(value % other.toUInt())
+
     override fun and(other: Int): UInt8 = UInt8(value and other.toUByte())
     override fun or(other: Int): UInt8 = UInt8(value or other.toUByte())
     override fun xor(other: Int): UInt8 = UInt8(value xor other.toUByte())

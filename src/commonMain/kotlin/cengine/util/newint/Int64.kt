@@ -40,6 +40,10 @@ class Int64(val value: Long) : IntNumber<Int64> {
 
     override fun plus(other: Int): Int64 = Int64(value + other)
     override fun minus(other: Int): Int64 = Int64(value - other)
+    override fun times(other: Int): Int64 = Int64(value * other)
+    override fun div(other: Int): Int64 = Int64(value / other)
+    override fun rem(other: Int): Int64 = Int64(value % other)
+
     override fun and(other: Int): Int64 = Int64(value and other.toLong())
     override fun or(other: Int): Int64 = Int64(value or other.toLong())
     override fun xor(other: Int): Int64 = Int64(value xor other.toLong())

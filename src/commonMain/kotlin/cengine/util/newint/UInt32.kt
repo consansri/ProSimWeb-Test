@@ -40,6 +40,10 @@ class UInt32(val value: UInt) : IntNumber<UInt32> {
 
     override fun plus(other: Int): UInt32 = UInt32(value + other.toUInt())
     override fun minus(other: Int): UInt32 = UInt32(value - other.toUInt())
+    override fun times(other: Int): UInt32 = UInt32(value * other.toUInt())
+    override fun div(other: Int): UInt32 = UInt32(value / other.toUInt())
+    override fun rem(other: Int): UInt32 = UInt32(value % other.toUInt())
+
     override fun and(other: Int): UInt32 = UInt32(value and other.toUInt())
     override fun or(other: Int): UInt32 = UInt32(value or other.toUInt())
     override fun xor(other: Int): UInt32 = UInt32(value xor other.toUInt())
