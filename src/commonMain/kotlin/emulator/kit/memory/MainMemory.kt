@@ -1,13 +1,9 @@
 package emulator.kit.memory
 
-import androidx.compose.runtime.mutableStateListOf
-import cengine.util.integer.Hex
-import cengine.util.integer.Size
-import cengine.util.integer.Size.Bit8
-import cengine.util.integer.Value
-import cengine.util.integer.Variable
-import debug.DebugTools
-import emulator.kit.nativeWarn
+import androidx.compose.runtime.mutableStateMapOf
+import cengine.util.Endianness
+import cengine.util.newint.Int8
+import cengine.util.newint.IntNumber
 
 /**
  * Represents the main memory of a system.
@@ -30,129 +26,36 @@ import emulator.kit.nativeWarn
  * @param endianness The endianess of the memory.
  * @param name The name of the memory.
  */
-class MainMemory(override val addressSize: Size, override val instanceSize: Size, endianness: Endianess, override val name: String = "Memory", entrysInRow: Int = 16) : Memory() {
-    override val initHex: String = "0"
+class MainMemory<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
+    endianness: Endianness,
+    private val toAddr: IntNumber<*>.() -> ADDR,
+    private val toInstance: IntNumber<*>.() -> INSTANCE,
+    override val name: String = "Memory",
+) : Memory<ADDR, INSTANCE>() {
 
-    val addrIncByOne = Hex("1", addressSize)
-    var endianness: Endianess = Endianess.BigEndian
-    val memList = mutableStateListOf<MemInstance>()
-    private var editableValues: MutableList<MemInstance.EditableValue> = mutableListOf()
-    var ioBounds: IOBounds? = null
-        set(value) {
-            field = value
-            resetEditSection()
-        }
-
-    var entrysInRow: Int = entrysInRow
-        set(value) {
-            field = value
-            memList.forEach { it.reMap(value) }
-        }
+    var endianness: Endianness = Endianness.BIG
+    val memList = mutableStateMapOf<ADDR, INSTANCE>()
+    override val init = Int8.ZERO.toInstance()
 
     init {
         this.endianness = endianness
     }
 
-    override fun globalEndianess(): Endianess = endianness
+    override fun globalEndianess(): Endianness = endianness
 
-    override fun load(address: Hex, amount: Int, tracker: AccessTracker, endianess: Endianess): Hex {
-        val hexValues = mutableListOf<String>()
-        var currAddr: Value = address
-        repeat(amount) {
-            val value = memList.firstOrNull {
-                it.address == currAddr
-            }?.variable?.value ?: getInitialBinary().get()
-            currAddr += Hex("1", addressSize)
-            hexValues += value.toHex().rawInput
-        }
-
-        when (endianess) {
-            Endianess.LittleEndian -> hexValues.reverse()
-            Endianess.BigEndian -> {}
-        }
-
-        return Hex(hexValues.joinToString("") { it })
+    override fun loadInstance(address: ADDR, tracker: AccessTracker): INSTANCE {
+        return memList[address] ?: init
     }
 
-    override fun store(address: Hex, value: Value, mark: InstanceType, readonly: Boolean, tracker: AccessTracker, endianess: Endianess) {
-        val hexValue = value.toHex()
-        var hexAddress = address.getUResized(addressSize)
-
-        val words = if (endianess == Endianess.LittleEndian) hexValue.splitToArray(instanceSize).reversed() else hexValue.splitToArray(instanceSize).toList()
-
-        if (DebugTools.KIT_showMemoryInfo) {
-            println("saving... ${endianess.name} ${hexValue.rawInput}, $words to ${hexAddress.rawInput}")
-        }
-
-        for (word in words) {
-            val instance = memList.firstOrNull { it.address.rawInput == hexAddress.rawInput }
-            if (instance != null) {
-                if (!instance.readonly) {
-                    instance.variable.setHex(word.toString())
-                    if (mark != InstanceType.ELSE) {
-                        instance.mark = mark
-                    }
-                } else {
-                    nativeWarn("Memory: Denied writing data (address: ${hexAddress.toString()}, value: ${hexValue.toString()}) in readonly Memory!")
-                }
-            } else {
-                val variable = Variable(initHex, instanceSize)
-                variable.setHex(word.toString())
-                val newInstance = MemInstance(hexAddress, variable, mark, readonly, entrysInRow)
-                memList.add(newInstance)
-            }
-            hexAddress = (hexAddress + addrIncByOne).toHex()
-        }
+    override fun storeInstance(address: ADDR, value: INSTANCE, tracker: AccessTracker) {
+        memList[address] = value
     }
 
     override fun clear() {
         memList.clear()
-        resetEditSection()
     }
 
-    private fun resetEditSection() {
-        memList.clear()
-        editableValues.clear()
-        ioBounds?.let {
-            var addr = it.lowerAddr
-            for (i in 0..<it.amount) {
-                editableValues.add(MemInstance.EditableValue(addr.toHex().getUResized(addressSize), Hex("0", instanceSize), entrysInRow))
-                addr += Hex("1", addressSize)
-            }
-        }
-        for (value in editableValues) {
-            memList.remove(value)
-            memList.add(value)
-        }
-    }
+    override fun IntNumber<*>.instance(): INSTANCE = this.toInstance()
+    override fun IntNumber<*>.addr(): ADDR = this.toAddr()
 
-    open class MemInstance(val address: Hex, var variable: Variable, var mark: InstanceType = InstanceType.ELSE, val readonly: Boolean = false, entrysInRow: Int) {
-        private var entrysInRow = entrysInRow
-            set(value) {
-                field = value
-                addrRelevantForOffset = address.rawInput.substring(address.rawInput.length - entrysInRow / 16 - 1).toIntOrNull(16) ?: throw Exception("couldn't extract relevant address part (from ${address.rawInput}) for offset calculation!")
-            }
-
-        private var addrRelevantForOffset: Int = address.rawInput.substring(address.rawInput.length - entrysInRow / 16 - 1).toIntOrNull(16) ?: throw Exception("couldn't extract relevant address part (from ${address.rawInput}) for offset calculation!")
-            set(value) {
-                field = value
-                offset = addrRelevantForOffset % entrysInRow
-                row = (address - Hex(offset.toString(16), Bit8)).toHex()
-            }
-
-        var offset: Int = addrRelevantForOffset % entrysInRow
-        var row: Hex = (address - Hex(offset.toString(16), Bit8)).toHex()
-
-        fun reMap(entrysInRow: Int) {
-            this.entrysInRow = entrysInRow
-        }
-
-        class EditableValue(address: Hex, value: Hex, entrysInRow: Int) : MemInstance(address, Variable(value), InstanceType.EDITABLE, entrysInRow = entrysInRow)
-
-        override fun toString(): String {
-            return variable.get().toHex().rawInput
-        }
-    }
-
-    data class IOBounds(val lowerAddr: Value, val amount: Long)
 }

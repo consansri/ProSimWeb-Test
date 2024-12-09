@@ -1,6 +1,6 @@
 package emulator.kit.memory
 
-import emulator.kit.common.IConsole
+import cengine.util.newint.IntNumber
 import kotlin.math.log
 import kotlin.math.roundToInt
 
@@ -19,27 +19,30 @@ import kotlin.math.roundToInt
  *
  * @see Cache
  */
-class FACache(
-    backingMemory: Memory,
-    console: IConsole,
-    offsetBits: Int,
+class FACache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
+    backingMemory: Memory<ADDR, INSTANCE>,
     blockCount: Int,
-    replaceAlgo: Model.ReplaceAlgo,
+    offsetBits: Int,
+    replaceAlgo: ReplaceAlgo,
+    toAddr: IntNumber<*>.() -> ADDR,
+    toInstance: IntNumber<*>.() -> INSTANCE,
     override val name: String = "Cache (FA)"
-) : Cache(
+) : Cache<ADDR, INSTANCE>(
     backingMemory,
-    console,
-    offsetBits = offsetBits,
-    blockCount = blockCount,
-    replaceAlgo = replaceAlgo,
-    indexBits = 0,
+    0,
+    blockCount,
+    offsetBits,
+    replaceAlgo,
+    toAddr,
+    toInstance
 ) {
-    constructor(backingMemory: Memory, console: IConsole, cacheSize: CacheSize, replaceAlgo: Model.ReplaceAlgo, name: String = "Cache") : this(
+    constructor(backingMemory: Memory<ADDR, INSTANCE>, cacheSize: CacheSize, replaceAlgo: ReplaceAlgo, toAddr: IntNumber<*>.() -> ADDR, toInstance: IntNumber<*>.() -> INSTANCE, name: String = "Cache") : this(
         backingMemory,
-        console,
-        blockCount = (cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toInt(),
-        offsetBits = log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.byteCount).toDouble(), 2.0).roundToInt(),
-        replaceAlgo = replaceAlgo,
-        name = "$name($cacheSize FA ${replaceAlgo})"
+        (cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toInt(),
+        log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.init.byteCount).toDouble(), 2.0).roundToInt(),
+        replaceAlgo,
+        toAddr,
+        toInstance,
+        "$name($cacheSize FA ${replaceAlgo})",
     )
 }

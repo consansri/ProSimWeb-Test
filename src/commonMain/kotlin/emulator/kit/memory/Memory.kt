@@ -1,11 +1,7 @@
 package emulator.kit.memory
 
-import cengine.util.integer.Hex
-import cengine.util.integer.Size
-import cengine.util.integer.Size.Bit8
-import cengine.util.integer.Value
-import cengine.util.integer.Value.Companion.toValue
-import cengine.util.integer.Variable
+import cengine.util.Endianness
+import cengine.util.newint.IntNumber
 
 /**
  * Represents a Memory class that provides functionality for loading, storing, and managing memory instances.
@@ -37,65 +33,62 @@ import cengine.util.integer.Variable
  * - Endianess: Represents the endianess of the memory (LittleEndian, BigEndian)
  * - InstanceType: Represents the type of memory instance with light and dark color values
  */
-sealed class Memory {
+sealed class Memory<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>> {
 
     abstract val name: String
-    abstract val addressSize: Size
-    abstract val instanceSize: Size
-    abstract val initHex: String
+    abstract val init: INSTANCE
 
-    abstract fun globalEndianess(): Endianess
+    abstract fun globalEndianess(): Endianness
 
-    abstract fun load(address: Hex, amount: Int = 1, tracker: AccessTracker = AccessTracker(), endianess: Endianess = globalEndianess()): Hex
-    abstract fun store(address: Hex, value: Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false, tracker: AccessTracker = AccessTracker(), endianess: Endianess = globalEndianess())
+    /**
+     *
+     */
+    abstract fun loadInstance(address: ADDR, tracker: AccessTracker = AccessTracker()): INSTANCE
+    abstract fun storeInstance(address: ADDR, value: INSTANCE, tracker: AccessTracker = AccessTracker())
     abstract fun clear()
 
-    fun storeArray(address: Hex, vararg values: Value, mark: InstanceType = InstanceType.ELSE, readonly: Boolean = false, tracker: AccessTracker = AccessTracker()) {
-        var curraddr: Value = address
+    fun storeArray(address: IntNumber<*>, values: Collection<IntNumber<*>>, tracker: AccessTracker = AccessTracker()) {
+        storeArray(address.addr(), values.map { it.instance() }, tracker)
+    }
+
+    fun storeArray(address: ADDR, values: Collection<INSTANCE>, tracker: AccessTracker = AccessTracker()) {
+        var curraddr: IntNumber<*> = address
         for (value in values) {
-            store(curraddr.toHex(), value, mark, readonly, tracker)
-            curraddr += (value.size.byteCount / instanceSize.byteCount).toValue(addressSize)
+            storeInstance(curraddr.addr(), value, tracker)
+            curraddr = curraddr.inc()
         }
     }
 
-    fun loadArray(address: Hex, amount: Int, tracker: AccessTracker = AccessTracker()): Array<Hex> {
-        val instances = mutableListOf<Hex>()
+    fun loadArray(address: IntNumber<*>, amount: Int, accessTracker: AccessTracker = AccessTracker()): List<IntNumber<*>>{
+        return loadArray(address.addr(), amount, accessTracker).map { it.instance() }
+    }
 
-        var instanceAddress = address.toHex().getUResized(addressSize)
+    fun loadArray(address: ADDR, amount: Int, tracker: AccessTracker = AccessTracker()): List<INSTANCE> {
+        val instances = mutableListOf<INSTANCE>()
+
+        var instanceAddress: IntNumber<*> = address
         for (i in 0..<amount) {
-            val value = load(instanceAddress, 1, tracker).getUResized(instanceSize)
-            instances.add(value.toHex())
-            instanceAddress = (instanceAddress + Hex("01", Bit8)).toHex()
+            val value = loadInstance(instanceAddress.addr(), tracker)
+            instances.add(value)
+            instanceAddress = instanceAddress.inc()
         }
 
-        return instances.toTypedArray()
+        return instances.toList()
     }
 
-    fun getInitialBinary(): Variable {
-        return Variable(initHex, instanceSize)
-    }
+    protected abstract fun IntNumber<*>.instance(): INSTANCE
+
+    protected abstract fun IntNumber<*>.addr(): ADDR
 
     class MemoryException(override val message: String) : Exception()
 
     data class AccessTracker(
         var hits: Int = 0,
         var misses: Int = 0,
-        var writeBacks: Int = 0
+        var writeBacks: Int = 0,
     ) {
         override fun toString(): String {
             return "$hits HITS and $misses MISSES (with $writeBacks write backs)"
         }
-    }
-
-    enum class Endianess(val uiName: String) {
-        LittleEndian("Little Endian"), BigEndian("Big Endian")
-    }
-
-    enum class InstanceType(val light: Int, val dark: Int? = null) {
-        PROGRAM(0xA040A0),
-        DATA(0x40A0A0),
-        EDITABLE(0x222222, 0xA0A0A0),
-        NOTUSED(0x777777),
-        ELSE(0xA0A040);
     }
 }

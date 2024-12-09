@@ -1,32 +1,35 @@
 package emulator.kit.memory
 
-import emulator.kit.common.IConsole
+import cengine.util.newint.IntNumber
 import kotlin.math.log
 import kotlin.math.roundToInt
 
-class SACache(
-    backingMemory: Memory,
-    console: IConsole,
+class SACache<ADDR: IntNumber<*>, INSTANCE: IntNumber<*>>(
+    backingMemory: Memory<ADDR, INSTANCE>,
     rowBits: Int,
     offsetBits: Int,
     blockCount: Int,
-    replaceAlgo: Model.ReplaceAlgo,
+    replaceAlgo: ReplaceAlgo,
+    toAddr: IntNumber<*>.() -> ADDR,
+    toInstance: IntNumber<*>.() -> INSTANCE,
     override val name: String = "Cache (SA)"
-) : Cache(
+) : Cache<ADDR, INSTANCE>(
     backingMemory,
-    console,
-    indexBits = rowBits,
-    offsetBits = offsetBits,
-    blockCount = blockCount,
-    replaceAlgo = replaceAlgo
+    rowBits,
+    blockCount,
+    offsetBits,
+    replaceAlgo,
+    toAddr,
+    toInstance
 ) {
-    constructor(backingMemory: Memory, console: IConsole, blockCount: Int, cacheSize: CacheSize, replaceAlgo: Model.ReplaceAlgo, name: String = "Cache") : this(
+    constructor(backingMemory: Memory<ADDR, INSTANCE>,blockCount: Int, cacheSize: CacheSize, replaceAlgo: ReplaceAlgo, toAddr: IntNumber<*>.() -> ADDR, toInstance: IntNumber<*>.() -> INSTANCE, name: String = "Cache") : this(
         backingMemory,
-        console,
-        blockCount = blockCount,
-        rowBits = log(((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW) / blockCount).toDouble(), 2.0).roundToInt(),
-        offsetBits = log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.byteCount).toDouble(), 2.0).roundToInt(),
-        replaceAlgo = replaceAlgo,
+        log(((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW) / blockCount).toDouble(), 2.0).roundToInt(),
+        log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.init.byteCount).toDouble(), 2.0).roundToInt(),
+         blockCount,
+         replaceAlgo,
+        toAddr,
+        toInstance,
         name = "$name($cacheSize ${blockCount}SA ${replaceAlgo})"
     )
 }

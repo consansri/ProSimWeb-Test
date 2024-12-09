@@ -4,7 +4,7 @@ package cengine.util.newint
  * Provides Integer Calculation Bases for different Sizes.
  *
  */
-sealed interface IntNumber<T : Any> : Comparable<T> {
+sealed interface IntNumber<T : IntNumber<T>> : Comparable<T>, ArithOperationProvider<T, T>, LogicOperationProvider<T,T> {
 
     companion object {
         fun bitMask(bitWidth: Int): Int {
@@ -26,35 +26,8 @@ sealed interface IntNumber<T : Any> : Comparable<T> {
     /**
      * @param other will be converted to same type as first operand.
      */
-    operator fun plus(other: T): IntNumber<T>
-    operator fun minus(other: T): IntNumber<T>
-    operator fun times(other: T): IntNumber<T>
-    operator fun div(other: T): IntNumber<T>
-    operator fun rem(other: T): IntNumber<T>
-
-    operator fun unaryMinus(): IntNumber<T>
-    operator fun inc(): IntNumber<T>
-    operator fun dec(): IntNumber<T>
-
-    // Binary Operations
-    operator fun inv(): IntNumber<T>
-    infix fun and(other: T): IntNumber<T>
-    infix fun or(other: T): IntNumber<T>
-    infix fun xor(other: T): IntNumber<T>
-    infix fun shl(other: T): IntNumber<T>
-    infix fun shr(other: T): IntNumber<T>
-
-    // Operations with other Int
-    operator fun plus(other: Int): IntNumber<T>
-    operator fun minus(other: Int): IntNumber<T>
-    operator fun div(other: Int): IntNumber<T>
-    operator fun times(other: Int): IntNumber<T>
-    operator fun rem(other: Int): IntNumber<T>
-    infix fun and(other: Int): IntNumber<T>
-    infix fun or(other: Int): IntNumber<T>
-    infix fun xor(other: Int): IntNumber<T>
-    infix fun shl(other: Int): IntNumber<T>
-    infix fun shr(other: Int): IntNumber<T>
+    operator fun inc(): T
+    operator fun dec(): T
 
     // Comparison
     override fun compareTo(other: T): Int

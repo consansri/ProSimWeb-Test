@@ -1,6 +1,6 @@
 package emulator.kit.memory
 
-import emulator.kit.common.IConsole
+import cengine.util.newint.IntNumber
 import kotlin.math.log
 import kotlin.math.roundToInt
 
@@ -20,25 +20,28 @@ import kotlin.math.roundToInt
  *
  * @see Cache
  */
-class DMCache(
-    backingMemory: Memory,
-    console: IConsole,
+class DMCache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
+    backingMemory: Memory<ADDR, INSTANCE>,
     val rowBits: Int,
-    val offsetBits: Int,
-    override val name: String = "Cache (DM)"
-) : Cache(
+    offsetBits: Int,
+    toAddr: IntNumber<*>.() -> ADDR,
+    toInstance: IntNumber<*>.() -> INSTANCE,
+    override val name: String = "Cache (DM)",
+) : Cache<ADDR, INSTANCE>(
     backingMemory,
-    console,
-    indexBits = rowBits,
-    offsetBits = offsetBits,
-    blockCount = 1,
-    replaceAlgo = Model.ReplaceAlgo.RANDOM
-){
-    constructor(backingMemory: Memory, console: IConsole, cacheSize: CacheSize, name: String = "Cache"): this(
+    rowBits,
+    1,
+    offsetBits,
+    ReplaceAlgo.RANDOM,
+    toAddr,
+    toInstance
+    ) {
+    constructor(backingMemory: Memory<ADDR, INSTANCE>, cacheSize: CacheSize, toAddr: IntNumber<*>.() -> ADDR, toInstance: IntNumber<*>.() -> INSTANCE ,name: String = "Cache") : this(
         backingMemory,
-        console,
         log((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toDouble(), 2.0).roundToInt(),
-        log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.instanceSize.byteCount).toDouble(),2.0).roundToInt(),
+        log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.init.byteCount).toDouble(), 2.0).roundToInt(),
+        toAddr,
+        toInstance,
         "$name($cacheSize DM)"
     )
 }
