@@ -58,8 +58,14 @@ class UInt32(override val value: UInt) : IntNumber<UInt32> {
     override fun rem(other: Long): UInt32 = UInt32(value % other.toULong())
 
     override fun and(other: Int): UInt32 = UInt32(value and other.toUInt())
+    override fun and(other: Long): UInt32 = UInt32(value and other.toUInt())
+
     override fun or(other: Int): UInt32 = UInt32(value or other.toUInt())
+    override fun or(other: Long): UInt32 = UInt32(value or other.toUInt())
+
     override fun xor(other: Int): UInt32 = UInt32(value xor other.toUInt())
+    override fun xor(other: Long): UInt32 = UInt32(value xor other.toUInt())
+
     override fun shl(other: Int): UInt32 = UInt32(value shl other)
     override fun shr(other: Int): UInt32 = UInt32(value shr other)
 

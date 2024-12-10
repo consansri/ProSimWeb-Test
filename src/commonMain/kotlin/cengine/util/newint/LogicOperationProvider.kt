@@ -15,4 +15,11 @@ interface LogicOperationProvider<in T: Any, out U: Any> {
     infix fun xor(other: Int): U
     infix fun shl(other: Int): U
     infix fun shr(other: Int): U
+
+    // Kotlin Int Operations
+    infix fun and(other: Long): U
+    infix fun or(other: Long): U
+    infix fun xor(other: Long): U
+
 }
+

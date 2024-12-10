@@ -57,8 +57,14 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
     override fun rem(other: Long): BigInt = BigInt(value % other)
 
     override fun and(other: Int): BigInt = BigInt(value and other.toBigInteger())
+    override fun and(other: Long): BigInt = BigInt(value and other.toBigInteger())
+
     override fun or(other: Int): BigInt = BigInt(value or other.toBigInteger())
+    override fun or(other: Long): BigInt = BigInt(value or other.toBigInteger())
+
     override fun xor(other: Int): BigInt = BigInt(value xor other.toBigInteger())
+    override fun xor(other: Long): BigInt = BigInt(value xor other.toBigInteger())
+
     override fun shl(other: Int): BigInt = BigInt(value shl other)
     override fun shr(other: Int): BigInt = BigInt(value shr other)
 

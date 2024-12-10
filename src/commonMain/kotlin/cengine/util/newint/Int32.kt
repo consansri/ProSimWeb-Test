@@ -57,8 +57,14 @@ class Int32(override val value: Int) : IntNumber<Int32> {
     override fun rem(other: Long): Int32 = Int32(value % other)
 
     override fun and(other: Int): Int32 = Int32(value and other)
+    override fun and(other: Long): Int32 = Int32(value and other.toInt())
+
     override fun or(other: Int): Int32 = Int32(value or other)
+    override fun or(other: Long): Int32 = Int32(value or other.toInt())
+
     override fun xor(other: Int): Int32 = Int32(value xor other)
+    override fun xor(other: Long): Int32 = Int32(value xor other.toInt())
+
     override fun shl(other: Int): Int32 = Int32(value shl other)
     override fun shr(other: Int): Int32 = Int32(value shr other)
 

@@ -56,8 +56,14 @@ class Int64(override val value: Long) : IntNumber<Int64> {
     override fun rem(other: Long): Int64 = Int64(value % other)
 
     override fun and(other: Int): Int64 = Int64(value and other.toLong())
+    override fun and(other: Long): Int64 = Int64(value and other)
+
     override fun or(other: Int): Int64 = Int64(value or other.toLong())
+    override fun or(other: Long): Int64 = Int64(value or other)
+
     override fun xor(other: Int): Int64 = Int64(value xor other.toLong())
+    override fun xor(other: Long): Int64 = Int64(value xor other)
+
     override fun shl(other: Int): Int64 = Int64(value shl other)
     override fun shr(other: Int): Int64 = Int64(value shr other)
 

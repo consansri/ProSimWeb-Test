@@ -57,8 +57,14 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     override fun rem(other: Long): UInt8 = UInt8(value % other.toULong())
 
     override fun and(other: Int): UInt8 = UInt8(value and other.toUByte())
+    override fun and(other: Long): UInt8 = UInt8(value and other.toUByte())
+
     override fun or(other: Int): UInt8 = UInt8(value or other.toUByte())
+    override fun or(other: Long): UInt8 = UInt8(value or other.toUByte())
+
     override fun xor(other: Int): UInt8 = UInt8(value xor other.toUByte())
+    override fun xor(other: Long): UInt8 = UInt8(value xor other.toUByte())
+
     override fun shl(other: Int): UInt8 = UInt8(value.toUInt() shl other)
     override fun shr(other: Int): UInt8 = UInt8(value.toUInt() shr other)
 

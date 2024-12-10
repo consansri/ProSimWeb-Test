@@ -63,8 +63,14 @@ class Int128(value: BigInteger) : IntNumber<Int128> {
     override fun rem(other: Long): Int128 = Int128(value % other)
 
     override fun and(other: Int): Int128 = Int128(value and other.toBigInteger())
+    override fun and(other: Long): Int128 = Int128(value and other.toBigInteger())
+
     override fun or(other: Int): Int128 = Int128(value or other.toBigInteger())
+    override fun or(other: Long): Int128 = Int128(value or other.toBigInteger())
+
     override fun xor(other: Int): Int128 = Int128(value xor other.toBigInteger())
+    override fun xor(other: Long): Int128 = Int128(value xor other.toBigInteger())
+
     override fun shl(other: Int): Int128 = Int128(value shl other)
     override fun shr(other: Int): Int128 = Int128(value shr other)
 

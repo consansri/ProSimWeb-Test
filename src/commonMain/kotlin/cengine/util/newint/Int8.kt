@@ -54,8 +54,14 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     override fun minus(other: Long): Int8 = Int8(value - other)
 
     override fun and(other: Int): Int8 = Int8(value and other.toByte())
+    override fun and(other: Long): Int8 = Int8(value and other.toByte())
+
     override fun or(other: Int): Int8 = Int8(value or other.toByte())
+    override fun or(other: Long): Int8 = Int8(value or other.toByte())
+
     override fun xor(other: Int): Int8 = Int8(value xor other.toByte())
+    override fun xor(other: Long): Int8 = Int8(value xor other.toByte())
+
     override fun shl(other: Int): Int8 = Int8(value.toInt() shl other)
     override fun shr(other: Int): Int8 = Int8(value.toInt() shr other)
 

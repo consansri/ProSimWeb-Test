@@ -63,8 +63,14 @@ class Int16(override val value: Short) : IntNumber<Int16> {
     override fun rem(other: Long): Int16 = Int16(value % other)
 
     override fun and(other: Int): Int16 = Int16(value and other.toShort())
+    override fun and(other: Long): Int16 = Int16(value and other.toShort())
+
     override fun or(other: Int): Int16 = Int16(value or other.toShort())
+    override fun or(other: Long): Int16 = Int16(value or other.toShort())
+
     override fun xor(other: Int): Int16 = Int16(value xor other.toShort())
+    override fun xor(other: Long): Int16 = Int16(value xor other.toShort())
+
     override fun shl(other: Int): Int16 = Int16(value.toInt() shl other)
     override fun shr(other: Int): Int16 = Int16(value.toInt() shr other)
 
