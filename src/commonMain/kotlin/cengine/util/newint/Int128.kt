@@ -6,7 +6,7 @@ import com.ionspin.kotlin.bignum.integer.toBigInteger
 
 class Int128(value: BigInteger) : IntNumber<Int128> {
 
-    val value: BigInteger = value.truncateTo128Bits()
+    override val value: BigInteger = value.truncateTo128Bits()
 
     companion object {
         private val MASK_128 = BigInteger.fromByteArray(ByteArray(16) { 0xFF.toByte() }, Sign.POSITIVE)  // 2^128 - 1
@@ -18,6 +18,8 @@ class Int128(value: BigInteger) : IntNumber<Int128> {
         val ONE = Int128(BigInteger.ONE)
 
         fun String.parseInt128(radix: Int): Int128 = Int128(BigInteger.parseString(this, radix))
+
+        fun fromUInt64(value1: UInt64, value0: UInt64): Int128 = (value1.toInt128() shl 64) or value0.toInt128()
     }
 
     override val bitWidth: Int
@@ -46,10 +48,19 @@ class Int128(value: BigInteger) : IntNumber<Int128> {
 
 
     override fun plus(other: Int): Int128 = Int128(value + other)
+    override fun plus(other: Long): Int128 = Int128(value + other)
+
     override fun minus(other: Int): Int128 = Int128(value - other)
+    override fun minus(other: Long): Int128 = Int128(value - other)
+
     override fun times(other: Int): Int128 = Int128(value * other)
+    override fun times(other: Long): Int128 = Int128(value * other)
+
     override fun div(other: Int): Int128 = Int128(value / other)
+    override fun div(other: Long): Int128 = Int128(value / other)
+
     override fun rem(other: Int): Int128 = Int128(value % other)
+    override fun rem(other: Long): Int128 = Int128(value % other)
 
     override fun and(other: Int): Int128 = Int128(value and other.toBigInteger())
     override fun or(other: Int): Int128 = Int128(value or other.toBigInteger())

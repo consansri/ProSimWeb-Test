@@ -9,6 +9,7 @@ interface LogicOperationProvider<in T: Any, out U: Any> {
     infix fun shl(other: T): U
     infix fun shr(other: T): U
 
+    // Kotlin Int Operations
     infix fun and(other: Int): U
     infix fun or(other: Int): U
     infix fun xor(other: Int): U

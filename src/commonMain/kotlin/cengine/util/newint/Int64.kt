@@ -2,7 +2,7 @@ package cengine.util.newint
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class Int64(val value: Long) : IntNumber<Int64> {
+class Int64(override val value: Long) : IntNumber<Int64> {
 
     companion object {
         fun Long.toInt64() = Int64(this)
@@ -11,6 +11,8 @@ class Int64(val value: Long) : IntNumber<Int64> {
         val ONE = Int64(1)
 
         fun String.parseInt32(radix: Int): Int64 = Int64(toLong(radix))
+
+        fun fromUInt32(value1: UInt32, value0: UInt32): Int64 = (value1.toInt64() shl 32) or value0.toInt64()
     }
 
     override val bitWidth: Int
@@ -39,10 +41,19 @@ class Int64(val value: Long) : IntNumber<Int64> {
 
 
     override fun plus(other: Int): Int64 = Int64(value + other)
+    override fun plus(other: Long): Int64 = Int64(value + other)
+
     override fun minus(other: Int): Int64 = Int64(value - other)
+    override fun minus(other: Long): Int64 = Int64(value - other)
+
     override fun times(other: Int): Int64 = Int64(value * other)
+    override fun times(other: Long): Int64 = Int64(value * other)
+
     override fun div(other: Int): Int64 = Int64(value / other)
+    override fun div(other: Long): Int64 = Int64(value / other)
+
     override fun rem(other: Int): Int64 = Int64(value % other)
+    override fun rem(other: Long): Int64 = Int64(value % other)
 
     override fun and(other: Int): Int64 = Int64(value and other.toLong())
     override fun or(other: Int): Int64 = Int64(value or other.toLong())

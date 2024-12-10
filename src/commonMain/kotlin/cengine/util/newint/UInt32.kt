@@ -2,7 +2,9 @@ package cengine.util.newint
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class UInt32(val value: UInt) : IntNumber<UInt32> {
+class UInt32(override val value: UInt) : IntNumber<UInt32> {
+
+    constructor(value: ULong) : this(value.toUInt())
 
     companion object {
         fun UInt.toUInt32(): UInt32 = UInt32(this)
@@ -11,6 +13,8 @@ class UInt32(val value: UInt) : IntNumber<UInt32> {
         val ONE = UInt32(1U)
 
         fun String.parseUInt32(radix: Int): UInt32 = UInt32(toUInt(radix))
+
+        fun fromUInt16(byte1: UInt16, byte0: UInt16): UInt32 = (byte1.toUInt32() shl 16) or byte0.toUInt32()
     }
 
     override val bitWidth: Int
@@ -39,10 +43,19 @@ class UInt32(val value: UInt) : IntNumber<UInt32> {
 
 
     override fun plus(other: Int): UInt32 = UInt32(value + other.toUInt())
+    override fun plus(other: Long): UInt32 = UInt32(value + other.toULong())
+
     override fun minus(other: Int): UInt32 = UInt32(value - other.toUInt())
+    override fun minus(other: Long): UInt32 = UInt32(value - other.toULong())
+
     override fun times(other: Int): UInt32 = UInt32(value * other.toUInt())
+    override fun times(other: Long): UInt32 = UInt32(value * other.toULong())
+
     override fun div(other: Int): UInt32 = UInt32(value / other.toUInt())
+    override fun div(other: Long): UInt32 = UInt32(value / other.toULong())
+
     override fun rem(other: Int): UInt32 = UInt32(value % other.toUInt())
+    override fun rem(other: Long): UInt32 = UInt32(value % other.toULong())
 
     override fun and(other: Int): UInt32 = UInt32(value and other.toUInt())
     override fun or(other: Int): UInt32 = UInt32(value or other.toUInt())

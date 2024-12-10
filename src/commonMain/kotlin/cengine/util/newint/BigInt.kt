@@ -2,9 +2,10 @@ package cengine.util.newint
 
 import cengine.util.newint.Int8.Companion.toInt8
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.integer.Sign
 import com.ionspin.kotlin.bignum.integer.toBigInteger
 
-data class BigInt(val value: BigInteger) : IntNumber<BigInt> {
+data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
 
     override val bitWidth: Int
         get() = value.bitLength()
@@ -23,6 +24,9 @@ data class BigInt(val value: BigInteger) : IntNumber<BigInt> {
         fun Long.toBigInt(): BigInt = BigInt(this.toBigInteger())
         fun UInt.toBigInt(): BigInt = BigInt(this.toBigInteger())
         fun ULong.toBigInt(): BigInt = BigInt(this.toBigInteger())
+
+        @OptIn(ExperimentalUnsignedTypes::class)
+        fun fromUInt8(bytes: Collection<UInt8>): BigInt = BigInt(BigInteger.fromUByteArray(bytes.map { it.value }.toUByteArray(), Sign.ZERO))
     }
 
     override fun plus(other: BigInt): BigInt = BigInt(value + other.value)
@@ -38,10 +42,20 @@ data class BigInt(val value: BigInteger) : IntNumber<BigInt> {
     override fun inv(): BigInt = BigInt(value.not())
 
     override fun plus(other: Int): BigInt = BigInt(value + other)
+    override fun plus(other: Long): BigInt = BigInt(value + other)
+
     override fun minus(other: Int): BigInt = BigInt(value - other)
+    override fun minus(other: Long): BigInt = BigInt(value - other)
+
     override fun times(other: Int): BigInt = BigInt(value * other)
+    override fun times(other: Long): BigInt = BigInt(value * other)
+
     override fun div(other: Int): BigInt = BigInt(value / other)
+    override fun div(other: Long): BigInt = BigInt(value / other)
+
     override fun rem(other: Int): BigInt = BigInt(value % other)
+    override fun rem(other: Long): BigInt = BigInt(value % other)
+
     override fun and(other: Int): BigInt = BigInt(value and other.toBigInteger())
     override fun or(other: Int): BigInt = BigInt(value or other.toBigInteger())
     override fun xor(other: Int): BigInt = BigInt(value xor other.toBigInteger())

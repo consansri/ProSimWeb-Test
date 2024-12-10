@@ -2,9 +2,10 @@ package cengine.util.newint
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class UInt8(private val value: UByte) : IntNumber<UInt8> {
+class UInt8(override val value: UByte) : IntNumber<UInt8> {
 
     constructor(value: UInt) : this(value.toUByte())
+    constructor(value: ULong) : this(value.toUByte())
 
     companion object {
         fun UByte.toUInt8() = UInt8(this)
@@ -41,10 +42,19 @@ class UInt8(private val value: UByte) : IntNumber<UInt8> {
 
 
     override fun plus(other: Int): UInt8 = UInt8(value + other.toUInt())
+    override fun plus(other: Long): UInt8 = UInt8(value + other.toULong())
+
     override fun minus(other: Int): UInt8 = UInt8(value - other.toUInt())
+    override fun minus(other: Long): UInt8 = UInt8(value - other.toULong())
+
     override fun times(other: Int): UInt8 = UInt8(value * other.toUInt())
+    override fun times(other: Long): UInt8 = UInt8(value * other.toULong())
+
     override fun div(other: Int): UInt8 = UInt8(value / other.toUInt())
+    override fun div(other: Long): UInt8 = UInt8(value / other.toULong())
+
     override fun rem(other: Int): UInt8 = UInt8(value % other.toUInt())
+    override fun rem(other: Long): UInt8 = UInt8(value % other.toULong())
 
     override fun and(other: Int): UInt8 = UInt8(value and other.toUByte())
     override fun or(other: Int): UInt8 = UInt8(value or other.toUByte())

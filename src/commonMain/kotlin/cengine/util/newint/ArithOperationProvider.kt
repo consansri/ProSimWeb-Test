@@ -10,10 +10,18 @@ interface ArithOperationProvider<in T: Any, out U: Any> {
 
     operator fun unaryMinus(): U
 
+    // Kotlin Int Operations
     operator fun plus(other: Int): U
     operator fun minus(other: Int): U
     operator fun times(other: Int): U
     operator fun div(other: Int): U
     operator fun rem(other: Int): U
+
+    // Kotlin Long Operations
+    operator fun plus(other: Long): U
+    operator fun minus(other: Long): U
+    operator fun times(other: Long): U
+    operator fun div(other: Long): U
+    operator fun rem(other: Long): U
 
 }

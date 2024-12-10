@@ -6,9 +6,10 @@ import kotlin.experimental.inv
 import kotlin.experimental.or
 import kotlin.experimental.xor
 
-class Int16(private val value: Short) : IntNumber<Int16> {
+class Int16(override val value: Short) : IntNumber<Int16> {
 
     constructor(value: Int) : this(value.toShort())
+    constructor(value: Long) : this(value.toShort())
 
     companion object {
         fun Short.toInt16() = Int16(this)
@@ -17,6 +18,8 @@ class Int16(private val value: Short) : IntNumber<Int16> {
         val ONE = Int16(1)
 
         fun String.parseInt16(radix: Int): Int16 = Int16(toShort(radix))
+
+        fun fromUInt8(byte1: UInt8, byte0: UInt8): Int16 = (byte1.toInt16() shl 8) or byte0.toInt16()
     }
 
     override val bitWidth: Int
@@ -45,10 +48,19 @@ class Int16(private val value: Short) : IntNumber<Int16> {
 
 
     override fun plus(other: Int): Int16 = Int16(value + other)
+    override fun plus(other: Long): Int16 = Int16(value + other)
+
     override fun minus(other: Int): Int16 = Int16(value - other)
+    override fun minus(other: Long): Int16 = Int16(value - other)
+
     override fun times(other: Int): Int16 = Int16(value * other)
+    override fun times(other: Long): Int16 = Int16(value * other)
+
     override fun div(other: Int): Int16 = Int16(value / other)
+    override fun div(other: Long): Int16 = Int16(value / other)
+
     override fun rem(other: Int): Int16 = Int16(value % other)
+    override fun rem(other: Long): Int16 = Int16(value % other)
 
     override fun and(other: Int): Int16 = Int16(value and other.toShort())
     override fun or(other: Int): Int16 = Int16(value or other.toShort())

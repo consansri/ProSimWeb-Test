@@ -2,7 +2,7 @@ package cengine.util.newint
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class UInt64(val value: ULong) : IntNumber<UInt64> {
+class UInt64(override val value: ULong) : IntNumber<UInt64> {
 
     companion object {
         fun ULong.toUInt64() = UInt64(this)
@@ -11,6 +11,8 @@ class UInt64(val value: ULong) : IntNumber<UInt64> {
         val ONE = UInt64(1U)
 
         fun String.parseUInt64(radix: Int): UInt64 = UInt64(toULong(radix))
+
+        fun fromUInt32(value1: UInt32, value0: UInt32): UInt64 = (value1.toUInt64() shl 32) or value0.toUInt64()
     }
 
     override val bitWidth: Int
@@ -39,10 +41,19 @@ class UInt64(val value: ULong) : IntNumber<UInt64> {
 
 
     override fun plus(other: Int): UInt64 = UInt64(value + other.toUInt())
+    override fun plus(other: Long): UInt64 = UInt64(value + other.toULong())
+
     override fun minus(other: Int): UInt64 = UInt64(value - other.toUInt())
+    override fun minus(other: Long): UInt64 = UInt64(value - other.toULong())
+
     override fun times(other: Int): UInt64 = UInt64(value * other.toUInt())
+    override fun times(other: Long): UInt64 = UInt64(value * other.toULong())
+
     override fun div(other: Int): UInt64 = UInt64(value / other.toUInt())
+    override fun div(other: Long): UInt64 = UInt64(value / other.toULong())
+
     override fun rem(other: Int): UInt64 = UInt64(value % other.toUInt())
+    override fun rem(other: Long): UInt64 = UInt64(value % other.toULong())
 
     override fun and(other: Int): UInt64 = UInt64(value and other.toULong())
     override fun or(other: Int): UInt64 = UInt64(value or other.toULong())

@@ -6,9 +6,10 @@ import kotlin.experimental.inv
 import kotlin.experimental.or
 import kotlin.experimental.xor
 
-class Int8(private val value: Byte) : IntNumber<Int8> {
+class Int8(override val value: Byte) : IntNumber<Int8> {
 
     constructor(value: Int) : this(value.toByte())
+    constructor(value: Long) : this(value.toByte())
 
     companion object {
         fun Byte.toInt8() = Int8(this)
@@ -32,8 +33,13 @@ class Int8(private val value: Byte) : IntNumber<Int8> {
     override fun div(other: Int8): Int8 = Int8(value / other.value)
     override fun rem(other: Int8): Int8 = Int8(value % other.value)
     override fun times(other: Int): Int8 = Int8(value * other)
+    override fun times(other: Long): Int8 = Int8(value * other)
+
     override fun div(other: Int): Int8 = Int8(value / other)
+    override fun div(other: Long): Int8 = Int8(value / other)
+
     override fun rem(other: Int): Int8 = Int8(value % other)
+    override fun rem(other: Long): Int8 = Int8(value % other)
 
     override fun unaryMinus(): Int8 = Int8(-value)
     override fun inc(): Int8 = Int8(value.inc())
@@ -42,7 +48,11 @@ class Int8(private val value: Byte) : IntNumber<Int8> {
     override fun inv(): Int8 = Int8(value.inv())
 
     override fun plus(other: Int): Int8 = Int8(value + other)
+    override fun plus(other: Long): Int8 = Int8(value + other)
+
     override fun minus(other: Int): Int8 = Int8(value - other)
+    override fun minus(other: Long): Int8 = Int8(value - other)
+
     override fun and(other: Int): Int8 = Int8(value and other.toByte())
     override fun or(other: Int): Int8 = Int8(value or other.toByte())
     override fun xor(other: Int): Int8 = Int8(value xor other.toByte())

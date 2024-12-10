@@ -2,9 +2,10 @@ package cengine.util.newint
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class UInt16(private val value: UShort) : IntNumber<UInt16> {
+class UInt16(override val value: UShort) : IntNumber<UInt16> {
 
     constructor(value: UInt) : this(value.toUShort())
+    constructor(value: ULong) : this(value.toUShort())
 
     companion object {
         fun UShort.toUInt16() = UInt16(this)
@@ -13,6 +14,8 @@ class UInt16(private val value: UShort) : IntNumber<UInt16> {
         val ONE = UInt16(1U)
 
         fun String.parseUInt16(radix: Int): UInt16 = UInt16(toUShort(radix))
+
+        fun fromUInt8(byte1: UInt8, byte0: UInt8): UInt16 = (byte1.toUInt16() shl 8) or byte0.toUInt16()
     }
 
     override val bitWidth: Int
@@ -41,10 +44,19 @@ class UInt16(private val value: UShort) : IntNumber<UInt16> {
 
 
     override fun plus(other: Int): UInt16 = UInt16(value + other.toUInt())
+    override fun plus(other: Long): UInt16 =UInt16(value + other.toULong())
+
     override fun minus(other: Int): UInt16 = UInt16(value - other.toUInt())
+    override fun minus(other: Long): UInt16 = UInt16(value - other.toULong())
+
     override fun times(other: Int): UInt16 = UInt16(value * other.toUInt())
+    override fun times(other: Long): UInt16 = UInt16(value * other.toULong())
+
     override fun div(other: Int): UInt16 = UInt16(value / other.toUInt())
+    override fun div(other: Long): UInt16 = UInt16(value / other.toULong())
+
     override fun rem(other: Int): UInt16 = UInt16(value % other.toUInt())
+    override fun rem(other: Long): UInt16 = UInt16(value % other.toULong())
 
     override fun and(other: Int): UInt16 = UInt16(value and other.toUShort())
     override fun or(other: Int): UInt16 = UInt16(value or other.toUShort())
