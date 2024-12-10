@@ -38,6 +38,8 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
     override fun unaryMinus(): BigInt = BigInt(value.negate())
     override fun inc(): BigInt = BigInt(value.inc())
     override fun dec(): BigInt = BigInt(value.dec())
+    override fun compareTo(other: Long): Int = value.compareTo(other)
+    override fun compareTo(other: Int): Int = value.compareTo(other)
 
     override fun inv(): BigInt = BigInt(value.not())
 
@@ -65,15 +67,15 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
     override fun xor(other: Int): BigInt = BigInt(value xor other.toBigInteger())
     override fun xor(other: Long): BigInt = BigInt(value xor other.toBigInteger())
 
-    override fun shl(other: Int): BigInt = BigInt(value shl other)
-    override fun shr(other: Int): BigInt = BigInt(value shr other)
+    override fun shl(bits: Int): BigInt = BigInt(value shl bits)
+    override fun shr(bits: Int): BigInt = BigInt(value shr bits)
 
     override fun and(other: BigInt): BigInt = BigInt(value and other.value)
     override fun or(other: BigInt): BigInt = BigInt(value or other.value)
     override fun xor(other: BigInt): BigInt = BigInt(value xor other.value)
 
-    override fun shl(other: BigInt): BigInt = BigInt(value shl other.value.intValue())
-    override fun shr(other: BigInt): BigInt = BigInt(value shr other.value.intValue())
+    override fun shl(bits: BigInt): BigInt = BigInt(value shl bits.value.intValue())
+    override fun shr(bits: BigInt): BigInt = BigInt(value shr bits.value.intValue())
 
     override fun compareTo(other: BigInt): Int = value.compareTo(other.value)
     override fun equals(other: Any?): Boolean = if (other is BigInt) value == other.value else false
