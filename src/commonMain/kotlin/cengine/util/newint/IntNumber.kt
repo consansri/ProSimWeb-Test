@@ -4,7 +4,7 @@ package cengine.util.newint
  * Provides Integer Calculation Bases for different Sizes.
  *
  */
-sealed interface IntNumber<T : IntNumber<T>> : Comparable<T>, ArithOperationProvider<T, T>, LogicOperationProvider<T, T> {
+sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, LogicOperationProvider<T, T> {
 
     companion object {
         fun bitMask(bitWidth: Int): Int {
@@ -18,7 +18,7 @@ sealed interface IntNumber<T : IntNumber<T>> : Comparable<T>, ArithOperationProv
 
         fun <T : IntNumber<T>> Collection<UInt8>.mergeToIntNumbers(
             createFromBytes: (List<UInt8>) -> T,
-            chunkSize: Int
+            chunkSize: Int,
         ): List<T> {
             require(chunkSize > 0) { "Chunk size must be greater than 0." }
 
@@ -32,7 +32,7 @@ sealed interface IntNumber<T : IntNumber<T>> : Comparable<T>, ArithOperationProv
 
     // Arithmetic Operations
     val value: Any
-    val bitWidth: Int
+    override val bitWidth: Int
     val byteCount: Int
 
     /**
@@ -61,8 +61,41 @@ sealed interface IntNumber<T : IntNumber<T>> : Comparable<T>, ArithOperationProv
         return (this shr shift) or (this shl (-shift + bitWidth))
     }
 
+    /**
+     * Extends the sign bit of a given subset of bits to the full bit width of the value.
+     *
+     * @param subsetBitWidth The number of bits in the subset to sign-extend.
+     * @return The sign-extended value.
+     */
+    fun signExtension(subsetBitWidth: Int): T {
+        require(subsetBitWidth in 1..bitWidth) {
+            "subsetBitWidth must be in the range 1 to bitWidth ($bitWidth)."
+        }
+
+        // Create a mask for the subsetBitWidth
+        val mask = (1 shl subsetBitWidth) - 1 // Mask to extract the relevant subset
+
+        // Extract the subset of bits
+        val subset = this and mask
+
+        // Check the sign bit of the subset
+        val signBitPosition = subsetBitWidth - 1
+        val signBit = subset and (1 shl signBitPosition)
+
+        return if (signBit == Int32.ZERO) {
+            // If the sign bit is 0, the value is positive, so return the subset directly
+            subset
+        } else {
+            // If the sign bit is 1, extend the sign to the full bit width
+            val extensionMask = ((1 shl (bitWidth - subsetBitWidth)) - 1) shl subsetBitWidth
+            subset or extensionMask
+        }
+    }
+
     // Comparison
-    override fun compareTo(other: T): Int
+    operator fun compareTo(other: T): Int
+    operator fun compareTo(other: Long): Int
+    operator fun compareTo(other: Int): Int
     override fun equals(other: Any?): Boolean
     override fun hashCode(): Int
 

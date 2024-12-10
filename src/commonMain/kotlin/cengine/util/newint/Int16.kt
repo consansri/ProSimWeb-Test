@@ -75,6 +75,8 @@ class Int16(override val value: Short) : IntNumber<Int16> {
     override fun shr(bits: Int): Int16 = Int16(value.toInt() shr bits)
 
     override fun compareTo(other: Int16): Int = value.compareTo(other.value)
+    override fun compareTo(other: Long): Int = value.compareTo(other)
+    override fun compareTo(other: Int): Int = value.compareTo(other)
     override fun equals(other: Any?): Boolean = if (other is Int16) value == other.value else false
 
     override fun toInt8(): Int8 = Int8(value.toByte())

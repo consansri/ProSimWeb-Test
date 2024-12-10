@@ -70,6 +70,8 @@ class Int32(override val value: Int) : IntNumber<Int32> {
 
 
     override fun compareTo(other: Int32): Int = value.compareTo(other.value)
+    override fun compareTo(other: Long): Int = value.compareTo(other)
+    override fun compareTo(other: Int): Int = value.compareTo(other)
     override fun equals(other: Any?): Boolean = if (other is Int32) value == other.value else false
 
     override fun toInt8(): Int8 = Int8(value.toByte())

@@ -44,6 +44,8 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     override fun unaryMinus(): Int8 = Int8(-value)
     override fun inc(): Int8 = Int8(value.inc())
     override fun dec(): Int8 = Int8(value.dec())
+    override fun compareTo(other: Long): Int = value.compareTo(other)
+    override fun compareTo(other: Int): Int = value.compareTo(other)
 
     override fun inv(): Int8 = Int8(value.inv())
 

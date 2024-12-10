@@ -71,6 +71,8 @@ class UInt32(override val value: UInt) : IntNumber<UInt32> {
 
 
     override fun compareTo(other: UInt32): Int = value.compareTo(other.value)
+    override fun compareTo(other: Long): Int = value.compareTo(other.toULong())
+    override fun compareTo(other: Int): Int = value.compareTo(other.toUInt())
     override fun equals(other: Any?): Boolean = if (other is UInt32) value == other.value else false
 
     override fun toInt8(): Int8 = Int8(value.toByte())
