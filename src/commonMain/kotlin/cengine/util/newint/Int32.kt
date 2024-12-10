@@ -37,8 +37,8 @@ class Int32(override val value: Int) : IntNumber<Int32> {
     override fun and(other: Int32): Int32 = Int32(value and other.value)
     override fun or(other: Int32): Int32 = Int32(value or other.value)
     override fun xor(other: Int32): Int32 = Int32(value xor other.value)
-    override fun shl(other: Int32): Int32 = Int32(value shl other.value)
-    override fun shr(other: Int32): Int32 = Int32(value shr other.value)
+    override fun shl(bits: Int32): Int32 = Int32(value shl bits.value)
+    override fun shr(bits: Int32): Int32 = Int32(value shr bits.value)
 
 
     override fun plus(other: Int): Int32 = Int32(value + other)
@@ -65,8 +65,8 @@ class Int32(override val value: Int) : IntNumber<Int32> {
     override fun xor(other: Int): Int32 = Int32(value xor other)
     override fun xor(other: Long): Int32 = Int32(value xor other.toInt())
 
-    override fun shl(other: Int): Int32 = Int32(value shl other)
-    override fun shr(other: Int): Int32 = Int32(value shr other)
+    override fun shl(bits: Int): Int32 = Int32(value shl bits)
+    override fun shr(bits: Int): Int32 = Int32(value shr bits)
 
 
     override fun compareTo(other: Int32): Int = value.compareTo(other.value)

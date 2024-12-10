@@ -41,6 +41,26 @@ sealed interface IntNumber<T : IntNumber<T>> : Comparable<T>, ArithOperationProv
     operator fun inc(): T
     operator fun dec(): T
 
+    fun rol(bits: T): T {
+        val shift = bits % bitWidth // Ensure the shift is within bounds
+        return (this shl shift) or (this shr (-shift + bitWidth))
+    }
+
+    fun ror(bits: T): T {
+        val shift = bits % bitWidth // Ensure the shift is within bounds
+        return (this shr shift) or (this shl (-shift + bitWidth))
+    }
+
+    fun rol(bits: Int): T {
+        val shift = bits % bitWidth // Ensure the shift is within bounds
+        return (this shl shift) or (this shr (-shift + bitWidth))
+    }
+
+    fun ror(bits: Int): T {
+        val shift = bits % bitWidth // Ensure the shift is within bounds
+        return (this shr shift) or (this shl (-shift + bitWidth))
+    }
+
     // Comparison
     override fun compareTo(other: T): Int
     override fun equals(other: Any?): Boolean

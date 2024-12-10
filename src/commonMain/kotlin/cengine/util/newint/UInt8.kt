@@ -37,8 +37,8 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     override fun or(other: UInt8): UInt8 = UInt8(value.toUInt() or other.value.toUInt())
     override fun xor(other: UInt8): UInt8 = UInt8(value.toUInt() xor other.value.toUInt())
 
-    override fun shl(other: UInt8): UInt8 = UInt8(value.toUInt() shl other.value.toInt())
-    override fun shr(other: UInt8): UInt8 = UInt8(value.toUInt() shr other.value.toInt())
+    override fun shl(bits: UInt8): UInt8 = UInt8(value.toUInt() shl bits.value.toInt())
+    override fun shr(bits: UInt8): UInt8 = UInt8(value.toUInt() shr bits.value.toInt())
 
 
     override fun plus(other: Int): UInt8 = UInt8(value + other.toUInt())
@@ -65,8 +65,8 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     override fun xor(other: Int): UInt8 = UInt8(value xor other.toUByte())
     override fun xor(other: Long): UInt8 = UInt8(value xor other.toUByte())
 
-    override fun shl(other: Int): UInt8 = UInt8(value.toUInt() shl other)
-    override fun shr(other: Int): UInt8 = UInt8(value.toUInt() shr other)
+    override fun shl(bits: Int): UInt8 = UInt8(value.toUInt() shl bits)
+    override fun shr(bits: Int): UInt8 = UInt8(value.toUInt() shr bits)
 
 
     override fun compareTo(other: UInt8): Int = value.compareTo(other.value)

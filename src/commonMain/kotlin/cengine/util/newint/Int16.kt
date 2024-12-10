@@ -43,8 +43,8 @@ class Int16(override val value: Short) : IntNumber<Int16> {
     override fun or(other: Int16): Int16 = Int16(value.toInt() or other.value.toInt())
     override fun xor(other: Int16): Int16 = Int16(value.toInt() xor other.value.toInt())
 
-    override fun shl(other: Int16): Int16 = Int16(value.toInt() shl other.value.toInt())
-    override fun shr(other: Int16): Int16 = Int16(value.toInt() shr other.value.toInt())
+    override fun shl(bits: Int16): Int16 = Int16(value.toInt() shl bits.value.toInt())
+    override fun shr(bits: Int16): Int16 = Int16(value.toInt() shr bits.value.toInt())
 
 
     override fun plus(other: Int): Int16 = Int16(value + other)
@@ -71,8 +71,8 @@ class Int16(override val value: Short) : IntNumber<Int16> {
     override fun xor(other: Int): Int16 = Int16(value xor other.toShort())
     override fun xor(other: Long): Int16 = Int16(value xor other.toShort())
 
-    override fun shl(other: Int): Int16 = Int16(value.toInt() shl other)
-    override fun shr(other: Int): Int16 = Int16(value.toInt() shr other)
+    override fun shl(bits: Int): Int16 = Int16(value.toInt() shl bits)
+    override fun shr(bits: Int): Int16 = Int16(value.toInt() shr bits)
 
     override fun compareTo(other: Int16): Int = value.compareTo(other.value)
     override fun equals(other: Any?): Boolean = if (other is Int16) value == other.value else false

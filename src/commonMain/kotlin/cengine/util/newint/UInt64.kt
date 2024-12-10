@@ -36,8 +36,8 @@ class UInt64(override val value: ULong) : IntNumber<UInt64> {
     override fun or(other: UInt64): UInt64 = UInt64(value or other.value)
     override fun xor(other: UInt64): UInt64 = UInt64(value xor other.value)
 
-    override fun shl(other: UInt64): UInt64 = UInt64(value shl other.value.toInt())
-    override fun shr(other: UInt64): UInt64 = UInt64(value shr other.value.toInt())
+    override fun shl(bits: UInt64): UInt64 = UInt64(value shl bits.value.toInt())
+    override fun shr(bits: UInt64): UInt64 = UInt64(value shr bits.value.toInt())
 
 
     override fun plus(other: Int): UInt64 = UInt64(value + other.toUInt())
@@ -64,8 +64,8 @@ class UInt64(override val value: ULong) : IntNumber<UInt64> {
     override fun xor(other: Int): UInt64 = UInt64(value xor other.toULong())
     override fun xor(other: Long): UInt64 = UInt64(value xor other.toULong())
 
-    override fun shl(other: Int): UInt64 = UInt64(value shl other)
-    override fun shr(other: Int): UInt64 = UInt64(value shr other)
+    override fun shl(bits: Int): UInt64 = UInt64(value shl bits)
+    override fun shr(bits: Int): UInt64 = UInt64(value shr bits)
 
 
     override fun compareTo(other: UInt64): Int = value.compareTo(other.value)

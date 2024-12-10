@@ -38,8 +38,8 @@ class UInt32(override val value: UInt) : IntNumber<UInt32> {
     override fun or(other: UInt32): UInt32 = UInt32(value or other.value)
     override fun xor(other: UInt32): UInt32 = UInt32(value xor other.value)
 
-    override fun shl(other: UInt32): UInt32 = UInt32(value shl other.value.toInt())
-    override fun shr(other: UInt32): UInt32 = UInt32(value shr other.value.toInt())
+    override fun shl(bits: UInt32): UInt32 = UInt32(value shl bits.value.toInt())
+    override fun shr(bits: UInt32): UInt32 = UInt32(value shr bits.value.toInt())
 
 
     override fun plus(other: Int): UInt32 = UInt32(value + other.toUInt())
@@ -66,8 +66,8 @@ class UInt32(override val value: UInt) : IntNumber<UInt32> {
     override fun xor(other: Int): UInt32 = UInt32(value xor other.toUInt())
     override fun xor(other: Long): UInt32 = UInt32(value xor other.toUInt())
 
-    override fun shl(other: Int): UInt32 = UInt32(value shl other)
-    override fun shr(other: Int): UInt32 = UInt32(value shr other)
+    override fun shl(bits: Int): UInt32 = UInt32(value shl bits)
+    override fun shr(bits: Int): UInt32 = UInt32(value shr bits)
 
 
     override fun compareTo(other: UInt32): Int = value.compareTo(other.value)

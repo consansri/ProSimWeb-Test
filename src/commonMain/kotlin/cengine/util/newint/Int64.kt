@@ -36,8 +36,8 @@ class Int64(override val value: Long) : IntNumber<Int64> {
     override fun or(other: Int64): Int64 = Int64(value or other.value)
     override fun xor(other: Int64): Int64 = Int64(value xor other.value)
 
-    override fun shl(other: Int64): Int64 = Int64(value shl other.value.toInt())
-    override fun shr(other: Int64): Int64 = Int64(value shr other.value.toInt())
+    override fun shl(bits: Int64): Int64 = Int64(value shl bits.value.toInt())
+    override fun shr(bits: Int64): Int64 = Int64(value shr bits.value.toInt())
 
 
     override fun plus(other: Int): Int64 = Int64(value + other)
@@ -64,8 +64,8 @@ class Int64(override val value: Long) : IntNumber<Int64> {
     override fun xor(other: Int): Int64 = Int64(value xor other.toLong())
     override fun xor(other: Long): Int64 = Int64(value xor other)
 
-    override fun shl(other: Int): Int64 = Int64(value shl other)
-    override fun shr(other: Int): Int64 = Int64(value shr other)
+    override fun shl(bits: Int): Int64 = Int64(value shl bits)
+    override fun shr(bits: Int): Int64 = Int64(value shr bits)
 
 
     override fun compareTo(other: Int64): Int = value.compareTo(other.value)

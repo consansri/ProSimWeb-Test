@@ -62,15 +62,15 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     override fun xor(other: Int): Int8 = Int8(value xor other.toByte())
     override fun xor(other: Long): Int8 = Int8(value xor other.toByte())
 
-    override fun shl(other: Int): Int8 = Int8(value.toInt() shl other)
-    override fun shr(other: Int): Int8 = Int8(value.toInt() shr other)
+    override fun shl(bits: Int): Int8 = Int8(value.toInt() shl bits)
+    override fun shr(bits: Int): Int8 = Int8(value.toInt() shr bits)
 
     override fun and(other: Int8): Int8 = Int8(value.toInt() and other.value.toInt())
     override fun or(other: Int8): Int8 = Int8(value.toInt() or other.value.toInt())
     override fun xor(other: Int8): Int8 = Int8(value.toInt() xor other.value.toInt())
 
-    override fun shl(other: Int8): Int8 = Int8(value.toInt() shl other.value.toInt())
-    override fun shr(other: Int8): Int8 = Int8(value.toInt() shr other.value.toInt())
+    override fun shl(bits: Int8): Int8 = Int8(value.toInt() shl bits.value.toInt())
+    override fun shr(bits: Int8): Int8 = Int8(value.toInt() shr bits.value.toInt())
 
     override fun compareTo(other: Int8): Int = value.compareTo(other.value)
     override fun equals(other: Any?): Boolean = if (other is Int8) value == other.value else false

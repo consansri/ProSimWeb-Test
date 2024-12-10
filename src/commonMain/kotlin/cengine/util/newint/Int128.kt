@@ -43,8 +43,8 @@ class Int128(value: BigInteger) : IntNumber<Int128> {
     override fun or(other: Int128): Int128 = Int128(value or other.value)
     override fun xor(other: Int128): Int128 = Int128(value xor other.value)
 
-    override fun shl(other: Int128): Int128 = Int128(value shl other.value.intValue())
-    override fun shr(other: Int128): Int128 = Int128(value shr other.value.intValue())
+    override fun shl(bits: Int128): Int128 = Int128(value shl bits.value.intValue())
+    override fun shr(bits: Int128): Int128 = Int128(value shr bits.value.intValue())
 
 
     override fun plus(other: Int): Int128 = Int128(value + other)
@@ -71,8 +71,8 @@ class Int128(value: BigInteger) : IntNumber<Int128> {
     override fun xor(other: Int): Int128 = Int128(value xor other.toBigInteger())
     override fun xor(other: Long): Int128 = Int128(value xor other.toBigInteger())
 
-    override fun shl(other: Int): Int128 = Int128(value shl other)
-    override fun shr(other: Int): Int128 = Int128(value shr other)
+    override fun shl(bits: Int): Int128 = Int128(value shl bits)
+    override fun shr(bits: Int): Int128 = Int128(value shr bits)
 
 
     override fun compareTo(other: Int128): Int = value.compareTo(other.value)
