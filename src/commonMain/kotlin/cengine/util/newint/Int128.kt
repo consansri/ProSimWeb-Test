@@ -87,6 +87,8 @@ class Int128(value: BigInteger) : IntNumber<Int128> {
     override fun toInt16(): Int16 = Int16(value.shortValue())
     override fun toInt32(): Int32 = Int32(value.intValue())
     override fun toInt64(): Int64 = Int64(value.longValue())
+
+    @Deprecated("Unnecessary", ReplaceWith("this"))
     override fun toInt128(): Int128 = this
     override fun toBigInt(): BigInt = BigInt(value)
     override fun toUInt8(): UInt8 = UInt8(value.ubyteValue())
@@ -95,6 +97,7 @@ class Int128(value: BigInteger) : IntNumber<Int128> {
     override fun toUInt64(): UInt64 = UInt64(value.ulongValue())
 
     override fun toString(radix: Int): String = value.toString(radix)
+    override fun toString(): String = value.toString()
     override fun fitsInSigned(bitWidth: Int): Boolean {
         if (bitWidth >= bitWidth) return true
         val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)

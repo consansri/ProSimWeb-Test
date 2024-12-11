@@ -1,5 +1,15 @@
 package cengine.util.newint
 
+import cengine.util.newint.Int16.Companion.parseInt16
+import cengine.util.newint.Int32.Companion.parseInt32
+import cengine.util.newint.Int64.Companion.parseInt64
+import cengine.util.newint.Int8.Companion.parseInt8
+import cengine.util.newint.UInt16.Companion.parseUInt16
+import cengine.util.newint.UInt32.Companion.parseUInt32
+import cengine.util.newint.UInt64.Companion.parseUInt64
+import cengine.util.newint.UInt8.Companion.parseUInt8
+import com.ionspin.kotlin.bignum.integer.BigInteger
+
 /**
  * Provides Integer Calculation Bases for different Sizes.
  *
@@ -12,9 +22,30 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
 
             if (bitWidth == 0) return 0
 
-            return 1 shl bitWidth - 1
+            return (1 shl bitWidth) - 1
         }
 
+        fun String.parseUIntNumber(radix: Int, byteCount: Int): IntNumber<*> {
+            require(byteCount > 0) { "Illegal byteCount $byteCount to parse ${IntNumber::class} from!" }
+            return when (byteCount) {
+                1 -> parseUInt8(radix)
+                2 -> parseUInt16(radix)
+                4 -> parseUInt32(radix)
+                8 -> parseUInt64(radix)
+                else -> BigInt(BigInteger.parseString(this, radix))
+            }
+        }
+
+        fun String.parseIntNumber(radix: Int, byteCount: Int): IntNumber<*> {
+            require(byteCount > 0) { "Illegal byteCount $byteCount to parse ${IntNumber::class} from!" }
+            return when (byteCount) {
+                1 -> parseInt8(radix)
+                2 -> parseInt16(radix)
+                4 -> parseInt32(radix)
+                8 -> parseInt64(radix)
+                else -> BigInt(BigInteger.parseString(this, radix))
+            }
+        }
 
         fun <T : IntNumber<T>> Collection<UInt8>.mergeToIntNumbers(
             createFromBytes: (List<UInt8>) -> T,
@@ -34,6 +65,11 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
     val value: Any
     override val bitWidth: Int
     val byteCount: Int
+
+    /**
+     * @param index 0 ..<[bitWidth]
+     */
+    fun bit(index: Int): T = (this shr index) and 1
 
     /**
      * @param other will be converted to same type as first operand.
@@ -167,6 +203,7 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
     fun toULong(): ULong = toUInt64().value
 
     // Transformation
+    override fun toString(): String
     fun toString(radix: Int = 10): String
     fun zeroPaddedBin(): String = toString(2).padStart(bitWidth, '0')
     fun zeroPaddedHex(): String = toString(16).padStart(byteCount * 2, '0')

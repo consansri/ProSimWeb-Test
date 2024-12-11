@@ -90,6 +90,8 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
     override fun toInt32(): Int32 = Int32(value.intValue())
     override fun toInt64(): Int64 = Int64(value.longValue())
     override fun toInt128(): Int128 = Int128(value)
+
+    @Deprecated("Unnecessary", ReplaceWith("this"))
     override fun toBigInt(): BigInt = this
 
     override fun toUInt8(): UInt8 = UInt8(value.ubyteValue())

@@ -10,7 +10,7 @@ class Int64(override val value: Long) : IntNumber<Int64> {
         val ZERO = Int64(0)
         val ONE = Int64(1)
 
-        fun String.parseInt32(radix: Int): Int64 = Int64(toLong(radix))
+        fun String.parseInt64(radix: Int): Int64 = Int64(toLong(radix))
         fun fromUInt32(value1: UInt32, value0: UInt32): Int64 = (value1.toInt64() shl 32) or value0.toInt64()
 
         fun createBitMask(bitWidth: Int): Int64 {
@@ -80,6 +80,8 @@ class Int64(override val value: Long) : IntNumber<Int64> {
     override fun toInt8(): Int8 = Int8(value.toByte())
     override fun toInt16(): Int16 = Int16(value.toShort())
     override fun toInt32(): Int32 = Int32(value.toInt())
+
+    @Deprecated("Unnecessary", ReplaceWith("this"))
     override fun toInt64(): Int64 = this
     override fun toInt128(): Int128 = Int128(BigInteger.fromLong(value))
     override fun toBigInt(): BigInt = BigInt(BigInteger.fromLong(value))
@@ -89,6 +91,7 @@ class Int64(override val value: Long) : IntNumber<Int64> {
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
 
     override fun toString(radix: Int): String = value.toString(radix)
+    override fun toString(): String = value.toString()
 
     override fun fitsInSigned(bitWidth: Int): Boolean {
         if (bitWidth >= bitWidth) return true

@@ -87,11 +87,14 @@ class UInt16(override val value: UShort) : IntNumber<UInt16> {
     override fun toInt128(): Int128 = Int128(BigInteger.fromUShort(value))
     override fun toBigInt(): BigInt = BigInt(BigInteger.fromUShort(value))
     override fun toUInt8(): UInt8 = UInt8(value.toUByte())
+
+    @Deprecated("Unnecessary", ReplaceWith("this"))
     override fun toUInt16(): UInt16 = this
     override fun toUInt32(): UInt32 = UInt32(value.toUInt())
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
 
     override fun toString(radix: Int): String = value.toString(radix)
+    override fun toString(): String = value.toString()
     override fun fitsInSigned(bitWidth: Int): Boolean {
         if (bitWidth >= bitWidth) return true
         val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)

@@ -23,8 +23,6 @@ class Int16(override val value: Short) : IntNumber<Int16> {
             require(bitWidth in 0..16) { "$bitWidth exceeds 0..16"}
             return (ONE shl bitWidth) - 1
         }
-
-
     }
 
     override val bitWidth: Int
@@ -86,6 +84,8 @@ class Int16(override val value: Short) : IntNumber<Int16> {
     override fun equals(other: Any?): Boolean = if (other is Int16) value == other.value else false
 
     override fun toInt8(): Int8 = Int8(value.toByte())
+
+    @Deprecated("Unnecessary", ReplaceWith("this"))
     override fun toInt16(): Int16 = this
     override fun toInt32(): Int32 = Int32(value.toInt())
     override fun toInt64(): Int64 = Int64(value.toLong())
@@ -97,6 +97,7 @@ class Int16(override val value: Short) : IntNumber<Int16> {
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
 
     override fun toString(radix: Int): String = value.toString(radix)
+    override fun toString(): String = value.toString()
 
     override fun fitsInSigned(bitWidth: Int): Boolean {
         if (bitWidth >= bitWidth) return true

@@ -88,10 +88,13 @@ class UInt32(override val value: UInt) : IntNumber<UInt32> {
     override fun toBigInt(): BigInt = BigInt(BigInteger.fromUInt(value))
     override fun toUInt8(): UInt8 = UInt8(value.toUByte())
     override fun toUInt16(): UInt16 = UInt16(value.toUShort())
+
+    @Deprecated("Unnecessary", ReplaceWith("this"))
     override fun toUInt32(): UInt32 = this
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
 
     override fun toString(radix: Int): String = value.toString(radix)
+    override fun toString(): String = value.toString()
     override fun fitsInSigned(bitWidth: Int): Boolean {
         if (bitWidth >= bitWidth) return true
         val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)

@@ -82,6 +82,7 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     override fun compareTo(other: Int8): Int = value.compareTo(other.value)
     override fun equals(other: Any?): Boolean = if (other is Int8) value == other.value else false
 
+    @Deprecated("Unnecessary", ReplaceWith("this"))
     override fun toInt8(): Int8 = this
     override fun toInt16(): Int16 = Int16(value.toShort())
     override fun toInt32(): Int32 = Int32(value.toInt())
@@ -108,6 +109,7 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     }
 
     override fun int8s() = listOf(this)
+    override fun toString(): String = value.toString()
 
     override fun hashCode(): Int {
         return value.hashCode()
