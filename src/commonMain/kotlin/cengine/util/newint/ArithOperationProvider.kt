@@ -1,6 +1,6 @@
 package cengine.util.newint
 
-interface ArithOperationProvider<in T: Any, out U: Any> {
+interface ArithOperationProvider<in T: IntNumber<*>, out U: IntNumber<*>> {
 
     operator fun plus(other: T): U
     operator fun minus(other: T): U

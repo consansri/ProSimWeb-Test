@@ -86,6 +86,18 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
 
     override fun toString(radix: Int): String = value.toString(radix)
+    override fun fitsInSigned(bitWidth: Int): Boolean {
+        if (bitWidth >= bitWidth) return true
+        val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)
+        val maxValue = (ONE shl (bitWidth - 1)) - 1 // 2^(bitWidth-1) - 1
+        return value in minValue.value..maxValue.value
+    }
+
+    override fun fitsInUnsigned(bitWidth: Int): Boolean {
+        if (bitWidth >= bitWidth) return true
+        val maxValue = (ONE shl bitWidth) - 1 // 2^bitWidth - 1
+        return value in ZERO.value..maxValue.value
+    }
 
     override fun hashCode(): Int {
         return value.hashCode()

@@ -41,22 +41,22 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
     operator fun inc(): T
     operator fun dec(): T
 
-    fun rol(bits: T): T {
+    infix fun rol(bits: T): T {
         val shift = bits % bitWidth // Ensure the shift is within bounds
         return (this shl shift) or (this shr (-shift + bitWidth))
     }
 
-    fun ror(bits: T): T {
+    infix fun ror(bits: T): T {
         val shift = bits % bitWidth // Ensure the shift is within bounds
         return (this shr shift) or (this shl (-shift + bitWidth))
     }
 
-    fun rol(bits: Int): T {
+    infix fun rol(bits: Int): T {
         val shift = bits % bitWidth // Ensure the shift is within bounds
         return (this shl shift) or (this shr (-shift + bitWidth))
     }
 
-    fun ror(bits: Int): T {
+    infix fun ror(bits: Int): T {
         val shift = bits % bitWidth // Ensure the shift is within bounds
         return (this shr shift) or (this shl (-shift + bitWidth))
     }
@@ -171,4 +171,10 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
     fun toString(radix: Int = 10): String
     fun zeroPaddedBin(): String = toString(2).padStart(bitWidth, '0')
     fun zeroPaddedHex(): String = toString(16).padStart(byteCount * 2, '0')
+
+    // Checks
+    fun fitsInSigned(bitWidth: Int): Boolean
+    fun fitsInUnsigned(bitWidth: Int): Boolean
+    fun fitsInSignedOrUnsigned(bitWidth: Int): Boolean = fitsInSigned(bitWidth) || fitsInUnsigned(bitWidth)
+
 }

@@ -26,7 +26,6 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     override val byteCount: Int
         get() = 1
 
-
     override fun plus(other: Int8): Int8 = Int8(value + other.value)
     override fun minus(other: Int8): Int8 = Int8(value - other.value)
     override fun times(other: Int8): Int8 = Int8(value * other.value)
@@ -89,6 +88,19 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
 
     override fun toString(radix: Int): String = value.toString(radix)
+    override fun fitsInSigned(bitWidth: Int): Boolean {
+        if (bitWidth >= bitWidth) return true
+        val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)
+        val maxValue = (ONE shl (bitWidth - 1)) - 1 // 2^(bitWidth-1) - 1
+        return value in minValue.value..maxValue.value
+    }
+
+    override fun fitsInUnsigned(bitWidth: Int): Boolean {
+        if (bitWidth >= bitWidth) return true
+        val maxValue = (ONE shl bitWidth) - 1 // 2^bitWidth - 1
+        return value in ZERO.value..maxValue.value
+    }
+
     override fun int8s() = listOf(this)
 
     override fun hashCode(): Int {

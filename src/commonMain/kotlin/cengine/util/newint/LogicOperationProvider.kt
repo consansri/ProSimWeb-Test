@@ -1,6 +1,6 @@
 package cengine.util.newint
 
-interface LogicOperationProvider<in T: Any, out U: Any> {
+interface LogicOperationProvider<in T: IntNumber<*>, out U: IntNumber<*>> {
 
     val bitWidth: Int
 
