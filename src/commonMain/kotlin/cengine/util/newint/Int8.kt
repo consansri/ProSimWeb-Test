@@ -12,12 +12,17 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     constructor(value: Long) : this(value.toByte())
 
     companion object {
-        fun Byte.toInt8() = Int8(this)
 
         val ZERO = Int8(0)
         val ONE = Int8(1)
 
+        fun Byte.toInt8() = Int8(this)
         fun String.parseInt8(radix: Int): Int8 = Int8(toByte(radix))
+
+        fun createBitMask(bitWidth: Int): Int8 {
+            require(bitWidth in 0..8) { "$bitWidth exceeds 0..8"}
+            return (ONE shl bitWidth) - 1
+        }
     }
 
     override val bitWidth: Int
@@ -65,6 +70,7 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
 
     override fun shl(bits: Int): Int8 = Int8(value.toInt() shl bits)
     override fun shr(bits: Int): Int8 = Int8(value.toInt() shr bits)
+    override fun lowest(bitWidth: Int): Int8 = this and createBitMask(bitWidth)
 
     override fun and(other: Int8): Int8 = Int8(value.toInt() and other.value.toInt())
     override fun or(other: Int8): Int8 = Int8(value.toInt() or other.value.toInt())

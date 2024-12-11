@@ -8,12 +8,16 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     constructor(value: ULong) : this(value.toUByte())
 
     companion object {
-        fun UByte.toUInt8() = UInt8(this)
-
         val ZERO = UInt8(0U)
         val ONE = UInt8(1U)
 
+        fun UByte.toUInt8() = UInt8(this)
         fun String.parseUInt8(radix: Int): UInt8 = UInt8(toUByte(radix))
+
+        fun createBitMask(bitWidth: Int): UInt8 {
+            require(bitWidth in 0..8) { "$bitWidth exceeds 0..8"}
+            return (ONE shl bitWidth) - 1
+        }
     }
 
     override val bitWidth: Int
@@ -67,6 +71,7 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
 
     override fun shl(bits: Int): UInt8 = UInt8(value.toUInt() shl bits)
     override fun shr(bits: Int): UInt8 = UInt8(value.toUInt() shr bits)
+    override fun lowest(bitWidth: Int): UInt8 = this and createBitMask(bitWidth)
 
 
     override fun compareTo(other: UInt8): Int = value.compareTo(other.value)

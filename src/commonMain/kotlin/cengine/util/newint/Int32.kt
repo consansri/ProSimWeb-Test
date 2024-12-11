@@ -7,14 +7,17 @@ class Int32(override val value: Int) : IntNumber<Int32> {
     constructor(value: Long): this(value.toInt())
 
     companion object {
-        fun Int.toInt32() = Int32(this)
-
         val ZERO = Int32(0)
         val ONE = Int32(1)
 
+        fun Int.toInt32() = Int32(this)
         fun String.parseInt32(radix: Int): Int32 = Int32(toInt(radix))
-
         fun fromUInt16(value1: UInt16, value0: UInt16): Int32  = (value1.toInt32() shl 16) or value0.toInt32()
+
+        fun createBitMask(bitWidth: Int): Int32 {
+            require(bitWidth in 0..32) { "$bitWidth exceeds 0..32"}
+            return (ONE shl bitWidth) - 1
+        }
     }
 
     override val bitWidth: Int
@@ -67,7 +70,7 @@ class Int32(override val value: Int) : IntNumber<Int32> {
 
     override fun shl(bits: Int): Int32 = Int32(value shl bits)
     override fun shr(bits: Int): Int32 = Int32(value shr bits)
-
+    override fun lowest(bitWidth: Int): Int32 = this and createBitMask(bitWidth)
 
     override fun compareTo(other: Int32): Int = value.compareTo(other.value)
     override fun compareTo(other: Long): Int = value.compareTo(other)

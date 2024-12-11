@@ -17,6 +17,10 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
     companion object {
         fun String.parseBigInt(radix: Int): BigInt = BigInt(BigInteger.parseString(this, radix))
 
+        fun createBitMask(bitWidth: Int): BigInt {
+            return (ONE shl bitWidth) - 1
+        }
+
         val ZERO = BigInt(BigInteger.ZERO)
         val ONE = BigInt(BigInteger.ONE)
 
@@ -69,6 +73,7 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
 
     override fun shl(bits: Int): BigInt = BigInt(value shl bits)
     override fun shr(bits: Int): BigInt = BigInt(value shr bits)
+    override fun lowest(bitWidth: Int): BigInt = this and createBitMask(bitWidth)
 
     override fun and(other: BigInt): BigInt = BigInt(value and other.value)
     override fun or(other: BigInt): BigInt = BigInt(value or other.value)

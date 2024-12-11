@@ -12,14 +12,19 @@ class Int16(override val value: Short) : IntNumber<Int16> {
     constructor(value: Long) : this(value.toShort())
 
     companion object {
-        fun Short.toInt16() = Int16(this)
-
         val ZERO = Int16(0)
         val ONE = Int16(1)
 
+        fun Short.toInt16() = Int16(this)
         fun String.parseInt16(radix: Int): Int16 = Int16(toShort(radix))
-
         fun fromUInt8(byte1: UInt8, byte0: UInt8): Int16 = (byte1.toInt16() shl 8) or byte0.toInt16()
+
+        fun createBitMask(bitWidth: Int): Int16 {
+            require(bitWidth in 0..16) { "$bitWidth exceeds 0..16"}
+            return (ONE shl bitWidth) - 1
+        }
+
+
     }
 
     override val bitWidth: Int
@@ -73,6 +78,7 @@ class Int16(override val value: Short) : IntNumber<Int16> {
 
     override fun shl(bits: Int): Int16 = Int16(value.toInt() shl bits)
     override fun shr(bits: Int): Int16 = Int16(value.toInt() shr bits)
+    override fun lowest(bitWidth: Int): Int16 = this and createBitMask(bitWidth)
 
     override fun compareTo(other: Int16): Int = value.compareTo(other.value)
     override fun compareTo(other: Long): Int = value.compareTo(other)

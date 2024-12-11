@@ -11,8 +11,12 @@ class Int64(override val value: Long) : IntNumber<Int64> {
         val ONE = Int64(1)
 
         fun String.parseInt32(radix: Int): Int64 = Int64(toLong(radix))
-
         fun fromUInt32(value1: UInt32, value0: UInt32): Int64 = (value1.toInt64() shl 32) or value0.toInt64()
+
+        fun createBitMask(bitWidth: Int): Int64 {
+            require(bitWidth in 0..64) { "$bitWidth exceeds 0..64"}
+            return (ONE shl bitWidth) - 1
+        }
     }
 
     override val bitWidth: Int
@@ -66,7 +70,7 @@ class Int64(override val value: Long) : IntNumber<Int64> {
 
     override fun shl(bits: Int): Int64 = Int64(value shl bits)
     override fun shr(bits: Int): Int64 = Int64(value shr bits)
-
+    override fun lowest(bitWidth: Int): Int64 = this and createBitMask(bitWidth)
 
     override fun compareTo(other: Int64): Int = value.compareTo(other.value)
     override fun compareTo(other: Long): Int = value.compareTo(other)

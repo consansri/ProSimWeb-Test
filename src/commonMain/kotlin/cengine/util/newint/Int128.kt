@@ -9,17 +9,19 @@ class Int128(value: BigInteger) : IntNumber<Int128> {
     override val value: BigInteger = value.truncateTo128Bits()
 
     companion object {
+        val ZERO = Int128(BigInteger.ZERO)
+        val ONE = Int128(BigInteger.ONE)
         private val MASK_128 = BigInteger.fromByteArray(ByteArray(16) { 0xFF.toByte() }, Sign.POSITIVE)  // 2^128 - 1
 
         /** Enforces 128-bit range by truncating the value. */
         private fun BigInteger.truncateTo128Bits(): BigInteger = and(MASK_128)
-
-        val ZERO = Int128(BigInteger.ZERO)
-        val ONE = Int128(BigInteger.ONE)
-
         fun String.parseInt128(radix: Int): Int128 = Int128(BigInteger.parseString(this, radix))
-
         fun fromUInt64(value1: UInt64, value0: UInt64): Int128 = (value1.toInt128() shl 64) or value0.toInt128()
+
+        fun createBitMask(bitWidth: Int): Int128 {
+            require(bitWidth in 0..128) { "$bitWidth exceeds 0..128" }
+            return (ONE shl bitWidth) - 1
+        }
     }
 
     override val bitWidth: Int
@@ -73,6 +75,7 @@ class Int128(value: BigInteger) : IntNumber<Int128> {
 
     override fun shl(bits: Int): Int128 = Int128(value shl bits)
     override fun shr(bits: Int): Int128 = Int128(value shr bits)
+    override fun lowest(bitWidth: Int): Int128 = this and createBitMask(bitWidth)
 
 
     override fun compareTo(other: Int128): Int = value.compareTo(other.value)

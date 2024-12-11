@@ -24,5 +24,9 @@ interface LogicOperationProvider<in T: IntNumber<*>, out U: IntNumber<*>> {
     infix fun or(other: Long): U
     infix fun xor(other: Long): U
 
+    /**
+     * @return [LogicOperationProvider] and ([bitWidth] mask of 1)
+     */
+    infix fun lowest(bitWidth: Int): U
 }
 

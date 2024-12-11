@@ -7,14 +7,18 @@ class UInt32(override val value: UInt) : IntNumber<UInt32> {
     constructor(value: ULong) : this(value.toUInt())
 
     companion object {
-        fun UInt.toUInt32(): UInt32 = UInt32(this)
-
         val ZERO = UInt32(0U)
         val ONE = UInt32(1U)
 
+        fun UInt.toUInt32(): UInt32 = UInt32(this)
+        fun Int.toUInt32(): UInt32 = UInt32(this.toUInt())
         fun String.parseUInt32(radix: Int): UInt32 = UInt32(toUInt(radix))
-
         fun fromUInt16(byte1: UInt16, byte0: UInt16): UInt32 = (byte1.toUInt32() shl 16) or byte0.toUInt32()
+
+        fun createBitMask(bitWidth: Int): UInt32 {
+            require(bitWidth in 0..32) { "$bitWidth exceeds 0..32"}
+            return (ONE shl bitWidth) - 1
+        }
     }
 
     override val bitWidth: Int
@@ -68,6 +72,7 @@ class UInt32(override val value: UInt) : IntNumber<UInt32> {
 
     override fun shl(bits: Int): UInt32 = UInt32(value shl bits)
     override fun shr(bits: Int): UInt32 = UInt32(value shr bits)
+    override fun lowest(bitWidth: Int): UInt32 = this and createBitMask(bitWidth)
 
 
     override fun compareTo(other: UInt32): Int = value.compareTo(other.value)

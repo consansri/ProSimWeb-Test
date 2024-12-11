@@ -5,14 +5,17 @@ import com.ionspin.kotlin.bignum.integer.BigInteger
 class UInt64(override val value: ULong) : IntNumber<UInt64> {
 
     companion object {
-        fun ULong.toUInt64() = UInt64(this)
-
         val ZERO = UInt64(0U)
         val ONE = UInt64(1U)
 
+        fun ULong.toUInt64() = UInt64(this)
         fun String.parseUInt64(radix: Int): UInt64 = UInt64(toULong(radix))
-
         fun fromUInt32(value1: UInt32, value0: UInt32): UInt64 = (value1.toUInt64() shl 32) or value0.toUInt64()
+
+        fun createBitMask(bitWidth: Int): UInt64 {
+            require(bitWidth in 0..64) { "$bitWidth exceeds 0..64"}
+            return (ONE shl bitWidth) - 1
+        }
     }
 
     override val bitWidth: Int
@@ -66,6 +69,7 @@ class UInt64(override val value: ULong) : IntNumber<UInt64> {
 
     override fun shl(bits: Int): UInt64 = UInt64(value shl bits)
     override fun shr(bits: Int): UInt64 = UInt64(value shr bits)
+    override fun lowest(bitWidth: Int): UInt64 = this and createBitMask(bitWidth)
 
 
     override fun compareTo(other: UInt64): Int = value.compareTo(other.value)

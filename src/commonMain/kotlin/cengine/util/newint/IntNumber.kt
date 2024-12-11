@@ -156,7 +156,6 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
         }
     }
 
-
     // Kotlin integer type conversion
     fun toByte(): Byte = toInt8().value
     fun toUByte(): UByte = toUInt8().value

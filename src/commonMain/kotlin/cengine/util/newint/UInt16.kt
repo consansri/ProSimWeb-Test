@@ -8,14 +8,17 @@ class UInt16(override val value: UShort) : IntNumber<UInt16> {
     constructor(value: ULong) : this(value.toUShort())
 
     companion object {
-        fun UShort.toUInt16() = UInt16(this)
-
         val ZERO = UInt16(0U)
         val ONE = UInt16(1U)
 
+        fun UShort.toUInt16() = UInt16(this)
         fun String.parseUInt16(radix: Int): UInt16 = UInt16(toUShort(radix))
-
         fun fromUInt8(byte1: UInt8, byte0: UInt8): UInt16 = (byte1.toUInt16() shl 8) or byte0.toUInt16()
+
+        fun createBitMask(bitWidth: Int): UInt16 {
+            require(bitWidth in 0..16) { "$bitWidth exceeds 0..16"}
+            return (ONE shl bitWidth) - 1
+        }
     }
 
     override val bitWidth: Int
@@ -69,6 +72,7 @@ class UInt16(override val value: UShort) : IntNumber<UInt16> {
 
     override fun shl(bits: Int): UInt16 = UInt16(value.toUInt() shl bits)
     override fun shr(bits: Int): UInt16 = UInt16(value.toUInt() shr bits)
+    override fun lowest(bitWidth: Int): UInt16 = this and createBitMask(bitWidth)
 
 
     override fun compareTo(other: UInt16): Int = value.compareTo(other.value)
