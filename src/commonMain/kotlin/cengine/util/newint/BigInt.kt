@@ -14,15 +14,20 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
         get() = value.toByteArray().size
 
 
-    companion object {
-        fun String.parseBigInt(radix: Int): BigInt = BigInt(BigInteger.parseString(this, radix))
+    companion object : IntNumberStatic<BigInt> {
+        override val ZERO = BigInt(BigInteger.ZERO)
 
-        fun createBitMask(bitWidth: Int): BigInt {
+
+        override val ONE = BigInt(BigInteger.ONE)
+
+        override fun to(number: IntNumber<*>): BigInt = number.toBigInt()
+        @Deprecated("This throws an error! You can't split into BigInt cause it has no fixed bytecount!", ReplaceWith("throw Exception(\"Can't split into BigInt cause it has no fixed bytecount!\")"))
+        override fun split(number: IntNumber<*>): List<BigInt> = throw Exception("Can't split into BigInt cause it has no fixed bytecount!")
+        override fun of(value: Int): BigInt = BigInt(value.toBigInteger())
+        override fun parse(string: String, radix: Int): BigInt = BigInt(BigInteger.parseString(string, radix))
+        override fun createBitMask(bitWidth: Int): BigInt {
             return (ONE shl bitWidth) - 1
         }
-
-        val ZERO = BigInt(BigInteger.ZERO)
-        val ONE = BigInt(BigInteger.ONE)
 
         fun Int.toBigInt(): BigInt = BigInt(this.toBigInteger())
         fun Long.toBigInt(): BigInt = BigInt(this.toBigInteger())
@@ -30,7 +35,7 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
         fun ULong.toBigInt(): BigInt = BigInt(this.toBigInteger())
 
         @OptIn(ExperimentalUnsignedTypes::class)
-        fun fromUInt8(bytes: Collection<UInt8>): BigInt = BigInt(BigInteger.fromUByteArray(bytes.map { it.value }.toUByteArray(), Sign.ZERO))
+        fun fromUInt8(bytes: Collection<UInt8>): BigInt = BigInt(BigInteger.fromUByteArray(bytes.map { it.value }.toUByteArray(), Sign.POSITIVE))
     }
 
     override fun plus(other: BigInt): BigInt = BigInt(value + other.value)
@@ -79,36 +84,45 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
     override fun or(other: BigInt): BigInt = BigInt(value or other.value)
     override fun xor(other: BigInt): BigInt = BigInt(value xor other.value)
 
-    override fun shl(bits: BigInt): BigInt = BigInt(value shl bits.value.intValue())
-    override fun shr(bits: BigInt): BigInt = BigInt(value shr bits.value.intValue())
+    override fun shl(bits: BigInt): BigInt = BigInt(value shl bits.value.intValue(false))
+    override fun shr(bits: BigInt): BigInt = BigInt(value shr bits.value.intValue(false))
 
     override fun compareTo(other: BigInt): Int = value.compareTo(other.value)
-    override fun equals(other: Any?): Boolean = if (other is BigInt) value == other.value else false
+    override fun equals(other: Any?): Boolean = if (other is IntNumber<*>) value == other.value else value == other
 
-    override fun toInt8(): Int8 = Int8(value.byteValue())
-    override fun toInt16(): Int16 = Int16(value.shortValue())
-    override fun toInt32(): Int32 = Int32(value.intValue())
-    override fun toInt64(): Int64 = Int64(value.longValue())
+    override fun toInt8(): Int8 = Int8(value.byteValue(false))
+    override fun toInt16(): Int16 = Int16(value.shortValue(false))
+    override fun toInt32(): Int32 = Int32(value.intValue(false))
+    override fun toInt64(): Int64 = Int64(value.longValue(false))
     override fun toInt128(): Int128 = Int128(value)
 
     @Deprecated("Unnecessary", ReplaceWith("this"))
     override fun toBigInt(): BigInt = this
 
-    override fun toUInt8(): UInt8 = UInt8(value.ubyteValue())
-    override fun toUInt16(): UInt16 = UInt16(value.ushortValue())
-    override fun toUInt32(): UInt32 = UInt32(value.uintValue())
-    override fun toUInt64(): UInt64 = UInt64(value.ulongValue())
+    override fun toUInt8(): UInt8 = UInt8(value.ubyteValue(false))
+    override fun toUInt16(): UInt16 = UInt16(value.ushortValue(false))
+    override fun toUInt32(): UInt32 = UInt32(value.uintValue(false))
+    override fun toUInt64(): UInt64 = UInt64(value.ulongValue(false))
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    override fun toUInt128(): UInt128 = UInt128(BigInteger.fromUByteArray(value.toUByteArray(), Sign.POSITIVE))
 
     override fun toString(radix: Int): String = value.toString(radix)
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    override fun toUnsigned(): BigInt = if (value.getSign() != Sign.POSITIVE) {
+        BigInt(BigInteger.fromUByteArray(value.toUByteArray(), Sign.POSITIVE))
+    } else this
+
     override fun fitsInSigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
+        if (bitWidth >= this.bitWidth) return true
         val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)
         val maxValue = (ONE shl (bitWidth - 1)) - 1 // 2^(bitWidth-1) - 1
         return value in minValue.value..maxValue.value
     }
 
     override fun fitsInUnsigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
+        if (bitWidth >= this.bitWidth) return true
         val maxValue = (ONE shl bitWidth) - 1 // 2^bitWidth - 1
         return value in BigInteger.ZERO..maxValue.value
     }

@@ -11,16 +11,20 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     constructor(value: Int) : this(value.toByte())
     constructor(value: Long) : this(value.toByte())
 
-    companion object {
+    companion object: IntNumberStatic<Int8> {
 
-        val ZERO = Int8(0)
-        val ONE = Int8(1)
+        override val ZERO = Int8(0)
+        override val ONE = Int8(1)
 
         fun Byte.toInt8() = Int8(this)
-        fun String.parseInt8(radix: Int): Int8 = Int8(toByte(radix))
 
-        fun createBitMask(bitWidth: Int): Int8 {
-            require(bitWidth in 0..8) { "$bitWidth exceeds 0..8"}
+        override fun to(number: IntNumber<*>): Int8 = number.toInt8()
+        override fun split(number: IntNumber<*>): List<Int8> = number.int8s()
+        override fun of(value: Int): Int8 = Int8(value.toByte())
+        override fun parse(string: String,radix: Int): Int8 = Int8(string.toByte(radix))
+
+        override fun createBitMask(bitWidth: Int): Int8 {
+            require(bitWidth in 0..8) { "$bitWidth exceeds 0..8" }
             return (ONE shl bitWidth) - 1
         }
     }
@@ -50,6 +54,10 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     override fun dec(): Int8 = Int8(value.dec())
     override fun compareTo(other: Long): Int = value.compareTo(other)
     override fun compareTo(other: Int): Int = value.compareTo(other)
+    override fun equals(other: Any?): Boolean {
+        if (other is IntNumber<*>) return value == other.value
+        return value == other
+    }
 
     override fun inv(): Int8 = Int8(value.inv())
 
@@ -80,7 +88,7 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     override fun shr(bits: Int8): Int8 = Int8(value.toInt() shr bits.value.toInt())
 
     override fun compareTo(other: Int8): Int = value.compareTo(other.value)
-    override fun equals(other: Any?): Boolean = if (other is Int8) value == other.value else false
+
 
     @Deprecated("Unnecessary", ReplaceWith("this"))
     override fun toInt8(): Int8 = this
@@ -93,20 +101,20 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     override fun toUInt16(): UInt16 = UInt16(value.toUShort())
     override fun toUInt32(): UInt32 = UInt32(value.toUInt())
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
+    override fun toUInt128(): UInt128 = UInt128(BigInteger.fromByte(value))
+
+    override fun toUnsigned(): UInt8 = toUInt8()
 
     override fun toString(radix: Int): String = value.toString(radix)
+
     override fun fitsInSigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
+        if (bitWidth >= this.bitWidth) return true
         val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)
         val maxValue = (ONE shl (bitWidth - 1)) - 1 // 2^(bitWidth-1) - 1
         return value in minValue.value..maxValue.value
     }
 
-    override fun fitsInUnsigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
-        val maxValue = (ONE shl bitWidth) - 1 // 2^bitWidth - 1
-        return value in ZERO.value..maxValue.value
-    }
+    override fun fitsInUnsigned(bitWidth: Int): Boolean = toUInt8().fitsInUnsigned(bitWidth)
 
     override fun int8s() = listOf(this)
     override fun toString(): String = value.toString()

@@ -7,15 +7,19 @@ class UInt16(override val value: UShort) : IntNumber<UInt16> {
     constructor(value: UInt) : this(value.toUShort())
     constructor(value: ULong) : this(value.toUShort())
 
-    companion object {
-        val ZERO = UInt16(0U)
-        val ONE = UInt16(1U)
+    companion object: IntNumberStatic<UInt16> {
+        override val ZERO = UInt16(0U)
+        override val ONE = UInt16(1U)
 
         fun UShort.toUInt16() = UInt16(this)
-        fun String.parseUInt16(radix: Int): UInt16 = UInt16(toUShort(radix))
         fun fromUInt8(byte1: UInt8, byte0: UInt8): UInt16 = (byte1.toUInt16() shl 8) or byte0.toUInt16()
 
-        fun createBitMask(bitWidth: Int): UInt16 {
+        override fun to(number: IntNumber<*>): UInt16 = number.toUInt16()
+        override fun split(number: IntNumber<*>): List<UInt16> = number.uInt16s()
+        override fun parse(string: String, radix: Int): UInt16 = UInt16(string.toUShort(radix))
+        override fun of(value: Int): UInt16 = UInt16(value.toUInt().toUShort())
+
+        override fun createBitMask(bitWidth: Int): UInt16 {
             require(bitWidth in 0..16) { "$bitWidth exceeds 0..16"}
             return (ONE shl bitWidth) - 1
         }
@@ -33,6 +37,7 @@ class UInt16(override val value: UShort) : IntNumber<UInt16> {
     override fun div(other: UInt16): UInt16 = UInt16(value / other.value)
     override fun rem(other: UInt16): UInt16 = UInt16(value % other.value)
 
+    @Deprecated("Can't negotiate unsigned value!", ReplaceWith("toInt16().unaryMinus().toUInt16()"))
     override fun unaryMinus(): UInt16 = throw Exception("Can't negotiate unsigned value!")
     override fun inc(): UInt16 = UInt16(value.inc())
     override fun dec(): UInt16 = UInt16(value.dec())
@@ -78,7 +83,10 @@ class UInt16(override val value: UShort) : IntNumber<UInt16> {
     override fun compareTo(other: UInt16): Int = value.compareTo(other.value)
     override fun compareTo(other: Long): Int = value.compareTo(other.toULong())
     override fun compareTo(other: Int): Int = value.compareTo(other.toUInt())
-    override fun equals(other: Any?): Boolean = if (other is UInt16) value == other.value else false
+    override fun equals(other: Any?): Boolean {
+        if (other is IntNumber<*>) return value == other.value
+        return value == other
+    }
 
     override fun toInt8(): Int8 = Int8(value.toByte())
     override fun toInt16(): Int16 = Int16(value.toShort())
@@ -92,18 +100,17 @@ class UInt16(override val value: UShort) : IntNumber<UInt16> {
     override fun toUInt16(): UInt16 = this
     override fun toUInt32(): UInt32 = UInt32(value.toUInt())
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
+    override fun toUInt128(): UInt128 = UInt128(BigInteger.fromUShort(value))
+
+    @Deprecated("Unnecessary", ReplaceWith("this"))
+    override fun toUnsigned(): UInt16 = this
 
     override fun toString(radix: Int): String = value.toString(radix)
     override fun toString(): String = value.toString()
-    override fun fitsInSigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
-        val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)
-        val maxValue = (ONE shl (bitWidth - 1)) - 1 // 2^(bitWidth-1) - 1
-        return value in minValue.value..maxValue.value
-    }
+    override fun fitsInSigned(bitWidth: Int): Boolean = toInt16().fitsInSigned(bitWidth)
 
     override fun fitsInUnsigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
+        if (bitWidth >= this.bitWidth) return true
         val maxValue = (ONE shl bitWidth) - 1 // 2^bitWidth - 1
         return value in ZERO.value..maxValue.value
     }

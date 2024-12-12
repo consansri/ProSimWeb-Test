@@ -4,15 +4,20 @@ import com.ionspin.kotlin.bignum.integer.BigInteger
 
 class UInt64(override val value: ULong) : IntNumber<UInt64> {
 
-    companion object {
-        val ZERO = UInt64(0U)
-        val ONE = UInt64(1U)
+    companion object: IntNumberStatic<UInt64> {
+        override val ZERO = UInt64(0U)
+        override val ONE = UInt64(1U)
 
         fun ULong.toUInt64() = UInt64(this)
         fun String.parseUInt64(radix: Int): UInt64 = UInt64(toULong(radix))
         fun fromUInt32(value1: UInt32, value0: UInt32): UInt64 = (value1.toUInt64() shl 32) or value0.toUInt64()
 
-        fun createBitMask(bitWidth: Int): UInt64 {
+        override fun to(number: IntNumber<*>): UInt64 = number.toUInt64()
+        override fun split(number: IntNumber<*>): List<UInt64> = number.uInt64s()
+        override fun of(value: Int): UInt64 = UInt64(value.toUInt().toULong())
+        override fun parse(string: String, radix: Int): UInt64 = UInt64(string.toULong(radix))
+
+        override fun createBitMask(bitWidth: Int): UInt64 {
             require(bitWidth in 0..64) { "$bitWidth exceeds 0..64"}
             return (ONE shl bitWidth) - 1
         }
@@ -30,6 +35,7 @@ class UInt64(override val value: ULong) : IntNumber<UInt64> {
     override fun div(other: UInt64): UInt64 = UInt64(value / other.value)
     override fun rem(other: UInt64): UInt64 = UInt64(value % other.value)
 
+    @Deprecated("Can't negotiate unsigned value!", ReplaceWith("toInt64().unaryMinus().toUInt64()"))
     override fun unaryMinus(): UInt64 = throw Exception("Can't negotiate unsigned value!")
     override fun inc(): UInt64 = UInt64(value.inc())
     override fun dec(): UInt64 = UInt64(value.dec())
@@ -41,7 +47,6 @@ class UInt64(override val value: ULong) : IntNumber<UInt64> {
 
     override fun shl(bits: UInt64): UInt64 = UInt64(value shl bits.value.toInt())
     override fun shr(bits: UInt64): UInt64 = UInt64(value shr bits.value.toInt())
-
 
     override fun plus(other: Int): UInt64 = UInt64(value + other.toUInt())
     override fun plus(other: Long): UInt64 = UInt64(value + other.toULong())
@@ -75,7 +80,10 @@ class UInt64(override val value: ULong) : IntNumber<UInt64> {
     override fun compareTo(other: UInt64): Int = value.compareTo(other.value)
     override fun compareTo(other: Long): Int = value.compareTo(other.toULong())
     override fun compareTo(other: Int): Int = value.compareTo(other.toUInt())
-    override fun equals(other: Any?): Boolean = if (other is UInt64) value == other.value else false
+    override fun equals(other: Any?): Boolean {
+        if (other is IntNumber<*>) return value == other.value
+        return value == other
+    }
 
     override fun toInt8(): Int8 = Int8(value.toByte())
     override fun toInt16(): Int16 = Int16(value.toShort())
@@ -89,18 +97,17 @@ class UInt64(override val value: ULong) : IntNumber<UInt64> {
 
     @Deprecated("Unnecessary", ReplaceWith("this"))
     override fun toUInt64(): UInt64 = this
+    override fun toUInt128(): UInt128 = UInt128(BigInteger.fromULong(value))
+
+    @Deprecated("Unnecessary", ReplaceWith("this"))
+    override fun toUnsigned(): UInt64 = this
 
     override fun toString(radix: Int): String = value.toString(radix)
     override fun toString(): String = value.toString()
-    override fun fitsInSigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
-        val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)
-        val maxValue = (ONE shl (bitWidth - 1)) - 1 // 2^(bitWidth-1) - 1
-        return value in minValue.value..maxValue.value
-    }
+    override fun fitsInSigned(bitWidth: Int): Boolean = toInt64().fitsInSigned(bitWidth)
 
     override fun fitsInUnsigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
+        if (bitWidth >= this.bitWidth) return true
         val maxValue = (ONE shl bitWidth) - 1 // 2^bitWidth - 1
         return value in ZERO.value..maxValue.value
     }

@@ -4,16 +4,20 @@ import com.ionspin.kotlin.bignum.integer.BigInteger
 
 class Int64(override val value: Long) : IntNumber<Int64> {
 
-    companion object {
+    companion object: IntNumberStatic<Int64> {
+
+        override val ZERO = Int64(0)
+        override val ONE = Int64(1)
+
         fun Long.toInt64() = Int64(this)
-
-        val ZERO = Int64(0)
-        val ONE = Int64(1)
-
-        fun String.parseInt64(radix: Int): Int64 = Int64(toLong(radix))
         fun fromUInt32(value1: UInt32, value0: UInt32): Int64 = (value1.toInt64() shl 32) or value0.toInt64()
 
-        fun createBitMask(bitWidth: Int): Int64 {
+        override fun to(number: IntNumber<*>): Int64 = number.toInt64()
+        override fun split(number: IntNumber<*>): List<Int64> = number.int64s()
+        override fun of(value: Int): Int64 = Int64(value.toLong())
+        override fun parse(string: String,radix: Int): Int64 = Int64(string.toLong(radix))
+
+        override fun createBitMask(bitWidth: Int): Int64 {
             require(bitWidth in 0..64) { "$bitWidth exceeds 0..64"}
             return (ONE shl bitWidth) - 1
         }
@@ -75,7 +79,10 @@ class Int64(override val value: Long) : IntNumber<Int64> {
     override fun compareTo(other: Int64): Int = value.compareTo(other.value)
     override fun compareTo(other: Long): Int = value.compareTo(other)
     override fun compareTo(other: Int): Int = value.compareTo(other)
-    override fun equals(other: Any?): Boolean = if (other is Int64) value == other.value else false
+    override fun equals(other: Any?): Boolean {
+        if (other is IntNumber<*>) return value == other.value
+        return value == other
+    }
 
     override fun toInt8(): Int8 = Int8(value.toByte())
     override fun toInt16(): Int16 = Int16(value.toShort())
@@ -89,22 +96,21 @@ class Int64(override val value: Long) : IntNumber<Int64> {
     override fun toUInt16(): UInt16 = UInt16(value.toUShort())
     override fun toUInt32(): UInt32 = UInt32(value.toUInt())
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
+    override fun toUInt128(): UInt128 = UInt128(BigInteger.fromULong(value.toULong()))
+
+    override fun toUnsigned(): UInt64 = toUInt64()
 
     override fun toString(radix: Int): String = value.toString(radix)
     override fun toString(): String = value.toString()
 
     override fun fitsInSigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
+        if (bitWidth >= this.bitWidth) return true
         val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)
         val maxValue = (ONE shl (bitWidth - 1)) - 1 // 2^(bitWidth-1) - 1
         return value in minValue.value..maxValue.value
     }
 
-    override fun fitsInUnsigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
-        val maxValue = (ONE shl bitWidth) - 1 // 2^bitWidth - 1
-        return value in ZERO.value..maxValue.value
-    }
+    override fun fitsInUnsigned(bitWidth: Int): Boolean = toUInt64().fitsInUnsigned(bitWidth)
 
     override fun hashCode(): Int = value.hashCode()
 

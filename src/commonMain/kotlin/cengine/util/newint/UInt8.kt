@@ -7,14 +7,18 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     constructor(value: UInt) : this(value.toUByte())
     constructor(value: ULong) : this(value.toUByte())
 
-    companion object {
-        val ZERO = UInt8(0U)
-        val ONE = UInt8(1U)
+    companion object: IntNumberStatic<UInt8> {
+        override val ZERO = UInt8(0U)
+        override val ONE = UInt8(1U)
 
         fun UByte.toUInt8() = UInt8(this)
-        fun String.parseUInt8(radix: Int): UInt8 = UInt8(toUByte(radix))
 
-        fun createBitMask(bitWidth: Int): UInt8 {
+        override fun to(number: IntNumber<*>): UInt8 = number.toUInt8()
+        override fun split(number: IntNumber<*>): List<UInt8> = number.uInt8s()
+        override fun parse(string: String,radix: Int): UInt8 = UInt8(string.toUByte(radix))
+        override fun of(value: Int): UInt8 = UInt8(value.toUInt().toUByte())
+
+        override fun createBitMask(bitWidth: Int): UInt8 {
             require(bitWidth in 0..8) { "$bitWidth exceeds 0..8"}
             return (ONE shl bitWidth) - 1
         }
@@ -32,6 +36,7 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     override fun div(other: UInt8): UInt8 = UInt8(value / other.value)
     override fun rem(other: UInt8): UInt8 = UInt8(value % other.value)
 
+    @Deprecated("Can't negotiate unsigned value!", ReplaceWith("toInt8().unaryMinus().toUInt8()"))
     override fun unaryMinus(): UInt8 = throw Exception("Can't negotiate unsigned value!")
     override fun inc(): UInt8 = UInt8(value.inc())
     override fun dec(): UInt8 = UInt8(value.dec())
@@ -77,7 +82,10 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     override fun compareTo(other: UInt8): Int = value.compareTo(other.value)
     override fun compareTo(other: Long): Int = value.compareTo(other.toULong())
     override fun compareTo(other: Int): Int = value.compareTo(other.toUInt())
-    override fun equals(other: Any?): Boolean = if (other is UInt8) value == other.value else false
+    override fun equals(other: Any?): Boolean {
+        if (other is IntNumber<*>) return value == other.value
+        return value == other
+    }
 
     override fun toInt8(): Int8 = Int8(value.toByte())
     override fun toInt16(): Int16 = Int16(value.toShort())
@@ -91,18 +99,17 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     override fun toUInt16(): UInt16 = UInt16(value.toUShort())
     override fun toUInt32(): UInt32 = UInt32(value.toUInt())
     override fun toUInt64(): UInt64 = UInt64(value.toULong())
+    override fun toUInt128(): UInt128 = UInt128(BigInteger.fromUByte(value))
+
+    @Deprecated("Unnecessary", ReplaceWith("this"))
+    override fun toUnsigned(): UInt8 = this
 
     override fun toString(radix: Int): String = value.toString(radix)
     override fun toString(): String = value.toString()
-    override fun fitsInSigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
-        val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)
-        val maxValue = (ONE shl (bitWidth - 1)) - 1 // 2^(bitWidth-1) - 1
-        return value in minValue.value..maxValue.value
-    }
+    override fun fitsInSigned(bitWidth: Int): Boolean = toInt8().fitsInSigned(bitWidth)
 
     override fun fitsInUnsigned(bitWidth: Int): Boolean {
-        if (bitWidth >= bitWidth) return true
+        if (bitWidth >= this.bitWidth) return true
         val maxValue = (ONE shl bitWidth) - 1 // 2^bitWidth - 1
         return value in ZERO.value..maxValue.value
     }
