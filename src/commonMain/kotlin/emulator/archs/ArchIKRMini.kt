@@ -4,20 +4,22 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.ikrmini.IKRMiniDisassembler
 import cengine.lang.asm.ast.target.ikrmini.IKRMiniDisassembler.InstrType.*
 import cengine.util.Endianness
 import cengine.util.newint.UInt16
 import cengine.util.newint.UInt16.Companion.toUInt16
 import cengine.util.newint.UInt32
-import emulator.archs.ikrmini.IKRMini
 import emulator.archs.ikrmini.IKRMiniBaseRegs
+import emulator.kit.ArchConfig
 import emulator.kit.MicroSetup
-import emulator.kit.memory.MainMemory
-import emulator.kit.memory.Memory
+import emulator.kit.memory.*
 import emulator.kit.optional.BasicArchImpl
 
-class ArchIKRMini : BasicArchImpl<UInt16, UInt16>(IKRMini.config) {
+class ArchIKRMini : BasicArchImpl<UInt16, UInt16>() {
+
+    override val config: ArchConfig = ArchIKRMini
 
     override val pcState: MutableState<UInt16> = mutableStateOf(UInt16.ZERO)
     private var pc by pcState
@@ -838,5 +840,45 @@ class ArchIKRMini : BasicArchImpl<UInt16, UInt16>(IKRMini.config) {
         }
     }
 
+
+    companion object : ArchConfig {
+        override val DESCR = ArchConfig.Description(
+            "IKR Mini",
+            "IKR Minimalprozessor"
+        )
+
+        override val SETTINGS = listOf(
+            ArchConfig.Setting.Enumeration("Instruction Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
+                if (arch is ArchIKRMini) {
+                    arch.instrMemory = when (setting.get()) {
+                        Cache.Setting.NONE -> arch.memory
+                        Cache.Setting.DirectedMapped -> DMCache(arch.memory, CacheSize.KiloByte_32, "Instruction")
+                        Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Instruction")
+                        Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Instruction")
+                        Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Instruction")
+                        Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Instruction")
+                        Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Instruction")
+                        Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Instruction")
+                    }
+                }
+            },
+            ArchConfig.Setting.Enumeration("Data Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
+                if (arch is ArchIKRMini) {
+                    arch.dataMemory = when (setting.get()) {
+                        Cache.Setting.NONE -> arch.memory
+                        Cache.Setting.DirectedMapped -> DMCache(arch.memory, CacheSize.KiloByte_32, "Data")
+                        Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Data")
+                        Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Data")
+                        Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Data")
+                        Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Data")
+                        Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Data")
+                        Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Data")
+                    }
+                }
+            }
+        )
+        override val DISASSEMBLER: Disassembler = IKRMiniDisassembler
+
+    }
 
 }

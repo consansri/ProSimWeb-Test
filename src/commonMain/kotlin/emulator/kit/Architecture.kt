@@ -1,17 +1,13 @@
 package emulator.kit
 
 import androidx.compose.runtime.MutableState
-import cengine.lang.asm.Disassembler
 import cengine.lang.asm.Initializer
 import cengine.util.integer.*
 import cengine.util.integer.Size.*
 import cengine.util.newint.IntNumber
 import emulator.core.*
 import emulator.kit.common.*
-import emulator.kit.config.Config
 import emulator.kit.memory.MainMemory
-import emulator.kit.optional.Feature
-import emulator.kit.optional.SetupSetting
 
 /**
  *  Architecture Blueprint
@@ -40,15 +36,18 @@ import emulator.kit.optional.SetupSetting
  *  @property cache Not Essential: Possibly given by Config
  *
  */
-abstract class Architecture<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(config: Config) {
-    val description: Config.Description = config.description
+abstract class Architecture<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>> {
+
+    abstract val config: ArchConfig
+
+    val console: IConsole = IConsole("Console")
+    var initializer: Initializer? = null
+    val description get() = config.DESCR
+    val settings get() = config.SETTINGS
+    val disassembler get() = config.DISASSEMBLER
+
     abstract val memory: MainMemory<ADDR, INSTANCE>
     abstract val pcState: MutableState<ADDR>
-    val console: IConsole = IConsole("${config.description.name} Console")
-    val features: List<Feature> = config.features
-    val settings: List<SetupSetting<*>> = config.settings
-    var initializer: Initializer? = null
-    val disassembler: Disassembler? = config.disassembler
 
     init {
         // Starting with non-micro setup

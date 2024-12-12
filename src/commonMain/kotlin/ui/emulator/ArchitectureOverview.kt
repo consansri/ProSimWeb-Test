@@ -8,14 +8,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
+import emulator.kit.ArchConfig
 import emulator.kit.Architecture
-import emulator.kit.optional.SetupSetting
 import ui.uilib.UIState
 import ui.uilib.interactable.Selector
 import ui.uilib.label.CLabel
 
 @Composable
-fun ArchitectureOverview(arch: Architecture<*,*>?, baseStyle: TextStyle, baseLargeStyle: TextStyle) {
+fun ArchitectureOverview(arch: Architecture<*, *>?, baseStyle: TextStyle, baseLargeStyle: TextStyle) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value
@@ -45,9 +45,9 @@ fun ArchitectureOverview(arch: Architecture<*,*>?, baseStyle: TextStyle, baseLar
                     ) {
                         CLabel(text = it.name, textStyle = baseStyle)
                         when (it) {
-                            is SetupSetting.Any -> TODO()
-                            is SetupSetting.Bool -> TODO()
-                            is SetupSetting.Enumeration -> {
+                            is ArchConfig.Setting.Any -> TODO()
+                            is ArchConfig.Setting.Bool -> TODO()
+                            is ArchConfig.Setting.Enumeration -> {
                                 Selector<Enum<*>>(
                                     it.enumValues, initial = it.state.value as? Enum<*>, itemContent = { isSelected, value ->
                                         CLabel(text = value.name, textStyle = baseStyle)

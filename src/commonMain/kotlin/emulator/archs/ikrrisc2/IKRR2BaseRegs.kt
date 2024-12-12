@@ -9,17 +9,9 @@ import emulator.kit.register.RegFile
 class IKRR2BaseRegs : RegFile<UInt32> {
     override val name: String = "base"
 
-    override val indentificators: List<FieldProvider> = listOf(
-        IKRRisc2.BaseNameProvider
-    )
-
-    override val descriptors: List<FieldProvider> = listOf(
-        IKRRisc2.BaseProvider
-    )
-
-    override val regValues = mutableStateListOf(*Array(32) {
-        UInt32.ZERO
-    })
+    override val indentificators: List<FieldProvider> = listOf(BaseNameProvider)
+    override val descriptors: List<FieldProvider> = listOf(BaseProvider)
+    override val regValues = mutableStateListOf(*Array(32) { UInt32.ZERO })
 
     override fun set(index: Int, value: IntNumber<*>) {
         regValues[index] = value.toUInt32()
@@ -30,6 +22,24 @@ class IKRR2BaseRegs : RegFile<UInt32> {
     override fun clear() {
         for (i in regValues.indices) {
             regValues[i] = UInt32.ZERO
+        }
+    }
+
+    object BaseNameProvider : FieldProvider {
+        override val name: String = "NAME"
+
+        override fun get(id: Int): String = when (id) {
+            in 0..31 -> "r$id"
+            else -> ""
+        }
+    }
+
+    object BaseProvider : FieldProvider {
+        override val name: String = "DESCR"
+        override fun get(id: Int): String = when (id) {
+            1 -> "hardwired zero"
+            31 -> "return address"
+            else -> ""
         }
     }
 }

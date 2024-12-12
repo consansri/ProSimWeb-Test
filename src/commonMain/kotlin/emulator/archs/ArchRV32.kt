@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.riscv.RVDisassembler
 import cengine.util.Endianness
 import cengine.util.integer.signExtend
@@ -13,16 +14,17 @@ import cengine.util.newint.UInt16
 import cengine.util.newint.UInt32
 import cengine.util.newint.UInt32.Companion.toUInt32
 import cengine.util.newint.UInt8
-import emulator.archs.riscv.riscv32.RV32
 import emulator.archs.riscv.riscv32.RV32BaseRegs
 import emulator.archs.riscv.riscv32.RV32CSRRegs
+import emulator.kit.ArchConfig
 import emulator.kit.MicroSetup
-import emulator.kit.memory.MainMemory
-import emulator.kit.memory.Memory
+import emulator.kit.memory.*
+import emulator.kit.memory.Cache.Setting
 import emulator.kit.optional.BasicArchImpl
 
-class ArchRV32 : BasicArchImpl<UInt32, UInt8>(RV32.config) {
+class ArchRV32 : BasicArchImpl<UInt32, UInt8>() {
 
+    override val config: ArchConfig = ArchRV32
     override val pcState: MutableState<UInt32> = mutableStateOf(UInt32.ZERO)
     private var pc by pcState
 
@@ -331,7 +333,7 @@ class ArchRV32 : BasicArchImpl<UInt32, UInt8>(RV32.config) {
                 val t = csrRegs[decoded.imm12iType]
                 csrRegs[decoded.imm12iType] = baseRegs[decoded.rs1]
                 baseRegs[decoded.rd] = t
-                
+
                 incPCBy4()
             }
 
@@ -482,6 +484,42 @@ class ArchRV32 : BasicArchImpl<UInt32, UInt8>(RV32.config) {
 
     override fun resetPC() {
         pc = UInt32.ZERO
+    }
+
+    companion object : ArchConfig {
+        override val DESCR: ArchConfig.Description = ArchConfig.Description("RV32I", "RISC-V 32Bit")
+        override val SETTINGS: List<ArchConfig.Setting<*>> = listOf(
+            ArchConfig.Setting.Enumeration("Instruction Cache", Cache.Setting.entries, Setting.NONE) { arch, setting ->
+                if (arch is ArchRV32) {
+                    arch.instrMemory = when (setting.get()) {
+                        Setting.NONE -> arch.memory
+                        Setting.DirectedMapped -> DMCache(arch.memory, CacheSize.KiloByte_32, "Instruction")
+                        Setting.FullAssociativeRandom -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Instruction")
+                        Setting.FullAssociativeLRU -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Instruction")
+                        Setting.FullAssociativeFIFO -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Instruction")
+                        Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Instruction")
+                        Setting.SetAssociativeLRU -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Instruction")
+                        Setting.SetAssociativeFIFO -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Instruction")
+                    }
+                }
+            },
+            ArchConfig.Setting.Enumeration("Data Cache", Cache.Setting.entries, Setting.NONE) { arch, setting ->
+                if (arch is ArchRV32) {
+                    arch.dataMemory = when (setting.get()) {
+                        Setting.NONE -> arch.memory
+                        Setting.DirectedMapped -> DMCache(arch.memory, CacheSize.KiloByte_32, "Data")
+                        Setting.FullAssociativeRandom -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Data")
+                        Setting.FullAssociativeLRU -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Data")
+                        Setting.FullAssociativeFIFO -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Data")
+                        Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Data")
+                        Setting.SetAssociativeLRU -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Data")
+                        Setting.SetAssociativeFIFO -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Data")
+                    }
+                }
+            }
+        )
+        override val DISASSEMBLER: Disassembler = RVDisassembler { toUInt32().toBigInt() }
+
     }
 
 }

@@ -454,5 +454,4 @@ class Docs(val usingProSimAS: Boolean, vararg docFiles: DocFile) {
         class Section(val sectionTitle: String, vararg val sectionContent: DocComponent) : DocComponent()
         class UnlinkedList(vararg val entrys: DocComponent) : DocComponent()
     }
-
 }

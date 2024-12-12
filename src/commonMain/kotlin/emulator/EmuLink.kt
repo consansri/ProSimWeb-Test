@@ -1,8 +1,8 @@
 package emulator
 
 import emulator.archs.*
+import emulator.kit.ArchConfig
 import emulator.kit.Architecture
-import emulator.kit.config.Config
 import emulator.kit.nativeLog
 import kotlin.reflect.KClass
 
@@ -24,7 +24,7 @@ enum class EmuLink(private val arch: () -> Architecture<*,*>, val classType: KCl
         return loaded
     }
 
-    fun descr(): Config.Description {
+    fun descr(): ArchConfig.Description {
         return arch().description
     }
 

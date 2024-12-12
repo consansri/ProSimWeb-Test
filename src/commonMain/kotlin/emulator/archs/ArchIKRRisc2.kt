@@ -4,6 +4,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import cengine.lang.asm.Disassembler
+import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.IKRR2InstrProvider
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.InstrType.*
 import cengine.util.Endianness
@@ -11,14 +13,15 @@ import cengine.util.integer.signExtend
 import cengine.util.newint.Int32.Companion.toInt32
 import cengine.util.newint.UInt32
 import emulator.archs.ikrrisc2.IKRR2BaseRegs
-import emulator.archs.ikrrisc2.IKRRisc2
+import emulator.kit.ArchConfig
 import emulator.kit.MicroSetup
-import emulator.kit.memory.MainMemory
-import emulator.kit.memory.Memory
+import emulator.kit.memory.*
 import emulator.kit.nativeLog
 import emulator.kit.optional.BasicArchImpl
 
-class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>(IKRRisc2.config) {
+class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>() {
+
+    override val config: ArchConfig = ArchIKRRisc2
 
     override val pcState: MutableState<UInt32> = mutableStateOf(UInt32.ZERO)
     private var pc by pcState
@@ -367,6 +370,7 @@ class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>(IKRRisc2.config) {
         return ExecutionResult(true, isReturnFromSubRoutine, isBranchToSubRoutine)
     }
 
+
     override fun setupMicroArch() {
         MicroSetup.append(memory)
         if (instrMemory != memory) MicroSetup.append(instrMemory)
@@ -376,6 +380,41 @@ class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>(IKRRisc2.config) {
 
     override fun resetPC() {
         pc = UInt32.ZERO
+    }
+
+    companion object: ArchConfig {
+        override val SETTINGS = listOf(
+            ArchConfig.Setting.Enumeration("Instruction Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
+                if (arch is ArchIKRRisc2) {
+                    arch.instrMemory = when (setting.get()) {
+                        Cache.Setting.NONE -> arch.memory
+                        Cache.Setting.DirectedMapped -> DMCache(arch.memory, CacheSize.KiloByte_32, "Instruction")
+                        Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Instruction")
+                        Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Instruction")
+                        Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Instruction")
+                        Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Instruction")
+                        Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Instruction")
+                        Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Instruction")
+                    }
+                }
+            },
+            ArchConfig.Setting.Enumeration("Data Cache", Cache.Setting.entries, Cache.Setting.NONE) { arch, setting ->
+                if (arch is ArchIKRRisc2) {
+                    arch.dataMemory = when (setting.get()) {
+                        Cache.Setting.NONE -> arch.memory
+                        Cache.Setting.DirectedMapped -> DMCache(arch.memory, CacheSize.KiloByte_32, "Data")
+                        Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Data")
+                        Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Data")
+                        Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Data")
+                        Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Data")
+                        Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Data")
+                        Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Data")
+                    }
+                }
+            }
+        )
+        override val DISASSEMBLER: Disassembler = IKRR2Disassembler
+        override val DESCR = ArchConfig.Description("IKR RISC-II", "IKR RISC-II")
     }
 
 }

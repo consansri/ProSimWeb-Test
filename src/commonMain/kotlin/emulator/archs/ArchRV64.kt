@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.riscv.RVDisassembler
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.JAL
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.JALR
@@ -15,17 +16,19 @@ import cengine.util.newint.UInt32
 import cengine.util.newint.UInt64
 import cengine.util.newint.UInt64.Companion.toUInt64
 import cengine.util.newint.UInt8
-import emulator.archs.riscv.riscv64.RV64
 import emulator.archs.riscv.riscv64.RV64BaseRegs
 import emulator.archs.riscv.riscv64.RV64CSRRegs
+import emulator.kit.ArchConfig
 import emulator.kit.MicroSetup
-import emulator.kit.memory.MainMemory
-import emulator.kit.memory.Memory
+import emulator.kit.memory.*
+import emulator.kit.memory.Cache.Setting
 import emulator.kit.optional.BasicArchImpl
 
-class ArchRV64 : BasicArchImpl<UInt64, UInt8>(RV64.config) {
+class ArchRV64 : BasicArchImpl<UInt64, UInt8>() {
 
+    override val config: ArchConfig = ArchRV64
     override val pcState: MutableState<UInt64> = mutableStateOf(UInt64.ZERO)
+
 
     private var pc by pcState
 
@@ -558,5 +561,40 @@ class ArchRV64 : BasicArchImpl<UInt64, UInt8>(RV64.config) {
 
     override fun resetPC() {
         pc = UInt64.ZERO
+    }
+
+    companion object : ArchConfig {
+        override val DESCR: ArchConfig.Description = ArchConfig.Description("RV64I", "RISC-V 64Bit")
+        override val SETTINGS: List<ArchConfig.Setting<*>> = listOf(
+            ArchConfig.Setting.Enumeration("Instruction Cache", Setting.entries, Setting.NONE) { arch, setting ->
+                if (arch is ArchRV64) {
+                    arch.instrMemory = when (setting.get()) {
+                        Setting.NONE -> arch.memory
+                        Setting.DirectedMapped -> DMCache(arch.memory, CacheSize.KiloByte_32, "Instruction")
+                        Setting.FullAssociativeRandom -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Instruction")
+                        Setting.FullAssociativeLRU -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Instruction")
+                        Setting.FullAssociativeFIFO -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Instruction")
+                        Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Instruction")
+                        Setting.SetAssociativeLRU -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Instruction")
+                        Setting.SetAssociativeFIFO -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Instruction")
+                    }
+                }
+            },
+            ArchConfig.Setting.Enumeration("Data Cache", Setting.entries, Setting.NONE) { arch, setting ->
+                if (arch is ArchRV64) {
+                    arch.dataMemory = when (setting.get()) {
+                        Setting.NONE -> arch.memory
+                        Setting.DirectedMapped -> DMCache(arch.memory, CacheSize.KiloByte_32, "Data")
+                        Setting.FullAssociativeRandom -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Data")
+                        Setting.FullAssociativeLRU -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Data")
+                        Setting.FullAssociativeFIFO -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Data")
+                        Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM, "Data")
+                        Setting.SetAssociativeLRU -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU, "Data")
+                        Setting.SetAssociativeFIFO -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO, "Data")
+                    }
+                }
+            }
+        )
+        override val DISASSEMBLER: Disassembler = RVDisassembler { toUInt64().toBigInt() }
     }
 }
