@@ -216,6 +216,10 @@ fun RegTable(regFile: RegFile<*>) {
                     }
                 }
 
+                LaunchedEffect(numberFormat){
+                    regValue = numberFormat.format(regFile[id])
+                }
+
                 LaunchedEffect(focused) {
                     if (!focused) {
                         regFile[id] = numberFormat.parse(regValue)
