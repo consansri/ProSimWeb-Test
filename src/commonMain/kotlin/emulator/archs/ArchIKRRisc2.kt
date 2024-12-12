@@ -1,484 +1,350 @@
 package emulator.archs
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.IKRR2InstrProvider
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.InstrType.*
-import cengine.util.integer.Value.Companion.toValue
-import cengine.util.integer.rol
-import cengine.util.integer.ror
+import cengine.util.Endianness
 import cengine.util.integer.signExtend
+import cengine.util.newint.Int32.Companion.toInt32
+import cengine.util.newint.UInt32
+import emulator.archs.ikrrisc2.IKRR2BaseRegs
 import emulator.archs.ikrrisc2.IKRRisc2
 import emulator.kit.MicroSetup
+import emulator.kit.memory.MainMemory
 import emulator.kit.memory.Memory
+import emulator.kit.nativeLog
 import emulator.kit.optional.BasicArchImpl
 
-class ArchIKRRisc2 : BasicArchImpl(IKRRisc2.config) {
-    var instrMemory: Memory = memory
+class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>(IKRRisc2.config) {
+
+    override val pcState: MutableState<UInt32> = mutableStateOf(UInt32.ZERO)
+    private var pc by pcState
+
+    override val memory: MainMemory<UInt32, UInt32> = MainMemory(Endianness.BIG, UInt32, UInt32)
+
+    var instrMemory: Memory<UInt32, UInt32> = memory
         set(value) {
             field = value
             resetMicroArch()
         }
-    var dataMemory: Memory = memory
+    var dataMemory: Memory<UInt32, UInt32> = memory
         set(value) {
             field = value
             resetMicroArch()
         }
 
+    private val baseRegs = IKRR2BaseRegs()
+
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
-        val loaded = instrMemory.load(regContainer.pc.get().toHex(), tracker = tracker)
-        val pc = regContainer.pc
-        val decoded = IKRR2InstrProvider(loaded.toUInt())
+        val loaded = instrMemory.loadInstance(pc, tracker = tracker)
+        val decoded = IKRR2InstrProvider(loaded)
 
         when (decoded.type) {
             ADD -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                rc.set(ra.get() + rb.get())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.ra] + baseRegs[decoded.rb]
+                pc += 1
             }
 
             ADDI -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val imm16 = decoded.imm16.toInt().signExtend(16)
+                val imm16 = decoded.imm16.toShort().toInt().toInt32().toUInt32()
 
-                rc.set(rb.get() + imm16.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb] + imm16
+                pc += 1
             }
 
             ADDLI -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val imm16 = decoded.imm16.toInt()
-
-                rc.set(rb.get() + imm16.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb] + decoded.imm16.toInt()
+                pc += 1
             }
 
             ADDHI -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
                 val imm16 = decoded.imm16.toInt() shl 16
 
-                rc.set(rb.get() + imm16.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb] + imm16
+                pc += 1
             }
 
             ADDX -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val carry = (baseRegs[decoded.ra] + baseRegs[decoded.rb]) shr 32
 
-                val carry = (ra.get().toULong() + rb.get().toULong()) shr 32
-
-                rc.set(carry.toUInt().toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = carry
+                pc += 1
             }
 
             SUB -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                rc.set(ra.get() - rb.get())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.ra] - baseRegs[decoded.rb]
+                pc += 1
             }
 
             SUBX -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val borrow = if (rb.get().toUInt() < ra.get().toUInt()) 1U else 0U
-
-                rc.set(borrow.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = if (baseRegs[decoded.rb].toUInt() < baseRegs[decoded.ra].toUInt()) UInt32.ONE else UInt32.ZERO
+                pc += 1
             }
 
             CMPU -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val comparison = baseRegs[decoded.rb].toUInt().compareTo(baseRegs[decoded.ra].toUInt())
 
-                val comparison = rb.get().toUInt().compareTo(ra.get().toUInt())
-
-                rc.set(comparison.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = comparison.toInt32()
+                pc += 1
             }
 
             CMPS -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val comparison = baseRegs[decoded.rb].toInt().compareTo(baseRegs[decoded.ra].toInt())
 
-                val comparison = rb.get().toInt().compareTo(ra.get().toInt())
-
-                rc.set(comparison.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = comparison.toInt32()
+                pc += 1
             }
 
             CMPUI -> {
                 val imm16 = decoded.imm16
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val comparison = baseRegs[decoded.rb].compareTo(imm16)
 
-                val comparison = rb.get().toUInt().compareTo(imm16)
-
-                rc.set(comparison.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = comparison.toInt32()
+                pc += 1
             }
 
             CMPSI -> {
                 val imm16 = decoded.imm16.toInt().signExtend(16)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val comparison = baseRegs[decoded.rb].toInt().compareTo(imm16)
 
-                val comparison = rb.get().toInt().compareTo(imm16)
-
-                rc.set(comparison.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = comparison.toInt32()
+                pc += 1
             }
 
             AND -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val result = rb.get().toUInt() and ra.get().toUInt()
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb] and baseRegs[decoded.ra]
+                pc += 1
             }
 
             AND0I -> {
                 val imm16 = decoded.imm16
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val result = rb.get().toUInt() and imm16
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb] and imm16
+                pc += 1
             }
 
             AND1I -> {
-                val imm16 = decoded.imm16 or (0b1111111111111111U shl 16)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val imm16 = decoded.imm16 or (UInt32.createBitMask(16) shl 16)
+                val result = baseRegs[decoded.rb] and imm16
 
-                val result = rb.get().toUInt() and imm16
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = result
+                pc += 1
             }
 
             OR -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val result = rb.get().toUInt() or ra.get().toUInt()
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb] or baseRegs[decoded.ra]
+                pc += 1
             }
 
             ORI -> {
                 val imm16 = decoded.imm16
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
 
-                val result = rb.get().toUInt() or imm16
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb] or imm16
+                pc += 1
             }
 
             XOR -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val result = rb.get().toUInt() xor ra.get().toUInt()
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb] xor baseRegs[decoded.ra]
+                pc += 1
             }
 
             XORI -> {
                 val imm16 = decoded.imm16
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val result = baseRegs[decoded.rb] xor imm16
 
-                val result = rb.get().toUInt() xor imm16
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = result
+                pc += 1
             }
 
             LSL -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val result = baseRegs[decoded.rb] shl 1
 
-                val result = rb.get().toUInt() shl 1
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = result
+                pc += 1
             }
 
             LSR -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val result = baseRegs[decoded.rb] shr 1
 
-                val result = rb.get().toUInt() shr 1
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = result
+                pc += 1
             }
 
             ASL -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val result = baseRegs[decoded.rb].toInt32() shl 1
 
-                val result = rb.get().toInt() shl 1
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = result
+                pc += 1
             }
 
             ASR -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val result = baseRegs[decoded.rb].toInt32() shr 1
 
-                val result = rb.get().toInt() shr 1
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = result
+                pc += 1
             }
 
             ROL -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val result = rb.get().toUInt().rol(1)
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb].rol(1)
+                pc += 1
             }
 
             ROR -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val result = rb.get().toUInt().ror(1)
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb].ror(1)
+                pc += 1
             }
 
             EXTB -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val result = rb.get().toInt().signExtend(8)
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb].toInt8().toInt32()
+                pc += 1
             }
 
             EXTH -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val result = rb.get().toInt().signExtend(16)
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = baseRegs[decoded.rb].toInt16().toInt32()
+                pc += 1
             }
 
             SWAPB -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val origin = rb.get().toUInt()
-                val b0 = origin and 0xffU
-                val b1 = origin shr 8 and 0xffU
-                val b2 = origin shr 16 and 0xffU
-                val b3 = origin shr 24 and 0xffU
+                val origin = baseRegs[decoded.rb]
+                val b0 = origin and 0xff
+                val b1 = origin shr 8 and 0xff
+                val b2 = origin shr 16 and 0xff
+                val b3 = origin shr 24 and 0xff
 
                 val result = b2 shl 8 or b3 shl 8 or b0 shl 8 or b1
 
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = result
+                pc += 1
             }
 
             SWAPH -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-
-                val origin = rb.get().toUInt()
-                val h0 = origin and 0xffffU
-                val h1 = origin shr 16 and 0xffffU
+                val origin = baseRegs[decoded.rb]
+                val h0 = origin and 0xffff
+                val h1 = origin shr 16 and 0xffff
 
                 val result = h0 shl 16 or h1
 
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = result
+                pc += 1
             }
 
             NOT -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
+                val result = baseRegs[decoded.rb].inv()
 
-                val result = rb.get().toUInt().inv()
-
-                rc.set(result.toValue())
-                pc.inc(1U)
+                baseRegs[decoded.rc] = result
+                pc += 1
             }
 
             LDD -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val disp = decoded.disp16.toInt().signExtend(16)
-                val address = (rb.get().toInt() + disp).toUInt().toValue()
+                val disp = decoded.disp16.toShort().toInt()
+                val address = baseRegs[decoded.rb] + disp
 
-                val fetched = dataMemory.load(address, tracker = tracker)
+                val fetched = dataMemory.loadInstance(address, tracker = tracker)
 
-                rc.set(fetched)
-                pc.inc(1U)
+                baseRegs[decoded.rc] = fetched
+                pc += 1
             }
 
             LDR -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val address = (rb.get().toUInt() + ra.get().toUInt()).toValue()
+                val address = baseRegs[decoded.rb] + baseRegs[decoded.ra]
 
-                val fetched = dataMemory.load(address, tracker = tracker)
+                val fetched = dataMemory.loadInstance(address, tracker = tracker)
 
-                rc.set(fetched)
-                pc.inc(1U)
+                baseRegs[decoded.rc] = fetched
+                pc += 1
             }
 
             STD -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val disp = decoded.disp16.toInt().signExtend(16)
-                val address = (rb.get().toInt() + disp).toUInt().toValue()
+                val disp = decoded.disp16.toShort().toInt()
+                val address = baseRegs[decoded.rb] + disp
 
-                dataMemory.store(address, rc.get(), tracker = tracker)
+                dataMemory.storeInstance(address, baseRegs[decoded.rc], tracker = tracker)
 
-                pc.inc(1U)
+                pc += 1
             }
 
             STR -> {
-                val ra = getRegByAddr(decoded.ra) ?: return ExecutionResult(false)
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val address = (rb.get().toUInt() + ra.get().toUInt()).toValue()
+                val address = baseRegs[decoded.rb] + baseRegs[decoded.ra]
 
-                dataMemory.store(address, rc.get(), tracker = tracker)
+                dataMemory.storeInstance(address, baseRegs[decoded.rc], tracker = tracker)
 
-                pc.inc(1U)
+                pc += 1
             }
 
             BEQ -> {
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val disp = decoded.disp18.toInt().signExtend(18)
-                if (rc.get().toInt() == 0) {
-                    val address = pc.get().toInt() + disp
-                    pc.set(address.toValue())
+                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                if (baseRegs[decoded.rc].equals(0)) {
+                    pc += disp
                 } else {
-                    pc.inc(1U)
+                    pc += 1
                 }
             }
 
             BNE -> {
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val disp = decoded.disp18.toInt().signExtend(18)
-                if (rc.get().toInt() != 0) {
-                    val address = pc.get().toInt() + disp
-                    pc.set(address.toValue())
+                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                if (!baseRegs[decoded.rc].equals(0)) {
+                    pc += disp
                 } else {
-                    pc.inc(1U)
+                    pc += 1
                 }
             }
 
             BLT -> {
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val disp = decoded.disp18.toInt().signExtend(18)
-                if (rc.get().toInt() < 0) {
-                    val address = pc.get().toInt() + disp
-                    pc.set(address.toValue())
+                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                if (baseRegs[decoded.rc] < 0) {
+                    pc += disp
                 } else {
-                    pc.inc(1U)
+                    pc += 1
                 }
             }
 
             BGT -> {
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val disp = decoded.disp18.toInt().signExtend(18)
-                if (rc.get().toInt() > 0) {
-                    val address = pc.get().toInt() + disp
-                    pc.set(address.toValue())
+                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                if (baseRegs[decoded.rc] > 0) {
+                    pc += disp
                 } else {
-                    pc.inc(1U)
+                    pc += 1
                 }
             }
 
             BLE -> {
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val disp = decoded.disp18.toInt().signExtend(18)
-                if (rc.get().toInt() <= 0) {
-                    val address = pc.get().toInt() + disp
-                    pc.set(address.toValue())
+                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                if (baseRegs[decoded.rc] <= 0) {
+                    pc += disp
                 } else {
-                    pc.inc(1U)
+                    pc += 1
                 }
             }
 
             BGE -> {
-                val rc = getRegByAddr(decoded.rc) ?: return ExecutionResult(false)
-                val disp = decoded.disp18.toInt().signExtend(18)
-                if (rc.get().toInt() >= 0) {
-                    val address = pc.get().toInt() + disp
-                    pc.set(address.toValue())
+                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                if (baseRegs[decoded.rc] >= 0) {
+                    pc += disp
                 } else {
-                    pc.inc(1U)
+                    pc += 1
                 }
             }
 
             BRA -> {
-                val disp = decoded.disp26.toInt().signExtend(26)
-
-                val address = pc.get().toInt() + disp
-                pc.set(address.toValue())
+                pc += decoded.disp26.signExtension(26, UInt32.ONE)
             }
 
             BSR -> {
-                val r31 = getRegByAddr(31U) ?: return ExecutionResult(false)
-                val disp = decoded.disp26.toInt().signExtend(26)
-
-                r31.set(pc.get() + 1U.toValue()) // Save Return Address
-
-                val address = pc.get().toInt() + disp
-                pc.set(address.toValue())
+                baseRegs[31] = pc + 1 // Save return address
+                nativeLog("BSR: ${pc.toString(16)} + ${decoded.disp26.signExtension(26, UInt32.ONE).toString(16)} -> ${(pc + decoded.disp26.signExtension(26, UInt32.ONE)).toString(16)}")
+                pc += decoded.disp26.signExtension(26, UInt32.ONE)
             }
 
             JMP -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-
-                pc.set(rb.get())
+                pc = baseRegs[decoded.rb]
             }
 
             JSR -> {
-                val rb = getRegByAddr(decoded.rb) ?: return ExecutionResult(false)
-                val r31 = getRegByAddr(31U) ?: return ExecutionResult(false)
+                baseRegs[31] = pc + 1
 
-                r31.set(pc.get() + 1U.toValue())
-
-                pc.set(rb.get())
+                pc = baseRegs[decoded.rb]
             }
 
             null -> {
@@ -492,12 +358,12 @@ class ArchIKRRisc2 : BasicArchImpl(IKRRisc2.config) {
             BSR -> true
             else -> false
         }
-        
+
         val isReturnFromSubRoutine = when (decoded.type) {
             JMP -> true
             else -> false
         }
-        
+
         return ExecutionResult(true, isReturnFromSubRoutine, isBranchToSubRoutine)
     }
 
@@ -505,6 +371,11 @@ class ArchIKRRisc2 : BasicArchImpl(IKRRisc2.config) {
         MicroSetup.append(memory)
         if (instrMemory != memory) MicroSetup.append(instrMemory)
         if (dataMemory != memory) MicroSetup.append(dataMemory)
+        MicroSetup.append(baseRegs)
+    }
+
+    override fun resetPC() {
+        pc = UInt32.ZERO
     }
 
 }

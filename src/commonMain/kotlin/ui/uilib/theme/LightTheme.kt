@@ -3,7 +3,6 @@ package ui.uilib.theme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import cengine.lang.asm.CodeStyle
-import emulator.kit.memory.Memory
 import org.jetbrains.compose.resources.FontResource
 import prosim.prosimweb_test.generated.resources.JetBrainsMono_Regular
 import prosim.prosimweb_test.generated.resources.Poppins_Regular
@@ -44,8 +43,5 @@ data object LightTheme : Theme() {
         if (style == null) return Color(CodeStyle.baseColor.getDarkElseLight() or 0xFF333333.toInt())
         return Color(style.lightHexColor or 0xFF000000.toInt())
     }
-
-    override fun getColor(style: Memory.InstanceType): Color = Color(style.light)
-
 
 }

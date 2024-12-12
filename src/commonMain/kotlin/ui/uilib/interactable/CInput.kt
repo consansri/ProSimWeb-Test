@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
-import cengine.util.integer.Value
+import cengine.util.newint.Format
 import ui.uilib.UIState
 import ui.uilib.text.CTextField
 
@@ -14,21 +14,13 @@ fun CInput(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     onFocusLost: (TextFieldValue) -> Unit,
-    numberFormat: Value.Types,
+    numberFormat: Format,
     showBorder: Boolean = false,
     textStyle: TextStyle = UIState.CodeStyle.current,
 ) {
 
-    val filterChars: (Char) -> Boolean = { char ->
-        when (numberFormat) {
-            Value.Types.Bin -> char in '0'..'1'
-            Value.Types.Hex -> char.isDigit() || char.uppercaseChar() in 'A'..'F'
-            Value.Types.Dec, Value.Types.UDec -> char.isDigit()
-        }
-    }
-
     CTextField(modifier = modifier, value = value, textStyle = textStyle, textColor = UIState.Theme.value.COLOR_FG_0, showBorder = showBorder, onValueChange = { newVal ->
-        val filtered = newVal.copy(text = newVal.text.filter(filterChars))
+        val filtered = newVal.copy(text = numberFormat.filter(newVal.text))
         onValueChange(filtered)
     }, onFocusLost = onFocusLost)
 }

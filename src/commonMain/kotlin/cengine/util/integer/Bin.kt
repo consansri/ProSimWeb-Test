@@ -7,6 +7,7 @@ import emulator.kit.nativeError
 /**
  * Provides the binary representation of [Value].
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 class Bin(binString: String, size: Size) : Value(size) {
     override val valid: Boolean
     override val rawInput: String

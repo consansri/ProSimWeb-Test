@@ -1,7 +1,7 @@
 package emulator.kit.memory
 
 import cengine.util.Endianness
-import cengine.util.newint.IntNumber
+import cengine.util.newint.*
 
 /**
  * Represents a Memory class that provides functionality for loading, storing, and managing memory instances.
@@ -33,12 +33,19 @@ import cengine.util.newint.IntNumber
  * - Endianess: Represents the endianess of the memory (LittleEndian, BigEndian)
  * - InstanceType: Represents the type of memory instance with light and dark color values
  */
-sealed class Memory<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>> {
+sealed class Memory<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
+    val addrType: IntNumberStatic<ADDR>,
+    val instanceType: IntNumberStatic<INSTANCE>,
+) {
 
     abstract val name: String
-    abstract val init: INSTANCE
+    open val init: INSTANCE
+        get() = instanceType.ZERO
 
     abstract fun globalEndianess(): Endianness
+
+    protected fun IntNumber<*>.addr(): ADDR = addrType.to(this)
+    protected fun IntNumber<*>.instance(): INSTANCE = instanceType.to(this)
 
     /**
      *
@@ -47,38 +54,79 @@ sealed class Memory<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>> {
     abstract fun storeInstance(address: ADDR, value: INSTANCE, tracker: AccessTracker = AccessTracker())
     abstract fun clear()
 
-    fun storeArray(address: IntNumber<*>, values: Collection<IntNumber<*>>, tracker: AccessTracker = AccessTracker()) {
-        storeArray(address.addr(), values.map { it.instance() }, tracker)
+    /**
+     * @param byteAmount The amount of bytes which should be loaded.
+     * @param tracker Only the first access will be tracked!
+     */
+    fun loadEndianAwareBytes(address: ADDR, byteAmount: Int, tracker: AccessTracker = AccessTracker()): List<UInt8> {
+        val amount = byteAmount / init.byteCount
+
+        val alignedAddr = address - (address % amount).toInt()
+
+        val instances = (0..<amount).map {
+            if (it == 0) {
+                loadInstance(addrType.to(alignedAddr + it), tracker)
+            } else {
+                loadInstance(addrType.to(alignedAddr + it))
+            }
+        }
+
+        val bytes = if (globalEndianess() == Endianness.LITTLE) {
+            instances.reversed().flatMap { it.uInt8s() }
+        } else {
+            instances.flatMap { it.uInt8s() }
+        }
+
+        return bytes
     }
 
-    fun storeArray(address: ADDR, values: Collection<INSTANCE>, tracker: AccessTracker = AccessTracker()) {
-        var curraddr: IntNumber<*> = address
+    /**
+     * Aligned Store
+     *
+     * @param
+     */
+    fun storeEndianAware(address: IntNumber<*>, value: IntNumber<*>, tracker: AccessTracker = AccessTracker()) {
+        val amount = value.byteCount / init.byteCount
+        val alignedAddr = addrType.to(address - (address % amount).toInt())
+        val instances = if (globalEndianess() == Endianness.LITTLE) {
+            instanceType.split(value).reversed()
+        } else {
+            instanceType.split(value)
+        }
+
+        //nativeLog("StoreEndianAware $address: $value -> $alignedAddr: $instances")
+
+        storeInstanceArray(alignedAddr, instances, tracker)
+    }
+
+    fun storeArray(address: IntNumber<*>, values: Collection<IntNumber<*>>, tracker: AccessTracker = AccessTracker()) {
+        var currAddr: IntNumber<*> = address
         for (value in values) {
-            storeInstance(curraddr.addr(), value, tracker)
-            curraddr = curraddr.inc()
+            storeEndianAware(currAddr, value, tracker)
+            currAddr += value.byteCount / init.byteCount
         }
     }
 
-    fun loadArray(address: IntNumber<*>, amount: Int, accessTracker: AccessTracker = AccessTracker()): List<IntNumber<*>>{
-        return loadArray(address.addr(), amount, accessTracker).map { it.instance() }
+    fun storeInstanceArray(address: ADDR, values: Collection<INSTANCE>, tracker: AccessTracker = AccessTracker()) {
+        var curraddr: IntNumber<*> = address
+        for (value in values) {
+            storeInstance(addrType.to(curraddr), value, tracker)
+            curraddr++
+        }
     }
 
-    fun loadArray(address: ADDR, amount: Int, tracker: AccessTracker = AccessTracker()): List<INSTANCE> {
+    fun loadArray(address: IntNumber<*>, amount: Int, tracker: AccessTracker = AccessTracker()): List<INSTANCE> {
         val instances = mutableListOf<INSTANCE>()
 
         var instanceAddress: IntNumber<*> = address
         for (i in 0..<amount) {
-            val value = loadInstance(instanceAddress.addr(), tracker)
+            val value = loadInstance(addrType.to(instanceAddress), tracker)
             instances.add(value)
             instanceAddress = instanceAddress.inc()
         }
 
         return instances.toList()
     }
-
-    protected abstract fun IntNumber<*>.instance(): INSTANCE
-
-    protected abstract fun IntNumber<*>.addr(): ADDR
 
     class MemoryException(override val message: String) : Exception()
 

@@ -66,13 +66,13 @@ data object T6502 {
             if (arch is ArchT6502) {
                 arch.instrMemory = when (setting.get()) {
                     Cache.Setting.NONE -> arch.memory
-                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32, "Instruction")
-                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
-                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
-                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
-                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
-                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory,  CacheSize.KiloByte_32,  "Instruction")
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory,  CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM,  "Instruction")
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory,  CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU,  "Instruction")
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory,  CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO,  "Instruction")
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM,  "Instruction")
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory,  4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU,  "Instruction")
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory,  4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO,  "Instruction")
                 }
             }
         },
@@ -80,13 +80,13 @@ data object T6502 {
             if (arch is ArchT6502) {
                 arch.dataMemory = when (setting.get()) {
                     Cache.Setting.NONE -> arch.memory
-                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32, "Data")
-                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
-                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
-                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console,4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
-                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
-                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory,  CacheSize.KiloByte_32,  "Data")
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory,  CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM,  "Data")
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory,  CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU,  "Data")
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory,  CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO,  "Data")
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM,  "Data")
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory,  4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU,  "Data")
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory,  4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO,  "Data")
                 }
             }
         }
@@ -96,7 +96,6 @@ data object T6502 {
         description,
         fileEnding = "s",
         RegContainer(listOf(commonRegFile), WORD_SIZE, "common"),
-        MainMemory(MEM_ADDR_SIZE, BYTE_SIZE, Memory.Endianess.LittleEndian),
         null,
         settings
     )

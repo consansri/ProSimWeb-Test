@@ -12,6 +12,7 @@ import emulator.kit.common.RegContainer.RegisterFile
 import emulator.kit.config.Config
 import emulator.kit.memory.*
 import emulator.kit.optional.SetupSetting
+import emulator.kit.register.FieldProvider
 
 data object IKRRisc2 {
 
@@ -20,6 +21,25 @@ data object IKRRisc2 {
     const val REG_INIT = "0"
 
     const val standardRegFileName = "main"
+
+    object BaseNameProvider : FieldProvider {
+        override val name: String = "NAME"
+
+        override fun get(id: Int): String = when (id) {
+            in 0..31 -> "r$id"
+            else -> ""
+        }
+    }
+
+    object BaseProvider : FieldProvider {
+        override val name: String = "DESCR"
+        override fun get(id: Int): String = when (id) {
+            1 -> "hardwired zero"
+            31 -> "return address"
+            else -> ""
+        }
+    }
+
     val standardRegFile = RegisterFile(
         standardRegFileName, arrayOf(
             Register(0U, listOf("r0"), listOf(), Variable(REG_INIT, WORD_WIDTH), "hardwired zero", hardwire = true),
@@ -62,13 +82,13 @@ data object IKRRisc2 {
             if (arch is ArchIKRRisc2) {
                 arch.instrMemory = when (setting.get()) {
                     Cache.Setting.NONE -> arch.memory
-                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32, "Instruction")
-                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
-                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
-                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Instruction")
-                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Instruction")
-                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Instruction")
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, CacheSize.KiloByte_32,  "Instruction")
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM,  "Instruction")
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU,  "Instruction")
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO,  "Instruction")
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM,  "Instruction")
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU,  "Instruction")
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO,  "Instruction")
                 }
             }
         },
@@ -76,13 +96,13 @@ data object IKRRisc2 {
             if (arch is ArchIKRRisc2) {
                 arch.dataMemory = when (setting.get()) {
                     Cache.Setting.NONE -> arch.memory
-                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, arch.console, CacheSize.KiloByte_32, "Data")
-                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
-                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
-                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, arch.console, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
-                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.RANDOM, "Data")
-                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.LRU, "Data")
-                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, arch.console, 4, CacheSize.KiloByte_32, Cache.Model.ReplaceAlgo.FIFO, "Data")
+                    Cache.Setting.DirectedMapped -> DMCache(arch.memory, CacheSize.KiloByte_32,  "Data")
+                    Cache.Setting.FullAssociativeRandom -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM,  "Data")
+                    Cache.Setting.FullAssociativeLRU -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU,  "Data")
+                    Cache.Setting.FullAssociativeFIFO -> FACache(arch.memory, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO,  "Data")
+                    Cache.Setting.SetAssociativeRandom -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.RANDOM,  "Data")
+                    Cache.Setting.SetAssociativeLRU -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.LRU,  "Data")
+                    Cache.Setting.SetAssociativeFIFO -> SACache(arch.memory, 4, CacheSize.KiloByte_32, Cache.ReplaceAlgo.FIFO,  "Data")
                 }
             }
         }
@@ -110,7 +130,6 @@ data object IKRRisc2 {
             pcSize = WORD_WIDTH,
             standardRegFileName
         ),
-        MainMemory(WORD_WIDTH, WORD_WIDTH, endianness = Memory.Endianess.BigEndian, entrysInRow = 4),
         IKRR2Disassembler,
         settings
     )

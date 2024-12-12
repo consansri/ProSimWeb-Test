@@ -2,20 +2,22 @@ package cengine.lang.asm.ast.target.ikrrisc2
 
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.InstrType.*
-import cengine.util.integer.Hex
-import cengine.util.integer.Size
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.BigInt
+import cengine.util.newint.IntNumber
+import cengine.util.newint.UInt32
+import cengine.util.newint.UInt32.Companion.ONE
+import cengine.util.newint.UInt32.Companion.toUInt32
 
 object IKRR2Disassembler : Disassembler() {
-    override fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Decoded> {
+    override fun disassemble(startAddr: BigInt, buffer: List<IntNumber<*>>): List<Decoded> {
         var currIndex = 0
         var currInstr: IKRR2InstrProvider
         val decoded = mutableListOf<Decoded>()
 
         while (currIndex < buffer.size) {
-            currInstr = IKRR2InstrProvider(buffer[currIndex].toULong().toUInt())
+            currInstr = IKRR2InstrProvider(buffer[currIndex].toUInt32())
 
-            decoded.add(currInstr.decode(startAddr, currIndex.toULong()))
+            decoded.add(currInstr.decode(startAddr, currIndex))
 
             currIndex += 1
             if(currIndex >= buffer.size) break
@@ -24,27 +26,26 @@ object IKRR2Disassembler : Disassembler() {
         return decoded
     }
 
-    data class IKRR2InstrProvider(val binary: UInt) : InstrProvider {
-        val binaryAsHex = binary.toValue()
+    data class IKRR2InstrProvider(val binary: UInt32) : InstrProvider {
 
-        val opcodeRType = binary.shr(10) and 0b111111U
+        val opcodeRType = binary.shr(10) lowest 6
         val opcodeIType = binary.shr(26)
-        val ra = binary and 0b11111U
-        val rb = binary.shr(16) and 0b11111U
-        val rc = binary.shr(21) and 0b11111U
+        val ra = binary lowest 5
+        val rb = binary.shr(16) lowest 5
+        val rc = binary.shr(21) lowest 5
         val raReg get() = IKRR2BaseRegs.entries[ra.toInt()].displayName
         val rbReg get() = IKRR2BaseRegs.entries[rb.toInt()].displayName
         val rcReg get() = IKRR2BaseRegs.entries[rc.toInt()].displayName
-        val imm16 = binary and 0xFFFFU
+        val imm16 = binary lowest 16
         val disp16 get() = imm16
-        val disp18 = binary and 0b111111111111111111U
-        val disp26 = binary and 0b11111111111111111111111111U
-        val bType = binary.shr(18) and 0b111U
+        val disp18 = binary lowest 18
+        val disp26 = binary lowest 26
+        val bType = binary.shr(18) lowest 3
 
-        val type: InstrType? = when (opcodeIType) {
+        val type: InstrType? = when (opcodeIType.value) {
             0x3FU -> {
                 // R Type
-                when (opcodeRType) {
+                when (opcodeRType.value) {
                     0x00U -> ADD
                     0x20U -> ADDX
                     0x02U -> SUB
@@ -61,8 +62,8 @@ object IKRR2Disassembler : Disassembler() {
                     0x2AU -> ASL
                     0x2BU -> ASR
                     0x2CU -> when {
-                        ra == 0x01U -> ROL
-                        ra == 0x10U -> SWAPH
+                        ra.value == 0x01U -> ROL
+                        ra.value == 0x10U -> SWAPH
                         else -> null
                     }
 
@@ -91,7 +92,7 @@ object IKRR2Disassembler : Disassembler() {
             0x3CU -> BRA
             0x3DU -> BSR
             0x3EU -> {
-                when (bType) {
+                when (bType.value) {
                     0x0U -> BEQ
                     0x1U -> BNE
                     0x2U -> BLT
@@ -105,30 +106,30 @@ object IKRR2Disassembler : Disassembler() {
             else -> null
         }
 
-        override fun decode(segmentAddr: Hex, offset: ULong): Decoded {
+        override fun decode(segmentAddr: BigInt, offset: Int): Decoded {
             val hexPrefix = IKRR2Spec.prefices.hex
             return when (type) {
-                ADD, ADDX, SUB, SUBX, AND, OR, XOR, CMPU, CMPS -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg, $raReg")
-                ADDI, ADDLI, ADDHI, CMPUI, CMPSI, AND0I, AND1I, ORI, XORI -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg, #$hexPrefix${imm16.toString(16)}")
-                LSL, LSR, ASL, ASR, ROL, ROR, SWAPH, SWAPB, EXTB, EXTH, NOT -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rcReg := $rbReg")
-                LDD -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rcReg := ($rbReg, $hexPrefix${disp16.toString(16)})")
-                LDR -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rcReg := ($rbReg, $raReg)")
-                STD -> Decoded(offset, binaryAsHex, "${type.lc5Name} ($rbReg, $hexPrefix${disp16.toString(16)}) := $rcReg")
-                STR -> Decoded(offset, binaryAsHex, "${type.lc5Name} ($rbReg, $raReg) := $rcReg")
+                ADD, ADDX, SUB, SUBX, AND, OR, XOR, CMPU, CMPS -> Decoded(offset, binary, "${type.lc5Name} $rcReg := $rbReg, $raReg")
+                ADDI, ADDLI, ADDHI, CMPUI, CMPSI, AND0I, AND1I, ORI, XORI -> Decoded(offset, binary, "${type.lc5Name} $rcReg := $rbReg, #$hexPrefix${imm16.toString(16)}")
+                LSL, LSR, ASL, ASR, ROL, ROR, SWAPH, SWAPB, EXTB, EXTH, NOT -> Decoded(offset, binary, "${type.lc5Name} $rcReg := $rbReg")
+                LDD -> Decoded(offset, binary, "${type.lc5Name} $rcReg := ($rbReg, $hexPrefix${disp16.toString(16)})")
+                LDR -> Decoded(offset, binary, "${type.lc5Name} $rcReg := ($rbReg, $raReg)")
+                STD -> Decoded(offset, binary, "${type.lc5Name} ($rbReg, $hexPrefix${disp16.toString(16)}) := $rcReg")
+                STR -> Decoded(offset, binary, "${type.lc5Name} ($rbReg, $raReg) := $rcReg")
                 BEQ, BNE, BLT, BGT, BLE, BGE -> {
-                    val offset18 = disp18.toValue(Size.Bit18).toDec().getResized(segmentAddr.size)
-                    val target = (segmentAddr + offset.toValue(segmentAddr.size) + offset18).toHex()
-                    Decoded(offset, binaryAsHex, "${type.lc5Name} $hexPrefix${disp18.toString(16)}", target)
+                    val offset18 = disp18.signExtension(18, ONE)
+                    val target = segmentAddr.toUInt32() + offset.toUInt32() + offset18
+                    Decoded(offset, binary, "${type.lc5Name} $hexPrefix${disp18.toString(16)}", target.toBigInt())
                 }
 
                 BRA, BSR -> {
-                    val offset26 = disp26.toValue(Size.Bit26).toDec().getResized(segmentAddr.size)
-                    val target = (segmentAddr + offset.toValue(segmentAddr.size) + offset26).toHex()
-                    Decoded(offset, binaryAsHex, "${type.lc5Name} $hexPrefix${disp26.toString(16)}", target)
+                    val offset26 = disp26.signExtension(26, ONE)
+                    val target = segmentAddr.toUInt32() + offset.toUInt32() + offset26
+                    Decoded(offset, binary, "${type.lc5Name} $hexPrefix${disp26.toString(16)}", target.toBigInt())
                 }
 
-                JMP, JSR -> Decoded(offset, binaryAsHex, "${type.lc5Name} $rbReg")
-                null -> Decoded(offset, binaryAsHex, "[invalid]")
+                JMP, JSR -> Decoded(offset, binary, "${type.lc5Name} $rbReg")
+                null -> Decoded(offset, binary, "[invalid]")
             }
         }
     }

@@ -1,85 +1,87 @@
 package cengine.lang.asm.ast.target.riscv
 
+import cengine.util.newint.UInt32
+
 data object RVConst {
     /**
      * OPCODE CONSTANTS
      */
 
-    const val OPC_LUI = 0b00110111U
-    const val OPC_AUIPC = 0b0010111U
-    const val OPC_JAL = 0b1101111U
-    const val OPC_JALR = 0b1100111U
+    val OPC_LUI = UInt32(0b00110111U)
+    val OPC_AUIPC = UInt32(0b0010111U)
+    val OPC_JAL = UInt32(0b1101111U)
+    val OPC_JALR = UInt32(0b1100111U)
 
-    const val OPC_OS = 0b1110011U
+    val OPC_OS = UInt32(0b1110011U)
 
-    const val OPC_CBRA = 0b1100011U
-    const val OPC_LOAD = 0b0000011U
-    const val OPC_STORE = 0b0100011U
-    const val OPC_ARITH = 0b0110011U
-    const val OPC_ARITH_WORD = 0b0111011U
-    const val OPC_ARITH_IMM = 0b0010011U
-    const val OPC_ARITH_IMM_WORD = 0b0011011U
+    val OPC_CBRA = UInt32(0b1100011U)
+    val OPC_LOAD = UInt32(0b0000011U)
+    val OPC_STORE = UInt32(0b0100011U)
+    val OPC_ARITH = UInt32(0b0110011U)
+    val OPC_ARITH_WORD = UInt32(0b0111011U)
+    val OPC_ARITH_IMM = UInt32(0b0010011U)
+    val OPC_ARITH_IMM_WORD = UInt32(0b0011011U)
 
-    const val OPC_FENCE = 0b0001111U
+    val OPC_FENCE = UInt32(0b0001111U)
 
     /**
      * FUNCT3 CONSTANTS
      */
 
-    const val FUNCT3_CBRA_BEQ = 0b000U
-    const val FUNCT3_CBRA_BNE = 0b001U
-    const val FUNCT3_CBRA_BLT = 0b100U
-    const val FUNCT3_CBRA_BGE = 0b101U
-    const val FUNCT3_CBRA_BLTU = 0b110U
-    const val FUNCT3_CBRA_BGEU = 0b111U
+    val FUNCT3_CBRA_BEQ = UInt32(0b000U)
+    val FUNCT3_CBRA_BNE = UInt32(0b001U)
+    val FUNCT3_CBRA_BLT = UInt32(0b100U)
+    val FUNCT3_CBRA_BGE = UInt32(0b101U)
+    val FUNCT3_CBRA_BLTU = UInt32(0b110U)
+    val FUNCT3_CBRA_BGEU = UInt32(0b111U)
 
-    const val FUNCT3_LOAD_B = 0b000U
-    const val FUNCT3_LOAD_H = 0b001U
-    const val FUNCT3_LOAD_W = 0b010U
-    const val FUNCT3_LOAD_D = 0b011U
-    const val FUNCT3_LOAD_BU = 0b100U
-    const val FUNCT3_LOAD_HU = 0b101U
-    const val FUNCT3_LOAD_WU = 0b110U
+    val FUNCT3_LOAD_B = UInt32(0b000U)
+    val FUNCT3_LOAD_H = UInt32(0b001U)
+    val FUNCT3_LOAD_W = UInt32(0b010U)
+    val FUNCT3_LOAD_D = UInt32(0b011U)
+    val FUNCT3_LOAD_BU = UInt32(0b100U)
+    val FUNCT3_LOAD_HU = UInt32(0b101U)
+    val FUNCT3_LOAD_WU = UInt32(0b110U)
 
-    const val FUNCT3_STORE_B = 0b000U
-    const val FUNCT3_STORE_H = 0b001U
-    const val FUNCT3_STORE_W = 0b010U
-    const val FUNCT3_STORE_D = 0b011U
+    val FUNCT3_STORE_B = UInt32(0b000U)
+    val FUNCT3_STORE_H = UInt32(0b001U)
+    val FUNCT3_STORE_W = UInt32(0b010U)
+    val FUNCT3_STORE_D = UInt32(0b011U)
 
-    const val FUNCT3_OPERATION = 0b000U
-    const val FUNCT3_SHIFT_LEFT = 0b001U
-    const val FUNCT3_SLT = 0b010U
-    const val FUNCT3_SLTU = 0b011U
-    const val FUNCT3_XOR = 0b100U
-    const val FUNCT3_SHIFT_RIGHT = 0b101U
-    const val FUNCT3_OR = 0b110U
-    const val FUNCT3_AND = 0b111U
+    val FUNCT3_OPERATION = UInt32(0b000U)
+    val FUNCT3_SHIFT_LEFT = UInt32(0b001U)
+    val FUNCT3_SLT = UInt32(0b010U)
+    val FUNCT3_SLTU = UInt32(0b011U)
+    val FUNCT3_XOR = UInt32(0b100U)
+    val FUNCT3_SHIFT_RIGHT = UInt32(0b101U)
+    val FUNCT3_OR = UInt32(0b110U)
+    val FUNCT3_AND = UInt32(0b111U)
 
-    const val FUNCT3_M_MUL = 0b000U
-    const val FUNCT3_M_MULH = 0b001U
-    const val FUNCT3_M_MULHSU = 0b010U
-    const val FUNCT3_M_MULHU = 0b011U
-    const val FUNCT3_M_DIV = 0b100U
-    const val FUNCT3_M_DIVU = 0b101U
-    const val FUNCT3_M_REM = 0b110U
-    const val FUNCT3_M_REMU = 0b111U
+    val FUNCT3_M_MUL = UInt32(0b000U)
+    val FUNCT3_M_MULH = UInt32(0b001U)
+    val FUNCT3_M_MULHSU = UInt32(0b010U)
+    val FUNCT3_M_MULHU = UInt32(0b011U)
+    val FUNCT3_M_DIV = UInt32(0b100U)
+    val FUNCT3_M_DIVU = UInt32(0b101U)
+    val FUNCT3_M_REM = UInt32(0b110U)
+    val FUNCT3_M_REMU = UInt32(0b111U)
 
-    const val FUNCT3_E = 0b000U
-    const val FUNCT3_CSR_RW = 0b001U
-    const val FUNCT3_CSR_RS = 0b010U
-    const val FUNCT3_CSR_RC = 0b011U
-    const val FUNCT3_CSR_RWI = 0b101U
-    const val FUNCT3_CSR_RSI = 0b110U
-    const val FUNCT3_CSR_RCI = 0b111U
+    val FUNCT3_E = UInt32(0b000U)
+    val FUNCT3_CSR_RW = UInt32(0b001U)
+    val FUNCT3_CSR_RS = UInt32(0b010U)
+    val FUNCT3_CSR_RC = UInt32(0b011U)
+    val FUNCT3_CSR_RWI = UInt32(0b101U)
+    val FUNCT3_CSR_RSI = UInt32(0b110U)
+    val FUNCT3_CSR_RCI = UInt32(0b111U)
 
-    const val FUNCT3_FENCE_I = 0b001U
+    val FUNCT3_FENCE_I = UInt32(0b001U)
 
     /**
      * FUNCT7 CONSTANTS
      */
 
-    const val FUNCT7_SHIFT_ARITH_OR_SUB = 0b0100000U
-    const val FUNCT7_M = 0b0000001U
+    val FUNCT7_SHIFT_ARITH_OR_SUB = UInt32(0b0100000U)
+    val FUNCT7_M = UInt32(0b0000001U)
 
     /**
      * Relocation Types
@@ -87,18 +89,18 @@ data object RVConst {
      * See: https://github.com/riscv-non-isa/riscv-elf-psabi-doc/blob/master/riscv-elf.adoc
      */
 
-    const val R_RISCV_NONE = 0U
-    const val R_RISCV_32 = 1U
-    const val R_RISCV_64 = 2U
-    const val R_RISCV_BRANCH = 16U
-    const val R_RISCV_JAL = 17U
-    const val R_RISCV_CALL = 18U
-    const val R_RISCV_PCREL_HI20 = 23U
-    const val R_RISCV_PCREL_LO12_I = 24U
-    const val R_RISCV_PCREL_LO12_S = 25U
-    const val R_RISCV_HI20 = 26U
-    const val R_RISCV_LO12_I = 27U
-    const val R_RISCV_LO12_S = 28U
+    val R_RISCV_NONE = UInt32(0U)
+    val R_RISCV_32 = UInt32(1U)
+    val R_RISCV_64 = UInt32(2U)
+    val R_RISCV_BRANCH = UInt32(16U)
+    val R_RISCV_JAL = UInt32(17U)
+    val R_RISCV_CALL = UInt32(18U)
+    val R_RISCV_PCREL_HI20 = UInt32(23U)
+    val R_RISCV_PCREL_LO12_I = UInt32(24U)
+    val R_RISCV_PCREL_LO12_S = UInt32(25U)
+    val R_RISCV_HI20 = UInt32(26U)
+    val R_RISCV_LO12_I = UInt32(27U)
+    val R_RISCV_LO12_S = UInt32(28U)
 
     enum class RelocType {
         R_RISCV_NONE,
@@ -143,8 +145,6 @@ data object RVConst {
         ALIGN,
         RVC_BRANCH,
         RVC_JUMP,
-
-
     }
 
 
@@ -152,34 +152,13 @@ data object RVConst {
      * MASKS
      */
 
-    fun UInt.mask12Hi7(): UInt = this shr 5
+    fun UInt32.mask12Hi7(): UInt32 = this shr 5
 
-    fun UInt.mask12Lo5(): UInt = this and 0b000000011111U
+    fun UInt32.mask12Lo5(): UInt32 = this.lowest(5)
 
-    fun UInt.mask32Hi20(): UInt = this shr 12
+    fun UInt32.mask32Hi20(): UInt32 = this shr 12
 
-    fun UInt.mask32Lo12(): UInt = this and 0b111111111111U
-
-    /**
-     * @param index 1 (lowest) .. 32 (highest possible)
-     */
-    fun UInt.bit(index: Int): UInt = (this shr (index - 1)) and 1U
-
-    /**
-     * @param index 1 (lowest) .. 64 (highest possible)
-     */
-    fun ULong.bit(index: Int): ULong = (this shr (index - 1)) and 1U
-
-    fun UInt.lowest4(): UInt = this and 0b1111U
-    fun UInt.lowest6(): UInt = this and 0b111111U
-    fun UInt.lowest8(): UInt = this and 0b11111111U
-    fun UInt.lowest10(): UInt = this and 0b1111111111U
-    fun UInt.lowest12(): UInt = this and 0b111111111111U
-    fun UInt.lowest20(): UInt = this and 0b11111111111111111111U
-
-    fun ULong.lowest4(): UInt = this.toUInt().lowest4()
-    fun ULong.lowest12(): UInt = this.toUInt().lowest12()
-    fun ULong.lowest20(): UInt = this.toUInt().lowest20()
+    fun UInt32.mask32Lo12(): UInt32 = this.lowest(12)
 
 
     /**
@@ -187,21 +166,21 @@ data object RVConst {
      *
      * @return the jType starting from index 0 (needs to be shifted for 12 bit to the left when used in opcode)
      */
-    fun UInt.mask20jType(): UInt {
-        val bit20 = (this shr 19) and 1U
-        val bits10to1 = (this shr 1) and 0x3ffU
-        val bit11 = (this shr 11) and 1U
-        val bits19to12 = (this shr 12) and 0xffU
-
+    fun UInt32.mask20jType(): UInt32 {
+        val bit20 = (this shr 19) and 1
+        val bits10to1 = (this shr 1).lowest(10)
+        val bit11 = (this shr 11) and 1
+        val bits19to12 = (this shr 12).lowest(8)
+    
         return (bit20 shl 19) or
                 (bits19to12) or
                 (bit11 shl 8) or
                 (bits10to1 shl 9)
     }
 
-    fun UInt.mask12bType7(): UInt = (bit(12) shl 6) or (this shr 5).lowest6()
+    fun UInt32.mask12bType7(): UInt32 = (bit(12) shl 6) or (this shr 5).lowest(6)
 
-    fun UInt.mask12bType5(): UInt = (shr(1).lowest4() shl 1) or bit(11)
+    fun UInt32.mask12bType5(): UInt32 = (shr(1).lowest(4) shl 1) or bit(10)
 
 
 }

@@ -4,6 +4,7 @@ package cengine.util.integer
 /**
  * Sign extends an Integer of [bitWidth] to a 64-Bit Integer.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Long.signExtend(bitWidth: Int): Long {
     require(bitWidth in 1..32) { "bitWidth must be between 1 and 32" }
 
@@ -27,6 +28,7 @@ fun Long.signExtend(bitWidth: Int): Long {
 /**
  * Sign extends an Integer of [bitWidth] to a 32-Bit Integer.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Int.signExtend(bitWidth: Int): Int {
     require(bitWidth in 1..32) { "bitWidth must be between 1 and 32" }
 
@@ -48,14 +50,7 @@ fun Int.signExtend(bitWidth: Int): Int {
 /**
  * Rotate left
  */
-infix fun UInt.rol(bits: Int): UInt {
-    val shift = bits % 32 // Ensure the shift is within 0-31
-    return (this shl shift) or (this shr (32 - shift))
-}
-
-/**
- * Rotate left
- */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 infix fun UShort.rol(bits: Int): UShort {
     val shift = bits % 16
     return (this.toUInt() shl shift).toUShort() or (this.toUInt() shr (16 - shift)).toUShort()
@@ -64,23 +59,15 @@ infix fun UShort.rol(bits: Int): UShort {
 /**
  * Rotate right
  */
-infix fun UInt.ror(bits: Int): UInt {
-    val shift = bits % 32 // Ensure the shift is within 0-31
-    return (this shr shift) or (this shl (32 - shift))
-}
-
-/**
- * Rotate right
- */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 infix fun UShort.ror(bits: Int): UShort {
     val shift = bits % 32 // Ensure the shift is within 0-31
     return (this.toUInt() shr shift).toUShort() or (this.toUInt() shl (32 - shift)).toUShort()
 }
 
-fun IntRange.overlaps(other: IntRange): Boolean {
-    return this.first <= other.last && other.first <= this.last
-}
 
+
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Long.multiplyWithHighLow(other: Long): Pair<Long, Long> {
     // Split the longs into high and low 32-bit parts
     val aLow = this and 0xFFFFFFFFL
@@ -102,6 +89,7 @@ fun Long.multiplyWithHighLow(other: Long): Pair<Long, Long> {
     return high to low
 }
 
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun ULong.multiplyWithHighLow(other: ULong): Pair<ULong, ULong> {
     // Split the longs into high and low 32-bit parts
     val aLow = this and 0xFFFFFFFFUL
@@ -123,6 +111,7 @@ fun ULong.multiplyWithHighLow(other: ULong): Pair<ULong, ULong> {
     return high to low
 }
 
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Long.multiplyWithHighLow(other: ULong): Pair<Long, Long> {
     // Split the longs into high and low 32-bit parts
     val aLow = this and 0xFFFFFFFFL

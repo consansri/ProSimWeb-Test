@@ -4,8 +4,10 @@ import cengine.lang.asm.ast.AsmCodeGenerator
 import cengine.lang.obj.elf.LinkerScript
 import cengine.lang.obj.elf.Shdr
 import cengine.util.buffer.Buffer
-import cengine.util.integer.*
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.integer.Size
+import cengine.util.newint.BigInt
+import cengine.util.newint.BigInt.Companion.toBigInt
+import com.ionspin.kotlin.bignum.integer.BigInteger
 
 class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size, val bufferInit: () -> T) : AsmCodeGenerator<AsmCodeGenerator.Section>(linkerScript) {
     override val fileSuffix: String
@@ -18,7 +20,7 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
     override var currentSection: Section = text
 
     override fun orderSectionsAndResolveAddresses() {
-        var globalAddress = 0U.toValue(addrSize)
+        var globalAddress = 0.toBigInt()
 
         // .text
         var addr = linkerScript.textStart ?: globalAddress
@@ -27,7 +29,7 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
             section.isText()
         }.forEach { section ->
             section.address = addr
-            addr += section.content.size.toULong().toValue(addrSize)
+            addr += section.content.size.toBigInt()
         }
 
         globalAddress = addr
@@ -39,7 +41,7 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
             section.isData()
         }.forEach { section ->
             section.address = addr
-            addr += section.content.size.toULong().toValue(addrSize)
+            addr += section.content.size.toBigInt()
         }
 
         globalAddress = addr
@@ -51,7 +53,7 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
             section.isRoData()
         }.forEach { section ->
             section.address = addr
-            addr += section.content.size.toULong().toValue(addrSize)
+            addr += section.content.size.toBigInt()
         }
     }
 
@@ -65,7 +67,7 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
             it.isProg()
         }.forEach { section ->
             val addr = section.address
-            builder.addContent(addr, section.content.toHexList())
+            builder.addContent(addr, section.content.toIntList())
         }
 
         return builder.build().encodeToByteArray()
@@ -78,29 +80,9 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
             override var flags: ULong = flags
             override var link: Section? = link
             override var info: String? = info
-            override var address: Hex = Hex("0")
+            override var address: BigInt = BigInt(BigInteger.ZERO)
             override val content: Buffer<*> = bufferInit()
             override val reservations: MutableList<InstrReservation> = mutableListOf()
-        }
-    }
-
-    companion object {
-        fun String.rdx(radix: Radix, size: Size): Value {
-            return when (radix) {
-                Radix.HEX -> Hex(this, size)
-                Radix.OCT -> Oct(this, size)
-                Radix.BIN -> Bin(this, size)
-                Radix.DEC -> Dec(this, size)
-            }
-        }
-
-        fun Value.rdx(radix: Radix): String {
-            return when (radix) {
-                Radix.HEX -> toHex().rawInput
-                Radix.OCT -> toOct().rawInput
-                Radix.BIN -> toBin().rawInput
-                Radix.DEC -> toUDec().rawInput
-            }
         }
     }
 

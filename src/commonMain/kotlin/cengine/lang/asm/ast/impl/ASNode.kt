@@ -13,12 +13,9 @@ import cengine.lang.obj.elf.*
 import cengine.psi.core.*
 import cengine.psi.feature.Highlightable
 import cengine.psi.lexer.core.Token
-import cengine.util.integer.*
-import cengine.util.integer.Value.Companion.asBin
-import cengine.util.integer.Value.Companion.asDec
-import cengine.util.integer.Value.Companion.asHex
-import cengine.util.integer.Value.Companion.asOct
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.*
+import cengine.util.newint.BigInt.Companion.toBigInt
+import com.ionspin.kotlin.bignum.integer.BigInteger
 import debug.DebugTools
 import emulator.kit.nativeLog
 
@@ -172,7 +169,6 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                             }
 
                             if (!lexer.hasMoreTokens()) {
-                                // TODO Error Handling
                                 val node = Statement.Unresolved(label, unresolvedTokens, token)
                                 node.annotations.add(Annotation.error(lineBreak, "Linebreak is missing!"))
                                 return node
@@ -641,7 +637,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
      *
      */
     sealed class NumericExpr(val brackets: List<AsmToken>, range: IntRange, vararg operands: NumericExpr) : ASNode(range, *operands) {
-        abstract var evaluated: Dec?
+        abstract var eval: BigInt?
 
         companion object {
             fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): ASNode? {
@@ -871,11 +867,8 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             }
         }
 
-        /**
-         * @param builder is for storing relocation information.
-         *
-         */
-        abstract fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit = {}): Dec
+        abstract fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit = {}): BigInt
+
         abstract fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt)
 
         /**
@@ -892,17 +885,17 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             override val pathName: String
                 get() = operator.value
 
-            override var evaluated: Dec? = null
+            override var eval: BigInt? = null
 
-            override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): Dec {
+            override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): BigInt {
                 return when (operator.type) {
-                    AsmTokenType.COMPLEMENT -> operand.evaluate(builder, createRelocations).toBin().inv().toDec()
-                    AsmTokenType.MINUS -> (-operand.evaluate(builder, createRelocations)).toDec()
+                    AsmTokenType.COMPLEMENT -> operand.evaluate(builder, createRelocations).inv()
+                    AsmTokenType.MINUS -> operand.evaluate(builder, createRelocations).unaryMinus()
                     AsmTokenType.PLUS -> operand.evaluate(builder, createRelocations)
                     else -> {
                         throw PsiParser.NodeException(this, "$operator is not defined for this type of expression!")
                     }
-                }.also { evaluated = it }
+                }.also { eval = it }
             }
 
             override fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt) {
@@ -921,35 +914,28 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             (brackets.firstOrNull()?.range?.first ?: operandA.range.first)..(brackets.lastOrNull()?.range?.last ?: operandB.range.last), operandA,
             operandB
         ) {
-            override var evaluated: Dec? = null
+            override var eval: BigInt? = null
+
             override val pathName: String
                 get() = operator.value
 
-            override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): Dec {
+            override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): BigInt {
                 return (when (operator.type) {
                     AsmTokenType.MULT -> operandA.evaluate(builder, createRelocations) * operandB.evaluate(builder, createRelocations)
                     AsmTokenType.DIV -> operandA.evaluate(builder, createRelocations) / operandB.evaluate(builder, createRelocations)
                     AsmTokenType.REM -> operandA.evaluate(builder, createRelocations) % operandB.evaluate(builder, createRelocations)
-                    AsmTokenType.SHL -> operandA.evaluate(builder, createRelocations).toBin() shl (operandB.evaluate(builder, createRelocations).toUDec().toIntOrNull() ?: return operandA.evaluate(
-                        builder,
-                        createRelocations
-                    ))
-
-                    AsmTokenType.SHR -> operandA.evaluate(builder, createRelocations).toBin() shl (operandB.evaluate(builder, createRelocations).toUDec().toIntOrNull() ?: return operandA.evaluate(
-                        builder,
-                        createRelocations
-                    ))
-
-                    AsmTokenType.BITWISE_OR -> operandA.evaluate(builder, createRelocations).toBin() or operandB.evaluate(builder, createRelocations).toBin()
-                    AsmTokenType.BITWISE_AND -> operandA.evaluate(builder, createRelocations).toBin() and operandB.evaluate(builder, createRelocations).toBin()
-                    AsmTokenType.BITWISE_XOR -> operandA.evaluate(builder, createRelocations).toBin() xor operandB.evaluate(builder, createRelocations).toBin()
-                    AsmTokenType.BITWISE_ORNOT -> operandA.evaluate(builder, createRelocations).toBin() or operandB.evaluate(builder, createRelocations).toBin().inv()
+                    AsmTokenType.SHL -> operandA.evaluate(builder, createRelocations) shl operandB.evaluate(builder, createRelocations)
+                    AsmTokenType.SHR -> operandA.evaluate(builder, createRelocations) shl operandB.evaluate(builder, createRelocations)
+                    AsmTokenType.BITWISE_OR -> operandA.evaluate(builder, createRelocations) or operandB.evaluate(builder, createRelocations)
+                    AsmTokenType.BITWISE_AND -> operandA.evaluate(builder, createRelocations) and operandB.evaluate(builder, createRelocations)
+                    AsmTokenType.BITWISE_XOR -> operandA.evaluate(builder, createRelocations) xor operandB.evaluate(builder, createRelocations)
+                    AsmTokenType.BITWISE_ORNOT -> operandA.evaluate(builder, createRelocations) or operandB.evaluate(builder, createRelocations).inv()
                     AsmTokenType.PLUS -> operandA.evaluate(builder, createRelocations) + operandB.evaluate(builder, createRelocations)
                     AsmTokenType.MINUS -> operandA.evaluate(builder, createRelocations) - operandB.evaluate(builder, createRelocations)
                     else -> {
                         throw PsiParser.NodeException(this, "$operator is not defined for this type of expression!")
                     }
-                }).toDec().also { evaluated = it }
+                }).also { eval = it }
             }
 
             override fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt) {
@@ -971,9 +957,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                     get() = token.value
                 override val element: PsiElement = this
                 override var referencedElement: ASNode? = null
-                override var evaluated: Dec? = null
-
-                override fun getFormatted(identSize: Int): String = symToken.value
+                override var eval: BigInt? = null
 
                 override val style: CodeStyle
                     get() = when (symbol) {
@@ -982,15 +966,17 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                         null -> CodeStyle.BASE0
                     }
 
-                override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): Dec {
+                override fun getFormatted(identSize: Int): String = symToken.value
+
+                override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): BigInt {
                     val currSymbol = symbol
 
                     return when (currSymbol) {
-                        is AsmCodeGenerator.Symbol.Abs -> currSymbol.value.toValue().toDec().also { evaluated = it }
-                        is AsmCodeGenerator.Symbol.Label -> currSymbol.address().toDec().also { evaluated = it }
+                        is AsmCodeGenerator.Symbol.Abs -> currSymbol.value.also { eval = it }
+                        is AsmCodeGenerator.Symbol.Label -> currSymbol.address().also { eval = it }
                         null -> {
                             createRelocations(symToken.value)
-                            0.toValue().also { evaluated = it }
+                            BigInt.ZERO.also { eval = it }
                         }
                     }
                 }
@@ -1006,7 +992,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
 
                     if (symToken.value.endsWith("f")) {
                         val nextLocal = symbols.filterIsInstance<AsmCodeGenerator.Symbol.Label<*>>().firstOrNull {
-                            it.local && it.section == section && it.offset >= offset
+                            it.local && it.section == section && it.offset >= offset.toBigInt()
                         }
                         if (nextLocal != null) {
                             symbol = nextLocal
@@ -1016,7 +1002,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
 
                     if (symToken.value.endsWith("b")) {
                         val lastLocal = symbols.filterIsInstance<AsmCodeGenerator.Symbol.Label<*>>().firstOrNull {
-                            it.local && it.section == section && it.offset <= offset
+                            it.local && it.section == section && it.offset <= offset.toBigInt()
                         }
                         if (lastLocal != null) {
                             symbol = lastLocal
@@ -1029,59 +1015,18 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             class Number(val number: AsmToken) : Operand(number, number.range), Highlightable {
                 override val additionalInfo: String
                     get() = number.value
-                override var evaluated: Dec? = null
-                    set(value) {
-                        field = value
-                        //nativeLog("Operand.evaluate(): $value with Size ${value?.size}") // For DEBUGGING
-                    }
 
-                override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): Dec {
+                override var eval: BigInt? = null
+
+                override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): BigInt {
                     return (when (number.type) {
-                        AsmTokenType.INT_DEC -> {
-                            val auto = number.asNumber.asDec()
-                            when {
-                                auto.size == Size.Bit32 -> auto
-                                auto.size == Size.Bit64 -> auto
-                                auto.size == Size.Bit128 -> auto
-                                auto.size.bitWidth < 32 -> number.asNumber.asDec(Size.Bit32)
-                                auto.size.bitWidth < 64 -> number.asNumber.asDec(Size.Bit64)
-                                auto.size.bitWidth < 128 -> number.asNumber.asDec(Size.Bit128)
-                                else -> throw PsiParser.NodeException(this, "Integer ($number) of size ${auto.size} is not supported!")
-                            }
-                        }
-
-                        AsmTokenType.INT_HEX -> {
-                            val auto = number.asNumber.asHex()
-                            when {
-                                auto.size.bitWidth < 32 -> number.asNumber.asHex(Size.Bit32).toDec()
-                                auto.size.bitWidth < 64 -> number.asNumber.asHex(Size.Bit64).toDec()
-                                auto.size.bitWidth < 128 -> number.asNumber.asHex(Size.Bit128).toDec()
-                                else -> throw PsiParser.NodeException(this, "Integer ($number) of size ${auto.size} is not supported!")
-                            }
-                        }
-
-                        AsmTokenType.INT_OCT -> {
-                            val auto = number.asNumber.asOct()
-                            when {
-                                auto.size.bitWidth < 32 -> number.asNumber.asOct(Size.Bit32).toDec()
-                                auto.size.bitWidth < 64 -> number.asNumber.asOct(Size.Bit64).toDec()
-                                auto.size.bitWidth < 128 -> number.asNumber.asOct(Size.Bit128).toDec()
-                                else -> throw PsiParser.NodeException(this, "Integer ($number) of size ${auto.size} is not supported!")
-                            }
-                        }
-
-                        AsmTokenType.INT_BIN -> {
-                            val auto = number.asNumber.asBin()
-                            when {
-                                auto.size.bitWidth < 32 -> number.asNumber.asBin(Size.Bit32).toDec()
-                                auto.size.bitWidth < 64 -> number.asNumber.asBin(Size.Bit64).toDec()
-                                auto.size.bitWidth < 128 -> number.asNumber.asBin(Size.Bit128).toDec()
-                                else -> throw PsiParser.NodeException(this, "Integer ($number) of size ${auto.size} is not supported!")
-                            }
-                        }
+                        AsmTokenType.INT_DEC -> BigInt(BigInteger.parseString(number.asNumber, 10))
+                        AsmTokenType.INT_HEX -> BigInt(BigInteger.parseString(number.asNumber, 16))
+                        AsmTokenType.INT_OCT -> BigInt(BigInteger.parseString(number.asNumber, 8))
+                        AsmTokenType.INT_BIN -> BigInt(BigInteger.parseString(number.asNumber, 2))
 
                         else -> throw PsiParser.NodeException(this, "$number is not a valid Int Literal!")
-                    }).also { evaluated = it }
+                    }).also { eval = it }
                 }
 
                 override fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt) {}
@@ -1098,11 +1043,11 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                 override val additionalInfo: String
                     get() = char.value
 
-                override var evaluated: Dec? = null
+                override var eval: BigInt? = null
                 override fun assign(symbols: Set<AsmCodeGenerator.Symbol<*>>, section: AsmCodeGenerator.Section, offset: UInt) {}
 
-                override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): Dec {
-                    return char.getContentAsString().first().code.toValue().also { evaluated = it }
+                override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): BigInt {
+                    return char.getContentAsString().first().code.toBigInt().also { eval = it }
                 }
 
                 override fun getFormatted(identSize: Int): String = char.value

@@ -2,25 +2,27 @@ package cengine.lang.asm.ast.target.ikrmini
 
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.ikrmini.IKRMiniDisassembler.InstrType.*
-import cengine.util.integer.Hex
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.BigInt
+import cengine.util.newint.IntNumber
+import cengine.util.newint.UInt16
+import cengine.util.newint.UInt16.Companion.toUInt16
 
 object IKRMiniDisassembler : Disassembler() {
 
-    override fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Decoded> {
+    override fun disassemble(startAddr: BigInt, buffer: List<IntNumber<*>>): List<Decoded> {
         var currIndex = 0
         var currInstr: IKRMiniInstrProvider
         val decoded = mutableListOf<Decoded>()
-        val words = buffer.map { it.toUShort() }
+        val words = buffer.map { it.toUInt16() }
 
         while (currIndex < words.size) {
             currInstr = try {
-                IKRMiniInstrProvider(words[currIndex], words.getOrNull(currIndex + 1) ?: 0U, words.getOrNull(currIndex + 2) ?: 0U)
+                IKRMiniInstrProvider(words[currIndex], words.getOrNull(currIndex + 1) ?: UInt16.ZERO, words.getOrNull(currIndex + 2) ?: UInt16.ZERO)
             } catch (e: IndexOutOfBoundsException) {
                 break
             }
 
-            val instr = currInstr.decode(startAddr, currIndex.toULong())
+            val instr = currInstr.decode(startAddr, currIndex)
             decoded.add(instr)
 
             currIndex += currInstr.type?.length ?: 1
@@ -29,38 +31,39 @@ object IKRMiniDisassembler : Disassembler() {
         return decoded
     }
 
-    class IKRMiniInstrProvider(val first: UShort, val second: UShort, val third: UShort) : InstrProvider {
+    class IKRMiniInstrProvider(val first: UInt16, val second: UInt16, val third: UInt16) : InstrProvider {
 
         val type: InstrType? = InstrType.entries.firstOrNull { it.opcode == first }
-        val data: Hex = if (type?.length == 2) {
-            ((first.toUInt() shl 16) or second.toUInt()).toValue()
+
+        val data: BigInt = if (type?.length == 2) {
+            (first.toBigInt() shl 16) or second.toBigInt()
         } else {
-            first.toValue()
+            first.toBigInt()
         }
 
-        override fun decode(segmentAddr: Hex, offset: ULong): Decoded {
+        override fun decode(segmentAddr: BigInt, offset: Int): Decoded {
             return when (type) {
                 LOAD_IMM, AND_IMM, OR_IMM, XOR_IMM, ADD_IMM, ADDC_IMM, SUB_IMM, SUBC_IMM, RCL_IMM, RCR_IMM,
-                -> Decoded(offset, data, "${type.displayName} #${second.toShort()}")
+                    -> Decoded(offset, data, "${type.displayName} #${second.toShort()}")
 
                 LOAD_DIR, STORE_DIR, AND_DIR, OR_DIR, XOR_DIR, ADD_DIR, ADDC_DIR, SUB_DIR, SUBC_DIR,
                 LSL_DIR, LSR_DIR, ROL_DIR, ROR_DIR, ASL_DIR, ASR_DIR, RCL_DIR, RCR_DIR, NOT_DIR, NEG_DIR, INC_DIR, DEC_DIR,
-                -> Decoded(offset, data, "${type.displayName} (${IKRMiniSpec.prefices.hex}${second.toString(16)})")
+                    -> Decoded(offset, data, "${type.displayName} (${IKRMiniSpec.prefices.hex}${second.toString(16)})")
 
                 LOAD_IND, STORE_IND, AND_IND, OR_IND, XOR_IND, ADD_IND, ADDC_IND, SUB_IND, SUBC_IND, LSL_IND, LSR_IND, ROL_IND,
                 ROR_IND, ASL_IND, ASR_IND, RCL_IND, RCR_IND, NOT_IND, NEG_IND, INC_IND, DEC_IND,
-                -> Decoded(offset, data, "${type.displayName} ((${IKRMiniSpec.prefices.hex}${second.toString(16)}))")
+                    -> Decoded(offset, data, "${type.displayName} ((${IKRMiniSpec.prefices.hex}${second.toString(16)}))")
 
                 LOAD_IND_OFF, STORE_IND_OFF, AND_IND_OFF, OR_IND_OFF, XOR_IND_OFF, ADD_IND_OFF, ADDC_IND_OFF, SUB_IND_OFF, SUBC_IND_OFF,
                 LSL_IND_OFF, LSR_IND_OFF, ROL_IND_OFF, ROR_IND_OFF, ASL_IND_OFF, ASR_IND_OFF, RCL_IND_OFF, RCR_IND_OFF, NOT_IND_OFF, NEG_IND_OFF,
                 INC_IND_OFF, DEC_IND_OFF,
-                -> Decoded(offset, data, "${type.displayName} (${third.toShort()},(${IKRMiniSpec.prefices.hex}${second.toString(16)}))")
+                    -> Decoded(offset, data, "${type.displayName} (${third.toShort()},(${IKRMiniSpec.prefices.hex}${second.toString(16)}))")
 
                 LOADI, LSL, LSR, ROL, ROR, ASL, ASR, RCL, RCR, NOT, CLR, INC, DEC, JMP,
-                -> Decoded(offset, data, type.displayName)
+                    -> Decoded(offset, data, type.displayName)
 
                 BSR, BRA, BHI, BLS, BCC, BCS, BNE, BEQ, BVC, BVS, BPL, BMI, BGE, BLT, BGT, BLE,
-                -> Decoded(offset, data, "${type.displayName} ${second.toShort()}")
+                    -> Decoded(offset, data, "${type.displayName} ${second.toShort()}")
 
                 null -> Decoded(offset, data, "[invalid]")
             }
@@ -69,7 +72,7 @@ object IKRMiniDisassembler : Disassembler() {
     }
 
 
-    enum class InstrType(val opcode: UShort, val length: Int = 2) {
+    enum class InstrType(opcode: UShort, val length: Int = 2) {
         LOAD_IMM(0x010CU),
         LOAD_DIR(0x020CU),
         LOAD_IND(0x030CU),
@@ -197,6 +200,8 @@ object IKRMiniDisassembler : Disassembler() {
         BLT(0x610DU),
         BGT(0x610EU),
         BLE(0x610FU);
+
+        val opcode = opcode.toUInt16()
 
         val displayName: String = name.takeWhile { it != '_' }.lowercase().padEnd(5, ' ')
     }

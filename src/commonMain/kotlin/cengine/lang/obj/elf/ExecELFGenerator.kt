@@ -59,16 +59,16 @@ class ExecELFGenerator(
             currentMemoryAddress += segment.p_memsz
         }
 
-        linkerScript.textStart?.toULong()?.let {
-            textSegment.p_vaddr = it
+        linkerScript.textStart?.let {
+            textSegment.p_vaddr = it.value.ulongValue()
         }
 
-        linkerScript.dataStart?.toULong()?.let {
-            dataSegment.p_vaddr = it
+        linkerScript.dataStart?.let {
+            dataSegment.p_vaddr = it.value.ulongValue()
         }
 
-        linkerScript.rodataStart?.toULong()?.let {
-            rodataSegment.p_vaddr = it
+        linkerScript.rodataStart?.let {
+            rodataSegment.p_vaddr = it.value.ulongValue()
         }
 
         // Set Entry Point

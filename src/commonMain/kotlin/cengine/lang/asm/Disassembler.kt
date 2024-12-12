@@ -2,7 +2,8 @@ package cengine.lang.asm
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import cengine.util.integer.Hex
+import cengine.util.newint.BigInt
+import cengine.util.newint.IntNumber
 
 abstract class Disassembler {
 
@@ -23,15 +24,15 @@ abstract class Disassembler {
         return mapped
     }
 
-    abstract fun disassemble(startAddr: Hex, buffer: List<Hex>): List<Decoded>
+    abstract fun disassemble(startAddr: BigInt, buffer: List<IntNumber<*>>): List<Decoded>
 
     interface InstrProvider {
 
-        fun decode(segmentAddr: Hex, offset: ULong): Decoded
+        fun decode(segmentAddr: BigInt, offset: Int): Decoded
     }
 
     data class DecodedSegment(
-        val addr: Hex,
+        val addr: BigInt,
         val labels: List<Label>,
         val decodedContent: List<Decoded>,
     )
@@ -40,7 +41,7 @@ abstract class Disassembler {
      * @param offset Offset in Segment
      */
     data class Label(
-        val offset: ULong,
+        val offset: Int,
         val name: String,
     )
 
@@ -48,9 +49,9 @@ abstract class Disassembler {
      * @param offset must be unique in combination with [DecodedSegment.addr]!
      */
     data class Decoded(
-        val offset: ULong,
-        val data: Hex,
+        val offset: Int,
+        val data: IntNumber<*>,
         val disassembled: String,
-        val target: Hex? = null,
+        val target: BigInt? = null,
     )
 }

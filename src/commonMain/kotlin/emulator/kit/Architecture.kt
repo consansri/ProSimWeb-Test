@@ -1,9 +1,11 @@
 package emulator.kit
 
+import androidx.compose.runtime.MutableState
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.Initializer
 import cengine.util.integer.*
 import cengine.util.integer.Size.*
+import cengine.util.newint.IntNumber
 import emulator.core.*
 import emulator.kit.common.*
 import emulator.kit.config.Config
@@ -38,11 +40,10 @@ import emulator.kit.optional.SetupSetting
  *  @property cache Not Essential: Possibly given by Config
  *
  */
-abstract class Architecture(config: Config) {
+abstract class Architecture<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(config: Config) {
     val description: Config.Description = config.description
-    val fileEnding: String = config.fileEnding
-    val regContainer: RegContainer = config.regContainer
-    val memory: MainMemory = config.memory
+    abstract val memory: MainMemory<ADDR, INSTANCE>
+    abstract val pcState: MutableState<ADDR>
     val console: IConsole = IConsole("${config.description.name} Console")
     val features: List<Feature> = config.features
     val settings: List<SetupSetting<*>> = config.settings
@@ -52,13 +53,7 @@ abstract class Architecture(config: Config) {
     init {
         // Starting with non-micro setup
         MicroSetup.clear()
-        MicroSetup.append(memory)
     }
-
-    fun getAllRegFiles(): List<RegContainer.RegisterFile> = regContainer.getRegFileList()
-    fun getAllRegs(): List<RegContainer.Register> = regContainer.getAllRegs(features)
-    fun getRegByName(name: String, regFile: String? = null): RegContainer.Register? = regContainer.getReg(name, features, regFile)
-    fun getRegByAddr(addr: UInt, regFile: String? = null): RegContainer.Register? = regContainer.getReg(addr, features, regFile)
 
     /**
      * Execution Event: continuous
@@ -104,7 +99,7 @@ abstract class Architecture(config: Config) {
      * Execution Event: until address
      * should be implemented by specific archs
      */
-    open fun exeUntilAddress(address: Hex) {
+    open fun exeUntilAddress(address: IntNumber<*>) {
         console.clear()
     }
 
@@ -113,13 +108,18 @@ abstract class Architecture(config: Config) {
      * don't need to but could be implemented by specific archs
      */
     open fun exeReset() {
-        regContainer.clear()
         MicroSetup.getMemoryInstances().forEach {
             it.clear()
         }
+        MicroSetup.getRegFiles().forEach {
+            it.clear()
+        }
+        resetPC()
         initializer?.initialize(memory)
         console.exeInfo("resetting")
     }
+
+    protected abstract fun resetPC()
 
     /**
      * Reset [MicroSetup]

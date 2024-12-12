@@ -19,14 +19,13 @@ import androidx.compose.ui.text.TextStyle
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.highlighting.HighlightProvider.Companion.spanStyles
 import cengine.lang.asm.Disassembler
-import cengine.util.integer.Hex
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.BigInt
 import emulator.kit.Architecture
 import ui.uilib.UIState
 import ui.uilib.label.CLabel
 
 @Composable
-fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, baseStyle: TextStyle, codeStyle: TextStyle) {
+fun ExecutionView(architecture: Architecture<*,*>?, highlighter: HighlightProvider?, baseStyle: TextStyle, codeStyle: TextStyle) {
 
     val disassembler = remember { architecture?.disassembler }
 
@@ -35,7 +34,7 @@ fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, 
     val icons = UIState.Icon.value
 
     var decodedRenderingValues by remember { mutableStateOf<List<Pair<Disassembler.DecodedSegment, Disassembler.Decoded>>>(emptyList()) }
-    var decodedRenderingLabels by remember { mutableStateOf<Map<Hex, Disassembler.Label>>(emptyMap()) }
+    var decodedRenderingLabels by remember { mutableStateOf<Map<BigInt, Disassembler.Label>>(emptyMap()) }
 
     if (disassembler == null || architecture == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -48,7 +47,7 @@ fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, 
                 var dest: Disassembler.Decoded? = null
                 disassembler.decodedContent.value.forEach { destSeg ->
                     val found = destSeg.decodedContent.firstOrNull { dest ->
-                        val rowAddr = destSeg.addr + dest.offset.toValue(destSeg.addr.size)
+                        val rowAddr = destSeg.addr + dest.offset
                         rowAddr == destAddr
                     }
                     if (found != null) dest = found
@@ -97,9 +96,9 @@ fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, 
                      */
                     it.first.addr.toString() + it.second.offset
                 }) { (segment, decoded) ->
-                    val address = (segment.addr + decoded.offset.toValue(segment.addr.size)).toHex()
+                    val address = segment.addr + decoded.offset
                     val destOf = targetLinks.firstOrNull { it.first == decoded }
-                    val pcPointsOn = architecture.regContainer.pc.variable.state.value == address
+                    val pcPointsOn = architecture.pcState.value.toBigInt() == address
 
                     val interactionSource = remember { MutableInteractionSource() }
 
@@ -113,11 +112,11 @@ fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, 
                             }, verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                            Text(address.toRawZeroTrimmedString(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
+                            Text(address.toString(16), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
                         }
                         Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                         Box(Modifier.weight(0.75f), contentAlignment = Alignment.Center) {
-                            Text(decoded.data.rawInput, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
+                            Text(decoded.data.zeroPaddedHex(), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = if (pcPointsOn) theme.COLOR_GREEN else theme.COLOR_FG_0)
                         }
                         Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
@@ -142,7 +141,7 @@ fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, 
                         }
                         Spacer(Modifier.width(scale.SIZE_INSET_MEDIUM))
                         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                            val targetName = decodedRenderingLabels[decoded.target]?.name ?: decoded.target?.toRawZeroTrimmedString() ?: ""
+                            val targetName = decodedRenderingLabels[decoded.target]?.name ?: decoded.target?.zeroPaddedHex() ?: ""
                             Text(targetName, fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = destOf?.third ?: theme.COLOR_FG_1)
                         }
                     }
@@ -157,7 +156,7 @@ fun ExecutionView(architecture: Architecture?, highlighter: HighlightProvider?, 
             }
 
             decodedRenderingLabels = decodedRenderingValues.flatMap { (segment, decoded) ->
-                segment.labels.map { label -> segment.addr + label.offset.toValue(segment.addr.size) to label }
+                segment.labels.map { label -> segment.addr + label.offset to label }
             }.toMap()
         }
     }

@@ -7,9 +7,9 @@ import cengine.util.Endianness
 import cengine.util.buffer.ByteBuffer
 import cengine.util.buffer.ByteBuffer.Companion.toASCIIByteArray
 import cengine.util.buffer.ByteBuffer.Companion.toASCIIString
-import cengine.util.integer.Hex
-import cengine.util.integer.Size
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.BigInt
+import cengine.util.newint.BigInt.Companion.toBigInt
+import com.ionspin.kotlin.bignum.integer.BigInteger
 
 abstract class ELFGenerator(
     val e_type: Elf_Half,
@@ -66,7 +66,7 @@ abstract class ELFGenerator(
     override var currentSection: ELFSection = text
 
     init {
-        symbols.add(Symbol.Label("", nullSec, 0U))
+        symbols.add(Symbol.Label("", nullSec, BigInt(BigInteger.ZERO)))
     }
 
     override fun writeFile(): ByteArray {
@@ -241,13 +241,13 @@ abstract class ELFGenerator(
             when (this) {
                 is Symbol.Abs -> {
                     Sym.createEmpty(ei_class, strTab.addString(this.name), sections.indexOf(section).toUShort(), type = Sym.STT_NUM, binding = binding).apply {
-                        setValue(value)
+                        setValue(value.value.ulongValue())
                     }
                 }
 
                 is Symbol.Label -> {
                     Sym.createEmpty(ei_class, strTab.addString(this.name), sections.indexOf(section).toUShort(), type = Sym.STT_NOTYPE, binding = binding).apply {
-                        setValue(address().toULong())
+                        setValue(address().value.ulongValue())
                     }
                 }
             }
@@ -340,13 +340,13 @@ abstract class ELFGenerator(
         override var info: String? = null,
         private val entSize: ULong? = null,
     ) : Section {
-        override var address: Hex = Hex("0", Size.Bit64)
+        override var address: BigInt = BigInt(BigInteger.ZERO)
 
         fun createHeader(): Shdr = Shdr.create(ei_class).apply {
             sh_name = shStrTab[name] ?: shStrTab.addString(name)
             sh_type = type
 
-            setAddr(address.toULong())
+            setAddr(address.value.ulongValue())
             setFlags(flags)
 
             val currLink = link
@@ -459,7 +459,7 @@ abstract class ELFGenerator(
         private fun calculateSectionAddresses() {
             var currentAddress = p_vaddr
             sections.forEach { section ->
-                section.address = currentAddress.toValue()
+                section.address = currentAddress.toBigInt()
                 currentAddress += section.content.size.toULong()
             }
         }

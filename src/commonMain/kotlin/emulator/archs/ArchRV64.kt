@@ -1,70 +1,97 @@
 package emulator.archs
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import cengine.lang.asm.ast.target.riscv.RVDisassembler
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.JAL
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.JALR
-import cengine.util.integer.Size
-import cengine.util.integer.Value.Companion.toValue
-import cengine.util.integer.multiplyWithHighLow
-import cengine.util.integer.signExtend
+import cengine.util.Endianness
+import cengine.util.newint.BigInt.Companion.toBigInt
+import cengine.util.newint.Int64.Companion.toInt64
+import cengine.util.newint.UInt16
+import cengine.util.newint.UInt32
+import cengine.util.newint.UInt64
+import cengine.util.newint.UInt64.Companion.toUInt64
+import cengine.util.newint.UInt8
 import emulator.archs.riscv.riscv64.RV64
+import emulator.archs.riscv.riscv64.RV64BaseRegs
+import emulator.archs.riscv.riscv64.RV64CSRRegs
 import emulator.kit.MicroSetup
+import emulator.kit.memory.MainMemory
 import emulator.kit.memory.Memory
 import emulator.kit.optional.BasicArchImpl
 
-class ArchRV64 : BasicArchImpl(RV64.config) {
-    var instrMemory: Memory = memory
+class ArchRV64 : BasicArchImpl<UInt64, UInt8>(RV64.config) {
+
+    override val pcState: MutableState<UInt64> = mutableStateOf(UInt64.ZERO)
+
+    private var pc by pcState
+
+    override val memory: MainMemory<UInt64, UInt8> = MainMemory(Endianness.LITTLE, UInt64, UInt8)
+
+    var instrMemory: Memory<UInt64, UInt8> = memory
         set(value) {
             field = value
             resetMicroArch()
         }
 
-    var dataMemory: Memory = memory
+    var dataMemory: Memory<UInt64, UInt8> = memory
         set(value) {
             field = value
             resetMicroArch()
         }
+
+    private val baseRegs = RV64BaseRegs()
+    private val csrRegs = RV64CSRRegs()
+
+    private fun Memory<UInt64, UInt8>.loadDWord(addr: UInt64, tracker: Memory.AccessTracker): UInt64 {
+        val bytes = loadEndianAwareBytes(addr, 8, tracker)
+        return UInt64.fromUInt32(
+            UInt32.fromUInt16(UInt16.fromUInt8(bytes[0], bytes[1]), UInt16.fromUInt8(bytes[2], bytes[3])),
+            UInt32.fromUInt16(UInt16.fromUInt8(bytes[4], bytes[5]), UInt16.fromUInt8(bytes[6], bytes[7]))
+        )
+    }
+
+    private fun Memory<UInt64, UInt8>.loadWord(addr: UInt64, tracker: Memory.AccessTracker): UInt32 {
+        val bytes = loadEndianAwareBytes(addr, 4, tracker)
+        return UInt32.fromUInt16(UInt16.fromUInt8(bytes[0], bytes[1]), UInt16.fromUInt8(bytes[2], bytes[3]))
+    }
+
+    private fun Memory<UInt64, UInt8>.loadHalf(addr: UInt64, tracker: Memory.AccessTracker): UInt16 {
+        val bytes = loadEndianAwareBytes(addr, 2, tracker)
+        return UInt16.fromUInt8(bytes[0], bytes[1])
+    }
 
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
-        // Shortcuts
-        val pc = regContainer.pc
-
         // IF
-        val currentPc = pc.get().toHex()
-        val instrBin = instrMemory.load(currentPc, RV64.WORD_WIDTH.byteCount, tracker).toUInt()
+        val instrBin = instrMemory.loadWord(pc, tracker)
 
         // DC
-        val decoded = RVDisassembler.RVInstrInfoProvider(instrBin)
+        val decoded = RVDisassembler.RVInstrInfoProvider(instrBin) { toUInt64().toBigInt() }
 
         // EX
         when (decoded.type) {
             RVDisassembler.InstrType.LUI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                rd.set((decoded.imm20uType shl 12).toInt().toLong().toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = (decoded.imm20uType.toLong() shl 12).toInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.AUIPC -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val result = currentPc.toLong() + (decoded.imm20uType shl 12).toInt().toLong()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = pc + (decoded.imm20uType shl 12).toInt()
+                pc += 4
             }
 
             RVDisassembler.InstrType.JAL -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                rd.set(currentPc + 4U.toValue())
-                val target = currentPc.toLong() + decoded.jTypeOffset
-
-                pc.set(target.toValue())
+                baseRegs[decoded.rd] = pc + 4
+                pc += decoded.jTypeOffset
             }
 
             RVDisassembler.InstrType.JALR -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                rd.set(currentPc + 4U.toValue())
-                val target = rs1.get().toULong() + decoded.imm12iType.toLong().signExtend(12).toULong() and (-1L shl 1).toULong()
-                pc.set(target.toValue())
+                baseRegs[decoded.rd] = pc + 4
+
+                pc = baseRegs[decoded.rs1] + (decoded.iTypeImm and (-1L shl 1))
             }
 
             RVDisassembler.InstrType.ECALL -> {
@@ -76,419 +103,274 @@ class ArchRV64 : BasicArchImpl(RV64.config) {
             }
 
             RVDisassembler.InstrType.BEQ -> {
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val target = (currentPc.toLong() + decoded.bTypeOffset).toULong().toValue()
-                if (rs1.get() == rs2.get()) {
-                    pc.set(target)
+                if (baseRegs[decoded.rs1] == baseRegs[decoded.rs2]) {
+                    pc += decoded.bTypeOffset
                 } else {
-                    incPCBy4()
+                    pc += 4
                 }
             }
 
             RVDisassembler.InstrType.BNE -> {
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val target = (currentPc.toLong() + decoded.bTypeOffset).toULong().toValue()
-                if (rs1.get() != rs2.get()) {
-                    pc.set(target)
+                if (baseRegs[decoded.rs1] != baseRegs[decoded.rs2]) {
+                    pc += decoded.bTypeOffset
                 } else {
-                    incPCBy4()
+                    pc += 4
                 }
             }
 
             RVDisassembler.InstrType.BLT -> {
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val target = (currentPc.toLong() + decoded.bTypeOffset).toULong().toValue()
-                if (rs1.get().toLong() < rs2.get().toLong()) {
-                    pc.set(target)
+                if (baseRegs[decoded.rs1].toLong() < baseRegs[decoded.rs2].toLong()) {
+                    pc += decoded.bTypeOffset
                 } else {
-                    incPCBy4()
+                    pc += 4
                 }
             }
 
             RVDisassembler.InstrType.BGE -> {
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val target = (currentPc.toLong() + decoded.bTypeOffset).toULong().toValue()
-                if (rs1.get().toLong() >= rs2.get().toLong()) {
-                    pc.set(target)
+                if (baseRegs[decoded.rs1].toLong() >= baseRegs[decoded.rs2].toLong()) {
+                    pc += decoded.bTypeOffset
                 } else {
-                    incPCBy4()
+                    pc += 4
                 }
             }
 
             RVDisassembler.InstrType.BLTU -> {
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val target = (currentPc.toLong() + decoded.bTypeOffset).toULong().toValue()
-                if (rs1.get().toULong() < rs2.get().toULong()) {
-                    pc.set(target)
+                if (baseRegs[decoded.rs1].toULong() < baseRegs[decoded.rs2].toULong()) {
+                    pc += decoded.bTypeOffset
                 } else {
-                    incPCBy4()
+                    pc += 4
                 }
             }
 
             RVDisassembler.InstrType.BGEU -> {
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val target = (currentPc.toLong() + decoded.bTypeOffset).toULong().toValue()
-                if (rs1.get().toULong() >= rs2.get().toULong()) {
-                    pc.set(target)
+                if (baseRegs[decoded.rs1].toULong() >= baseRegs[decoded.rs2].toULong()) {
+                    pc += decoded.bTypeOffset
                 } else {
-                    incPCBy4()
+                    pc += 4
                 }
             }
 
             RVDisassembler.InstrType.LB -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.iTypeImm).toULong().toValue()
-                val loaded = dataMemory.load(address, tracker = tracker).toLong().signExtend(8)
-                rd.set(loaded.toValue())
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.iTypeImm
+                baseRegs[decoded.rd] = dataMemory.loadInstance(address, tracker = tracker).toInt8().toInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.LH -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.iTypeImm).toULong().toValue()
-                val loaded = dataMemory.load(address, amount = 2, tracker = tracker).toLong().signExtend(16)
-                rd.set(loaded.toValue())
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.iTypeImm
+                baseRegs[decoded.rd] = dataMemory.loadHalf(address, tracker = tracker).toInt16().toInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.LW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.iTypeImm).toULong().toValue()
-                val loaded = dataMemory.load(address, amount = 4, tracker = tracker).toLong().signExtend(32)
-                rd.set(loaded.toValue())
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.iTypeImm
+                baseRegs[decoded.rd] = dataMemory.loadWord(address, tracker = tracker).toInt32().toInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.LD -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.iTypeImm).toULong().toValue()
-                val loaded = dataMemory.load(address, amount = 8, tracker = tracker)
-                rd.set(loaded)
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.iTypeImm
+                baseRegs[decoded.rd] = dataMemory.loadDWord(address, tracker = tracker)
+                pc += 4
             }
 
             RVDisassembler.InstrType.LBU -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.iTypeImm).toULong().toValue()
-                val loaded = dataMemory.load(address, tracker = tracker).toULong()
-                rd.set(loaded.toValue())
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.iTypeImm
+                baseRegs[decoded.rd] = dataMemory.loadInstance(address, tracker = tracker).toUInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.LHU -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.iTypeImm).toULong().toValue()
-                val loaded = dataMemory.load(address, amount = 2, tracker = tracker).toULong()
-                rd.set(loaded.toValue())
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.iTypeImm
+                baseRegs[decoded.rd] = dataMemory.loadHalf(address, tracker = tracker).toUInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.LWU -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.iTypeImm).toULong().toValue()
-                val loaded = dataMemory.load(address, amount = 4, tracker = tracker).toULong()
-                rd.set(loaded.toValue())
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.iTypeImm
+                baseRegs[decoded.rd] = dataMemory.loadWord(address, tracker = tracker).toUInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SB -> {
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.sTypeImm).toULong().toValue()
-                val value = rs2.get().toULong().toUByte().toValue()
-                dataMemory.store(address, value, tracker = tracker)
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.sTypeImm
+                dataMemory.storeEndianAware(address, baseRegs[decoded.rs2].toUInt8(), tracker = tracker)
+                pc += 4
             }
 
             RVDisassembler.InstrType.SH -> {
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.sTypeImm).toULong().toValue()
-                val value = rs2.get().toULong().toUShort().toValue()
-                dataMemory.store(address, value, tracker = tracker)
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.sTypeImm
+                dataMemory.storeEndianAware(address, baseRegs[decoded.rs2].toUInt16(), tracker = tracker)
+                pc += 4
             }
 
             RVDisassembler.InstrType.SW -> {
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.sTypeImm).toULong().toValue()
-                val value = rs2.get().toULong().toUInt().toValue()
-                dataMemory.store(address, value, tracker = tracker)
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.sTypeImm
+                dataMemory.storeEndianAware(address, baseRegs[decoded.rs2].toUInt32(), tracker = tracker)
+                pc += 4
             }
 
             RVDisassembler.InstrType.SD -> {
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val address = (rs1.get().toLong() + decoded.sTypeImm).toULong().toValue()
-                val value = rs2.get()
-                dataMemory.store(address, value, tracker = tracker)
-                incPCBy4()
+                val address = baseRegs[decoded.rs1] + decoded.sTypeImm
+                dataMemory.storeEndianAware(address, baseRegs[decoded.rs2], tracker = tracker)
+                pc += 4
             }
 
             RVDisassembler.InstrType.ADDI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get() + decoded.iTypeImm.toULong().toValue()
-                rd.set(result)
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] + decoded.iTypeImm
+                pc += 4
             }
 
             RVDisassembler.InstrType.ADDIW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get().toUInt() + decoded.iTypeImm.toUInt()
-                rd.set(result.toLong().signExtend(32).toValue())
-                incPCBy4()
+                val result = baseRegs[decoded.rs1].toInt32() + decoded.iTypeImm.toInt64().toInt32()
+                baseRegs[decoded.rd] = result.toInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SLTI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                if (rs1.get().toLong() < decoded.iTypeImm) {
-                    rd.set(1.toValue(Size.Bit64))
+                baseRegs[decoded.rd] = if (baseRegs[decoded.rs1].toLong() < decoded.iTypeImm) {
+                    UInt64.ONE
                 } else {
-                    rd.set(0.toValue(Size.Bit64))
+                    UInt64.ZERO
                 }
-                incPCBy4()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SLTIU -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                if (rs1.get().toULong() < decoded.imm12iType.toULong()) {
-                    rd.set(1.toValue(Size.Bit64))
+                baseRegs[decoded.rd] = if (baseRegs[decoded.rs1].toULong() < decoded.imm12iType.toULong()) {
+                    UInt64.ONE
                 } else {
-                    rd.set(0.toValue(Size.Bit64))
+                    UInt64.ZERO
                 }
-                incPCBy4()
+                pc += 4
             }
 
             RVDisassembler.InstrType.XORI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get().toULong() xor decoded.iTypeImm.toULong()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] xor decoded.iTypeImm
+                pc += 4
             }
 
             RVDisassembler.InstrType.ORI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get().toULong() or decoded.iTypeImm.toULong()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] or decoded.iTypeImm
+                pc += 4
             }
 
             RVDisassembler.InstrType.ANDI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get().toULong() and decoded.iTypeImm.toULong()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] and decoded.iTypeImm
+                pc += 4
             }
 
             RVDisassembler.InstrType.SLLI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get().toULong() shl decoded.shamt.toInt()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] shl decoded.shamt.toInt()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SLLIW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get().toULong().toUInt() shl decoded.shamt.toInt()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1].toUInt32() shl decoded.shamt.toInt()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SRLI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get().toULong() shr decoded.shamt.toInt()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] shr decoded.shamt.toInt()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SRLIW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get().toULong().toUInt() shr decoded.shamt.toInt()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1].toUInt32() shr decoded.shamt.toInt()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SRAI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get().toLong() shr decoded.shamt.toInt()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1].toInt64() shr decoded.shamt.toInt()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SRAIW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val result = rs1.get().toLong().toInt() shr decoded.shamt.toInt()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1].toInt32() shr decoded.shamt.toInt()
+                pc += 4
             }
 
             RVDisassembler.InstrType.ADD -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = rs1.get().toULong() + rs2.get().toULong()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] + baseRegs[decoded.rs2]
+                pc += 4
             }
 
             RVDisassembler.InstrType.ADDW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toULong() + rs2.get().toULong()).toInt().toLong()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1].toInt32() + baseRegs[decoded.rs2].toInt32()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SUB -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = rs1.get().toULong() - rs2.get().toULong()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] - baseRegs[decoded.rs2]
+                pc += 4
             }
 
             RVDisassembler.InstrType.SUBW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toULong() - rs2.get().toULong()).toInt().toLong()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1].toInt32() - baseRegs[decoded.rs2].toInt32()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SLL -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toULong() shl rs2.get().toULong().toInt())
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] shl baseRegs[decoded.rs2]
+                pc += 4
             }
 
             RVDisassembler.InstrType.SLLW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toULong() shl rs2.get().toULong().toInt()).toInt().toULong()
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1].toInt32() shl baseRegs[decoded.rs2].toInt32()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SLT -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                if (rs1.get().toLong() < rs2.get().toLong()) {
-                    rd.set(1L.toValue())
+                baseRegs[decoded.rd] = if (baseRegs[decoded.rs1].toLong() < baseRegs[decoded.rs2].toLong()) {
+                    UInt64.ONE
                 } else {
-                    rd.set(0L.toValue())
+                    UInt64.ZERO
                 }
-                incPCBy4()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SLTU -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                if (rs1.get().toULong() < rs2.get().toULong()) {
-                    rd.set(1L.toValue())
+                baseRegs[decoded.rd] = if (baseRegs[decoded.rs1].toULong() < baseRegs[decoded.rs2].toULong()) {
+                    UInt64.ONE
                 } else {
-                    rd.set(0L.toValue())
+                    UInt64.ONE
                 }
-                incPCBy4()
+                pc += 4
             }
 
             RVDisassembler.InstrType.XOR -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toBin() xor rs2.get().toBin())
-                rd.set(result)
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] xor baseRegs[decoded.rs2]
+                pc += 4
             }
 
             RVDisassembler.InstrType.SRL -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toULong() shr rs2.get().toULong().toInt())
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] shr baseRegs[decoded.rs2]
+                pc += 4
             }
 
             RVDisassembler.InstrType.SRLW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toULong().toUInt() shr rs2.get().toULong().toInt())
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1].toUInt32() shr baseRegs[decoded.rs2].toInt()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SRA -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toLong() shr rs2.get().toULong().toInt())
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1].toInt64() shr baseRegs[decoded.rs2].toInt()
+                pc += 4
             }
 
             RVDisassembler.InstrType.SRAW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toLong().toInt() shr rs2.get().toULong().toInt())
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1].toInt32() shr baseRegs[decoded.rs2].toULong().toInt()
+                pc += 4
             }
 
             RVDisassembler.InstrType.OR -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toULong() or rs2.get().toULong())
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] or baseRegs[decoded.rs2]
+                pc += 4
             }
 
             RVDisassembler.InstrType.AND -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toULong() and rs2.get().toULong())
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] and baseRegs[decoded.rs2]
+                pc += 4
             }
 
             RVDisassembler.InstrType.FENCE -> {
@@ -500,235 +382,152 @@ class ArchRV64 : BasicArchImpl(RV64.config) {
             }
 
             RVDisassembler.InstrType.CSRRW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val csr = getRegByAddr(decoded.imm12iType, RV64.CSR_REGFILE_NAME) ?: return ExecutionResult(false)
+                val t = csrRegs[decoded.imm12iType]
+                csrRegs[decoded.imm12iType] = baseRegs[decoded.rs1]
+                baseRegs[decoded.rd] = t
 
-                val t = csr.get().toLong()
-                rd.set(t.toValue())
-                csr.set(rs1.get())
-
-                incPCBy4()
+                pc += 4
             }
 
             RVDisassembler.InstrType.CSRRS -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val csr = getRegByAddr(decoded.imm12iType, RV64.CSR_REGFILE_NAME) ?: return ExecutionResult(false)
+                val t = csrRegs[decoded.imm12iType]
+                csrRegs[decoded.imm12iType] = baseRegs[decoded.rs1] or t
+                baseRegs[decoded.rd] = t
 
-                val t = csr.get().toLong()
-                rd.set(t.toValue())
-                csr.set(rs1.get().toBin() or csr.get().toBin())
-
-                incPCBy4()
+                pc += 4
             }
 
             RVDisassembler.InstrType.CSRRC -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val csr = getRegByAddr(decoded.imm12iType, RV64.CSR_REGFILE_NAME) ?: return ExecutionResult(false)
+                val t = csrRegs[decoded.imm12iType]
+                csrRegs[decoded.imm12iType] = baseRegs[decoded.rs1] and t
+                baseRegs[decoded.rd] = t
 
-                val t = csr.get().toLong()
-                rd.set(t.toValue())
-                csr.set(rs1.get().toBin() and csr.get().toBin())
-
-                incPCBy4()
+                pc += 4
             }
 
             RVDisassembler.InstrType.CSRRWI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val csr = getRegByAddr(decoded.imm12iType, RV64.CSR_REGFILE_NAME) ?: return ExecutionResult(false)
+                val t = csrRegs[decoded.imm12iType]
+                csrRegs[decoded.imm12iType] = decoded.rs1
+                baseRegs[decoded.rd] = t
 
-                val t = csr.get().toLong()
-                rd.set(t.toValue())
-                csr.set(decoded.rs1.toULong().toValue())
-
-                incPCBy4()
+                pc += 4
             }
 
             RVDisassembler.InstrType.CSRRSI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val csr = getRegByAddr(decoded.imm12iType, RV64.CSR_REGFILE_NAME) ?: return ExecutionResult(false)
+                val t = csrRegs[decoded.imm12iType]
+                csrRegs[decoded.imm12iType] = (t.toULong() or decoded.rs1.toULong()).toUInt64()
+                baseRegs[decoded.rd] = t
 
-                val t = csr.get().toLong()
-                rd.set(t.toValue())
-                csr.set((t.toULong() or decoded.rs1.toULong()).toValue())
-
-                incPCBy4()
+                pc += 4
             }
 
             RVDisassembler.InstrType.CSRRCI -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val csr = getRegByAddr(decoded.imm12iType, RV64.CSR_REGFILE_NAME) ?: return ExecutionResult(false)
+                val t = csrRegs[decoded.imm12iType]
+                csrRegs[decoded.imm12iType] = (t.toULong() and decoded.rs1.toULong().inv()).toUInt64()
+                baseRegs[decoded.rd] = t
 
-                val t = csr.get().toLong()
-                rd.set(t.toValue())
-                csr.set((t.toULong() and decoded.rs1.toULong().inv()).toValue())
-
-                incPCBy4()
+                pc += 4
             }
+
             RVDisassembler.InstrType.MUL -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toLong() * rs2.get().toLong())
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = baseRegs[decoded.rs1] * baseRegs[decoded.rs2]
+                pc += 4
             }
 
             RVDisassembler.InstrType.MULH -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1].toLong().toBigInt()
+                val b = baseRegs[decoded.rs2].toLong().toBigInt()
 
-                val a = rs1.get().toLong()
-                val b = rs2.get().toLong()
-
-                val result = a.multiplyWithHighLow(b).first
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = ((a * b) shr 64).toUInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.MULHSU -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1].toLong().toBigInt()
+                val b = baseRegs[decoded.rs2].toBigInt()
 
-                val a = rs1.get().toLong()
-                val b = rs2.get().toULong()
-
-                val result = a.multiplyWithHighLow(b).first
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = ((a * b) shr 64).toUInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.MULHU -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1].toBigInt()
+                val b = baseRegs[decoded.rs2].toBigInt()
 
-                val a = rs1.get().toULong()
-                val b = rs2.get().toULong()
-
-                val result = a.multiplyWithHighLow(b).first
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = ((a * b) shr 64).toUInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.DIV -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1].toInt64()
+                val b = baseRegs[decoded.rs2].toInt64()
 
-                val a = rs1.get().toLong()
-                val b = rs2.get().toLong()
-                val result = a / b
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = a / b
+                pc += 4
             }
 
             RVDisassembler.InstrType.DIVU -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1]
+                val b = baseRegs[decoded.rs2]
 
-                val a = rs1.get().toULong()
-                val b = rs2.get().toULong()
-                val result = a / b
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = a / b
+                pc += 4
             }
 
             RVDisassembler.InstrType.REM -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1].toInt64()
+                val b = baseRegs[decoded.rs2].toInt64()
 
-                val a = rs1.get().toLong()
-                val b = rs2.get().toLong()
-                val result = a % b
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = a % b
+                pc += 4
             }
 
             RVDisassembler.InstrType.REMU -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1]
+                val b = baseRegs[decoded.rs2]
 
-                val a = rs1.get().toULong()
-                val b = rs2.get().toULong()
-                val result = a % b
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = a % b
+                pc += 4
             }
 
             RVDisassembler.InstrType.MULW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
-                val result = (rs1.get().toLong().toInt() * rs2.get().toLong().toInt()).toLong()
-                rd.set(result.toValue())
-                incPCBy4()
+                val a = baseRegs[decoded.rs1].toInt32()
+                val b = baseRegs[decoded.rs2].toInt32()
+
+                baseRegs[decoded.rd] = (a * b).toInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.DIVW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1].toInt32()
+                val b = baseRegs[decoded.rs2].toInt32()
 
-                val a = rs1.get().toLong().toInt()
-                val b = rs2.get().toLong().toInt()
-                val result = (a / b).toLong()
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = (a / b).toInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.DIVUW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1].toUInt32()
+                val b = baseRegs[decoded.rs2].toUInt32()
 
-                val a = rs1.get().toULong().toUInt()
-                val b = rs2.get().toULong().toUInt()
-                val result = (a / b).toULong()
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = a / b
+                pc += 4
             }
 
             RVDisassembler.InstrType.REMW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1].toInt32()
+                val b = baseRegs[decoded.rs2].toInt32()
 
-                val a = rs1.get().toLong().toInt()
-                val b = rs2.get().toLong().toInt()
-                val result = (a % b).toLong()
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = (a % b).toInt64()
+                pc += 4
             }
 
             RVDisassembler.InstrType.REMUW -> {
-                val rd = getRegByAddr(decoded.rd) ?: return ExecutionResult(false)
-                val rs1 = getRegByAddr(decoded.rs1) ?: return ExecutionResult(false)
-                val rs2 = getRegByAddr(decoded.rs2) ?: return ExecutionResult(false)
+                val a = baseRegs[decoded.rs1].toUInt32()
+                val b = baseRegs[decoded.rs2].toUInt32()
 
-                val a = rs1.get().toULong().toUInt()
-                val b = rs2.get().toULong().toUInt()
-                val result = (a % b).toULong()
-
-                rd.set(result.toValue())
-                incPCBy4()
+                baseRegs[decoded.rd] = a % b
+                pc += 4
             }
 
             null -> {
@@ -749,13 +548,15 @@ class ArchRV64 : BasicArchImpl(RV64.config) {
         return ExecutionResult(true, typeIsReturnFromSubroutine = isReturnFromSubroutine, typeIsBranchToSubroutine = isBranchToSubroutine)
     }
 
-    private fun incPCBy4() {
-        regContainer.pc.inc(4U)
-    }
-
     override fun setupMicroArch() {
         MicroSetup.append(memory)
         if (instrMemory != memory) MicroSetup.append(instrMemory)
         if (dataMemory != memory) MicroSetup.append(dataMemory)
+        MicroSetup.append(baseRegs)
+        MicroSetup.append(csrRegs)
+    }
+
+    override fun resetPC() {
+        pc = UInt64.ZERO
     }
 }

@@ -22,11 +22,11 @@ import cengine.vfs.FPath
 import emulator.kit.Architecture
 import emulator.kit.nativeError
 import kotlinx.serialization.Serializable
-import ui.uilib.UIState
 import ui.emulator.ArchitectureOverview
 import ui.emulator.ExecutionView
 import ui.emulator.MemView
 import ui.emulator.RegView
+import ui.uilib.UIState
 import ui.uilib.filetree.FileTree
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.CToggle
@@ -37,11 +37,10 @@ import ui.uilib.layout.ResizableBorderPanels
 import ui.uilib.layout.VerticalToolBar
 
 @Composable
-fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architecture: Architecture?, close: () -> Unit) {
+fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architecture: Architecture<*,*>?, close: () -> Unit) {
 
     val theme = UIState.Theme.value
     val icons = UIState.Icon.value
-    val pcState = remember { derivedStateOf { architecture?.regContainer?.pc?.variable?.state?.value } }
     val projectState = project.projectState
     val emuState = projectState.emu
 
@@ -148,7 +147,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
         Modifier.fillMaxSize().background(theme.COLOR_BG_0),
         top = {
             TopBar(project, viewType, onClose = { close() }) {
-                Text("PC: ${pcState.value?.toHex() ?: "N/A"}", fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0)
+                Text("PC: ${architecture?.pcState?.value?.zeroPaddedHex() ?: "N/A"}", fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0)
                 //CLabel(text = "PC: ${pcState.value?.toHex() ?: "N/A"}", fontType = FontType.CODE) // ISSUE: PC doesn't seem to automatically update its value!
             }
         },

@@ -1,885 +1,618 @@
 package emulator.archs
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import cengine.lang.asm.ast.target.ikrmini.IKRMiniDisassembler
 import cengine.lang.asm.ast.target.ikrmini.IKRMiniDisassembler.InstrType.*
-import cengine.util.integer.Hex
-import cengine.util.integer.Size
-import cengine.util.integer.Value.Companion.toValue
-import cengine.util.integer.rol
-import cengine.util.integer.ror
+import cengine.util.Endianness
+import cengine.util.newint.UInt16
+import cengine.util.newint.UInt16.Companion.toUInt16
+import cengine.util.newint.UInt32
 import emulator.archs.ikrmini.IKRMini
+import emulator.archs.ikrmini.IKRMiniBaseRegs
 import emulator.kit.MicroSetup
-import emulator.kit.common.RegContainer
+import emulator.kit.memory.MainMemory
 import emulator.kit.memory.Memory
 import emulator.kit.optional.BasicArchImpl
 
-class ArchIKRMini : BasicArchImpl(IKRMini.config) {
-    var instrMemory: Memory = memory
+class ArchIKRMini : BasicArchImpl<UInt16, UInt16>(IKRMini.config) {
+
+    override val pcState: MutableState<UInt16> = mutableStateOf(UInt16.ZERO)
+    private var pc by pcState
+
+    override val memory: MainMemory<UInt16, UInt16> = MainMemory(Endianness.BIG, UInt16, UInt16)
+
+    var instrMemory: Memory<UInt16, UInt16> = memory
         set(value) {
             field = value
             resetMicroArch()
         }
-    var dataMemory: Memory = memory
+    var dataMemory: Memory<UInt16, UInt16> = memory
         set(value) {
             field = value
             resetMicroArch()
         }
 
     private val alu = ALU()
-    private val ac: RegContainer.Register = getRegByName("AC") ?: throw Exception("AC is missing!")
-    private val nzvc: RegContainer.Register = getRegByName("NZVC") ?: throw Exception("NZVC is missing!")
-    private val pc get() = regContainer.pc
+
+    private val baseRegs = IKRMiniBaseRegs()
+    private var ac: UInt16
+        get() = baseRegs[0]
+        set(value) {
+            baseRegs[0] = value
+        }
+
+    private var nzvc: UInt16
+        get() = baseRegs[1]
+        set(value) {
+            baseRegs[1] = value
+        }
 
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
-        val currPc = pc.get().toHex()
-        val opCode = instrMemory.load(currPc, tracker = tracker).toHex().toUShort()
-        val second = instrMemory.load(currPc + 1U.toValue(Size.Bit16), tracker = tracker).toHex().toUShort()
-        val third = instrMemory.load(currPc + 2U.toValue(Size.Bit16), tracker = tracker).toHex().toUShort()
+        val opc = instrMemory.loadInstance(pc, tracker)
+        val second = instrMemory.loadInstance(pc + 1, tracker)
+        val third = instrMemory.loadInstance(pc + 2, tracker)
 
-        val decoded = IKRMiniDisassembler.IKRMiniInstrProvider(opCode, second, third)
+        val decoded = IKRMiniDisassembler.IKRMiniInstrProvider(opc, second, third)
         when (decoded.type) {
             LOAD_IMM -> {
-                ac.set(second.toValue())
+                ac = second
                 decoded.type.incPC()
             }
 
             LOAD_DIR -> {
-                ac.set(dataMemory.load(second.toValue()))
+                ac = dataMemory.loadInstance(second, tracker)
                 decoded.type.incPC()
             }
 
             LOAD_IND -> {
-                ac.set(dataMemory.load(dataMemory.load(second.toValue())))
+                ac = dataMemory.loadInstance(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             LOAD_IND_OFF -> {
-                ac.set(dataMemory.load(dataMemory.load(second.toValue()) + third.toValue()))
+                ac = dataMemory.loadInstance(dataMemory.loadInstance(second, tracker) + third)
                 decoded.type.incPC()
             }
 
             LOADI -> {
-                ac.set(dataMemory.load(ac.get().toHex()))
+                ac = dataMemory.loadInstance(ac, tracker)
                 decoded.type.incPC()
             }
 
             STORE_DIR -> {
-                dataMemory.store(second.toValue(), ac.get())
+                dataMemory.storeInstance(second, ac, tracker)
                 decoded.type.incPC()
             }
 
             STORE_IND -> {
-                dataMemory.store(dataMemory.load(second.toValue()), ac.get())
+                dataMemory.storeInstance(dataMemory.loadInstance(second, tracker), ac, tracker)
                 decoded.type.incPC()
             }
 
             STORE_IND_OFF -> {
-                dataMemory.store(dataMemory.load(second.toValue()) + third.toValue(), ac.get())
+                dataMemory.storeInstance(dataMemory.loadInstance(second, tracker) + third, ac, tracker)
                 decoded.type.incPC()
             }
 
             AND_IMM -> {
-                ac.set(
-                    alu.and(ac.get().toUShort(), second).toValue()
-                )
+                ac = alu.and(ac, second)
                 decoded.type.incPC()
             }
 
             AND_DIR -> {
-                ac.set(
-                    alu.and(
-                        ac.get().toUShort(),
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.and(ac, dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             AND_IND -> {
-                ac.set(
-                    alu.and(
-                        ac.get().toUShort(),
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.and(ac, dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             AND_IND_OFF -> {
-                ac.set(
-                    alu.and(
-                        ac.get().toUShort(),
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.and(ac, (dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             OR_IMM -> {
-                ac.set(
-                    alu.or(ac.get().toUShort(), second).toValue()
-                )
+                ac = alu.or(ac, second)
                 decoded.type.incPC()
             }
 
             OR_DIR -> {
-                ac.set(
-                    alu.or(
-                        ac.get().toUShort(),
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.or(ac, dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             OR_IND -> {
-                ac.set(
-                    alu.or(
-                        ac.get().toUShort(),
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.or(ac, dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             OR_IND_OFF -> {
-                ac.set(
-                    alu.or(
-                        ac.get().toUShort(),
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.or(ac, (dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             XOR_IMM -> {
-                ac.set(
-                    alu.xor(ac.get().toUShort(), second).toValue()
-                )
+                ac = alu.xor(ac, second)
                 decoded.type.incPC()
             }
 
             XOR_DIR -> {
-                ac.set(
-                    alu.xor(
-                        ac.get().toUShort(),
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.xor(ac, dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             XOR_IND -> {
-                ac.set(
-                    alu.xor(
-                        ac.get().toUShort(),
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.xor(ac, dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             XOR_IND_OFF -> {
-                ac.set(
-                    alu.xor(
-                        ac.get().toUShort(),
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.xor(ac, (dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             ADD_IMM -> {
-                ac.set(
-                    alu.add(ac.get().toUShort(), second).toValue()
-                )
+                ac = alu.add(ac, second)
                 decoded.type.incPC()
             }
 
             ADD_DIR -> {
-                ac.set(
-                    alu.add(
-                        ac.get().toUShort(),
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.add(ac, dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             ADD_IND -> {
-                ac.set(
-                    alu.add(
-                        ac.get().toUShort(),
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.add(ac, dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             ADD_IND_OFF -> {
-                ac.set(
-                    alu.add(
-                        ac.get().toUShort(),
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.add(ac, (dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             ADDC_IMM -> {
-                ac.set(
-                    alu.addc(ac.get().toUShort(), second).toValue()
-                )
+                ac = alu.addc(ac, second)
                 decoded.type.incPC()
             }
 
             ADDC_DIR -> {
-                ac.set(
-                    alu.addc(
-                        ac.get().toUShort(),
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.addc(ac, dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             ADDC_IND -> {
-                ac.set(
-                    alu.addc(
-                        ac.get().toUShort(),
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.addc(ac, dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             ADDC_IND_OFF -> {
-                ac.set(
-                    alu.addc(
-                        ac.get().toUShort(),
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.addc(ac, (dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             SUB_IMM -> {
-                ac.set(
-                    alu.sub(ac.get().toUShort(), second).toValue()
-                )
+                ac = alu.sub(ac, second)
                 decoded.type.incPC()
             }
 
             SUB_DIR -> {
-                ac.set(
-                    alu.sub(
-                        ac.get().toUShort(),
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.sub(ac, dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             SUB_IND -> {
-                ac.set(
-                    alu.sub(
-                        ac.get().toUShort(),
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.sub(ac, dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             SUB_IND_OFF -> {
-                ac.set(
-                    alu.sub(
-                        ac.get().toUShort(),
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.sub(ac, (dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             SUBC_IMM -> {
-                ac.set(
-                    alu.subc(ac.get().toUShort(), second).toValue()
-                )
+                ac = alu.subc(ac, second)
                 decoded.type.incPC()
             }
 
             SUBC_DIR -> {
-                ac.set(
-                    alu.subc(
-                        ac.get().toUShort(),
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.subc(ac, dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             SUBC_IND -> {
-                ac.set(
-                    alu.subc(
-                        ac.get().toUShort(),
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.subc(ac, dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             SUBC_IND_OFF -> {
-                ac.set(
-                    alu.subc(
-                        ac.get().toUShort(),
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.subc(ac, (dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             LSL -> {
-                ac.set(
-                    alu.lsl(ac.get().toUShort()).toValue()
-                )
+                ac = alu.lsl(ac)
                 decoded.type.incPC()
             }
 
             LSL_DIR -> {
-                ac.set(
-                    alu.lsl(
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.lsl(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             LSL_IND -> {
-                ac.set(
-                    alu.lsl(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.lsl(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             LSL_IND_OFF -> {
-                ac.set(
-                    alu.lsl(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.lsl((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             LSR -> {
-                ac.set(
-                    alu.lsr(ac.get().toUShort()).toValue()
-                )
+                ac = alu.lsr(ac)
                 decoded.type.incPC()
             }
 
             LSR_DIR -> {
-                ac.set(
-                    alu.lsr(
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.lsr(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             LSR_IND -> {
-                ac.set(
-                    alu.lsr(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.lsr(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             LSR_IND_OFF -> {
-                ac.set(
-                    alu.lsr(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.lsr((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             ROL -> {
-                ac.set(
-                    alu.rol(ac.get().toUShort()).toValue()
-                )
+                ac = alu.rol(ac)
                 decoded.type.incPC()
             }
 
             ROL_DIR -> {
-                ac.set(
-                    alu.rol(
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.rol(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             ROL_IND -> {
-                ac.set(
-                    alu.rol(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.rol(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             ROL_IND_OFF -> {
-                ac.set(
-                    alu.rol(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.rol((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             ROR -> {
-                ac.set(
-                    alu.ror(ac.get().toUShort()).toValue()
-                )
+                ac = alu.ror(ac)
                 decoded.type.incPC()
             }
 
             ROR_DIR -> {
-                ac.set(
-                    alu.ror(
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.ror(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             ROR_IND -> {
-                ac.set(
-                    alu.ror(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.ror(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             ROR_IND_OFF -> {
-                ac.set(
-                    alu.ror(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.ror((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             ASL -> {
-                ac.set(
-                    alu.asl(ac.get().toUShort()).toValue()
-                )
+                ac = alu.asl(ac)
                 decoded.type.incPC()
             }
 
             ASL_DIR -> {
-                ac.set(
-                    alu.asl(
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.asl(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             ASL_IND -> {
-                ac.set(
-                    alu.asl(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.asl(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             ASL_IND_OFF -> {
-                ac.set(
-                    alu.asl(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.asl((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             ASR -> {
-                ac.set(
-                    alu.asr(ac.get().toUShort()).toValue()
-                )
+                ac = alu.asr(ac)
                 decoded.type.incPC()
             }
 
             ASR_DIR -> {
-                ac.set(
-                    alu.asr(
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.asr(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             ASR_IND -> {
-                ac.set(
-                    alu.asr(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.asr(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             ASR_IND_OFF -> {
-                ac.set(
-                    alu.asr(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.asr((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             RCL -> {
-                ac.set(
-                    alu.rcl(ac.get().toUShort()).toValue()
-                )
+                ac = alu.rcl(ac)
                 decoded.type.incPC()
             }
 
             RCL_IMM -> {
-                ac.set(
-                    alu.rcl(
-                        second
-                    ).toValue()
-                )
+                ac = alu.rcl(second)
                 decoded.type.incPC()
             }
 
             RCL_DIR -> {
-                ac.set(
-                    alu.rcl(
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.rcl(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             RCL_IND -> {
-                ac.set(
-                    alu.rcl(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.rcl(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             RCL_IND_OFF -> {
-                ac.set(
-                    alu.rcl(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.rcl((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             RCR -> {
-                ac.set(
-                    alu.rcr(ac.get().toUShort()).toValue()
-                )
+                ac = alu.rcr(ac)
                 decoded.type.incPC()
             }
 
             RCR_IMM -> {
-                ac.set(
-                    alu.rcr(
-                        second
-                    ).toValue()
-                )
+                ac = alu.rcr(second)
                 decoded.type.incPC()
             }
 
             RCR_DIR -> {
-                ac.set(
-                    alu.rcr(
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.rcr(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             RCR_IND -> {
-                ac.set(
-                    alu.rcr(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.rcr(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             RCR_IND_OFF -> {
-                ac.set(
-                    alu.rcr(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.rcr((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             NOT -> {
-                ac.set(
-                    alu.not(ac.get().toUShort()).toValue()
-                )
+                ac = alu.not(ac)
                 decoded.type.incPC()
             }
 
             NOT_DIR -> {
-                ac.set(
-                    alu.not(
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.not(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             NOT_IND -> {
-                ac.set(
-                    alu.not(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.not(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             NOT_IND_OFF -> {
-                ac.set(
-                    alu.not(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.not((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             NEG_DIR -> {
-                ac.set(
-                    alu.neg(
-                        dataMemory.load(second.toValue()).toUShort()
-                    ).toValue()
-                )
+                ac = alu.neg(dataMemory.loadInstance(second, tracker))
                 decoded.type.incPC()
             }
 
             NEG_IND -> {
-                ac.set(
-                    alu.neg(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort()
-                    ).toValue()
-                )
+                ac = alu.neg(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)))
                 decoded.type.incPC()
             }
 
             NEG_IND_OFF -> {
-                ac.set(
-                    alu.neg(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort()
-                    ).toValue()
-                )
+                ac = alu.neg((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third))
                 decoded.type.incPC()
             }
 
             CLR -> {
-                ac.set(0U.toValue(Size.Bit16))
-                nzvc.set(0b0100U.toValue(Size.Bit4))
+                ac = UInt16.ZERO
+                nzvc = UInt16(0b0100U)
                 decoded.type.incPC()
             }
 
             INC -> {
-                ac.set(
-                    alu.add(ac.get().toUShort(), 1U).toValue()
-                )
+                ac = alu.add(ac, UInt16.ONE)
                 decoded.type.incPC()
             }
 
             INC_DIR -> {
-                ac.set(
-                    alu.add(
-                        dataMemory.load(second.toValue()).toUShort(),
-                        1U
-                    ).toValue()
-                )
+                ac = alu.add(dataMemory.loadInstance(second, tracker), UInt16.ONE)
                 decoded.type.incPC()
             }
 
             INC_IND -> {
-                ac.set(
-                    alu.add(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort(),
-                        1U
-                    ).toValue()
-                )
+                ac = alu.add(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)), UInt16.ONE)
                 decoded.type.incPC()
             }
 
             INC_IND_OFF -> {
-                ac.set(
-                    alu.add(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort(),
-                        1U
-                    ).toValue()
-                )
+                ac = alu.add((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third), UInt16.ONE)
                 decoded.type.incPC()
             }
 
             DEC -> {
-                ac.set(
-                    alu.sub(ac.get().toUShort(), 1U).toValue()
-                )
+                ac = alu.sub(ac, UInt16.ONE)
                 decoded.type.incPC()
             }
 
             DEC_DIR -> {
-                ac.set(
-                    alu.sub(
-                        dataMemory.load(second.toValue()).toUShort(),
-                        1U
-                    ).toValue()
-                )
+                ac = alu.sub(dataMemory.loadInstance(second, tracker), UInt16.ONE)
                 decoded.type.incPC()
             }
 
             DEC_IND -> {
-                ac.set(
-                    alu.sub(
-                        dataMemory.load(dataMemory.load(second.toValue())).toUShort(),
-                        1U
-                    ).toValue()
-                )
+                ac = alu.sub(dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)), UInt16.ONE)
                 decoded.type.incPC()
             }
 
             DEC_IND_OFF -> {
-                ac.set(
-                    alu.sub(
-                        (dataMemory.load(dataMemory.load(second.toValue())).toUShort() + third).toUShort(),
-                        1U
-                    ).toValue()
-                )
+                ac = alu.sub((dataMemory.loadInstance(dataMemory.loadInstance(second, tracker)) + third), UInt16.ONE)
                 decoded.type.incPC()
             }
 
             BSR -> {
-                ac.set(currPc + 2U.toValue(Size.Bit16))
-                pc.set(second.toValue(Size.Bit16))
+                ac = pc + UInt16(2U)
+                pc = second
             }
 
             JMP -> {
-                pc.set(ac.get())
+                pc = ac
             }
 
             BRA -> {
-                pc.set(second.toValue(Size.Bit16))
+                pc = second
             }
 
             BHI -> {
-                if(Condition.HI.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.HI.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
 
             BLS -> {
-                if(Condition.LS.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.LS.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BCC -> {
-                if(Condition.CC.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.CC.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BCS -> {
-                if(Condition.CS.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.CS.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BNE -> {
-                if(Condition.NE.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.NE.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BEQ -> {
-                if(Condition.EQ.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.EQ.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BVC -> {
-                if(Condition.VC.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.VC.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BVS -> {
-                if(Condition.VS.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.VS.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BPL -> {
-                if(Condition.PL.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.PL.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
-            BMI ->{
-                if(Condition.MI.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+
+            BMI -> {
+                if (Condition.MI.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BGE -> {
-                if(Condition.GE.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.GE.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BLT -> {
-                if(Condition.LT.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.LT.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BGT -> {
-                if(Condition.GT.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.GT.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             BLE -> {
-                if(Condition.LE.test(nzvc.get().toUInt())){
-                    pc.set(second.toValue())
-                }else{
+                if (Condition.LE.test(nzvc.toUInt())) {
+                    pc = second
+                } else {
                     decoded.type.incPC()
                 }
             }
+
             null -> ExecutionResult(false)
         }
 
@@ -900,148 +633,149 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config) {
         MicroSetup.append(memory)
         if (instrMemory != memory) MicroSetup.append(instrMemory)
         if (dataMemory != memory) MicroSetup.append(dataMemory)
+        MicroSetup.append(baseRegs)
     }
 
-    private fun IKRMiniDisassembler.InstrType.incPC(){
-        pc.set(pc.get() + this.length.toUShort().toValue())
+    private fun IKRMiniDisassembler.InstrType.incPC() {
+        pc += length
+    }
+
+    override fun resetPC() {
+        pc = UInt16.ZERO
     }
 
     private inner class ALU {
 
-        fun lsl(a: UShort): UShort {
-            val resultInt = a.toUInt() shl 1
-            val result = resultInt.toUShort()
-            nzvc.set(flags(isNegative(result), isZero(result)))
+        fun lsl(a: UInt16): UInt16 {
+            val result = a shl 1
+            nzvc = flags(isNegative(result), isZero(result))
             return result
         }
 
-        fun lsr(a: UShort): UShort {
-            val resultInt = a.toUInt() shr 1
-            val result = resultInt.toUShort()
-            nzvc.set(flags(isNegative(result), isZero(result)))
+        fun lsr(a: UInt16): UInt16 {
+            val result = a shr 1
+            nzvc = flags(isNegative(result), isZero(result))
             return result
         }
 
-        fun rol(a: UShort): UShort {
+        fun rol(a: UInt16): UInt16 {
             val result = a rol 1
-            nzvc.set(flags(isNegative(result), isZero(result)))
+            nzvc = flags(isNegative(result), isZero(result))
             return result
         }
 
-        fun ror(a: UShort): UShort {
+        fun ror(a: UInt16): UInt16 {
             val result = a ror 1
-            nzvc.set(flags(isNegative(result), isZero(result)))
+            nzvc = flags(isNegative(result), isZero(result))
             return result
         }
 
-        fun asl(a: UShort): UShort {
-            val resultInt = a.toShort().toInt() shl 1
-            val result = resultInt.toUShort()
-            nzvc.set(flags(isNegative(result), isZero(result)))
-            return result
+        fun asl(a: UInt16): UInt16 {
+            val result = a.toInt16() shl 1
+            nzvc = flags(isNegative(result.toUInt16()), isZero(result.toUInt16()))
+            return result.toUInt16()
         }
 
-        fun asr(a: UShort): UShort {
-            val resultInt = a.toShort().toInt() shr 1
-            val result = resultInt.toUShort()
-            nzvc.set(flags(isNegative(result), isZero(result)))
-            return result
+        fun asr(a: UInt16): UInt16 {
+            val result = a.toInt16() shr 1
+            nzvc = flags(isNegative(result.toUInt16()), isZero(result.toUInt16()))
+            return result.toUInt16()
         }
 
-        fun rcl(a: UShort): UShort {
+        fun rcl(a: UInt16): UInt16 {
             val carry = carry()
-            val nextCarry = a.toUInt() shr 15 == 1U
-            val result = (a and 0b111111111111111U or (carry shl 15).toUShort()) rol 1
-            nzvc.set(flags(isNegative(result), isZero(result), c = nextCarry))
+            val nextCarry = a shr 15 == UInt16.ONE
+            val result = (a and UInt16(0b0111111111111111U) or (carry shl 15)) rol 1
+            nzvc = flags(isNegative(result), isZero(result), c = nextCarry)
             return result
         }
 
-        fun rcr(a: UShort): UShort {
+        fun rcr(a: UInt16): UInt16 {
             val carry = carry()
             val nextCarry = a.toUInt() and 1U == 1U
-            val result = (a and 0b1111111111111110U or carry.toUShort()) rol 1
-            nzvc.set(flags(isNegative(result), isZero(result), c = nextCarry))
+            val result = (a and UInt16(0b1111111111111110U) or carry) rol 1
+            nzvc = flags(isNegative(result), isZero(result), c = nextCarry)
             return result
         }
 
-        fun not(a: UShort): UShort {
+        fun not(a: UInt16): UInt16 {
             val result = a.inv()
-            nzvc.set(flags(isNegative(result), isZero(result)))
+            nzvc = flags(isNegative(result), isZero(result))
             return result
         }
 
-        fun neg(a: UShort): UShort {
-            val result = (-a.toShort()).toUShort()
-            nzvc.set(flags(isNegative(result), isZero(result)))
+        fun neg(a: UInt16): UInt16 {
+            val result = (-a.toInt16()).toUInt16()
+            nzvc = flags(isNegative(result), isZero(result))
             return result
         }
 
-        fun and(a: UShort, b: UShort): UShort {
+        fun and(a: UInt16, b: UInt16): UInt16 {
             val result = a and b
-            nzvc.set(flags(isNegative(result), isZero(result)))
+            nzvc = flags(isNegative(result), isZero(result))
             return result
         }
 
-        fun or(a: UShort, b: UShort): UShort {
+        fun or(a: UInt16, b: UInt16): UInt16 {
             val result = a or b
-            nzvc.set(flags(isNegative(result), isZero(result)))
+            nzvc = flags(isNegative(result), isZero(result))
             return result
         }
 
-        fun xor(a: UShort, b: UShort): UShort {
+        fun xor(a: UInt16, b: UInt16): UInt16 {
             val result = a xor b
-            nzvc.set(flags(isNegative(result), isZero(result)))
+            nzvc = flags(isNegative(result), isZero(result))
             return result
         }
 
-        fun add(a: UShort, b: UShort): UShort {
+        fun add(a: UInt16, b: UInt16): UInt16 {
             val result = a + b
 
             val isOverflow = a.toShort() < 0 == b.toShort() < 0
                     && result.toShort() < 0 != a.toShort() < 0
 
-            nzvc.set(flags(isNegative(result.toUShort()), isZero(result.toUShort()), isOverflow, result shr 16 == 1U))
-            return result.toUShort()
+            nzvc = flags(isNegative(result), isZero(result), isOverflow, result shr 16 == UInt16.ONE)
+            return result
         }
 
-        fun sub(a: UShort, b: UShort): UShort {
+        fun sub(a: UInt16, b: UInt16): UInt16 {
             val result = a + b
 
             val isOverflow = a.toShort() < 0 != b.toShort() < 0
                     && result.toShort() < 0 != a.toShort() < 0
 
-            nzvc.set(flags(isNegative(result.toUShort()), isZero(result.toUShort()), isOverflow, a < b))
-            return result.toUShort()
+            nzvc = flags(isNegative(result), isZero(result), isOverflow, a < b)
+            return result
         }
 
-        fun addc(a: UShort, b: UShort): UShort {
-            val result = a + b + nzvc.get().toUInt() and 1U
+        fun addc(a: UInt16, b: UInt16): UInt16 {
+            val result = a + b + (nzvc and 1)
 
             val isOverflow = a.toShort() < 0 == b.toShort() < 0
                     && result.toShort() < 0 != a.toShort() < 0
 
-            nzvc.set(flags(isNegative(result.toUShort()), isZero(result.toUShort()), isOverflow, result shr 16 == 1U))
-            return result.toUShort()
+            nzvc = flags(isNegative(result), isZero(result), isOverflow, result shr 16 == UInt16.ONE)
+            return result
 
         }
 
-        fun subc(a: UShort, b: UShort): UShort {
-            val result = a.toUInt() - b.toUInt() + nzvc.get().toUInt() and 1U
+        fun subc(a: UInt16, b: UInt16): UInt16 {
+            val result = a.toUInt32() - b.toUInt32() + nzvc.toUInt32() and UInt32.ONE
 
             val isOverflow = a.toShort() < 0 != b.toShort() < 0
                     && result.toShort() < 0 != a.toShort() < 0
 
-            nzvc.set(flags(isNegative(result.toUShort()), isZero(result.toUShort()), isOverflow, a < b))
-            return result.toUShort()
+            nzvc = flags(isNegative(result.toUInt16()), isZero(result.toUInt16()), isOverflow, a < b)
+            return result.toUInt16()
         }
 
-        private fun carry(): UInt = nzvc.get().toUInt() and 1U
+        private fun carry(): UInt16 = nzvc and 1
 
-        private fun isZero(result: UShort): Boolean = result.toUInt() == 0U
+        private fun isZero(result: UInt16): Boolean = result.toUInt() == 0U
 
-        private fun isNegative(result: UShort): Boolean = result.toUInt() shr 15 == 1U
+        private fun isNegative(result: UInt16): Boolean = result.toUInt() shr 15 == 1U
 
-        private fun flags(n: Boolean, z: Boolean, v: Boolean = false, c: Boolean = false): Hex {
+        private fun flags(n: Boolean, z: Boolean, v: Boolean = false, c: Boolean = false): UInt16 {
             var result = 0U
             if (n) {
                 result += 1U shl 3
@@ -1058,7 +792,7 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config) {
             if (c) {
                 result += 1U
             }
-            return result.toValue(Size.Bit4)
+            return result.toUShort().toUInt16()
         }
 
     }
@@ -1085,7 +819,7 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config) {
             val v = (nzvc shr 1) and 1U == 1U
             val c = nzvc and 1U == 1U
 
-            return when(this){
+            return when (this) {
                 HI -> !(c || z)
                 LS -> c || z
                 CC -> !c
@@ -1102,7 +836,7 @@ class ArchIKRMini : BasicArchImpl(IKRMini.config) {
                 LE -> (n && !v) || (!n && v) || z
             }
         }
-
     }
+
 
 }

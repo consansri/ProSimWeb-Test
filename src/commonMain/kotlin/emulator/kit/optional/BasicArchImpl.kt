@@ -1,13 +1,13 @@
 package emulator.kit.optional
 
 import Performance
-import cengine.util.integer.Hex
+import cengine.util.newint.IntNumber
 import emulator.kit.config.Config
 import emulator.kit.memory.Memory
 import emulator.kit.nativeError
 import kotlin.time.measureTime
 
-abstract class BasicArchImpl(config: Config) : emulator.kit.Architecture(config) {
+abstract class BasicArchImpl<ADDR: IntNumber<*>, INSTANCE: IntNumber<*>>(config: Config) : emulator.kit.Architecture<ADDR, INSTANCE>(config) {
     override fun exeContinuous() {
         var instrCount = 0L
         val tracker = Memory.AccessTracker()
@@ -32,7 +32,7 @@ abstract class BasicArchImpl(config: Config) : emulator.kit.Architecture(config)
         val measuredTime = measureTime {
             super.exeSingleStep() // clears console
             if (!executeNext(tracker).valid) {
-                nativeError("Couldn't execute instruction at ${regContainer.pc.get().toHex()}!")
+                nativeError("Couldn't execute instruction at ${pcState.value.toString(16)}!")
             }
         }
 
@@ -107,7 +107,7 @@ abstract class BasicArchImpl(config: Config) : emulator.kit.Architecture(config)
         console.exeInfo("return from subroutine \ntook ${measuredTime.inWholeMicroseconds} μs [executed $instrCount instructions]\n$tracker")
     }
 
-    override fun exeUntilAddress(address: Hex) {
+    override fun exeUntilAddress(address: IntNumber<*>) {
         var instrCount = 0L
         val tracker = Memory.AccessTracker()
         val measuredTime = measureTime {
@@ -118,7 +118,7 @@ abstract class BasicArchImpl(config: Config) : emulator.kit.Architecture(config)
             while (result?.valid != false && instrCount <= 1000) {
                 instrCount++
                 result = executeNext(tracker)
-                if (regContainer.pc.get().toHex().rawInput.uppercase() == address.rawInput.uppercase()) {
+                if (pcState.value == address) {
                     break
                 }
             }

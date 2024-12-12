@@ -5,8 +5,9 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.util.integer.Size
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.UInt32
+import cengine.util.newint.UInt32.Companion.toUInt32
+import emulator.kit.nativeLog
 
 
 enum class IKRR2InstrType(override val detectionName: String, val paramType: IKRR2ParamType, val descr: String = "", val labelDependent: Boolean = false, override val addressInstancesNeeded: Int? = 1) : InstrTypeInterface {
@@ -98,8 +99,8 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
         when (paramType) {
             IKRR2ParamType.I_TYPE -> {
                 val expr = exprs[0]
-                val rc = regs[0]
-                val rb = regs[1]
+                val rc = regs[0].toUInt32()
+                val rb = regs[1].toUInt32()
 
                 val opc = when (this) {
                     ADDI -> IKRR2Const.I_OP6_ADDI
@@ -111,26 +112,32 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                     XORI -> IKRR2Const.I_OP6_XORI
                     CMPUI -> IKRR2Const.I_OP6_CMPUI
                     CMPSI -> IKRR2Const.I_OP6_CMPSI
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
 
                 val imm = expr.evaluate(builder)
 
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit16)) {
-                    expr.addError("${expr.evaluated} exceeds ${Size.Bit16}")
+                if (!imm.fitsInSignedOrUnsigned(16)) {
+                    expr.addError("${expr.eval} exceeds 16 bits")
                 }
 
-                val imm16 = imm.toBin().getUResized(Size.Bit16).toUInt() ?: 0U
+                val imm16 = try {
+                    imm.toInt16().toUInt16().toUInt32()
+                } catch (e: Exception) {
+                    expr.addWarn("Interpreted as unsigned!")
+                    imm.toUInt16().toUInt32()
+                }
 
                 val bundle = (opc shl 26) or (rc shl 21) or (rb shl 16) or imm16
-                builder.currentSection.content.put(bundle)
+                nativeLog("IKRR2 I-Type: ${bundle.toString(16)}, imm: ${imm16.toString(16)}")
+                builder.currentSection.content.put(bundle.toUInt())
             }
 
             IKRR2ParamType.R2_TYPE -> {
                 val funct6 = IKRR2Const.FUNCT6_R2
-                val rc = regs[0]
-                val rb = regs[1]
-                val ra = regs[2]
+                val rc = regs[0].toUInt32()
+                val rb = regs[1].toUInt32()
+                val ra = regs[2].toUInt32()
                 val opc = when (this) {
                     ADD -> IKRR2Const.R2_OP6_ADD
                     ADDX -> IKRR2Const.R2_OP6_ADDX
@@ -143,23 +150,23 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                     CMPS -> IKRR2Const.R2_OP6_CMPS
                     LDR -> IKRR2Const.R2_OP6_LDR
                     STR -> IKRR2Const.R2_OP6_STR
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
                 val bundle = (funct6 shl 26) or (rc shl 21) or (rb shl 16) or (opc shl 10) or ra
 
-                builder.currentSection.content.put(bundle)
+                builder.currentSection.content.put(bundle.toUInt())
             }
 
             IKRR2ParamType.R1_TYPE -> {
                 val funct6 = IKRR2Const.FUNCT6_R1
 
-                val rc = regs[0]
-                val rb = regs[1]
+                val rc = regs[0].toUInt32()
+                val rb = regs[1].toUInt32()
 
                 val const6 = when (this) {
                     LSL, LSR, ASL, ASR, ROL, ROR -> IKRR2Const.CONST6_SHIFT_ROTATE
                     SWAPH -> IKRR2Const.CONST6_SWAPH
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
 
                 val opc = when (this) {
@@ -174,41 +181,46 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                     SWAPB -> IKRR2Const.R1_OP6_SWAPB
                     SWAPH -> IKRR2Const.R1_OP6_SWAPH
                     NOT -> IKRR2Const.R1_OP6_NOT
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
 
                 val bundle = (funct6 shl 26) or (rc shl 21) or (rb shl 16) or (opc shl 10) or const6
 
-                builder.currentSection.content.put(bundle)
+                builder.currentSection.content.put(bundle.toUInt())
             }
 
             IKRR2ParamType.L_OFF_TYPE -> {
                 val expr = exprs[0]
-                val rc = regs[0]
-                val rb = regs[1]
+                val rc = regs[0].toUInt32()
+                val rb = regs[1].toUInt32()
 
                 val opc = when (this) {
                     LDD -> IKRR2Const.I_OP6_LDD
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
 
                 val imm = expr.evaluate(builder)
 
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit16)) {
-                    expr.addError("${expr.evaluated} exceeds ${Size.Bit16}")
+                if (!imm.fitsInSignedOrUnsigned(16)) {
+                    expr.addError("$imm exceeds 16 bits")
                 }
 
-                val imm16 = imm.toBin().getUResized(Size.Bit16).toUInt() ?: 0U
+                val imm16 = try {
+                    imm.toInt16().toUInt16().toUInt32()
+                } catch (e: Exception) {
+                    expr.addWarn("Interpreted as unsigned!")
+                    imm.toUInt16().toUInt32()
+                }
 
                 val bundle = (opc shl 26) or (rc shl 21) or (rb shl 16) or imm16
-                builder.currentSection.content.put(bundle)
+                builder.currentSection.content.put(bundle.toUInt())
             }
 
             IKRR2ParamType.L_INDEX_TYPE -> {
                 val funct6 = IKRR2Const.FUNCT6_R2
-                val rc = regs[0]
-                val rb = regs[1]
-                val ra = regs[2]
+                val rc = regs[0].toUInt32()
+                val rb = regs[1].toUInt32()
+                val ra = regs[2].toUInt32()
                 val opc = when (this) {
                     ADD -> IKRR2Const.R2_OP6_ADD
                     ADDX -> IKRR2Const.R2_OP6_ADDX
@@ -221,48 +233,53 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                     CMPS -> IKRR2Const.R2_OP6_CMPS
                     LDR -> IKRR2Const.R2_OP6_LDR
                     STR -> IKRR2Const.R2_OP6_STR
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
                 val bundle = (funct6 shl 26) or (rc shl 21) or (rb shl 16) or (opc shl 10) or ra
 
-                builder.currentSection.content.put(bundle)
+                builder.currentSection.content.put(bundle.toUInt())
             }
 
             IKRR2ParamType.S_OFF_TYPE -> {
                 val expr = exprs[0]
 
-                val rb = regs[0]
-                val rc = regs[1]
+                val rb = regs[0].toUInt32()
+                val rc = regs[1].toUInt32()
 
                 val opc = when (this) {
                     STD -> IKRR2Const.I_OP6_STD
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
 
                 val imm = expr.evaluate(builder)
 
-                if (!imm.checkSizeSignedOrUnsigned(Size.Bit16)) {
-                    expr.addError("${expr.evaluated} exceeds ${Size.Bit16}")
+                if (!imm.fitsInSignedOrUnsigned(16)) {
+                    expr.addError("${expr.eval} exceeds 16 bits")
                 }
 
-                val imm16 = imm.toBin().getUResized(Size.Bit16).toUInt() ?: 0U
+                val imm16 = try {
+                    imm.toInt16().toUInt16().toUInt32()
+                } catch (e: Exception) {
+                    expr.addWarn("Interpreted as unsigned!")
+                    imm.toUInt16().toUInt32()
+                }
 
                 val bundle = (opc shl 26) or (rc shl 21) or (rb shl 16) or imm16
-                builder.currentSection.content.put(bundle)
+                builder.currentSection.content.put(bundle.toUInt())
             }
 
             IKRR2ParamType.S_INDEX_TYPE -> {
                 val funct6 = IKRR2Const.FUNCT6_R2
-                val rb = regs[0]
-                val ra = regs[1]
-                val rc = regs[2]
+                val rb = regs[0].toUInt32()
+                val ra = regs[1].toUInt32()
+                val rc = regs[2].toUInt32()
                 val opc = when (this) {
                     STR -> IKRR2Const.R2_OP6_STR
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
                 val bundle = (funct6 shl 26) or (rc shl 21) or (rb shl 16) or (opc shl 10) or ra
 
-                builder.currentSection.content.put(bundle)
+                builder.currentSection.content.put(bundle.toUInt())
             }
 
             IKRR2ParamType.B_DISP18_TYPE -> {} // evaluate later
@@ -270,17 +287,17 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
             IKRR2ParamType.B_REG_TYPE -> {
                 val funct6 = IKRR2Const.FUNCT6_R1
 
-                val rb = regs[0]
+                val rb = regs[0].toUInt32()
 
                 val opc = when (this) {
                     JMP -> IKRR2Const.R1_OP6_JMP
                     JSR -> IKRR2Const.R1_OP6_JSR
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
 
                 val bundle = (funct6 shl 26) or (rb shl 16) or (opc shl 10)
 
-                builder.currentSection.content.put(bundle)
+                builder.currentSection.content.put(bundle.toUInt())
             }
         }
 
@@ -300,25 +317,25 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                 val opc = when (this) {
                     BRA -> IKRR2Const.B_OP6_BRA
                     BSR -> IKRR2Const.B_OP6_BSR
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
 
-                val imm26 = expr.displacement(builder, section, index).toValue(Size.Bit26)
+                val imm26 = expr.displacement(builder, section, index)
 
-                if (!imm26.valid) {
-                    expr.addError("$imm26 exceeds ${Size.Bit26}")
+                if (!imm26.fitsInSignedOrUnsigned(26)) {
+                    expr.addError("$imm26 exceeds 26 bits")
                 }
 
-                val bundle = (opc shl 26) or (imm26.toBin().toUInt() ?: 0U)
+                val bundle = (opc shl 26) or imm26.lowest(26)
 
-                section.content[index] = bundle
+                section.content[index] = bundle.toUInt()
             }
 
             IKRR2ParamType.B_DISP18_TYPE -> {
                 val expr = exprs[0]
 
                 val opc = IKRR2Const.B_OP6_COND_BRA
-                val rc = regs[0]
+                val rc = regs[0].toUInt32()
 
                 val funct3 = when (this) {
                     BEQ -> IKRR2Const.B_FUNCT3_BEQ
@@ -327,34 +344,34 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                     BGT -> IKRR2Const.B_FUNCT3_BGT
                     BLE -> IKRR2Const.B_FUNCT3_BLE
                     BGE -> IKRR2Const.B_FUNCT3_BGE
-                    else -> 0U
+                    else -> UInt32.ZERO
                 }
 
-                val imm18 = expr.displacement(builder, section, index).toValue(Size.Bit18)
+                val imm18 = expr.displacement(builder, section, index)
 
-                if (!imm18.valid) {
-                    expr.addError("$imm18 exceeds ${Size.Bit18}")
+                if (!imm18.fitsInSignedOrUnsigned(18)) {
+                    expr.addError("$imm18 exceeds 18 bits")
                 }
 
-                val bundle = (opc shl 26) or (rc shl 21) or (funct3 shl 18) or (imm18.toBin().toUInt() ?: 0U)
+                val bundle = (opc shl 26) or (rc shl 21) or (funct3 shl 18) or imm18.lowest(18)
 
-                section.content[index] = bundle
+                section.content[index] = bundle.toUInt()
             }
 
             else -> {}
         }
     }
 
-    private fun ASNode.NumericExpr.targetAddr(builder: AsmCodeGenerator<*>): UInt {
-        return evaluate(builder).toBin().toULong().toUInt()
+    private fun ASNode.NumericExpr.targetAddr(builder: AsmCodeGenerator<*>): UInt32 {
+        return evaluate(builder).toUInt32()
     }
 
-    private fun AsmCodeGenerator.Section.thisAddr(index: Int): UInt {
-        return this.address.toULong().toUInt() + (index.toUInt())
+    private fun AsmCodeGenerator.Section.thisAddr(index: Int): UInt32 {
+        return this.address.toUInt32() + index
     }
 
-    private fun ASNode.NumericExpr.displacement(builder: AsmCodeGenerator<*>, section: AsmCodeGenerator.Section, index: Int): Int{
-        return (targetAddr(builder) - section.thisAddr(index)).toInt()
+    private fun ASNode.NumericExpr.displacement(builder: AsmCodeGenerator<*>, section: AsmCodeGenerator.Section, index: Int): UInt32 {
+        return targetAddr(builder) - section.thisAddr(index)
     }
 
 

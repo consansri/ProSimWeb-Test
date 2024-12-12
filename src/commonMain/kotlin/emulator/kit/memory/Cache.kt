@@ -32,21 +32,22 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
     val indexBits: Int,
     val blockCount: Int,
     val offsetBits: Int,
-    val replaceAlgo: ReplaceAlgo,
-    val toAddr: IntNumber<*>.() -> ADDR,
-    val toInstance: IntNumber<*>.() -> INSTANCE,
-) : Memory<ADDR, INSTANCE>() {
+    val replaceAlgo: ReplaceAlgo
+) : Memory<ADDR, INSTANCE>(
+    backingMemory.addrType,
+    backingMemory.instanceType
+) {
 
     override val init: INSTANCE
         get() = backingMemory.init
-
-    val model = Model()
 
     init {
         if (DebugTools.KIT_showCacheInfo) nativeLog(this.toString())
     }
 
-    private val addrBits: Int = 0.toInt32().addr().bitWidth
+    val model = Model()
+
+    private val addrBits: Int = addrType.ZERO.bitWidth
 
     override fun globalEndianess(): Endianness = backingMemory.globalEndianess()
     override fun clear() {
@@ -57,10 +58,12 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
         model.wbAll()
     }
 
-    final override fun IntNumber<*>.addr(): ADDR = this.toAddr()
-    final override fun IntNumber<*>.instance(): INSTANCE = this.toInstance()
+    fun buildAddr(tag: ADDR, index: ADDR, offset: ADDR): ADDR = ((((tag shl indexBits) or index.toInt32().value) shl offsetBits) or offset.toInt32().value).addr()
 
-    private fun buildAddr(tag: ADDR, index: ADDR, offset: ADDR): ADDR = ((((tag shl indexBits) or index.toInt32().value) shl offsetBits) or offset.toInt32().value).addr()
+    fun addrFor(rowIndex: IntNumber<*>, tag: IntNumber<*>?, offset: Int): ADDR?{
+        val addrTag = tag?.addr() ?: return null
+        return buildAddr(addrTag, rowIndex.addr(), offset.toInt32().addr())
+    }
 
     private fun ADDR.offset(): ADDR = this.and(IntNumber.bitMask(offsetBits)).addr()
 
@@ -144,8 +147,8 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
             val tag = address.tag()
             val index = address.index()
             rows.forEach {
-                val index = it.compare(tag, index)
-                if (index != null) return it to index
+                val offset = it.compare(tag, index)
+                if (offset != null) return it to offset
             }
             return null
         }
@@ -275,7 +278,7 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
                 val tag = tag
                 if (!dirty || tag == null) return false
                 val rowAddr = buildAddr(tag, rowIndex, 0.toInt32().addr())
-                backingMemory.storeArray(rowAddr, data)
+                backingMemory.storeInstanceArray(rowAddr, data)
                 dirty = false
                 return true
             }

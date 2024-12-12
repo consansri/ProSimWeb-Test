@@ -10,6 +10,7 @@ import emulator.kit.nativeError
 /**
  * Provides the unsigned decimal representation of [Value].
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 class UDec(udecString: String, size: Size) : Value(size) {
     override val valid: Boolean
     override val rawInput: String

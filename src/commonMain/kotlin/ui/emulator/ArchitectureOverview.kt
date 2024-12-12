@@ -15,7 +15,7 @@ import ui.uilib.interactable.Selector
 import ui.uilib.label.CLabel
 
 @Composable
-fun ArchitectureOverview(arch: Architecture?, baseStyle: TextStyle, baseLargeStyle: TextStyle) {
+fun ArchitectureOverview(arch: Architecture<*,*>?, baseStyle: TextStyle, baseLargeStyle: TextStyle) {
 
     val theme = UIState.Theme.value
     val scale = UIState.Scale.value

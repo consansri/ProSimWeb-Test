@@ -24,25 +24,26 @@ class FACache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
     blockCount: Int,
     offsetBits: Int,
     replaceAlgo: ReplaceAlgo,
-    toAddr: IntNumber<*>.() -> ADDR,
-    toInstance: IntNumber<*>.() -> INSTANCE,
     override val name: String = "Cache (FA)"
 ) : Cache<ADDR, INSTANCE>(
     backingMemory,
     0,
     blockCount,
     offsetBits,
-    replaceAlgo,
-    toAddr,
-    toInstance
+    replaceAlgo
 ) {
-    constructor(backingMemory: Memory<ADDR, INSTANCE>, cacheSize: CacheSize, replaceAlgo: ReplaceAlgo, toAddr: IntNumber<*>.() -> ADDR, toInstance: IntNumber<*>.() -> INSTANCE, name: String = "Cache") : this(
+    constructor(
+        backingMemory: Memory<ADDR, INSTANCE>,
+        cacheSize: CacheSize,
+        replaceAlgo: ReplaceAlgo,
+        name: String = "Cache"
+    ) : this(
         backingMemory,
         (cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toInt(),
         log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.init.byteCount).toDouble(), 2.0).roundToInt(),
         replaceAlgo,
-        toAddr,
-        toInstance,
         "$name($cacheSize FA ${replaceAlgo})",
     )
+
+
 }

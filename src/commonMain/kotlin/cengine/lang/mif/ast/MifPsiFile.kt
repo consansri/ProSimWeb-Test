@@ -3,15 +3,15 @@ package cengine.lang.mif.ast
 import cengine.editor.annotation.Annotation
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.Initializer
-import cengine.lang.mif.MifGenerator.Companion.rdx
 import cengine.lang.mif.MifGenerator.Radix
 import cengine.lang.mif.MifLang
 import cengine.psi.core.PsiElement
 import cengine.psi.core.PsiElementVisitor
 import cengine.psi.core.PsiFile
-import cengine.util.integer.Hex
 import cengine.util.integer.Size
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.BigInt
+import cengine.util.newint.IntNumber
+import cengine.util.newint.IntNumber.Companion.parseAnyUInt
 import cengine.vfs.VirtualFile
 import emulator.kit.memory.Memory
 import emulator.kit.nativeError
@@ -46,71 +46,76 @@ class MifPsiFile(
         visitor.visitFile(this)
     }
 
-    override fun initialize(memory: Memory) {
+    override fun initialize(memory: Memory<*, *>) {
         analyzeHeader { addrSize, wordSize, addrRDX, dataRDX, assignments ->
             assignments.filter { assignment ->
-                assignment !is MifNode.Assignment.RepeatingValueRange || assignment.data.all { it.value.rdx(dataRDX, wordSize).toHex() != 0U.toValue() }
+                assignment !is MifNode.Assignment.RepeatingValueRange || assignment.data.all { it.value.parseAnyUInt(dataRDX.radix, wordSize.byteCount).toBigInt() != BigInt.ZERO }
             }.forEach { assignment ->
                 when (assignment) {
                     is MifNode.Assignment.Direct -> {
                         val startAddr = assignment.addr.value
-                        memory.store(startAddr.rdx(addrRDX, addrSize).toHex(), assignment.data.value.rdx(dataRDX, wordSize))
+                        memory.storeEndianAware(BigInt.parse(startAddr, addrRDX.radix), assignment.data.value.parseAnyUInt(dataRDX.radix, wordSize.byteCount))
                     }
 
                     is MifNode.Assignment.ListOfValues -> {
-                        val startAddr = assignment.addr.value.rdx(addrRDX, addrSize).toHex()
-                        val values = assignment.data.map { it.value.rdx(dataRDX, wordSize) }
-                        memory.storeArray(startAddr, *values.toTypedArray())
+                        val startAddr = BigInt.parse(assignment.addr.value, addrRDX.radix)
+                        val values = assignment.data.map { it.value.parseAnyUInt(dataRDX.radix, wordSize.byteCount) }
+                        memory.storeArray(startAddr, values)
                     }
 
                     is MifNode.Assignment.RepeatingValueRange -> {
-                        val values = assignment.data.map { it.value.rdx(dataRDX, wordSize) }
-                        val startAddr = assignment.valueRange.first.value.rdx(addrRDX, addrSize).toHex()
-                        val endAddr = assignment.valueRange.last.value.rdx(addrRDX, addrSize).toHex()
-                        val length = (endAddr - startAddr).toULong().toInt() + 1
-                        if (length < 0) {
-                            nativeError("MifPsiFile ${file.name}: Length of ${assignment::class.simpleName} exceeds ${Int.MAX_VALUE} -> $length = $endAddr - $startAddr")
+                        val values = assignment.data.map { it.value.parseAnyUInt(dataRDX.radix, wordSize.byteCount) }
+                        val startAddr = BigInt.parse(assignment.valueRange.first.value, addrRDX.radix)
+                        val endAddr = BigInt.parse(assignment.valueRange.last.value, addrRDX.radix)
+                        val length = (endAddr - startAddr) + 1
+                        if (length < 0 || length > Int.MAX_VALUE) {
+                            nativeError("MifPsiFile ${file.name}: Length of ${assignment::class.simpleName} exceeds 0..${Int.MAX_VALUE} -> $length = $endAddr - $startAddr")
                             return@analyzeHeader
                         }
-                        val initArray = Array(length) {
-                            values[it % values.size]
+                        val initArray = try {
+                            List(length.toInt()) {
+                                values[it % values.size]
+                            }
+                        } catch (e: Exception) {
+                            nativeError("Couldn't convert $length to exact Int (${length.value.intValue(false)})")
+                            emptyList()
                         }
-                        memory.storeArray(startAddr, *initArray)
+                        memory.storeArray(startAddr, initArray)
                     }
                 }
             }
         }
     }
 
-    override fun contents(): Map<Hex, Pair<List<Hex>, List<Disassembler.Label>>> {
-        val contents = mutableMapOf<Hex, Pair<List<Hex>, List<Disassembler.Label>>>()
+    override fun contents(): Map<BigInt, Pair<List<IntNumber<*>>, List<Disassembler.Label>>> {
+        val contents = mutableMapOf<BigInt, Pair<List<IntNumber<*>>, List<Disassembler.Label>>>()
         analyzeHeader { addrSize, wordSize, addrRDX, dataRDX, assignments ->
             contents.putAll(assignments.filter { assignment ->
-                assignment !is MifNode.Assignment.RepeatingValueRange || assignment.data.all { it.value.rdx(dataRDX, wordSize).toHex() != 0U.toValue() }
+                assignment !is MifNode.Assignment.RepeatingValueRange || assignment.data.all { it.value.parseAnyUInt(dataRDX.radix, wordSize.byteCount).toBigInt() != BigInt.ZERO }
             }.associate { assignment ->
                 when (assignment) {
                     is MifNode.Assignment.Direct -> {
-                        val startAddr = assignment.addr.value.rdx(addrRDX, addrSize).toHex()
-                        val value = assignment.data.value.rdx(dataRDX, wordSize).toHex()
+                        val startAddr = BigInt.parse(assignment.addr.value, addrRDX.radix)
+                        val value = BigInt.parse(assignment.data.value, dataRDX.radix)
                         startAddr to (listOf(value) to emptyList())
                     }
 
                     is MifNode.Assignment.ListOfValues -> {
-                        val startAddr = assignment.addr.value.rdx(addrRDX, addrSize).toHex()
-                        val value = assignment.data.map { it.value.rdx(dataRDX, wordSize).toHex() }
+                        val startAddr = BigInt.parse(assignment.addr.value, addrRDX.radix)
+                        val value = assignment.data.map { it.value.parseAnyUInt(dataRDX.radix, wordSize.byteCount) }
                         startAddr to (value to emptyList())
                     }
 
                     is MifNode.Assignment.RepeatingValueRange -> {
-                        val values = assignment.data.map { it.value.rdx(dataRDX, wordSize).toHex() }
-                        val startAddr = assignment.valueRange.first.value.rdx(addrRDX, addrSize).toHex()
-                        val endAddr = assignment.valueRange.last.value.rdx(addrRDX, addrSize).toHex()
-                        val length = (endAddr - startAddr).toULong().toInt() + 1
+                        val values = assignment.data.map { it.value.parseAnyUInt(dataRDX.radix, wordSize.byteCount) }
+                        val startAddr = BigInt.parse(assignment.valueRange.first.value, addrRDX.radix)
+                        val endAddr = BigInt.parse(assignment.valueRange.last.value, addrRDX.radix)
+                        val length = (endAddr - startAddr) + 1
                         if (length < 0) {
                             nativeError("MifPsiFile ${file.name}: Length of ${assignment::class.simpleName} exceeds ${Int.MAX_VALUE} -> $length = $endAddr - $startAddr")
                             return@analyzeHeader
                         }
-                        startAddr to (List(length) {
+                        startAddr to (List(length.toInt()) {
                             values[it % values.size]
                         } to emptyList())
                     }
@@ -156,5 +161,4 @@ class MifPsiFile(
 
         result(addrSize, wordSize, addrRDX, dataRDX, program.content?.assignments?.toList() ?: emptyList())
     }
-
 }

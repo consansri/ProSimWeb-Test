@@ -1,5 +1,6 @@
 package cengine.util.integer
 
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Array<Bin>.mergeToChunks(currSize: Size, chunkSize: Size): Array<Bin> {
     val source = this.toMutableList()
     val amount = chunkSize.bitWidth / currSize.bitWidth
@@ -14,6 +15,7 @@ fun Array<Bin>.mergeToChunks(currSize: Size, chunkSize: Size): Array<Bin> {
     }.toTypedArray()
 }
 
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Array<Hex>.mergeToChunks(currSize: Size, chunkSize: Size): Array<Hex> {
     val source = this.toMutableList()
     val amount = chunkSize.hexChars / currSize.hexChars

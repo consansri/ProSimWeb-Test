@@ -2,8 +2,8 @@ package emulator.kit.memory
 
 import androidx.compose.runtime.mutableStateMapOf
 import cengine.util.Endianness
-import cengine.util.newint.Int8
 import cengine.util.newint.IntNumber
+import cengine.util.newint.IntNumberStatic
 
 /**
  * Represents the main memory of a system.
@@ -28,14 +28,15 @@ import cengine.util.newint.IntNumber
  */
 class MainMemory<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
     endianness: Endianness,
-    private val toAddr: IntNumber<*>.() -> ADDR,
-    private val toInstance: IntNumber<*>.() -> INSTANCE,
+    addrType: IntNumberStatic<ADDR>,
+    instanceType: IntNumberStatic<INSTANCE>,
     override val name: String = "Memory",
-) : Memory<ADDR, INSTANCE>() {
+) : Memory<ADDR, INSTANCE>(
+    addrType, instanceType
+) {
 
     var endianness: Endianness = Endianness.BIG
     val memList = mutableStateMapOf<ADDR, INSTANCE>()
-    override val init = Int8.ZERO.toInstance()
 
     init {
         this.endianness = endianness
@@ -48,14 +49,11 @@ class MainMemory<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
     }
 
     override fun storeInstance(address: ADDR, value: INSTANCE, tracker: AccessTracker) {
+        memList.remove(address)
         memList[address] = value
     }
 
     override fun clear() {
         memList.clear()
     }
-
-    override fun IntNumber<*>.instance(): INSTANCE = this.toInstance()
-    override fun IntNumber<*>.addr(): ADDR = this.toAddr()
-
 }

@@ -12,8 +12,8 @@ import cengine.lang.obj.elf.Ehdr
 import cengine.lang.obj.elf.LinkerScript
 import cengine.util.Endianness
 import cengine.util.buffer.ShortBuffer
-import cengine.util.integer.Hex
 import cengine.util.integer.Size
+import cengine.util.newint.BigInt
 import emulator.EmuLink
 
 data object IKRMiniSpec : TargetSpec<MifGenerator<ShortBuffer>> {
@@ -26,9 +26,9 @@ data object IKRMiniSpec : TargetSpec<MifGenerator<ShortBuffer>> {
     override val emuLink: EmuLink = EmuLink.IKRMINI
 
     override val linkerScript: LinkerScript = object : LinkerScript {
-        override val textStart: Hex = Hex("0", Size.Bit16)
-        override val dataStart: Hex? = null
-        override val rodataStart: Hex? = null
+        override val textStart: BigInt = BigInt.ZERO
+        override val dataStart: BigInt? = null
+        override val rodataStart: BigInt? = null
         override val segmentAlign: UInt = 0x4000U
     }
 

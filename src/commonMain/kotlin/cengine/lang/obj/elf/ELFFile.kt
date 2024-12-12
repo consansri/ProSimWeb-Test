@@ -2,8 +2,11 @@ package cengine.lang.obj.elf
 
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.Initializer
-import cengine.util.integer.Hex
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.BigInt
+import cengine.util.newint.BigInt.Companion.toBigInt
+import cengine.util.newint.Int8.Companion.toInt8
+import cengine.util.newint.IntNumber
+import cengine.util.newint.UInt8.Companion.toUInt8
 import emulator.kit.memory.Memory
 
 sealed class ELFFile(val name: String, val content: ByteArray) : Initializer {
@@ -39,12 +42,12 @@ sealed class ELFFile(val name: String, val content: ByteArray) : Initializer {
     val shstrtab: Shdr? = sectionHeaders.getOrNull(ehdr.e_shstrndx.toInt())
     val strTab = sectionHeaders.firstOrNull { getSectionName(it) == ".strtab" }
 
-    override fun initialize(memory: Memory) {
+    override fun initialize(memory: Memory<*,*>) {
         for (phdr in programHeaders) {
 
             val startAddr = when (phdr) {
-                is ELF32_Phdr -> phdr.p_vaddr.toValue()
-                is ELF64_Phdr -> phdr.p_vaddr.toValue()
+                is ELF32_Phdr -> phdr.p_vaddr.toBigInt()
+                is ELF64_Phdr -> phdr.p_vaddr.toBigInt()
             }
 
             val startOffset = when (phdr) {
@@ -57,16 +60,14 @@ sealed class ELFFile(val name: String, val content: ByteArray) : Initializer {
                 is ELF64_Phdr -> phdr.p_filesz.toInt()
             }
 
-            val segmentBytes = content.copyOfRange(startOffset, startOffset + size).map { byte: Byte ->
-                byte.toUByte().toValue()
+            content.copyOfRange(startOffset, startOffset + size).forEachIndexed { index, byte ->
+                memory.storeEndianAware(startAddr + index, byte.toInt8())
             }
-
-            memory.storeArray(startAddr, *segmentBytes.toTypedArray())
         }
     }
 
-    override fun contents(): Map<Hex, Pair<List<Hex>, List<Disassembler.Label>>> {
-        val contents = mutableMapOf<Hex, Pair<List<Hex>, List<Disassembler.Label>>>()
+    override fun contents(): Map<BigInt, Pair<List<IntNumber<*>>, List<Disassembler.Label>>> {
+        val contents = mutableMapOf<BigInt, Pair<List<IntNumber<*>>, List<Disassembler.Label>>>()
 
         for (group in segmentToSectionGroup.filterIsInstance<Segment>()) {
             val phdr = group.phdr
@@ -96,13 +97,13 @@ sealed class ELFFile(val name: String, val content: ByteArray) : Initializer {
                     val offset = sectionOffset - segmentOffset + symValue
                     val name = getStrTabString(sym.st_name.toInt()) ?: "[invalid]"
                     if (name.isEmpty()) return@mapNotNull null
-                    Disassembler.Label(offset, name)
+                    Disassembler.Label(offset.toInt(), name)
                 }
             }
 
             val startAddr = when (phdr) {
-                is ELF32_Phdr -> phdr.p_vaddr.toValue()
-                is ELF64_Phdr -> phdr.p_vaddr.toValue()
+                is ELF32_Phdr -> phdr.p_vaddr.toBigInt()
+                is ELF64_Phdr -> phdr.p_vaddr.toBigInt()
             }
 
             val startOffset = when (phdr) {
@@ -116,7 +117,7 @@ sealed class ELFFile(val name: String, val content: ByteArray) : Initializer {
             }
 
             val segmentBytes = content.copyOfRange(startOffset, startOffset + size).map { byte: Byte ->
-                byte.toUByte().toValue()
+                byte.toUByte().toUInt8()
             }
 
             contents[startAddr] = segmentBytes to labels

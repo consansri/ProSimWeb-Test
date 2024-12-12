@@ -9,6 +9,7 @@ import emulator.kit.nativeWarn
 /**
  * This Object contains all performant relevant binary calculations based on [String] representations.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 object BinaryTools {
 
     val hexToBinDigit = mapOf(

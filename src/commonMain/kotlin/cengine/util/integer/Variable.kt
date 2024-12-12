@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
  * Each Variable has a fixed [size] which can't be changed. When a new value will be [set] it will automatically be resized to the former [size].
  * Operator Functions such as comparing functions are overwritten.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 class Variable(private val initialBinary: String, val size: Size, initValue: Value) {
 
     val state: MutableState<Value> = mutableStateOf(initValue)

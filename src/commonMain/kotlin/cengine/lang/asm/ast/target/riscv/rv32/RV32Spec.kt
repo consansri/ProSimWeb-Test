@@ -10,8 +10,8 @@ import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.asm.ast.target.riscv.RVDirType
 import cengine.lang.obj.elf.*
-import cengine.util.integer.Hex
 import cengine.util.integer.Size
+import cengine.util.newint.BigInt
 import emulator.EmuLink
 
 data object RV32Spec : TargetSpec<ELFGenerator> {
@@ -23,9 +23,9 @@ data object RV32Spec : TargetSpec<ELFGenerator> {
     override val ei_abiversion: Elf_Byte = E_IDENT.ZERO
     override val e_machine: Elf_Half = Ehdr.EM_RISCV
     override val linkerScript: LinkerScript = object : LinkerScript {
-        override val textStart: Hex = Hex("0", Size.Bit32)
-        override val dataStart: Hex? = null
-        override val rodataStart: Hex? = null
+        override val textStart: BigInt = BigInt.ZERO
+        override val dataStart: BigInt? = null
+        override val rodataStart: BigInt? = null
         override val segmentAlign: UInt = 0x40000U
     }
     override val emuLink: EmuLink = EmuLink.RV32I

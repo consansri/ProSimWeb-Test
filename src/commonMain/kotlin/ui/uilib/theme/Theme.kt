@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import cengine.lang.asm.CodeStyle
-import emulator.kit.memory.Memory
 import emulator.kit.nativeLog
 import org.jetbrains.compose.resources.FontResource
 import ui.uilib.UIState
@@ -82,5 +81,4 @@ abstract class Theme {
     }
 
     abstract fun getColor(style: CodeStyle?): Color
-    abstract fun getColor(style: Memory.InstanceType): Color
 }

@@ -15,6 +15,7 @@ import emulator.kit.nativeWarn
  * Returns a [Size.Bit8] zero of the Type of [Value] contained in [this].
  * Identified by Prefix
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun String.getType(): Value {
     var removedPrefString = trim().removePrefix(Settings.PRESTRING_BINARY)
     if (removedPrefString.length < trim().length - 1) {
@@ -38,6 +39,7 @@ fun String.getType(): Value {
 /**
  * Converts [Bin] to [Hex] representation.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Bin.getHex(): Hex {
     var hexStr = ""
 
@@ -63,6 +65,7 @@ fun Bin.getHex(): Hex {
 /**
  * Converts [Bin] to [Oct] representation.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Bin.getOct(): Oct {
     var octStr = ""
 
@@ -88,6 +91,7 @@ fun Bin.getOct(): Oct {
 /**
  * Converts [Oct] to [Bin] representation.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Oct.getBinary(): Bin {
     var binStr = ""
 
@@ -105,6 +109,7 @@ fun Oct.getBinary(): Bin {
 /**
  * Converts [Hex] to [Bin] representation.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Hex.getBinary(): Bin {
     var binStr = ""
 
@@ -122,6 +127,7 @@ fun Hex.getBinary(): Bin {
 /**
  * Converts [Dec] to [Bin] representation.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Dec.getBinary(): Bin {
 
     var decString = rawInput
@@ -161,6 +167,7 @@ fun Dec.getBinary(): Bin {
 /**
  * Converts [UDec] to [Bin] representation.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun UDec.getBinary(): Bin {
 
     var udecString = rawInput
@@ -191,6 +198,7 @@ fun UDec.getBinary(): Bin {
 /**
  * Converts [Bin] to [Dec] representation.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Bin.getDec(): Dec {
     var binString = rawInput
     var decString = "0"
@@ -231,6 +239,7 @@ fun Bin.getDec(): Dec {
 /**
  * Converts [Bin] to [UDec] representation.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Bin.getUDec(): UDec {
     val binString = rawInput
 
@@ -257,6 +266,7 @@ fun Bin.getUDec(): UDec {
 /**
  * Converts [Value] to ASCII representation.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 fun Value.getASCII(): String {
     val stringBuilder = StringBuilder()
 

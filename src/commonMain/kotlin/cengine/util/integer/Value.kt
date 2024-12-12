@@ -23,6 +23,7 @@ import cengine.util.string.removeLeadingZeros
  *
  */
 @Immutable
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 sealed class Value(val size: Size) {
 
     companion object{

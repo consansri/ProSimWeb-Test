@@ -22,10 +22,8 @@ import kotlin.math.roundToInt
  */
 class DMCache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
     backingMemory: Memory<ADDR, INSTANCE>,
-    val rowBits: Int,
+    rowBits: Int,
     offsetBits: Int,
-    toAddr: IntNumber<*>.() -> ADDR,
-    toInstance: IntNumber<*>.() -> INSTANCE,
     override val name: String = "Cache (DM)",
 ) : Cache<ADDR, INSTANCE>(
     backingMemory,
@@ -33,15 +31,11 @@ class DMCache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
     1,
     offsetBits,
     ReplaceAlgo.RANDOM,
-    toAddr,
-    toInstance
-    ) {
-    constructor(backingMemory: Memory<ADDR, INSTANCE>, cacheSize: CacheSize, toAddr: IntNumber<*>.() -> ADDR, toInstance: IntNumber<*>.() -> INSTANCE ,name: String = "Cache") : this(
+) {
+    constructor(backingMemory: Memory<ADDR, INSTANCE>, cacheSize: CacheSize, name: String = "Cache") : this(
         backingMemory,
         log((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toDouble(), 2.0).roundToInt(),
         log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.init.byteCount).toDouble(), 2.0).roundToInt(),
-        toAddr,
-        toInstance,
         "$name($cacheSize DM)"
     )
 }

@@ -1,60 +1,62 @@
 package cengine.lang.asm.ast.target.ikrrisc2
 
+import cengine.util.newint.UInt32
+
 data object IKRR2Const {
 
-    const val I_OP6_ADDI = 0x00U
-    const val I_OP6_ADDLI = 0x01U
-    const val I_OP6_ADDHI = 0x02U
-    const val I_OP6_AND0I = 0x04U
-    const val I_OP6_AND1I = 0x05U
-    const val I_OP6_ORI = 0x06U
-    const val I_OP6_XORI = 0x07U
-    const val I_OP6_CMPUI = 0x08U
-    const val I_OP6_CMPSI = 0x09U
-    const val I_OP6_LDD = 0x10U
-    const val I_OP6_STD = 0x14U
+    val I_OP6_ADDI = UInt32(0x00U)
+    val I_OP6_ADDLI = UInt32(0x01U)
+    val I_OP6_ADDHI = UInt32(0x02U)
+    val I_OP6_AND0I = UInt32(0x04U)
+    val I_OP6_AND1I = UInt32(0x05U)
+    val I_OP6_ORI = UInt32(0x06U)
+    val I_OP6_XORI = UInt32(0x07U)
+    val I_OP6_CMPUI = UInt32(0x08U)
+    val I_OP6_CMPSI = UInt32(0x09U)
+    val I_OP6_LDD = UInt32(0x10U)
+    val I_OP6_STD = UInt32(0x14U)
 
-    const val FUNCT6_R2 = 0x3FU
+    val FUNCT6_R2 = UInt32(0x3FU)
 
-    const val R2_OP6_ADD = 0x00U
-    const val R2_OP6_ADDX = 0x20U
-    const val R2_OP6_SUB = 0x02U
-    const val R2_OP6_SUBX = 0x22U
-    const val R2_OP6_AND = 0x04U
-    const val R2_OP6_OR = 0x06U
-    const val R2_OP6_XOR = 0x07U
-    const val R2_OP6_CMPU = 0x08U
-    const val R2_OP6_CMPS = 0x09U
-    const val R2_OP6_LDR = 0x10U
-    const val R2_OP6_STR = 0x14U
+    val R2_OP6_ADD = UInt32(0x00U)
+    val R2_OP6_ADDX = UInt32(0x20U)
+    val R2_OP6_SUB = UInt32(0x02U)
+    val R2_OP6_SUBX = UInt32(0x22U)
+    val R2_OP6_AND = UInt32(0x04U)
+    val R2_OP6_OR = UInt32(0x06U)
+    val R2_OP6_XOR = UInt32(0x07U)
+    val R2_OP6_CMPU = UInt32(0x08U)
+    val R2_OP6_CMPS = UInt32(0x09U)
+    val R2_OP6_LDR = UInt32(0x10U)
+    val R2_OP6_STR = UInt32(0x14U)
 
-    const val FUNCT6_R1 = 0x3FU
-    const val CONST6_SHIFT_ROTATE = 0x01U
-    const val CONST6_SWAPH = 0x10U
+    val FUNCT6_R1 = UInt32(0x3FU)
+    val CONST6_SHIFT_ROTATE = UInt32(0x01U)
+    val CONST6_SWAPH = UInt32(0x10U)
 
-    const val R1_OP6_LSL = 0x28U
-    const val R1_OP6_LSR = 0x29U
-    const val R1_OP6_ASL = 0x2AU
-    const val R1_OP6_ASR = 0x2BU
-    const val R1_OP6_ROL = 0x2CU
-    const val R1_OP6_ROR = 0x2DU
-    const val R1_OP6_EXTB = 0x30U
-    const val R1_OP6_EXTH = 0x31U
-    const val R1_OP6_SWAPB = 0x32U
-    const val R1_OP6_SWAPH = 0x2CU
-    const val R1_OP6_NOT = 0x33U
-    const val R1_OP6_JMP = 0x3CU
-    const val R1_OP6_JSR = 0x3DU
+    val R1_OP6_LSL = UInt32(0x28U)
+    val R1_OP6_LSR = UInt32(0x29U)
+    val R1_OP6_ASL = UInt32(0x2AU)
+    val R1_OP6_ASR = UInt32(0x2BU)
+    val R1_OP6_ROL = UInt32(0x2CU)
+    val R1_OP6_ROR = UInt32(0x2DU)
+    val R1_OP6_EXTB = UInt32(0x30U)
+    val R1_OP6_EXTH = UInt32(0x31U)
+    val R1_OP6_SWAPB = UInt32(0x32U)
+    val R1_OP6_SWAPH = UInt32(0x2CU)
+    val R1_OP6_NOT = UInt32(0x33U)
+    val R1_OP6_JMP = UInt32(0x3CU)
+    val R1_OP6_JSR = UInt32(0x3DU)
 
-    const val B_OP6_BRA = 0x3CU
-    const val B_OP6_BSR = 0x3DU
-    const val B_OP6_COND_BRA = 0x3EU
-    const val B_FUNCT3_BEQ = 0x0U
-    const val B_FUNCT3_BNE = 0x1U
-    const val B_FUNCT3_BLT = 0x2U
-    const val B_FUNCT3_BGT = 0x3U
-    const val B_FUNCT3_BLE = 0x4U
-    const val B_FUNCT3_BGE = 0x5U
+    val B_OP6_BRA = UInt32(0x3CU)
+    val B_OP6_BSR = UInt32(0x3DU)
+    val B_OP6_COND_BRA = UInt32(0x3EU)
+    val B_FUNCT3_BEQ = UInt32(0x0U)
+    val B_FUNCT3_BNE = UInt32(0x1U)
+    val B_FUNCT3_BLT = UInt32(0x2U)
+    val B_FUNCT3_BGT = UInt32(0x3U)
+    val B_FUNCT3_BLE = UInt32(0x4U)
+    val B_FUNCT3_BGE = UInt32(0x5U)
 
 
 }

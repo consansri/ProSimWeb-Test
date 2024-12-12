@@ -7,6 +7,7 @@ import emulator.kit.nativeError
 /**
  * Provides the hexadecimal representation of [Value].
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 class Hex(hexString: String, size: Size) : Value(size) {
 
     override val valid: Boolean

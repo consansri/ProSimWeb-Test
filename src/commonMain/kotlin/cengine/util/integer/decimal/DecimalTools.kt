@@ -10,6 +10,7 @@ import emulator.kit.nativeWarn
 /**
  * This Object contains all performant relevant decimal calculations based on [String] representations.
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 object DecimalTools {
 
     private val negRegex = Regex("-[0-9]+")

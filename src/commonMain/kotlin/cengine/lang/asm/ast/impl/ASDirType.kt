@@ -9,7 +9,6 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.obj.elf.Shdr
-import cengine.util.integer.Hex
 import cengine.util.integer.Size.*
 
 enum class ASDirType(
@@ -1127,56 +1126,56 @@ enum class ASDirType(
         when (this) {
             BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit8) && !value.checkSizeUnsigned(Bit8)) {
+                if (!value.fitsInSignedOrUnsigned(8)) {
                     it.annotations.add(Annotation.error(it, "$value exceeds ${Bit8}."))
                 }
             }
 
             HWORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit16) && !value.checkSizeUnsigned(Bit16)) {
+                if (!value.fitsInSignedOrUnsigned(16)) {
                     it.annotations.add(Annotation.error(it, "$value exceeds ${Bit16}."))
                 }
             }
 
             INT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit32) && !value.checkSizeUnsigned(Bit32)) {
+                if (!value.fitsInSignedOrUnsigned(32)) {
                     it.annotations.add(Annotation.error(it, "$value exceeds ${Bit32}."))
                 }
             }
 
             SHORT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit16) && !value.checkSizeUnsigned(Bit16)) {
+                if (!value.fitsInSignedOrUnsigned(16)) {
                     it.annotations.add(Annotation.error(it, "$value exceeds ${Bit16}."))
                 }
             }
 
             WORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit32) && !value.checkSizeUnsigned(Bit32)) {
+                if (!value.fitsInSignedOrUnsigned(32)) {
                     it.annotations.add(Annotation.error(it, "$value exceeds ${Bit32}."))
                 }
             }
 
             _2BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit16) && !value.checkSizeUnsigned(Bit16)) {
+                if (!value.fitsInSignedOrUnsigned(16)) {
                     it.annotations.add(Annotation.error(it, "$value exceeds ${Bit16}."))
                 }
             }
 
             _4BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit32) && !value.checkSizeUnsigned(Bit32)) {
+                if (!value.fitsInSignedOrUnsigned(32)) {
                     it.annotations.add(Annotation.error(it, "$value exceeds ${Bit32}."))
                 }
             }
 
             _8BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
-                if (!value.checkSizeSigned(Bit64) && !value.checkSizeUnsigned(Bit64)) {
+                if (!value.fitsInSignedOrUnsigned(64)) {
                     it.annotations.add(Annotation.error(it, "$value exceeds ${Bit64}."))
                 }
             }
@@ -1244,9 +1243,9 @@ enum class ASDirType(
 
                 when (expr) {
                     is ASNode.NumericExpr -> {
-                        val evaluated = expr.evaluate(builder).toHex()
+                        val evaluated = expr.evaluate(builder)
                         try {
-                            builder.getOrCreateAbsSymbolInCurrentSection(identifier, evaluated.toULong())
+                            builder.getOrCreateAbsSymbolInCurrentSection(identifier, evaluated)
                             /*val symbol = builder.symTab[symbolIndex]
                             symbol.setValue(evaluated.toULong())
                             symbol.st_info = Sym.ELF_ST_INFO(Sym.STB_NUM, Sym.STT_NUM)
@@ -1416,7 +1415,7 @@ enum class ASDirType(
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
                     try {
-                        val uint32 = expr.evaluate(builder).toHex().toUInt()
+                        val uint32 = expr.evaluate(builder).toUInt()
                         builder.currentSection.content.put(uint32)
                     } catch (e: Exception) {
                         expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
@@ -1463,11 +1462,5 @@ enum class ASDirType(
 
             else -> dir.annotations.add(Annotation.warn(dir, "Not $this yet implemented."))
         }
-    }
-
-    companion object {
-        val zeroByte = Hex("0", Bit8)
-        val zeroShort = Hex("0", Bit16)
-        val zeroWord = Hex("0", Bit32)
     }
 }

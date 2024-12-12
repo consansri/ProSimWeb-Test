@@ -3,7 +3,6 @@ package emulator.kit.config
 import cengine.lang.asm.Disassembler
 import emulator.kit.common.Docs
 import emulator.kit.common.RegContainer
-import emulator.kit.memory.MainMemory
 import emulator.kit.optional.Feature
 import emulator.kit.optional.SetupSetting
 
@@ -14,7 +13,6 @@ data class Config(
     val description: Description,
     val fileEnding: String,
     val regContainer: RegContainer,
-    val memory: MainMemory,
     val disassembler: Disassembler?,
     val settings: List<SetupSetting<*>> = listOf(),
     val features: List<Feature> = listOf()

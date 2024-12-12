@@ -1,12 +1,12 @@
 package cengine.lang.obj.elf
 
-import cengine.util.integer.Hex
+import cengine.util.newint.BigInt
 
 interface LinkerScript {
 
-    val textStart: Hex?
-    val dataStart: Hex?
-    val rodataStart: Hex?
+    val textStart: BigInt?
+    val dataStart: BigInt?
+    val rodataStart: BigInt?
     val segmentAlign: UInt
 
 }

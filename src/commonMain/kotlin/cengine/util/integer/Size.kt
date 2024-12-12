@@ -9,6 +9,7 @@ import kotlin.math.roundToInt
  * This class defines the [Size] of each [Value] or [Variable], custom needed sizes for specific architectures can be added.
  * <CAN BE EXTENDED>
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 sealed class Size(val name: String, val bitWidth: Int) {
 
     val hexChars = bitWidth / 4 + if (bitWidth % 4 == 0) 0 else 1

@@ -6,7 +6,6 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.impl.ASNodeType
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.util.integer.Size
 
 enum class RVDirType(override val isSection: Boolean = false, override val rule: Rule? = null) : DirTypeInterface {
     ATTRIBUTE(rule = Rule {
@@ -129,8 +128,8 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             DWORD -> {
                 dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                     val evaluated = it.evaluate(builder)
-                    if (!evaluated.checkSizeSignedOrUnsigned(Size.Bit64)) {
-                        dir.annotations.add(Annotation.error(dir, "$evaluated exceeds ${Size.Bit64}!"))
+                    if (!evaluated.fitsInSignedOrUnsigned(64)) {
+                        dir.annotations.add(Annotation.error(dir, "$evaluated exceeds 64 bits"))
                     }
                 }
             }

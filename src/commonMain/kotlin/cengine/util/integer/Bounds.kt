@@ -7,6 +7,7 @@ import emulator.kit.nativeError
  * Bounds are used to check if a specific [Value] is in it's [Bounds] which are defined through it's [Size].
  * Bounds should be defined for each [Size].
  */
+@Deprecated("Use IntNumber instead, cause it's way faster then Value!")
 class Bounds {
 
     val min: String

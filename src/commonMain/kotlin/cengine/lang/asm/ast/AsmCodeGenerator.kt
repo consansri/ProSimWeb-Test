@@ -4,8 +4,8 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.obj.elf.LinkerScript
 import cengine.lang.obj.elf.Shdr
 import cengine.util.buffer.Buffer
-import cengine.util.integer.Hex
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.BigInt
+import cengine.util.newint.BigInt.Companion.toBigInt
 
 abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val linkerScript: LinkerScript) {
 
@@ -42,7 +42,7 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
             Symbol.Label(
                 name,
                 currentSection,
-                currentSection.content.size.toUInt()
+                currentSection.content.size.toBigInt()
             )
         )
     }
@@ -92,7 +92,7 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
         }
     }
 
-    fun getOrCreateAbsSymbolInCurrentSection(name: String, value: ULong): Boolean {
+    fun getOrCreateAbsSymbolInCurrentSection(name: String, value: BigInt): Boolean {
         return symbols.add(Symbol.Abs(name, currentSection, value))
     }
 
@@ -117,7 +117,7 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
         var flags: ULong
         var link: Section?
         var info: String?
-        var address: Hex
+        var address: BigInt
 
         val content: Buffer<*>
         val reservations: MutableList<InstrReservation>
@@ -150,11 +150,11 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
             return result
         }
 
-        class Abs<T : Section>(name: String, section: T, val value: ULong) : Symbol<T>(name, section)
+        class Abs<T : Section>(name: String, section: T, val value: BigInt) : Symbol<T>(name, section)
 
-        class Label<T : Section>(name: String, link: T, val offset: UInt) : Symbol<T>(name, link) {
+        class Label<T : Section>(name: String, link: T, val offset: BigInt) : Symbol<T>(name, link) {
             val local = name.all { it.isDigit() }
-            fun address(): Hex = section.address + offset.toValue()
+            fun address(): BigInt = section.address + offset
         }
 
         enum class Binding {

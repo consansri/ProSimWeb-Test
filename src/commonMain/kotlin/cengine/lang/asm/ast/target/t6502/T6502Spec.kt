@@ -7,8 +7,8 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASDirType
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.obj.elf.*
-import cengine.util.integer.Hex
 import cengine.util.integer.Size
+import cengine.util.newint.BigInt
 import emulator.EmuLink
 
 object T6502Spec : TargetSpec<ELFGenerator> {
@@ -21,9 +21,9 @@ object T6502Spec : TargetSpec<ELFGenerator> {
     override val e_machine: Elf_Half = Ehdr.EM_CUSTOM_T6502
 
     override val linkerScript: LinkerScript = object : LinkerScript {
-        override val textStart: Hex = Hex("0", Size.Bit16)
-        override val dataStart: Hex? = null
-        override val rodataStart: Hex? = null
+        override val textStart: BigInt = BigInt.ZERO
+        override val dataStart: BigInt? = null
+        override val rodataStart: BigInt? = null
         override val segmentAlign: UInt = 0x4000U
     }
     override val emuLink: EmuLink = EmuLink.T6502

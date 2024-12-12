@@ -1,29 +1,37 @@
 package ui.emulator
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.style.TextAlign
-import cengine.util.integer.Value
-import cengine.util.integer.Value.Companion.toValue
+import cengine.util.newint.Format
 import emulator.kit.Architecture
-import emulator.kit.common.RegContainer
+import emulator.kit.MicroSetup
+import emulator.kit.register.FieldProvider
+import emulator.kit.register.RegFile
 import ui.uilib.UIState
 import ui.uilib.interactable.CButton
-import ui.uilib.interactable.CInput
 import ui.uilib.interactable.CToggle
-import ui.uilib.label.CLabel
 import ui.uilib.layout.TabItem
 import ui.uilib.layout.TabbedPane
+import ui.uilib.params.IconType
 
 @Composable
-fun RegView(arch: Architecture) {
+fun RegView(arch: Architecture<*, *>) {
 
-    val tabs = remember { arch.regContainer.getRegFileList().map { TabItem(it, title = it.name) } }
+    val regFiles = remember { MicroSetup.regFiles }
+    val tabs = remember { regFiles.map { TabItem(it, title = it.name) } }
 
     TabbedPane(tabs, closeable = false, content = { tabIndex ->
 
@@ -37,165 +45,185 @@ fun RegView(arch: Architecture) {
 }
 
 @Composable
-fun RegTable(regFile: RegContainer.RegisterFile) {
+fun RegTable(regFile: RegFile<*>) {
     val scale = UIState.Scale.value
     val theme = UIState.Theme.value
 
-    val regs = remember { mutableStateListOf(*regFile.unsortedRegisters) }
+    var sortedBy: FieldProvider? by remember { mutableStateOf<FieldProvider?>(null) }
 
-    val vScrollState = rememberScrollState()
-    var numberFormat by remember { mutableStateOf<Value.Types>(Value.Types.Hex) }
-    var sortByAddress by remember { mutableStateOf<Boolean>(false) }
-    var showDescription by remember { mutableStateOf(false) }
+    var numberFormat by remember { mutableStateOf<Format>(Format.HEX) }
 
-    val valueHScroll = rememberScrollState()
+    var showDescription by remember { mutableStateOf(true) }
 
     Column(Modifier.fillMaxSize()) {
         Row(
-            Modifier.fillMaxWidth()
-                .background(theme.COLOR_BG_1)
+            Modifier
+                .fillMaxWidth()
+                .background(theme.COLOR_BG_1),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
 
-            Box(
-                modifier = Modifier.weight(0.4f),
-                contentAlignment = Alignment.Center
+            CToggle(onClick = {
+                showDescription = !showDescription
+            }, showDescription, modifier = Modifier.weight(0.1f), icon = UIState.Icon.value.info, iconType = IconType.SMALL)
+
+            Row(
+                Modifier.weight(0.2f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                CToggle(
-                    modifier = Modifier.fillMaxWidth(),
-                    textStyle = UIState.BaseStyle.current,
-                    text = if (sortByAddress) {
-                        "Reg (by addr)"
-                    } else {
-                        "Reg"
-                    }, onClick = {
-                        sortByAddress = it
-                    },
-                    softWrap = false,
-                    value = sortByAddress
-                )
+                regFile.indentificators.forEach { provider ->
+                    Box(
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = UIState.BaseStyle.current,
+                            text = if (sortedBy == provider) {
+                                "${provider.name} ⌄"
+                            } else {
+                                provider.name
+                            }, onClick = {
+                                sortedBy = if (sortedBy == provider) {
+                                    null
+                                } else {
+                                    provider
+                                }
+                            },
+                            softWrap = false
+                        )
+                    }
+                }
             }
 
             Box(
-                modifier = Modifier.weight(0.5f),
+                modifier = Modifier.weight(0.3f),
                 contentAlignment = Alignment.Center
             ) {
-                CButton(text = numberFormat.visibleName, modifier = Modifier.fillMaxWidth(), softWrap = false, onClick = {
+                CButton(text = numberFormat.name, modifier = Modifier.fillMaxWidth(), softWrap = false, onClick = {
                     numberFormat = numberFormat.next()
                 })
             }
 
-            Box(
-                modifier = Modifier.weight(0.1f),
-                contentAlignment = Alignment.Center
-            ) {
-                CLabel(text = "CC", textStyle = UIState.BaseStyle.current, softWrap = false)
-            }
-
-            Box(
-                modifier = if (showDescription) {
-                    Modifier.weight(0.30f)
-                } else Modifier.weight(0.05f),
-                contentAlignment = Alignment.Center
-            ) {
-                CToggle(text = if (showDescription) "Description" else "+", value = showDescription, onClick = {
-                    showDescription = it
-                })
+            if (showDescription) {
+                Row(
+                    Modifier.weight(0.4f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    regFile.descriptors.forEach { provider ->
+                        Box(
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                textStyle = UIState.BaseSmallStyle.current,
+                                text = if (sortedBy == provider) {
+                                    "${provider.name} ⌄"
+                                } else {
+                                    provider.name
+                                }, onClick = {
+                                    sortedBy = if (sortedBy == provider) {
+                                        null
+                                    } else {
+                                        provider
+                                    }
+                                },
+                                softWrap = false
+                            )
+                        }
+                    }
+                }
             }
         }
 
-        Column(
+        LazyColumn(
             Modifier.fillMaxSize()
-                .verticalScroll(vScrollState)
         ) {
-            regs.forEach { reg ->
-                key("reg:${reg.names + reg.aliases}:$numberFormat") {
-                    RegRow(reg, numberFormat, valueHScroll, showDescription)
+            val indexedRegs = regFile.regValues.mapIndexed { index, intNumber -> index to intNumber }.filter { regFile.isVisible(it.first) }
+
+            val sortedRegs = sortedBy?.let { provider ->
+                indexedRegs.sortedBy { provider.get(it.first) }
+            } ?: indexedRegs
+
+            items(sortedRegs, key = {
+                it.hashCode()
+            }) { (id, reg) ->
+                // Display Reg
+
+                val interactionSource = remember { MutableInteractionSource() }
+                var regValue by remember { mutableStateOf(numberFormat.format(reg)) }
+                val focused by interactionSource.collectIsFocusedAsState()
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text(
+                        id.toString(16),
+                        Modifier.weight(0.1f),
+                        softWrap = false,
+                        fontFamily = UIState.CodeStyle.current.fontFamily,
+                        color = UIState.Theme.value.COLOR_FG_0,
+                        fontSize = UIState.CodeStyle.current.fontSize,
+                        textAlign = TextAlign.Right
+                    )
+
+                    Row(
+                        Modifier.weight(0.2f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        regFile.indentificators.forEach { provider ->
+                            Text(
+                                provider.get(id),
+                                Modifier.fillMaxWidth(),
+                                softWrap = false,
+                                fontFamily = UIState.BaseStyle.current.fontFamily,
+                                fontSize = UIState.BaseStyle.current.fontSize,
+                                textAlign = TextAlign.Center,
+                                color = theme.COLOR_FG_1
+                            )
+                        }
+                    }
+
+                    BasicTextField(
+                        modifier = Modifier.weight(0.3f),
+                        value = regValue,
+                        onValueChange = { regValue = it },
+                        textStyle = UIState.CodeStyle.current.copy(theme.COLOR_FG_0),
+                        visualTransformation = { annotatedString ->
+                            TransformedText(AnnotatedString(numberFormat.filter(annotatedString.text)), OffsetMapping.Identity)
+                        },
+                        interactionSource = interactionSource
+                    )
+
+                    if (showDescription) {
+                        Row(Modifier.weight(0.4f)) {
+                            regFile.descriptors.forEach { provider ->
+                                Text(
+                                    provider.get(id),
+                                    Modifier.fillMaxWidth(),
+                                    softWrap = false,
+                                    fontFamily = UIState.BaseSmallStyle.current.fontFamily,
+                                    fontSize = UIState.BaseSmallStyle.current.fontSize,
+                                    textAlign = TextAlign.Center,
+                                    color = theme.COLOR_FG_1
+                                )
+                            }
+                        }
+                    }
+                }
+
+                LaunchedEffect(focused) {
+                    if (!focused) {
+                        regFile[id] = numberFormat.parse(regValue)
+                        regValue = numberFormat.format(regFile[id])
+                    }
                 }
             }
         }
     }
-
-    LaunchedEffect(sortByAddress) {
-        regs.clear()
-        regs.addAll(if (sortByAddress) {
-            regFile.unsortedRegisters.sortedBy { it.address.toValue().toULong() }
-        } else {
-            regFile.unsortedRegisters.toList()
-        })
-    }
 }
-
-@Composable
-fun RegRow(reg: RegContainer.Register, numberFormat: Value.Types, valueHScroll: ScrollState, showDescription: Boolean) {
-    val regState by reg.variable.state
-
-    fun getRegString(): String {
-        return when (numberFormat) {
-            Value.Types.Bin -> regState.toBin().rawInput
-            Value.Types.Hex -> regState.toHex().rawInput
-            Value.Types.Dec -> regState.toDec().rawInput
-            Value.Types.UDec -> regState.toUDec().rawInput
-        }
-    }
-
-    var regValue by remember { mutableStateOf(TextFieldValue(getRegString())) }
-    val regNames = remember { (reg.names + reg.aliases).joinToString(" ") { it } }
-
-    LaunchedEffect(regState) {
-        regValue = regValue.copy(text = getRegString())
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Box(
-            modifier = Modifier.weight(0.4f),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Text(regNames, Modifier.fillMaxWidth(), softWrap = false, fontFamily = UIState.CodeStyle.current.fontFamily, color = UIState.Theme.value.COLOR_FG_0, fontSize = UIState.CodeStyle.current.fontSize, textAlign = TextAlign.Left)
-        }
-
-        Box(
-            modifier = Modifier.weight(0.5f)
-                .horizontalScroll(valueHScroll),
-            contentAlignment = Alignment.Center
-        ) {
-            CInput(
-                value = regValue,
-                onValueChange = { newVal ->
-                    regValue = newVal
-                },
-                onFocusLost = { newVal ->
-                    when (numberFormat) {
-                        Value.Types.Bin -> reg.variable.setBin(newVal.text)
-                        Value.Types.Hex -> reg.variable.setHex(newVal.text)
-                        Value.Types.Dec -> reg.variable.setDec(newVal.text)
-                        Value.Types.UDec -> reg.variable.setUDec(newVal.text)
-                    }
-                },
-                numberFormat = numberFormat,
-            )
-        }
-
-        Box(
-            modifier = Modifier.weight(0.1f),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(reg.callingConvention.displayName, Modifier.fillMaxWidth(), softWrap = false, fontFamily = UIState.BaseStyle.current.fontFamily, color = UIState.Theme.value.COLOR_FG_0, fontSize = UIState.BaseStyle.current.fontSize, textAlign = TextAlign.Center)
-        }
-
-        if (showDescription) {
-            Box(
-                modifier = Modifier.weight(0.30f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(reg.description, Modifier.fillMaxWidth(), softWrap = false, fontFamily = UIState.BaseSmallStyle.current.fontFamily, color = UIState.Theme.value.COLOR_FG_0, fontSize = UIState.BaseSmallStyle.current.fontSize, textAlign = TextAlign.Left)
-            }
-        } else {
-            Spacer(Modifier.weight(0.05f))
-        }
-
-    }
-}
-
 
