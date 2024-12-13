@@ -111,6 +111,7 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
     @OptIn(ExperimentalUnsignedTypes::class)
     override fun toUInt128(): UInt128 = UInt128(BigInteger.fromUByteArray(value.toUByteArray(), Sign.POSITIVE))
 
+    override fun toString(): String = value.toString()
     override fun toString(radix: Int): String = value.toString(radix)
 
     @OptIn(ExperimentalUnsignedTypes::class)

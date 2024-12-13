@@ -111,6 +111,7 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
 
     override fun toUnsigned(): UInt8 = toUInt8()
 
+    override fun toString(): String = value.toString()
     override fun toString(radix: Int): String = value.toString(radix)
 
     override fun fitsInSigned(bitWidth: Int): Boolean {
@@ -123,7 +124,7 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     override fun fitsInUnsigned(bitWidth: Int): Boolean = toUInt8().fitsInUnsigned(bitWidth)
 
     override fun int8s() = listOf(this)
-    override fun toString(): String = value.toString()
+
 
     override fun hashCode(): Int {
         return value.hashCode()
