@@ -90,7 +90,7 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
                 }
             }
 
-            is ASNode.Statement.Unresolved -> {}
+            is ASNode.Statement.Error -> {}
         }
     }
 

@@ -89,7 +89,7 @@ class AsmCompleter(targetSpec: TargetSpec<*>) : CompletionProvider {
                         is ASNode.Statement.Dir -> element.dir.accept(this)
                         is ASNode.Statement.Empty -> {}
                         is ASNode.Statement.Instr -> {}
-                        is ASNode.Statement.Unresolved -> {}
+                        is ASNode.Statement.Error -> {}
                     }
                 }
 

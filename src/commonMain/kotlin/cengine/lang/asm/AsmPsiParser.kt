@@ -149,7 +149,7 @@ class AsmPsiParser(private val spec: TargetSpec<*>, private val languageService:
                 is ASNode.Statement.Dir -> {}
                 is ASNode.Statement.Empty -> {}
                 is ASNode.Statement.Instr -> {}
-                is ASNode.Statement.Unresolved -> {}
+                is ASNode.Statement.Error -> {}
                 else -> return
             }
 

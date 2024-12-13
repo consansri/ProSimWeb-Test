@@ -30,7 +30,7 @@ import emulator.kit.nativeLog
  *   - [Statement.Empty] No Content
  *   - [Statement.Dir] Content determined by [DirTypeInterface]
  *   - [Statement.Instr] Content determined by [InstrTypeInterface]
- *   - [Statement.Unresolved] Unresolved Content
+ *   - [Statement.Error] Unresolved Content
  * --------------------
  */
 sealed class ASNode(override var range: IntRange, vararg children: PsiElement) : PsiElement, PsiFormatter {
@@ -54,6 +54,16 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
         annotations.add(Annotation.info(this, message, execute))
     }
 
+    fun addErrorNode(node: SyntaxError) {
+        children.add(node)
+        if (node.range.first < range.first) {
+            range = node.range.first..range.last
+        }
+        if (node.range.last > range.last) {
+            range = range.first..node.range.last
+        }
+    }
+
     override fun accept(visitor: PsiElementVisitor) {
         //nativeLog("${visitor::class.simpleName} at ${this::class.simpleName}")
         visitor.visitElement(this)
@@ -66,13 +76,13 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             get() = PATHNAME
 
         companion object {
-            const val PATHNAME = "COMMENT"
+            const val PATHNAME = "Comment"
         }
 
         override fun getFormatted(identSize: Int): String = token.value
     }
 
-    class Error(val message: String, private vararg val tokens: AsmToken) : ASNode(tokens.first().range.first..tokens.last().range.last), Highlightable {
+    class SyntaxError(val message: String, private vararg val tokens: AsmToken) : ASNode(tokens.minOf { it.range.first }..tokens.maxOf { it.range.last }), Highlightable {
         override val pathName: String
             get() = PATHNAME
 
@@ -80,17 +90,31 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             get() = CodeStyle.error
 
         companion object {
-            const val PATHNAME = "ERROR"
+            const val PATHNAME = "Syntax Error"
         }
 
         init {
             addError(message)
         }
 
+        fun catchIf(lexer: AsmLexer, possibleCatcher: AsmLexer.() -> ASNode?): ASNode {
+            val startPos = lexer.position
+
+            val catchingParent = lexer.possibleCatcher()
+
+            if (catchingParent != null) {
+                return catchingParent.apply { addErrorNode(this@SyntaxError) }
+            } else {
+                lexer.position = startPos
+                return this
+            }
+        }
+
         override fun getFormatted(identSize: Int): String = tokens.joinToString(" ") { it.value }
     }
 
     companion object {
+
         /**
          * Severities will be set by the Lowest Node, which is actually checking the token.
          */
@@ -100,18 +124,22 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             when (gasNodeType) {
                 ASNodeType.PROGRAM -> {
                     val statements = mutableListOf<Statement>()
+                    val syntaxErrors = mutableListOf<SyntaxError>()
                     val annotations = mutableListOf<Annotation>()
 
                     while (lexer.hasMoreTokens()) {
                         val node = buildNode(ASNodeType.STATEMENT, lexer, targetSpec)
 
                         if (node == null) {
-                            val token = lexer.consume(true)
-                            annotations.add(Annotation.error(token, "Expected a Statement!"))
+                            break
+                        }
+
+                        if (node is SyntaxError) {
+                            syntaxErrors.add(node)
                             continue
                         }
 
-                        if (node is Statement.Unresolved && node.lineTokens.isEmpty() && node.label == null) {
+                        if (node is Statement.Error && node.lineTokens.isEmpty() && node.label == null) {
                             // node is empty
                             continue
                         }
@@ -123,7 +151,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                         statements.add(node)
                     }
 
-                    val node = Program(statements, lexer.ignored.map { Comment(it as AsmToken) })
+                    val node = Program(statements, lexer.ignored.map { Comment(it as AsmToken) }, syntaxErrors)
                     node.annotations.addAll(annotations)
                     return node
                 }
@@ -132,7 +160,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                     val label = buildNode(ASNodeType.LABEL, lexer, targetSpec) as? Label
 
                     val directive = buildNode(ASNodeType.DIRECTIVE, lexer, targetSpec)
-                    if (directive != null && directive is Directive) {
+                    if (directive is Directive) {
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
                             val node = Statement.Dir(label, directive, lineBreak)
@@ -143,8 +171,16 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                         return Statement.Dir(label, directive, lineBreak)
                     }
 
+                    if (directive is SyntaxError) {
+                        return directive.catchIf(lexer) {
+                            val lb = lexer.consume(true)
+                            if (lb.type != AsmTokenType.LINEBREAK) return@catchIf null
+                            Statement.Empty(label, lb)
+                        }
+                    }
+
                     val instruction = buildNode(ASNodeType.INSTRUCTION, lexer, targetSpec)
-                    if (instruction != null && instruction is Instruction) {
+                    if (instruction is Instruction) {
                         val lineBreak = lexer.consume(true)
                         if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
                             val node = Statement.Instr(label, instruction, lineBreak)
@@ -155,7 +191,16 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                         return Statement.Instr(label, instruction, lineBreak)
                     }
 
+                    if (instruction is SyntaxError) {
+                        return instruction.catchIf(lexer) {
+                            val lb = lexer.consume(true)
+                            if (lb.type != AsmTokenType.LINEBREAK) return@catchIf null
+                            Statement.Empty(label, lb)
+                        }
+                    }
+
                     val lineBreak = lexer.consume(true)
+
                     if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
                         val unresolvedTokens = mutableListOf(lineBreak)
                         var token: AsmToken
@@ -168,15 +213,15 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                             }
 
                             if (!lexer.hasMoreTokens()) {
-                                val node = Statement.Unresolved(label, unresolvedTokens, token)
-                                node.annotations.add(Annotation.error(lineBreak, "Linebreak is missing!"))
-                                return node
+                                return SyntaxError("Linebreak is missing!", *unresolvedTokens.toTypedArray())
                             }
 
                             unresolvedTokens.add(token)
                         }
 
-                        return Statement.Unresolved(label, unresolvedTokens, token)
+                        return Statement.Empty(label, token).apply {
+                            addErrorNode(SyntaxError("Invalid Statement!", *unresolvedTokens.toTypedArray()))
+                        }
                     }
 
                     return Statement.Empty(label, lineBreak)
@@ -185,10 +230,12 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                 ASNodeType.DIRECTIVE -> {
                     targetSpec.allDirs.forEach {
                         val node = it.buildDirectiveContent(lexer, targetSpec)
+
                         if (node != null) {
                             //nativeLog("Found directive ${it.getDetectionString()} ${node::class.simpleName}")
                             return node
                         }
+
                         lexer.position = initialPos
                     }
                     return null
@@ -203,8 +250,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
 
                     val validTypes = targetSpec.allInstrs.filter { it.detectionName.lowercase() == first.value.lowercase() }
                     if (validTypes.isEmpty()) {
-                        val node = Error("No valid instruction type found for $first.", first)
-                        return node
+                        return SyntaxError("No valid instruction type found for $first.", first)
                     }
 
                     validTypes.forEach {
@@ -215,8 +261,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                         }
                     }
 
-                    val node = Error("Invalid Arguments for valid types: ${validTypes.joinToString { it.typeName }}!", first)
-                    return node
+                    return SyntaxError("Invalid Arguments for Instruction ${first.value}!", first)
                 }
 
                 ASNodeType.INT_EXPR -> {
@@ -294,9 +339,9 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
      * [Program]
      * A RootNode only contains several [Statement]s.
      */
-    class Program(statements: List<Statement>, comments: List<Comment>) : ASNode(
+    class Program(statements: List<Statement>, comments: List<Comment>, syntaxErrors: List<SyntaxError>) : ASNode(
         (statements.minByOrNull { it.range.first }?.range?.start ?: 0)..(statements.maxByOrNull { it.range.last }?.range?.last ?: 0),
-        *(statements + comments).sortedBy { it.range.first }.toTypedArray()
+        *(statements + comments + syntaxErrors).sortedBy { it.range.first }.toTypedArray()
     ) {
         override val pathName: String = this::class.simpleName.toString()
 
@@ -318,7 +363,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
      *  - [Statement.Empty] No Content
      *  - [Statement.Dir] Content determined by [Directive]
      *  - [Statement.Instr] Content determined by [Instruction]
-     *  - [Statement.Unresolved] Unresolved Content
+     *  - [Statement.Error] Unresolved Content
      */
     sealed class Statement(val label: Label?, val lineBreak: AsmToken, range: IntRange? = null, vararg childs: ASNode) : ASNode(
         range ?: (label?.range?.first ?: childs.firstOrNull()?.range?.first ?: lineBreak.range.first)..<(lineBreak.range.last + 1)
@@ -356,14 +401,14 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             }
         }
 
-        class Unresolved(label: Label?, val lineTokens: List<AsmToken>, lineBreak: AsmToken) : Statement(
+        class Error(label: Label?, val lineTokens: List<AsmToken>, val nodes: List<ASNode>, lineBreak: AsmToken, message: String) : Statement(
             label, lineBreak,
             (label?.range?.start ?: lineTokens.firstOrNull()?.range?.start ?: lineBreak.range.first)..lineBreak.range.last
         ) {
             val content = lineTokens.joinToString("") { it.value } + lineBreak.value
 
             init {
-                addError("Statement is unresolved!")
+                addError(message)
             }
 
             override fun getFormatted(identSize: Int): String = (label?.getFormatted(identSize) ?: "") + lineTokens.joinToString("") { it.value } + lineBreak.value
@@ -501,7 +546,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
         }
     }
 
-    class Instruction(val type: InstrTypeInterface,private val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
+    class Instruction(val type: InstrTypeInterface, private val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
         override val pathName: String
             get() = instrName.value
 
@@ -705,7 +750,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
 
                     return expression
                 } catch (e: PsiParser.TokenException) {
-                    return Error("Invalid Numeric Expression.", *relevantTokens.toTypedArray())
+                    return SyntaxError("Invalid Numeric Expression.", *relevantTokens.toTypedArray())
                 }
             }
 

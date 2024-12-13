@@ -18,7 +18,6 @@ import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.obj.elf.ELFGenerator
 import cengine.util.integer.UInt32
 import cengine.util.integer.UInt32.Companion.toUInt32
-import emulator.kit.nativeLog
 
 enum class RV32InstrType(override val detectionName: String, val isPseudo: Boolean, val paramType: RV32ParamType, val labelDependent: Boolean = false, override val addressInstancesNeeded: Int? = 4) : InstrTypeInterface {
     LUI("LUI", false, RV32ParamType.RD_I20),
@@ -783,7 +782,6 @@ enum class RV32InstrType(override val detectionName: String, val isPseudo: Boole
 
                 val imm20 = relative.mask20jType()
 
-                nativeLog("Decided $name: 0x${imm20.toString(16)}")
                 val rd = RVBaseRegs.ZERO.ordinal.toUInt32()
                 val opcode = RVConst.OPC_JAL
 
