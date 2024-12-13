@@ -100,7 +100,9 @@ fun <T : Any> TabbedPane(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                content(selectedTabIndexInt)
+                key(tabs[selectedTabIndex].title + selectedTabIndexInt) {
+                    content(selectedTabIndexInt)
+                }
             }
         } else {
             // Display a message when no tabs are open

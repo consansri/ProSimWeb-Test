@@ -1,9 +1,9 @@
 package ui.uilib.label
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -11,7 +11,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -31,6 +30,7 @@ fun CLabel(
     textAlign: TextAlign = TextAlign.Center,
     textDecoration: TextDecoration = TextDecoration.None,
     iconType: IconType = IconType.SMALL,
+    iconTint: Color? = null,
     textStyle: TextStyle = UIState.BaseStyle.current,
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
     softWrap: Boolean = true,
@@ -52,11 +52,11 @@ fun CLabel(
     ) {
 
         if (icon != null) {
-            Image(
+            Icon(
                 icon,
-                colorFilter = ColorFilter.tint(theme.COLOR_FG_0),
+                contentDescription = "Add Icon",
                 modifier = Modifier.size(iconType.getSize()),
-                contentDescription = "Add Icon"
+                tint = iconTint ?: theme.COLOR_FG_0
             )
         }
 

@@ -82,16 +82,14 @@ fun IDEView(
     val psiAnalyzer: (@Composable BoxScope.() -> Unit) = {
         val psiManagers = project.psiManagers.map { TabItem(it, title = it.lang.name) }
         TabbedPane(psiManagers, content = {
-            key(psiManagers[it].value) {
-                PsiAnalyzerView(psiManagers[it].value) { psiFile, index ->
-                    val editorIndex = fileEditors.indexOfFirst { editor -> editor.value == psiFile.file }
-                    if (editorIndex == -1) {
-                        fileEditors.add(TabItem(psiFile.file, icons.file, psiFile.file.name))
-                        fileEditorSelectedIndex = fileEditors.size - 1
-                        ideState.openFiles = fileEditors.map { editor -> editor.value.path }
-                    } else {
-                        fileEditorSelectedIndex = editorIndex
-                    }
+            PsiAnalyzerView(psiManagers[it].value) { psiFile, index ->
+                val editorIndex = fileEditors.indexOfFirst { editor -> editor.value == psiFile.file }
+                if (editorIndex == -1) {
+                    fileEditors.add(TabItem(psiFile.file, icons.file, psiFile.file.name))
+                    fileEditorSelectedIndex = fileEditors.size - 1
+                    ideState.openFiles = fileEditors.map { editor -> editor.value.path }
+                } else {
+                    fileEditorSelectedIndex = editorIndex
                 }
             }
         })
@@ -213,11 +211,11 @@ fun IDEView(
                         bottomContentType = if (bottomContentType != ToolContentType.PsiAnalyzer) {
                             ToolContentType.PsiAnalyzer
                         } else null
-                    }, value = false, icon = icons.statusError)
+                    }, value = bottomContentType == ToolContentType.PsiAnalyzer, icon = icons.statusError)
 
-                    CToggle(onClick = {
+                    /*CToggle(onClick = {
 
-                    }, value = false, icon = icons.console)
+                    }, value = false, icon = icons.console)*/
 
                 }
             )

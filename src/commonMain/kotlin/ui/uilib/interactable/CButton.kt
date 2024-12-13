@@ -96,7 +96,7 @@ fun CButton(
         }
 
         if (tooltip != null) {
-            Spacer(Modifier.width(scaling.SIZE_INSET_MEDIUM))
+            Spacer(Modifier.width(scaling.SIZE_INSET_LARGE))
             Text(
                 tooltip,
                 overflow = TextOverflow.Clip,
