@@ -10,3 +10,4 @@ premu/
 *.eml
 *.userlibraries
 /qodana.yaml
+/prosimweb/
