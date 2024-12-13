@@ -12,14 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import cengine.project.Project
-import cengine.vfs.VirtualFile
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import ui.uilib.UIState
-import ui.uilib.filetree.FileTree
 import ui.ide.analyze.PsiAnalyzerView
 import ui.ide.editor.CodeEditor
 import ui.ide.editor.ObjectEditor
+import ui.uilib.UIState
+import ui.uilib.filetree.FileTree
 import ui.uilib.interactable.CButton
 import ui.uilib.interactable.CToggle
 import ui.uilib.label.CLabel
@@ -46,7 +45,7 @@ fun IDEView(
     val coroutineScope = rememberCoroutineScope()
 
     val fileEditors = remember {
-        mutableStateListOf<TabItem<VirtualFile>>(*ideState.openFiles.mapNotNull { path ->
+        mutableStateListOf(*ideState.openFiles.mapNotNull { path ->
             project.fileSystem.findFile(path)
         }.map { file ->
             TabItem(file, icons.file, file.name)
@@ -54,9 +53,9 @@ fun IDEView(
     }
     var fileEditorSelectedIndex by remember { mutableStateOf(0) }
 
-    var leftContentType by remember { mutableStateOf<ToolContentType?>(ideState.leftContent) }
-    var rightContentType by remember { mutableStateOf<ToolContentType?>(ideState.rightContent) }
-    var bottomContentType by remember { mutableStateOf<ToolContentType?>(ideState.bottomContent) }
+    var leftContentType by remember { mutableStateOf(ideState.leftContent) }
+    var rightContentType by remember { mutableStateOf(ideState.rightContent) }
+    var bottomContentType by remember { mutableStateOf(ideState.bottomContent) }
 
     val fileTree: (@Composable BoxScope.() -> Unit) = {
         val leftVScrollState = rememberScrollState()
@@ -84,12 +83,12 @@ fun IDEView(
         val psiManagers = project.psiManagers.map { TabItem(it, title = it.lang.name) }
         TabbedPane(psiManagers, content = {
             PsiAnalyzerView(psiManagers[it].value) { psiFile, index ->
-                val editorIndex = fileEditors.indexOfFirst { it.value == psiFile.file }
+                val editorIndex = fileEditors.indexOfFirst { editor -> editor.value == psiFile.file }
                 if (editorIndex == -1) {
                     fileEditors.add(TabItem(psiFile.file, icons.file, psiFile.file.name))
                     fileEditorSelectedIndex = fileEditors.size - 1
-                    ideState.openFiles = fileEditors.map { it.value.path }
-                }else{
+                    ideState.openFiles = fileEditors.map { editor -> editor.value.path }
+                } else {
                     fileEditorSelectedIndex = editorIndex
                 }
             }

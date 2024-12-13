@@ -11,7 +11,7 @@ import cengine.vfs.VirtualFile
 import kotlinx.coroutines.*
 
 class PsiManager<L : LanguageService, F: PsiFile>(
-    private val vfs: VFileSystem,
+    vfs: VFileSystem,
     val lang: L,
     val psiParser: PsiParser<F>
 ) {

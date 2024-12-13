@@ -69,9 +69,6 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
      */
     fun bit(index: Int): T = (this shr index) and 1
 
-    /**
-     * @param other will be converted to same type as first operand.
-     */
     operator fun inc(): T
     operator fun dec(): T
 

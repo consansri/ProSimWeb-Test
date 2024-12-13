@@ -355,7 +355,7 @@ abstract class ELFGenerator(
             }
             val currInfo = info
             if (currInfo != null) {
-                sh_info = strTab.get(currInfo) ?: strTab.addString(currInfo)
+                sh_info = strTab[currInfo] ?: strTab.addString(currInfo)
             }
             if (entSize != null) {
                 setEntSize(entSize)

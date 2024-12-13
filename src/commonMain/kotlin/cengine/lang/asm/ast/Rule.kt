@@ -52,8 +52,6 @@ class Rule(comp: () -> Component = { Component.Nothing }) {
      * @param matches Whether the match was successful.
      * @param matchingTokens The tokens that were matched.
      * @param matchingNodes The nodes that were matched.
-     * @param remainingTokens The remaining tokens after the match.
-     * @param ignoredSpaces The tokens that were ignored as spaces.
      */
     data class MatchResult(val matches: Boolean, val matchingTokens: List<AsmToken> = listOf(), val matchingNodes: List<ASNode> = listOf()) {
         override fun toString(): String {

@@ -24,7 +24,7 @@ class IntBuffer(endianness: Endianness, initial: Array<Int> = emptyArray()) : Bu
     }
 
     override fun pad(length: Int) {
-        data.addAll(Array<Int>(length) { 0 })
+        data.addAll(Array(length) { 0 })
     }
 
     override fun putBytes(bytes: Array<Byte>) {

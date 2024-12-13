@@ -2,7 +2,7 @@ package cengine.lang.asm.ast.target.riscv.rv32
 
 import cengine.lang.asm.ast.target.riscv.RVCsr
 
-enum class RVCsr32Only(val alias: String, val description: String): RVCsr {
+enum class RVCsr32Only(alias: String, val description: String): RVCsr {
     X3A1("pmpcfg1", "Physical memory protection configuration, RV32 only"),
     X3A3("pmpcfg3","Physical memory protection configuration, RV32 only"),
 

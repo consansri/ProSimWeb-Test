@@ -14,7 +14,7 @@ import cengine.vfs.VirtualFile
 import debug.DebugTools
 import emulator.kit.nativeLog
 
-class AsmPsiParser(val spec: TargetSpec<*>, val languageService: AsmLang) : PsiParser<AsmFile> {
+class AsmPsiParser(private val spec: TargetSpec<*>, private val languageService: AsmLang) : PsiParser<AsmFile> {
 
     override fun parse(file: VirtualFile): AsmFile {
         nativeLog("Parsing ${file.path} ...")

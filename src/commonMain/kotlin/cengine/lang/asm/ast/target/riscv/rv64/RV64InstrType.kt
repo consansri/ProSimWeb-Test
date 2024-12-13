@@ -1011,7 +1011,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                     expr.addError("$relative exceeds 20 bits")
                 }
 
-                val imm20 = relative.toUInt32().mask20jType() ?: UInt32.ZERO
+                val imm20 = relative.toUInt32().mask20jType()
 
                 val rd = RVBaseRegs.RA.ordinal.toUInt32()
                 val opcode = RVConst.OPC_JAL

@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
 
 object ProjectStateManager {
 
-    private val projectsFileName = "projects.json"
+    private const val projectsFileName = "projects.json"
 
     private val vfs = VFileSystem(BuildConfig.NAME.lowercase())
 

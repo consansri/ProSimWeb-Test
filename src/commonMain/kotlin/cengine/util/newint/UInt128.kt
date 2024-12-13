@@ -124,12 +124,7 @@ class UInt128(value: BigInteger) : IntNumber<UInt128> {
     override fun toUnsigned(): UInt128 = this
 
     override fun toString(): String = value.toString()
-    override fun fitsInSigned(bitWidth: Int): Boolean {
-        if (bitWidth >= this.bitWidth) return true
-        val minValue = -(ONE shl (bitWidth - 1)) // -2^(bitWidth-1)
-        val maxValue = (ONE shl (bitWidth - 1)) - 1 // 2^(bitWidth-1) - 1
-        return value in minValue.value..maxValue.value
-    }
+    override fun fitsInSigned(bitWidth: Int): Boolean = toInt128().fitsInSigned(bitWidth)
 
     override fun fitsInUnsigned(bitWidth: Int): Boolean {
         if (bitWidth >= this.bitWidth) return true

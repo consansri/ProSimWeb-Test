@@ -76,7 +76,7 @@ sealed class MifNode(override var range: IntRange, vararg children: PsiElement) 
         }
     }
 
-    class Header(val identifier: MifToken, val assign: MifToken, val value: MifToken, val semicolon: MifToken) : MifNode(identifier.range.first..semicolon.range.last, identifier, assign, value, semicolon) {
+    class Header(val identifier: MifToken, assign: MifToken, val value: MifToken, semicolon: MifToken) : MifNode(identifier.range.first..semicolon.range.last, identifier, assign, value, semicolon) {
         override val pathName: String = "Header"
 
         init {
@@ -128,7 +128,7 @@ sealed class MifNode(override var range: IntRange, vararg children: PsiElement) 
         }
     }
 
-    class Content(val content: MifToken, val begin: MifToken, val assignments: Array<Assignment>, val end: MifToken, val semicolon: MifToken) : MifNode(content.range.first..semicolon.range.last, content, begin, *assignments, end, semicolon) {
+    class Content(val content: MifToken, begin: MifToken, val assignments: Array<Assignment>, val end: MifToken, semicolon: MifToken) : MifNode(content.range.first..semicolon.range.last, content, begin, *assignments, end, semicolon) {
         override val pathName: String = "Content"
 
         companion object {
@@ -248,21 +248,21 @@ sealed class MifNode(override var range: IntRange, vararg children: PsiElement) 
             }
         }
 
-        class Direct(val addr: MifToken, val colon: MifToken, val data: MifToken, val semicolon: MifToken) : Assignment(addr.range.first..semicolon.range.last, addr, colon, data, semicolon) {
+        class Direct(val addr: MifToken, colon: MifToken, val data: MifToken, semicolon: MifToken) : Assignment(addr.range.first..semicolon.range.last, addr, colon, data, semicolon) {
             override val pathName: String = "DirectAssignment"
         }
 
-        class ListOfValues(val addr: MifToken, val colon: MifToken, val data: Array<MifToken>, val semicolon: MifToken) : Assignment(addr.range.first..semicolon.range.last, addr, colon, *data, semicolon) {
+        class ListOfValues(val addr: MifToken, colon: MifToken, val data: Array<MifToken>, semicolon: MifToken) : Assignment(addr.range.first..semicolon.range.last, addr, colon, *data, semicolon) {
             override val pathName: String = "ListAssignment"
         }
 
-        class RepeatingValueRange(val valueRange: ValueRange, val colon: MifToken, val data: Array<MifToken>, val semicolon: MifToken) : Assignment(valueRange.range.first..semicolon.range.last, valueRange, colon, *data, semicolon) {
+        class RepeatingValueRange(val valueRange: ValueRange, colon: MifToken, val data: Array<MifToken>, semicolon: MifToken) : Assignment(valueRange.range.first..semicolon.range.last, valueRange, colon, *data, semicolon) {
             override val pathName: String
                 get() = "RepetitiveRangeAssignment"
         }
     }
 
-    class ValueRange(val bracketOpen: MifToken, val first: MifToken, val rangeTo: MifToken, val last: MifToken, val bracketClose: MifToken) : MifNode(
+    class ValueRange(bracketOpen: MifToken, val first: MifToken, val rangeTo: MifToken, val last: MifToken, bracketClose: MifToken) : MifNode(
         bracketOpen.range.first..bracketClose.range.last,
         bracketOpen, first, rangeTo, last, bracketClose
     ) {

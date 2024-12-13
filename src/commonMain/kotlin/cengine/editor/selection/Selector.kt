@@ -142,7 +142,7 @@ class Selector(textModel: TextModel) {
     /**
      * Returns the index of the start of the current word that the caret is in.
      * If the caret is at a word boundary, it returns the start of the next word.
-     * @param validChars Array of characters that are allowed to be part of the result.
+     * @param chars Array of characters that are allowed or not allowed depending on [isValidSet] to be part of the result.
      */
     fun indexOfWordStart(beginningIndex: Int, chars: CharArray, isValidSet: Boolean): Int {
         var index = beginningIndex
@@ -158,7 +158,7 @@ class Selector(textModel: TextModel) {
     /**
      * Returns the index of the end of the current word that the caret is in.
      * If the caret is at a word boundary, it returns the end of the previous word.
-     * @param validChars Array of characters considered as part of a word
+     * @param chars Array of characters that are allowed or not allowed depending on [isValidSet] to be part of the result.
      */
     fun indexOfWordEnd(beginningIndex: Int, chars: CharArray, isValidSet: Boolean): Int {
         var index = beginningIndex

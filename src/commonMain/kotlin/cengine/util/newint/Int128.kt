@@ -6,11 +6,7 @@ import com.ionspin.kotlin.bignum.integer.toBigInteger
 
 class Int128(value: BigInteger) : IntNumber<Int128> {
 
-    override val value: BigInteger
-
-    init {
-        this.value = value.truncateTo128Bits()
-    }
+    override val value: BigInteger = value.truncateTo128Bits()
 
     companion object: IntNumberStatic<Int128> {
         override val ZERO = Int128(BigInteger.ZERO)

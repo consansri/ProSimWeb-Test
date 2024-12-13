@@ -36,15 +36,15 @@ object BenIcons : Icons {
                             strokeLineMiter = 1.0f,
                             pathFillType = PathFillType.NonZero
                         ) {
-                            moveTo(23.479999999999997f, 17.81f)
+                            moveTo(23.48f, 17.81f)
                             horizontalLineTo(67.23f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 72.9f, 23.479999999999997f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 72.9f, 23.48f)
                             verticalLineTo(67.23f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 67.23f, 72.9f)
-                            horizontalLineTo(23.479999999999997f)
+                            horizontalLineTo(23.48f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 17.81f, 67.23f)
-                            verticalLineTo(23.479999999999997f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 23.479999999999997f, 17.81f)
+                            verticalLineTo(23.48f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 23.48f, 17.81f)
                             close()
                         }
                         path(
@@ -592,7 +592,7 @@ object BenIcons : Icons {
                             pathFillType = PathFillType.NonZero
                         ) {
                             moveTo(34.77f, 45.16f)
-                            horizontalLineTo(63.57000000000001f)
+                            horizontalLineTo(63.57f)
                             verticalLineTo(60.76f)
                             horizontalLineTo(34.77f)
                             verticalLineTo(45.16f)
@@ -631,11 +631,11 @@ object BenIcons : Icons {
                         ) {
                             moveTo(15.99f, 18.87f)
                             horizontalLineTo(33.45f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 39.120000000000005f, 24.54f)
-                            verticalLineTo(28.799999999999997f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 39.12f, 24.54f)
+                            verticalLineTo(28.8f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 33.45f, 34.47f)
                             horizontalLineTo(15.99f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 10.32f, 28.799999999999997f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 10.32f, 28.8f)
                             verticalLineTo(24.54f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 15.99f, 18.87f)
                             close()
@@ -1019,15 +1019,15 @@ object BenIcons : Icons {
                             strokeLineMiter = 10f,
                             pathFillType = PathFillType.NonZero
                         ) {
-                            moveTo(31.759999999999998f, 26.07f)
+                            moveTo(31.76f, 26.07f)
                             horizontalLineTo(58.94f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 64.61f, 31.740000000000002f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 64.61f, 31.74f)
                             verticalLineTo(68.49f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 58.94f, 74.16f)
-                            horizontalLineTo(31.759999999999998f)
+                            horizontalLineTo(31.76f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 26.09f, 68.49f)
-                            verticalLineTo(31.740000000000002f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 31.759999999999998f, 26.07f)
+                            verticalLineTo(31.74f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 31.76f, 26.07f)
                             close()
                         }
                         path(
@@ -1113,15 +1113,15 @@ object BenIcons : Icons {
                             strokeLineMiter = 10f,
                             pathFillType = PathFillType.NonZero
                         ) {
-                            moveTo(31.759999999999998f, 26.07f)
+                            moveTo(31.76f, 26.07f)
                             horizontalLineTo(58.94f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 64.61f, 31.740000000000002f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 64.61f, 31.74f)
                             verticalLineTo(68.49f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 58.94f, 74.16f)
-                            horizontalLineTo(31.759999999999998f)
+                            horizontalLineTo(31.76f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 26.09f, 68.49f)
-                            verticalLineTo(31.740000000000002f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 31.759999999999998f, 26.07f)
+                            verticalLineTo(31.74f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 31.76f, 26.07f)
                             close()
                         }
                         path(
@@ -1233,10 +1233,10 @@ object BenIcons : Icons {
                             pathFillType = PathFillType.NonZero
                         ) {
                             moveTo(58.82f, 13.86f)
-                            horizontalLineTo(71.60000000000001f)
+                            horizontalLineTo(71.6f)
                             arcTo(6.24f, 6.24f, 0f, isMoreThanHalf = false, isPositiveArc = true, 77.84f, 20.1f)
                             verticalLineTo(32.88f)
-                            arcTo(6.24f, 6.24f, 0f, isMoreThanHalf = false, isPositiveArc = true, 71.60000000000001f, 39.120000000000005f)
+                            arcTo(6.24f, 6.24f, 0f, isMoreThanHalf = false, isPositiveArc = true, 71.6f, 39.12f)
                             horizontalLineTo(58.82f)
                             arcTo(6.24f, 6.24f, 0f, isMoreThanHalf = false, isPositiveArc = true, 52.58f, 32.88f)
                             verticalLineTo(20.1f)
@@ -1832,8 +1832,8 @@ object BenIcons : Icons {
                             pathFillType = PathFillType.NonZero
                         ) {
                             moveTo(50.19f, 28.53f)
-                            arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 45.35f, 33.370000000000005f)
-                            arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 40.510000000000005f, 28.53f)
+                            arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 45.35f, 33.37f)
+                            arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 40.51f, 28.53f)
                             arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 50.19f, 28.53f)
                             close()
                         }
@@ -2111,15 +2111,15 @@ object BenIcons : Icons {
                             strokeLineMiter = 1.0f,
                             pathFillType = PathFillType.NonZero
                         ) {
-                            moveTo(23.479999999999997f, 17.81f)
+                            moveTo(23.48f, 17.81f)
                             horizontalLineTo(67.23f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 72.9f, 23.479999999999997f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 72.9f, 23.48f)
                             verticalLineTo(67.23f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 67.23f, 72.9f)
-                            horizontalLineTo(23.479999999999997f)
+                            horizontalLineTo(23.48f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 17.81f, 67.23f)
-                            verticalLineTo(23.479999999999997f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 23.479999999999997f, 17.81f)
+                            verticalLineTo(23.48f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 23.48f, 17.81f)
                             close()
                         }
                         path(
@@ -2550,15 +2550,15 @@ object BenIcons : Icons {
                             strokeLineMiter = 1.0f,
                             pathFillType = PathFillType.NonZero
                         ) {
-                            moveTo(23.479999999999997f, 17.81f)
+                            moveTo(23.48f, 17.81f)
                             horizontalLineTo(67.23f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 72.9f, 23.479999999999997f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 72.9f, 23.48f)
                             verticalLineTo(67.23f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 67.23f, 72.9f)
-                            horizontalLineTo(23.479999999999997f)
+                            horizontalLineTo(23.48f)
                             arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 17.81f, 67.23f)
-                            verticalLineTo(23.479999999999997f)
-                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 23.479999999999997f, 17.81f)
+                            verticalLineTo(23.48f)
+                            arcTo(5.67f, 5.67f, 0f, isMoreThanHalf = false, isPositiveArc = true, 23.48f, 17.81f)
                             close()
                         }
                         path(
@@ -3335,7 +3335,7 @@ object BenIcons : Icons {
                         ) {
                             moveTo(81.14f, 45.35f)
                             arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 74.85f, 51.64f)
-                            arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 68.55999999999999f, 45.35f)
+                            arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 68.56f, 45.35f)
                             arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 81.14f, 45.35f)
                             close()
                         }
@@ -3468,7 +3468,7 @@ object BenIcons : Icons {
                         ) {
                             moveTo(50.19f, 71.3f)
                             arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 45.35f, 76.14f)
-                            arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 40.510000000000005f, 71.3f)
+                            arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 40.51f, 71.3f)
                             arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 50.19f, 71.3f)
                             close()
                         }
@@ -3627,7 +3627,7 @@ object BenIcons : Icons {
                             pathFillType = PathFillType.NonZero
                         ) {
                             moveTo(51.64f, 67.79f)
-                            arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 45.35f, 74.08000000000001f)
+                            arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 45.35f, 74.08f)
                             arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 39.06f, 67.79f)
                             arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 51.64f, 67.79f)
                             close()
@@ -3804,7 +3804,7 @@ object BenIcons : Icons {
                             pathFillType = PathFillType.NonZero
                         ) {
                             moveTo(39.76f, 69.15f)
-                            arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 33.47f, 75.44000000000001f)
+                            arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 33.47f, 75.44f)
                             arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 27.18f, 69.15f)
                             arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 39.76f, 69.15f)
                             close()
@@ -3842,8 +3842,8 @@ object BenIcons : Icons {
                             pathFillType = PathFillType.NonZero
                         ) {
                             moveTo(50.31f, 57.66f)
-                            arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 44.02f, 63.949999999999996f)
-                            arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 37.730000000000004f, 57.66f)
+                            arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 44.02f, 63.95f)
+                            arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 37.73f, 57.66f)
                             arcTo(6.29f, 6.29f, 0f, isMoreThanHalf = false, isPositiveArc = true, 50.31f, 57.66f)
                             close()
                         }
@@ -3942,7 +3942,7 @@ object BenIcons : Icons {
                             pathFillType = PathFillType.NonZero
                         ) {
                             moveTo(64.6f, 31.9f)
-                            arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 59.76f, 36.739999999999995f)
+                            arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 59.76f, 36.74f)
                             arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 54.92f, 31.9f)
                             arcTo(4.84f, 4.84f, 0f, isMoreThanHalf = false, isPositiveArc = true, 64.6f, 31.9f)
                             close()

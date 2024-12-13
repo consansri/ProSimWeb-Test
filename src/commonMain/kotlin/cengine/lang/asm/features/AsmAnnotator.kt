@@ -18,7 +18,7 @@ class AsmAnnotator : AnnotationProvider {
         cachedNotations[psiFile] = collector.annotations
     }
 
-    inner class AnnotationCollector : PsiElementVisitor {
+    class AnnotationCollector : PsiElementVisitor {
         val annotations = mutableListOf<Annotation>()
         override fun visitFile(file: PsiFile) {
 

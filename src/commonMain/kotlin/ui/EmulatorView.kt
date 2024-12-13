@@ -18,7 +18,6 @@ import cengine.lang.mif.MifLang
 import cengine.lang.obj.ObjLang
 import cengine.lang.obj.elf.ELFFile
 import cengine.project.Project
-import cengine.vfs.FPath
 import emulator.kit.Architecture
 import emulator.kit.nativeError
 import kotlinx.serialization.Serializable
@@ -53,11 +52,11 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
     var stepCount by remember { mutableStateOf(4U) }
     var accumulatedScroll by remember { mutableStateOf(0f) }
     val scrollThreshold = 100f
-    var leftContentType by remember { mutableStateOf<EmulatorContentView?>(emuState.leftContent) }
-    var rightContentType by remember { mutableStateOf<EmulatorContentView?>(emuState.rightContent) }
-    var bottomContentType by remember { mutableStateOf<EmulatorContentView?>(emuState.bottomContent) }
+    var leftContentType by remember { mutableStateOf(emuState.leftContent) }
+    var rightContentType by remember { mutableStateOf(emuState.rightContent) }
+    var bottomContentType by remember { mutableStateOf(emuState.bottomContent) }
 
-    var emuInitFilePath by remember { mutableStateOf<FPath?>(project.projectState.emu.initFilePath) }
+    var emuInitFilePath by remember { mutableStateOf(project.projectState.emu.initFilePath) }
 
     fun buildInitializer(): Initializer? {
         emuState.initFilePath = emuInitFilePath
@@ -89,7 +88,7 @@ fun EmulatorView(project: Project, viewType: MutableState<ViewType>, architectur
         }
     }
 
-    var initializer: Initializer? by remember { mutableStateOf<Initializer?>(buildInitializer()) }
+    var initializer: Initializer? by remember { mutableStateOf(buildInitializer()) }
 
     val archOverview: (@Composable BoxScope.() -> Unit) = {
         ArchitectureOverview(architecture, baseStyle, baseLargeStyle)

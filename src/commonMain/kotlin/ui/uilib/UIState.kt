@@ -10,13 +10,12 @@ import ui.uilib.params.FontType
 import ui.uilib.resource.BenIcons
 import ui.uilib.resource.Icons
 import ui.uilib.scale.Scaling
-import ui.uilib.theme.Theme
 
 object UIState {
 
-    val Theme = mutableStateOf<Theme>(ui.uilib.theme.Theme.all.first())
+    val Theme = mutableStateOf(ui.uilib.theme.Theme.all.first())
     val Icon = mutableStateOf<Icons>(BenIcons)
-    val Scale = mutableStateOf<Scaling>(Scaling())
+    val Scale = mutableStateOf(Scaling())
 
     val BaseStyle = staticCompositionLocalOf<TextStyle> { error("No BaseStyle provided") }
     val CodeStyle = staticCompositionLocalOf<TextStyle> { error("No BaseStyle provided") }

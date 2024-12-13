@@ -61,9 +61,9 @@ object IKRR2Disassembler : Disassembler() {
                     0x29U -> LSR
                     0x2AU -> ASL
                     0x2BU -> ASR
-                    0x2CU -> when {
-                        ra.value == 0x01U -> ROL
-                        ra.value == 0x10U -> SWAPH
+                    0x2CU -> when (ra.value) {
+                        0x01U -> ROL
+                        0x10U -> SWAPH
                         else -> null
                     }
 

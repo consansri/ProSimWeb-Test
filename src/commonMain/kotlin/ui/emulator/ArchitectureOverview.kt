@@ -48,7 +48,7 @@ fun ArchitectureOverview(arch: Architecture<*, *>?, baseStyle: TextStyle, baseLa
                             is ArchConfig.Setting.Any -> TODO()
                             is ArchConfig.Setting.Bool -> TODO()
                             is ArchConfig.Setting.Enumeration -> {
-                                Selector<Enum<*>>(
+                                Selector(
                                     it.enumValues, initial = it.state.value as? Enum<*>, itemContent = { isSelected, value ->
                                         CLabel(text = value.name, textStyle = baseStyle)
                                     },

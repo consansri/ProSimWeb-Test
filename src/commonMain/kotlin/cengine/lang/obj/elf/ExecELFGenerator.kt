@@ -42,7 +42,7 @@ class ExecELFGenerator(
 
         // Order Sections
         segments.forEach {
-            sections.removeAll(it.sections)
+            sections.removeAll(it.sections.toSet())
         }
         var currentMemoryAddress = 0UL
         segments.forEach { segment ->

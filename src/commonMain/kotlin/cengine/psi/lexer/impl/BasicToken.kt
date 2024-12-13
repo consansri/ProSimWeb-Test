@@ -7,7 +7,4 @@ data class BasicToken(
     override val type: TokenType,
     override val value: String,
     override var range: IntRange
-) : Token(){
-
-
-}
+) : Token()

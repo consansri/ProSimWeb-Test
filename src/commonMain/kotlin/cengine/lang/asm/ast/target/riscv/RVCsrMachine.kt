@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast.target.riscv
 
-enum class RVCsrMachine(val alias: String, val description: String): RVCsr {
+enum class RVCsrMachine(alias: String, val description: String): RVCsr {
     // Machine Information Registers
     XF11("mvendorid", "Vendor ID"),
     XF12("marchid", "Architecture ID"),

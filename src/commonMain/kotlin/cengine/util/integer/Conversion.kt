@@ -101,7 +101,7 @@ fun Oct.getBinary(): Bin {
         binStr += BinaryTools.octToBinDigit[hexStr[i]]
     }
     if (DebugTools.KIT_showValTypeConversionInfo) {
-        nativeInfo("Conversion: ${this} to $binStr")
+        nativeInfo("Conversion: $this to $binStr")
     }
     return Bin(binStr, size)
 }
@@ -150,7 +150,7 @@ fun Dec.getBinary(): Bin {
     }
 
     if (binaryStr == "") {
-        nativeWarn("Conversion.getBinary(dec: Dec) : error in calculation ${rawInput} to $binaryStr")
+        nativeWarn("Conversion.getBinary(dec: Dec) : error in calculation $rawInput to $binaryStr")
     }
 
     if (isNegative()) {
@@ -185,7 +185,7 @@ fun UDec.getBinary(): Bin {
     }
 
     if (binaryStr == "") {
-        nativeWarn("Conversion.getBinary(udec: UDec) : error in calculation ${rawInput} to $binaryStr")
+        nativeWarn("Conversion.getBinary(udec: UDec) : error in calculation $rawInput to $binaryStr")
     }
 
     if (DebugTools.KIT_showValTypeConversionInfo) {

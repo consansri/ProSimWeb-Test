@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast.target.riscv
 
-enum class RVCsrDebug(val alias: String, val description: String) : RVCsr {
+enum class RVCsrDebug(alias: String, val description: String) : RVCsr {
     X7B0("dcsr", "Debug control and status register"),
     X7B1("dpc", "Debug PC"),
     X7B2("dscratch0", "Debug scratch register 0"),

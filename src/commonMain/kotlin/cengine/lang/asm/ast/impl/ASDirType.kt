@@ -12,12 +12,11 @@ import cengine.lang.obj.elf.Shdr
 import cengine.util.integer.Size.*
 
 enum class ASDirType(
-    val disabled: Boolean = false,
     val contentStartsDirectly: Boolean = false,
     override val isSection: Boolean = false,
     override val rule: Rule? = null,
 ) : DirTypeInterface {
-    ABORT(disabled = true, rule = Rule.dirNameRule("abort")),
+    ABORT(rule = Rule.dirNameRule("abort")),
     ALIGN(rule = Rule {
         Seq(
             Specific(".align", ignoreCase = true),
@@ -138,7 +137,7 @@ enum class ASDirType(
         )
     }),
     DIM(rule = Rule.dirNameRule("dim")),
-    DOUBLE(disabled = true, rule = Rule.dirNameRule("double")),
+    DOUBLE(rule = Rule.dirNameRule("double")),
     EJECT(rule = Rule.dirNameRule("eject")),
     ELSE(rule = Rule.dirNameRule("else")),
     ELSEIF(rule = Rule.dirNameRule("elseif")),
@@ -203,7 +202,7 @@ enum class ASDirType(
             SpecNode(ASNodeType.INT_EXPR)
         )
     }),
-    FLOAT(disabled = true, rule = Rule.dirNameRule("float")),
+    FLOAT(rule = Rule.dirNameRule("float")),
     FUNC(rule = Rule {
         Seq(
             Specific(".func", ignoreCase = true),
@@ -223,7 +222,7 @@ enum class ASDirType(
             InSpecific(AsmTokenType.SYMBOL)
         )
     }),
-    GNU_ATTRIBUTE(disabled = true, rule = Rule.dirNameRule("gnu_attribute")),
+    GNU_ATTRIBUTE(rule = Rule.dirNameRule("gnu_attribute")),
     HIDDEN(rule = Rule {
         Seq(
             Specific(".hidden", ignoreCase = true),
@@ -600,8 +599,8 @@ enum class ASDirType(
             SpecNode(ASNodeType.INT_EXPR)
         )
     }),
-    LOC(disabled = true, rule = Rule.dirNameRule("loc")),
-    LOC_MARK_LABELS(disabled = true, rule = Rule.dirNameRule("loc_mark_labels")),
+    LOC(rule = Rule.dirNameRule("loc")),
+    LOC_MARK_LABELS(rule = Rule.dirNameRule("loc_mark_labels")),
     LOCAL(rule = Rule {
         Seq(
             Specific(".local", ignoreCase = true),
@@ -686,7 +685,7 @@ enum class ASDirType(
             SpecNode(ASNodeType.INT_EXPR)
         )
     }),
-    ORG(disabled = true, rule = Rule.dirNameRule("org")),
+    ORG(rule = Rule.dirNameRule("org")),
     P2ALIGN(rule = Rule {
         Seq(
             Specific(".p2align", ignoreCase = true),
@@ -803,7 +802,8 @@ enum class ASDirType(
     SECTION(isSection = true, rule = Rule {
         Seq(
             Specific(".section", ignoreCase = true),
-            XOR(Dir("DATA"), Dir("text"), Dir("RODATA"), Dir("BSS"), Seq(
+            XOR(
+                Dir("DATA"), Dir("text"), Dir("RODATA"), Dir("BSS"), Seq(
                 InSpecific(AsmTokenType.SYMBOL),
                 Optional {
                     Seq(
@@ -839,7 +839,7 @@ enum class ASDirType(
             }
         )
     }),
-    SINGLE(disabled = true, rule = Rule.dirNameRule("single")),
+    SINGLE(rule = Rule.dirNameRule("single")),
     SIZE(rule = Rule.dirNameRule("size")),
     SKIP(rule = Rule {
         Seq(

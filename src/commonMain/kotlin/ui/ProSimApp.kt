@@ -60,7 +60,7 @@ object ProSimApp {
             Screen.ProjectSelection
         }
 
-        var currentScreen by remember { mutableStateOf<Screen>(initialScreen) }
+        var currentScreen by remember { mutableStateOf(initialScreen) }
 
         when (val screen = currentScreen) {
             is Screen.ProjectSelection -> ProjectSelectionScreen(

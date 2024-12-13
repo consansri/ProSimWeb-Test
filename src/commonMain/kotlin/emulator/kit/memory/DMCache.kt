@@ -8,7 +8,6 @@ import kotlin.math.roundToInt
  * Represents a direct-mapped cache implementation that extends the Cache class.
  *
  * @property backingMemory The backing memory for the cache.
- * @property console The console for logging messages.
  * @property tagBits The number of bits used for tag in the cache address.
  * @property rowBits The number of bits used for row in the cache address.
  * @property offsetBits The number of bits used for offset in the cache address.

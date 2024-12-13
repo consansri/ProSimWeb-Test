@@ -15,7 +15,7 @@ interface HighlightProvider {
 
         fun List<HLInfo>.spanStyles() = mapNotNull {
             if (!it.range.isEmpty()) {
-                AnnotatedString.Range<SpanStyle>(SpanStyle(color = Color(it.color or 0xFF000000.toInt())), it.range.first, it.range.last + 1)
+                AnnotatedString.Range(SpanStyle(color = Color(it.color or 0xFF000000.toInt())), it.range.first, it.range.last + 1)
             } else null
         }
     }

@@ -1,6 +1,6 @@
 package cengine.lang.asm
 
-enum class CodeStyle(val lightHexColor: Int, val darkHexColor: Int? = null) {
+enum class CodeStyle(val lightHexColor: Int, private val darkHexColor: Int? = null) {
 
     RED(0xc94922),
     ORANGE(0xc76b29),
@@ -53,5 +53,5 @@ enum class CodeStyle(val lightHexColor: Int, val darkHexColor: Int? = null) {
         val error = RED
     }
 
-    fun getDarkElseLight(): Int = if (darkHexColor != null) darkHexColor else lightHexColor
+    fun getDarkElseLight(): Int = darkHexColor ?: lightHexColor
 }

@@ -6,7 +6,7 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.psi.lexer.core.Token
 import cengine.psi.lexer.impl.BaseLexer
 
-class AsmLexer(input: String, val targetSpec: TargetSpec<*>) : BaseLexer(input) {
+class AsmLexer(input: String, private val targetSpec: TargetSpec<*>) : BaseLexer(input) {
 
     private val prefices: Prefices get() = targetSpec.prefices
     private val regs: List<Pair<RegTypeInterface, Set<String>>> = targetSpec.allRegs.map { it to it.recognizable.toSet() }

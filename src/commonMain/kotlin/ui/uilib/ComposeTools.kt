@@ -46,7 +46,7 @@ object ComposeTools {
 
     fun MutableList<AnnotatedString.Range<SpanStyle>>.delete(from: Int, to: Int) {
         val length = to - from
-        val toRemove = mutableListOf<AnnotatedString.Range<SpanStyle>>()
+        val toRemove = mutableSetOf<AnnotatedString.Range<SpanStyle>>()
         forEachIndexed { i, range ->
             when {
                 from > range.end -> {

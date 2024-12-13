@@ -7,8 +7,6 @@ import cengine.psi.lexer.core.Token
 
 /**
  *
- * @param start inclusive
- * @param end exclusive
  *
  */
 data class AsmToken(

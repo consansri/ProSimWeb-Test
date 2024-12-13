@@ -49,9 +49,9 @@ fun RegTable(regFile: RegFile<*>) {
     val scale = UIState.Scale.value
     val theme = UIState.Theme.value
 
-    var sortedBy: FieldProvider? by remember { mutableStateOf<FieldProvider?>(null) }
+    var sortedBy: FieldProvider? by remember { mutableStateOf(null) }
 
-    var numberFormat by remember { mutableStateOf<Format>(Format.HEX) }
+    var numberFormat by remember { mutableStateOf(Format.HEX) }
 
     var showDescription by remember { mutableStateOf(true) }
 

@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast.target.riscv
 
-enum class RVCsrSupervisor(val alias: String, val description: String) : RVCsr {
+enum class RVCsrSupervisor(alias: String, val description: String) : RVCsr {
     X100("sstatus","Supervisor status register"),
     X104("sie", "Supervisor interrupt-enable register"),
     X105("stvec", "Supervisor trap handler base address"),

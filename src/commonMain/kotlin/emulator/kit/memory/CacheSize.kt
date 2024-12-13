@@ -1,6 +1,6 @@
 package emulator.kit.memory
 
-enum class CacheSize(val bytes: Long, val uiName: String) {
+enum class CacheSize(val bytes: Long, private val uiName: String) {
     KiloByte_1(1024, "1KB"),
     KiloByte_2(2048, "2KB"),
     KiloByte_4(4096,"4KB"),
@@ -18,7 +18,7 @@ enum class CacheSize(val bytes: Long, val uiName: String) {
     }
 
     companion object{
-        val BYTECOUNT_IN_ROW = 16
+        const val BYTECOUNT_IN_ROW = 16
     }
 
 }

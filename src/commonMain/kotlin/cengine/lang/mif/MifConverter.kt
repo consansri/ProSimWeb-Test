@@ -258,7 +258,7 @@ class MifConverter(val depth: Double, val wordSize: Size) {
                     }
 
                     is MifNode.Assignment.ListOfValues -> {
-                        mifConverter.addContent(it.addr.value, it.data.map { it.value })
+                        mifConverter.addContent(it.addr.value, it.data.map { token -> token.value })
                     }
 
                     is MifNode.Assignment.RepeatingValueRange -> {

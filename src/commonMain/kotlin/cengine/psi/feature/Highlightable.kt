@@ -1,7 +1,6 @@
 package cengine.psi.feature
 
 import cengine.lang.asm.CodeStyle
-import cengine.psi.lexer.core.TokenType
 
 interface Highlightable {
     val style: CodeStyle?

@@ -33,9 +33,6 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
         fun Long.toBigInt(): BigInt = BigInt(this.toBigInteger())
         fun UInt.toBigInt(): BigInt = BigInt(this.toBigInteger())
         fun ULong.toBigInt(): BigInt = BigInt(this.toBigInteger())
-
-        @OptIn(ExperimentalUnsignedTypes::class)
-        fun fromUInt8(bytes: Collection<UInt8>): BigInt = BigInt(BigInteger.fromUByteArray(bytes.map { it.value }.toUByteArray(), Sign.POSITIVE))
     }
 
     override fun plus(other: BigInt): BigInt = BigInt(value + other.value)

@@ -124,12 +124,12 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
 
     inner class Model {
 
-        val tagBits = addrBits - indexBits - offsetBits
+        private val tagBits = addrBits - indexBits - offsetBits
 
-        val indexCount = 2.0.pow(indexBits).roundToInt()
+        private val indexCount = 2.0.pow(indexBits).roundToInt()
         val offsetCount = 2.0.pow(offsetBits).roundToInt()
 
-        val rows = Array<CacheRow>(indexCount) {
+        val rows = Array(indexCount) {
             CacheRow(it.toInt32().addr().index())
         }
 
@@ -190,7 +190,7 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
 
         inner class CacheRow(val rowIndex: ADDR) {
 
-            val decider = when (replaceAlgo) {
+            private val decider = when (replaceAlgo) {
                 ReplaceAlgo.FIFO -> Decider.FIFO(blockCount)
                 ReplaceAlgo.LRU -> Decider.LRU(blockCount)
                 ReplaceAlgo.RANDOM -> Decider.RANDOM(blockCount)
@@ -384,7 +384,7 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
     /**
      * Only for settings
      */
-    enum class Setting(val uiName: String) {
+    enum class Setting(private val uiName: String) {
         NONE("NONE"),
         DirectedMapped("Direct Mapped"),
         FullAssociativeRandom("Fully Associative Random"),

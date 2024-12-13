@@ -6,7 +6,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -27,7 +26,7 @@ fun FormRect(
         modifier = modifier
             .wrapContentSize()
             .padding(contentPadding),
-        measurePolicy = MeasurePolicy { measurables, constraints ->
+        measurePolicy = { measurables, constraints ->
             // Measure each child
             val placeables = measurables.map { it.measure(constraints) }
 

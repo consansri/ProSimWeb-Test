@@ -92,7 +92,7 @@ fun ExecutionView(architecture: Architecture<*,*>?, highlighter: HighlightProvid
 
                 items(decodedRenderingValues, key = {
                     /**
-                     * @throws WebAssembly.Exception if key isn't unique!
+                     * @throws Exception (WebAssembly.Exception) if key isn't unique!
                      */
                     it.first.addr.toString() + it.second.offset
                 }) { (segment, decoded) ->

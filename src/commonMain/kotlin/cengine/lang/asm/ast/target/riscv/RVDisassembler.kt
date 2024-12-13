@@ -275,7 +275,7 @@ class RVDisassembler(private val addrConstrained: BigInt.() -> BigInt) : Disasse
         private fun rs2Name(): String = RVBaseRegs.entries.getOrNull(rs2.toInt())?.recognizable?.first() ?: "[invalid reg]"
     }
 
-    enum class InstrType(val special: String? = null) {
+    enum class InstrType(special: String? = null) {
         LUI,
         AUIPC,
         JAL,

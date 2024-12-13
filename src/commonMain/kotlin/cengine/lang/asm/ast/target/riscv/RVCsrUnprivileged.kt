@@ -3,7 +3,7 @@ package cengine.lang.asm.ast.target.riscv
 /**
  * Machine-Level CSR
  */
-enum class RVCsrUnprivileged(val alias: String, val description: String = "") : RVCsr {
+enum class RVCsrUnprivileged(alias: String, val description: String = "") : RVCsr {
     X001("fflags", "Floating-Point Accrued Exceptions"),
     X002("frm", "Floating-Point Dynamic Rounding Mode"),
     X003("fcsr", "Floating-Point Control and Status Register (frm + fflags)"),

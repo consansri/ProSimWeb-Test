@@ -38,7 +38,7 @@ class ArchT6502 : BasicArchImpl<UInt16, UInt8>() {
             resetMicroArch()
         }
 
-    val baseRegs = T6502BaseRegs()
+    private val baseRegs = T6502BaseRegs()
 
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
         val threeBytes = instrMemory.loadArray(pc, 3, tracker)
@@ -90,7 +90,7 @@ class ArchT6502 : BasicArchImpl<UInt16, UInt8>() {
                 }
             }
         )
-        override val DISASSEMBLER: Disassembler?
+        override val DISASSEMBLER: Disassembler
             get() = TODO("Not yet implemented")
 
     }

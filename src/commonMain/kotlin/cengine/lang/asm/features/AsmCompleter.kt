@@ -15,15 +15,15 @@ import cengine.psi.core.PsiFile
 
 class AsmCompleter(targetSpec: TargetSpec<*>) : CompletionProvider {
 
-    val symbolRegex = targetSpec.prefices.symbol
-    val directives: Set<String> = targetSpec.allDirs.map { "." + it.getDetectionString().lowercase() }.filter { it.isNotEmpty() }.toSet()
-    val instructions: Set<String> = targetSpec.allInstrs.map { it.detectionName.lowercase() }.toSet()
-    val cachedCompletions: MutableMap<PsiFile, CompletionSet> = mutableMapOf()
+    private val symbolRegex = targetSpec.prefices.symbol
+    private val directives: Set<String> = targetSpec.allDirs.map { "." + it.getDetectionString().lowercase() }.filter { it.isNotEmpty() }.toSet()
+    private val instructions: Set<String> = targetSpec.allInstrs.map { it.detectionName.lowercase() }.toSet()
+    private val cachedCompletions: MutableMap<PsiFile, CompletionSet> = mutableMapOf()
 
     data class CompletionSet(
         val labels: Set<String>,
         val symbols: Set<String>,
-        val macros: Set<String>
+        val macros: Set<String>,
     ) {
         fun asCompletions(prefix: String): List<Completion> = labels.asCompletions(prefix, false, CompletionItemKind.ENUM) + symbols.asCompletions(prefix, ignoreCase = false, CompletionItemKind.VARIABLE) + macros.asCompletions(prefix, ignoreCase = false, CompletionItemKind.FUNCTION)
     }
@@ -50,7 +50,7 @@ class AsmCompleter(targetSpec: TargetSpec<*>) : CompletionProvider {
         cachedCompletions[file] = builder.getCompletions()
     }
 
-    private class CompletionSetBuilder() : PsiElementVisitor {
+    private class CompletionSetBuilder : PsiElementVisitor {
         val macros = mutableSetOf<String>()
         val labels = mutableSetOf<String>()
         val symbols = mutableSetOf<String>()
@@ -81,13 +81,15 @@ class AsmCompleter(targetSpec: TargetSpec<*>) : CompletionProvider {
                 }
 
                 is ASNode.Statement -> {
-                    element.children.forEach {
-                        if (element.label != null) {
-                            element.label.accept(this)
-                        }
-                        if (element is ASNode.Statement.Dir) {
-                            element.dir.accept(this)
-                        }
+                    if (element.label != null) {
+                        element.label.accept(this)
+                    }
+
+                    when(element){
+                        is ASNode.Statement.Dir -> element.dir.accept(this)
+                        is ASNode.Statement.Empty -> {}
+                        is ASNode.Statement.Instr -> {}
+                        is ASNode.Statement.Unresolved -> {}
                     }
                 }
 

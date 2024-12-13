@@ -2,7 +2,7 @@ package cengine.lang.asm.ast.target.riscv
 
 import cengine.lang.asm.ast.RegTypeInterface
 
-enum class RVBaseRegs(val names: List<String>, val aliases: List<String>) : RegTypeInterface {
+enum class RVBaseRegs(val names: List<String>, aliases: List<String>) : RegTypeInterface {
     ZERO(listOf("zero"), listOf("x0")),
     RA(listOf("ra"), listOf("x1")),
     SP(listOf("sp"), listOf("x2")),

@@ -73,24 +73,24 @@ fun CodeEditor(
 
     // Performance
 
-    var inputLag by remember { mutableStateOf<Duration>(Duration.ZERO) }
+    var inputLag by remember { mutableStateOf(Duration.ZERO) }
 
     // Content State
 
     var textFieldValue by remember { mutableStateOf(TextFieldValue(file.getAsUTF8String())) }
     var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
 
-    var lineNumberLabelingBounds by remember { mutableStateOf<Size>(Size.Zero) }
+    var lineNumberLabelingBounds by remember { mutableStateOf(Size.Zero) }
     val (lineCount, setLineCount) = remember { mutableStateOf(0) }
     val (lineHeight, setLineHeight) = remember { mutableStateOf(0f) }
     var visibleIndexRange by remember { mutableStateOf(0..<textFieldValue.text.length) }
     var highlightJob by remember { mutableStateOf<Job?>(null) }
 
     var textFieldSize by remember { mutableStateOf(Size.Zero) }
-    var rowHeaderWidth by remember { mutableStateOf<Float>(0f) }
+    var rowHeaderWidth by remember { mutableStateOf(0f) }
 
     var hoverPosition by remember { mutableStateOf<Offset?>(null) }
-    var caretOffset by remember { mutableStateOf<Offset>(Offset(0f, 0f)) }
+    var caretOffset by remember { mutableStateOf(Offset(0f, 0f)) }
     var currentElement by remember { mutableStateOf<PsiElement?>(null) }
     var references by remember { mutableStateOf<List<PsiReference>>(emptyList()) }
 
@@ -152,14 +152,14 @@ fun CodeEditor(
             val annoCodeStyle = it.severity.color ?: CodeStyle.BASE0
             val style = SpanStyle(textDecoration = TextDecoration.Underline, color = theme.getColor(annoCodeStyle))
             if (!it.range.isEmpty()) {
-                AnnotatedString.Range<SpanStyle>(style, it.range.first, it.range.last + 1)
+                AnnotatedString.Range(style, it.range.first, it.range.last + 1)
             } else null
         })
 
         // Highlight Styles
         spanStyles.addAll(service.collectHighlights(psiFile, visibleIndexRange).mapNotNull { (range, style) ->
             if (!range.isEmpty()) {
-                AnnotatedString.Range<SpanStyle>(SpanStyle(color = theme.getColor(style)), range.first, range.last + 1)
+                AnnotatedString.Range(SpanStyle(color = theme.getColor(style)), range.first, range.last + 1)
             } else null
         })
 
@@ -260,10 +260,10 @@ fun CodeEditor(
                             val lineStart = layout.getLineStart(lineIndex)
                             val lineContentBefore = textFieldValue.annotatedString.substring(lineStart, textFieldValue.selection.start)
 
-                            if (showIfPrefixIsEmpty || lineContentBefore.isNotEmpty()) {
-                                completions = lang?.completionProvider?.fetchCompletions(lineContentBefore, currentElement, manager?.getPsiFile(file)) ?: emptyList()
+                            completions = if (showIfPrefixIsEmpty || lineContentBefore.isNotEmpty()) {
+                                lang?.completionProvider?.fetchCompletions(lineContentBefore, currentElement, manager.getPsiFile(file)) ?: emptyList()
                             } else {
-                                completions = emptyList()
+                                emptyList()
                             }
                         } catch (e: Exception) {
                             nativeWarn("Completion canceled by edit.")

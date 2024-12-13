@@ -72,7 +72,7 @@ sealed class Component {
         override fun print(prefix: String): String = "$prefix(vararg ${comp.print("")})"
     }
 
-    class Seq(vararg val comps: Component, val print: Boolean = false) : Component() {
+    class Seq(private vararg val comps: Component, private val print: Boolean = false) : Component() {
         override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val initialPosition = lexer.position
             val matchingNodes = mutableListOf<ASNode>()
@@ -166,7 +166,7 @@ sealed class Component {
             val initialPos = lexer.position
             val token = lexer.consume(true)
             if (token.type == AsmTokenType.DIRECTIVE && ".${dirName.uppercase()}" == token.value.uppercase()) {
-                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Dir ${dirName}")
+                if (DebugTools.KIT_showRuleChecks) nativeLog("Match: Dir $dirName")
                 return Rule.MatchResult(true, listOf(token), listOf())
             }
             lexer.position = initialPos
@@ -176,7 +176,7 @@ sealed class Component {
         override fun print(prefix: String): String = "$prefix.${dirName}"
     }
 
-    class InSpecific(private val type: AsmTokenType, val print: Boolean = false) : Component() {
+    class InSpecific(private val type: AsmTokenType, private val print: Boolean = false) : Component() {
         override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val initialPos = lexer.position
             val token = lexer.consume(true)
@@ -218,7 +218,7 @@ sealed class Component {
         override fun print(prefix: String): String = "$prefix${type.name}"
     }
 
-    object Nothing : Component() {
+    data object Nothing : Component() {
         override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             return Rule.MatchResult(true)
         }

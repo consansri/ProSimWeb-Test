@@ -13,7 +13,7 @@ sealed class Node : PsiElement {
     override val additionalInfo: String = ""
 
     override fun accept(visitor: PsiElementVisitor) {
-        visitor as? ASTVisitor<*> ?: return
+        if (visitor !is ASTVisitor<*>) return
         when (this) {
             is BlockStatement -> visitor.visitBlockStatement(this)
             is BinaryExpression -> visitor.visitBinaryExpression(this)

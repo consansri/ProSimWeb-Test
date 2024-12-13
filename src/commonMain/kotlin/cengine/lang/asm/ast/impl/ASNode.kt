@@ -9,11 +9,10 @@ import cengine.lang.asm.ast.impl.ASNode.*
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmToken
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.lang.obj.elf.*
 import cengine.psi.core.*
 import cengine.psi.feature.Highlightable
 import cengine.psi.lexer.core.Token
-import cengine.util.newint.*
+import cengine.util.newint.BigInt
 import cengine.util.newint.BigInt.Companion.toBigInt
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import debug.DebugTools
@@ -73,7 +72,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
         override fun getFormatted(identSize: Int): String = token.value
     }
 
-    class Error(val message: String, vararg val tokens: AsmToken) : ASNode(tokens.first().range.first..tokens.last().range.last), Highlightable {
+    class Error(val message: String, private vararg val tokens: AsmToken) : ASNode(tokens.first().range.first..tokens.last().range.last), Highlightable {
         override val pathName: String
             get() = PATHNAME
 
@@ -158,7 +157,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
 
                     val lineBreak = lexer.consume(true)
                     if (lineBreak.type != AsmTokenType.LINEBREAK && lineBreak.type != AsmTokenType.EOF) {
-                        val unresolvedTokens = mutableListOf<AsmToken>(lineBreak)
+                        val unresolvedTokens = mutableListOf(lineBreak)
                         var token: AsmToken
 
                         while (true) {
@@ -301,10 +300,6 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
     ) {
         override val pathName: String = this::class.simpleName.toString()
 
-        init {
-            //removeEmptyStatements()
-        }
-
         override fun getFormatted(identSize: Int): String = children.joinToString("") { (it as? ASNode)?.getFormatted(identSize) ?: it.pathName }
 
         /*private fun removeEmptyStatements() {
@@ -386,7 +381,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
         }
     }
 
-    class Label(val nameToken: AsmToken, val colon: AsmToken) : ASNode(nameToken.start..<colon.end), Highlightable {
+    class Label(private val nameToken: AsmToken, private val colon: AsmToken) : ASNode(nameToken.start..<colon.end), Highlightable {
         override val pathName get() = nameToken.value + colon.value
         val type = if (nameToken.type == AsmTokenType.INT_DEC) Type.NUMERIC else Type.ALPHANUMERIC
         val identifier = nameToken.value
@@ -409,7 +404,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
     /**
      * Directive
      */
-    class Directive(val type: DirTypeInterface, val optionalIdentificationToken: AsmToken?, val allTokens: List<AsmToken> = listOf(), val additionalNodes: List<ASNode> = listOf()) : ASNode(
+    class Directive(val type: DirTypeInterface, private val optionalIdentificationToken: AsmToken?, val allTokens: List<AsmToken> = listOf(), val additionalNodes: List<ASNode> = listOf()) : ASNode(
         (optionalIdentificationToken?.range?.start ?: allTokens.first().range.first)..maxOf(allTokens.lastOrNull()?.range?.start ?: 0, additionalNodes.lastOrNull()?.range?.last ?: 0),
         *additionalNodes.toTypedArray()
     ) {
@@ -417,7 +412,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
         override val additionalInfo: String
             get() = type.typeName + " " + optionalIdentificationToken
 
-        private val sortedContent = (allTokens + additionalNodes).sortedBy { it.range.start }
+        private val sortedContent = (allTokens + additionalNodes).sortedBy { it.range.first }
 
         init {
             optionalIdentificationToken?.let {
@@ -450,7 +445,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             override fun getFormatted(identSize: Int): String = argName.value
         }
 
-        class DefaultValue(argName: AsmToken, val assignment: AsmToken, private val expression: ASNode? = null) : Argument(argName, argName.range.first..(expression?.range?.last ?: assignment.range.last)) {
+        class DefaultValue(argName: AsmToken, private val assignment: AsmToken, private val expression: ASNode? = null) : Argument(argName, argName.range.first..(expression?.range?.last ?: assignment.range.last)) {
             init {
                 expression?.let {
                     children.add(expression)
@@ -486,7 +481,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             override fun getFormatted(identSize: Int): String = content.joinToString("") { it.value }
         }
 
-        class Named(val nameToken: AsmToken, val assignment: AsmToken, content: List<AsmToken>) : ArgDef(content, nameToken.range.first..(content.lastOrNull()?.range?.last ?: assignment.range.last)) {
+        class Named(private val nameToken: AsmToken, private val assignment: AsmToken, content: List<AsmToken>) : ArgDef(content, nameToken.range.first..(content.lastOrNull()?.range?.last ?: assignment.range.last)) {
             override val pathName: String
                 get() = nameToken.value
 
@@ -506,7 +501,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
         }
     }
 
-    class Instruction(val type: InstrTypeInterface, val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
+    class Instruction(val type: InstrTypeInterface,private val instrName: AsmToken, val tokens: List<AsmToken>, val nodes: List<ASNode>) : ASNode(instrName.range.first..maxOf(tokens.lastOrNull()?.range?.last ?: 0, instrName.range.last, nodes.lastOrNull()?.range?.last ?: 0), *nodes.toTypedArray()) {
         override val pathName: String
             get() = instrName.value
 
@@ -597,8 +592,6 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
         }
 
         companion object {
-            const val PATHNAME = "String"
-
             fun parse(lexer: AsmLexer, allowSymbolsAsOperands: Boolean = true): StringExpr? {
                 val initialPos = lexer.position
 
@@ -690,9 +683,9 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                     val markedAsPrefix = computePrefixList(relevantTokens)
 
                     // Convert tokens to postfix notation
-                    val postFixTokens = convertToPostfix(relevantTokens, markedAsPrefix)
+                    val postFixTokens = convertToPostfix(relevantTokens, markedAsPrefix).toSet()
 
-                    val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens.toSet(), markedAsPrefix)
+                    val expression = buildExpressionFromPostfixNotation(postFixTokens.toMutableList(), relevantTokens - postFixTokens, markedAsPrefix)
 
                     if (expression != null) {
                         val unusedTokens = (relevantTokens - postFixTokens).filter { !it.type.isBasicBracket() }
@@ -803,7 +796,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
             /**
              * [convertToPostfix] converts infix notated expression to postfix notated expression
              *
-             * Operators: [AsmTokenType.isOperator] -> Precedence through [Token.getPrecedence] which contains [Token.Precedence]
+             * Operators: [AsmTokenType.isOperator] -> Precedence through [AsmToken.getPrecedence] which contains [AsmToken.Precedence]
              * Operands: [AsmTokenType.isLiteral]
              * Brackets: [AsmTokenType.isBasicBracket]
              *
@@ -824,7 +817,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                     }
 
                     if (token.type.isOperator) {
-                        val higherOrEqualPrecedence = mutableListOf<Token>()
+                        val higherOrEqualPrecedence = mutableSetOf<Token>()
                         for (op in operatorStack) {
                             if (op.type.isOperator && op.higherOrEqualPrecedenceAs(token, markedAsPrefix)) {
                                 output.add(op)
@@ -909,7 +902,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
          * [Classic]
          * - [operandA] [operator] [operandB]
          */
-        class Classic(val operandA: NumericExpr, val operator: AsmToken, val operandB: NumericExpr, brackets: List<AsmToken>) : NumericExpr(
+        class Classic(private val operandA: NumericExpr, val operator: AsmToken, private val operandB: NumericExpr, brackets: List<AsmToken>) : NumericExpr(
             brackets,
             (brackets.firstOrNull()?.range?.first ?: operandA.range.first)..(brackets.lastOrNull()?.range?.last ?: operandB.range.last), operandA,
             operandB
@@ -969,9 +962,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                 override fun getFormatted(identSize: Int): String = symToken.value
 
                 override fun evaluate(builder: AsmCodeGenerator<*>, createRelocations: (String) -> Unit): BigInt {
-                    val currSymbol = symbol
-
-                    return when (currSymbol) {
+                    return when (val currSymbol = symbol) {
                         is AsmCodeGenerator.Symbol.Abs -> currSymbol.value.also { eval = it }
                         is AsmCodeGenerator.Symbol.Label -> currSymbol.address().also { eval = it }
                         null -> {

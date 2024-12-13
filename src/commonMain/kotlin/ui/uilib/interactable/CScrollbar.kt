@@ -31,7 +31,7 @@ fun CVerticalScrollBar(scrollState: ScrollState, modifier: Modifier = Modifier, 
     val thumbHeightRatio = if (containerHeight == 0f) 1f else scrollState.viewportSize.toFloat() / containerHeight
     val thumbHeightPx = thumbHeightRatio * scrollState.viewportSize.toFloat()
 
-    var scrollBarSize by remember { mutableStateOf<Size>(Size.Zero) }
+    var scrollBarSize by remember { mutableStateOf(Size.Zero) }
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
 
@@ -77,7 +77,7 @@ fun CHorizontalScrollBar(scrollState: ScrollState, modifier: Modifier = Modifier
     val thumbWidthRatio = if (containerWidth == 0f) 1f else scrollState.viewportSize.toFloat() / containerWidth
     val thumbWidthPx = thumbWidthRatio * scrollState.viewportSize.toFloat()
 
-    var scrollBarSize by remember { mutableStateOf<Size>(Size.Zero) }
+    var scrollBarSize by remember { mutableStateOf(Size.Zero) }
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
 
