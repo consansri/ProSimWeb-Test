@@ -9,3 +9,4 @@ premu/
 .project
 *.eml
 *.userlibraries
+/qodana.yaml
