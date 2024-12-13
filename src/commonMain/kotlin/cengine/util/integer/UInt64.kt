@@ -1,14 +1,21 @@
-package cengine.util.newint
+package cengine.util.integer
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class UInt64(override val value: ULong) : IntNumber<UInt64> {
+class UInt64(override val value: ULong) : IntNumber<UInt64>, UnsignedExtension {
 
     companion object: IntNumberStatic<UInt64> {
+
+        override val BITS: Int = 64
+        override val BYTES: Int = 8
         override val ZERO = UInt64(0U)
         override val ONE = UInt64(1U)
 
+        fun Long.toUInt64() = UInt64(this.toULong())
+        fun Int.toUInt64() = UInt64(this.toULong())
         fun ULong.toUInt64() = UInt64(this)
+        fun UInt.toUInt64() = UInt64(this.toULong())
+
         fun String.parseUInt64(radix: Int): UInt64 = UInt64(toULong(radix))
         fun fromUInt32(value1: UInt32, value0: UInt32): UInt64 = (value1.toUInt64() shl 32) or value0.toUInt64()
 
@@ -24,10 +31,13 @@ class UInt64(override val value: ULong) : IntNumber<UInt64> {
     }
 
     override val bitWidth: Int
-        get() = 64
+        get() = BITS
 
     override val byteCount: Int
-        get() = 8
+        get() = BYTES
+
+    override val type: IntNumberStatic<UInt64>
+        get() = UInt64
 
     override fun plus(other: UInt64): UInt64 = UInt64(value + other.value)
     override fun minus(other: UInt64): UInt64 = UInt64(value - other.value)
@@ -78,9 +88,14 @@ class UInt64(override val value: ULong) : IntNumber<UInt64> {
 
 
     override fun compareTo(other: UInt64): Int = value.compareTo(other.value)
-    override fun compareTo(other: Long): Int = value.compareTo(other.toULong())
-    override fun compareTo(other: Int): Int = value.compareTo(other.toUInt())
-    override fun equals(other: Any?): Boolean {
+
+    override fun compareTo(other: UInt): Int = value.compareTo(other)
+    override fun compareTo(other: ULong): Int = value.compareTo(other)
+
+    override fun compareTo(other: Int): Int = compareTo(other.toUInt())
+    override fun compareTo(other: Long): Int = compareTo(other.toULong())
+
+    override operator fun equals(other: Any?): Boolean {
         if (other is IntNumber<*>) return value == other.value
         return value == other
     }

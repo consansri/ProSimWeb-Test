@@ -9,13 +9,13 @@ import cengine.lang.asm.ast.target.riscv.RVDisassembler
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.JAL
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.JALR
 import cengine.util.Endianness
-import cengine.util.newint.BigInt.Companion.toBigInt
-import cengine.util.newint.Int64.Companion.toInt64
-import cengine.util.newint.UInt16
-import cengine.util.newint.UInt32
-import cengine.util.newint.UInt64
-import cengine.util.newint.UInt64.Companion.toUInt64
-import cengine.util.newint.UInt8
+import cengine.util.integer.BigInt.Companion.toBigInt
+import cengine.util.integer.Int64.Companion.toInt64
+import cengine.util.integer.UInt16
+import cengine.util.integer.UInt32
+import cengine.util.integer.UInt64
+import cengine.util.integer.UInt64.Companion.toUInt64
+import cengine.util.integer.UInt8
 import emulator.archs.riscv.riscv64.RV64BaseRegs
 import emulator.archs.riscv.riscv64.RV64CSRRegs
 import emulator.kit.ArchConfig
@@ -231,7 +231,7 @@ class ArchRV64 : BasicArchImpl<UInt64, UInt8>() {
             }
 
             RVDisassembler.InstrType.SLTI -> {
-                baseRegs[decoded.rd] = if (baseRegs[decoded.rs1].toLong() < decoded.iTypeImm) {
+                baseRegs[decoded.rd] = if (baseRegs[decoded.rs1].toInt64() < decoded.iTypeImm.toInt64()) {
                     UInt64.ONE
                 } else {
                     UInt64.ZERO
@@ -240,7 +240,7 @@ class ArchRV64 : BasicArchImpl<UInt64, UInt8>() {
             }
 
             RVDisassembler.InstrType.SLTIU -> {
-                baseRegs[decoded.rd] = if (baseRegs[decoded.rs1].toULong() < decoded.imm12iType.toULong()) {
+                baseRegs[decoded.rd] = if (baseRegs[decoded.rs1].toULong() < decoded.iTypeImm.toULong()) {
                     UInt64.ONE
                 } else {
                     UInt64.ZERO

@@ -4,18 +4,20 @@ import cengine.lang.asm.ast.AsmCodeGenerator
 import cengine.lang.obj.elf.LinkerScript
 import cengine.lang.obj.elf.Shdr
 import cengine.util.buffer.Buffer
-import cengine.util.integer.Size
-import cengine.util.newint.BigInt
-import cengine.util.newint.BigInt.Companion.toBigInt
+import cengine.util.integer.BigInt
+import cengine.util.integer.BigInt.Companion.toBigInt
+import cengine.util.integer.IntNumberStatic
+import cengine.util.integer.UInt32
+import cengine.util.integer.UInt64
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size, val bufferInit: () -> T) : AsmCodeGenerator<AsmCodeGenerator.Section>(linkerScript) {
+class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript,private val addrSize: IntNumberStatic<*>, val bufferInit: () -> T) : AsmCodeGenerator<AsmCodeGenerator.Section>(linkerScript) {
     override val fileSuffix: String
         get() = ".mif"
 
     override val sections: MutableList<Section> = mutableListOf()
 
-    private val text = getOrCreateSection(".text", Shdr.SHT_text, Shdr.SHF_text.toULong())
+    private val text = getOrCreateSection(".text", Shdr.SHT_text, Shdr.SHF_text.toUInt64())
 
     override var currentSection: Section = text
 
@@ -58,7 +60,7 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
     }
 
     override fun writeFile(): ByteArray {
-        val builder = MifConverter(text.content.wordWidth, addrSize, this::class.simpleName.toString())
+        val builder = MifConverter(text.content.type, addrSize, this::class.simpleName.toString())
 
         builder.setAddrRadix(Radix.HEX)
         builder.setDataRadix(Radix.HEX)
@@ -67,17 +69,17 @@ class MifGenerator<T : Buffer<*>>(linkerScript: LinkerScript, val addrSize: Size
             it.isProg()
         }.forEach { section ->
             val addr = section.address
-            builder.addContent(addr, section.content.toIntList())
+            builder.addContent(addr, section.content.asList())
         }
 
         return builder.build().encodeToByteArray()
     }
 
-    override fun createNewSection(name: String, type: UInt, flags: ULong, link: Section?, info: String?): Section {
+    override fun createNewSection(name: String, type: UInt32, flags: UInt64, link: Section?, info: String?): Section {
         return object : Section {
             override val name: String = name
-            override var type: UInt = type
-            override var flags: ULong = flags
+            override var type: UInt32 = type
+            override var flags: UInt64 = flags
             override var link: Section? = link
             override var info: String? = info
             override var address: BigInt = BigInt(BigInteger.ZERO)

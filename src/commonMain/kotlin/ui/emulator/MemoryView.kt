@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import cengine.util.newint.IntNumber
+import cengine.util.integer.IntNumber
 import emulator.kit.Architecture
 import emulator.kit.MicroSetup
 import emulator.kit.memory.*
@@ -108,7 +108,9 @@ fun MainMemoryView(memory: MainMemory<*, *>, pc: IntNumber<*>, baseStyle: TextSt
         LazyColumn {
             val grouped = memory.memList.toList().sortedBy { it.first.toBigInt().value }.groupBy { it.first / entrysInRow }.toList()
 
-            items(grouped.size) { index ->
+            items(grouped.size, key = {
+                grouped[it].first.toString(16)
+            }) { index ->
                 val (rowAddr, instances) = grouped[index]
 
                 val ascii = remember {
@@ -130,7 +132,7 @@ fun MainMemoryView(memory: MainMemory<*, *>, pc: IntNumber<*>, baseStyle: TextSt
                         modifier = Modifier.weight(0.2f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(rowAddr.toString(16), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0)
+                        Text((rowAddr shl offsetBits).toString(16), fontFamily = codeStyle.fontFamily, fontSize = codeStyle.fontSize, color = theme.COLOR_FG_0)
                     }
 
                     Row(Modifier.weight(0.5f)) {

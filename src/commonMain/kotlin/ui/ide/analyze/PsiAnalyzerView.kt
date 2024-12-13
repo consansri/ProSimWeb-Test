@@ -54,7 +54,7 @@ fun PsiAnalyzerView(
                 }
 
                 items(annotations, key = {
-                    it.second.hashCode()
+                    it.second
                 }) { (psiPath, annotation) ->
                     val iconColor = when (annotation.severity) {
                         INFO -> theme.COLOR_GREEN

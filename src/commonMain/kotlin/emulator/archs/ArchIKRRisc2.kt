@@ -9,9 +9,8 @@ import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.IKRR2InstrProvider
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.InstrType.*
 import cengine.util.Endianness
-import cengine.util.integer.signExtend
-import cengine.util.newint.Int32.Companion.toInt32
-import cengine.util.newint.UInt32
+import cengine.util.integer.Int32.Companion.toInt32
+import cengine.util.integer.UInt32
 import emulator.archs.ikrrisc2.IKRR2BaseRegs
 import emulator.kit.ArchConfig
 import emulator.kit.MicroSetup
@@ -110,8 +109,8 @@ class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>() {
             }
 
             CMPSI -> {
-                val imm16 = decoded.imm16.toInt().signExtend(16)
-                val comparison = baseRegs[decoded.rb].toInt().compareTo(imm16)
+                val imm16 = decoded.imm16.toInt32().signExtend(16)
+                val comparison = baseRegs[decoded.rb].toInt32().compareTo(imm16)
 
                 baseRegs[decoded.rc] = comparison.toInt32()
                 pc += 1
@@ -277,7 +276,7 @@ class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>() {
             }
 
             BEQ -> {
-                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                val disp = decoded.disp18.signExtend(18)
                 if (baseRegs[decoded.rc].equals(0)) {
                     pc += disp
                 } else {
@@ -286,7 +285,7 @@ class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>() {
             }
 
             BNE -> {
-                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                val disp = decoded.disp18.signExtend(18)
                 if (!baseRegs[decoded.rc].equals(0)) {
                     pc += disp
                 } else {
@@ -295,7 +294,7 @@ class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>() {
             }
 
             BLT -> {
-                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                val disp = decoded.disp18.signExtend(18)
                 if (baseRegs[decoded.rc] < 0) {
                     pc += disp
                 } else {
@@ -304,7 +303,7 @@ class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>() {
             }
 
             BGT -> {
-                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                val disp = decoded.disp18.signExtend(18)
                 if (baseRegs[decoded.rc] > 0) {
                     pc += disp
                 } else {
@@ -313,7 +312,7 @@ class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>() {
             }
 
             BLE -> {
-                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                val disp = decoded.disp18.signExtend(18)
                 if (baseRegs[decoded.rc] <= 0) {
                     pc += disp
                 } else {
@@ -322,7 +321,7 @@ class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>() {
             }
 
             BGE -> {
-                val disp = decoded.disp18.signExtension(18, UInt32.ONE)
+                val disp = decoded.disp18.signExtend(18)
                 if (baseRegs[decoded.rc] >= 0) {
                     pc += disp
                 } else {
@@ -331,13 +330,13 @@ class ArchIKRRisc2 : BasicArchImpl<UInt32, UInt32>() {
             }
 
             BRA -> {
-                pc += decoded.disp26.signExtension(26, UInt32.ONE)
+                pc += decoded.disp26.signExtend(26)
             }
 
             BSR -> {
                 baseRegs[31] = pc + 1 // Save return address
-                nativeLog("BSR: ${pc.toString(16)} + ${decoded.disp26.signExtension(26, UInt32.ONE).toString(16)} -> ${(pc + decoded.disp26.signExtension(26, UInt32.ONE)).toString(16)}")
-                pc += decoded.disp26.signExtension(26, UInt32.ONE)
+                nativeLog("BSR: ${pc.toString(16)} + ${decoded.disp26.signExtend(26).toString(16)} -> ${(pc + decoded.disp26.signExtend(26)).toString(16)}")
+                pc += decoded.disp26.signExtend(26)
             }
 
             JMP -> {

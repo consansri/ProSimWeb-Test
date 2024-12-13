@@ -1,19 +1,22 @@
 package cengine.lang.obj.elf
 
-import cengine.util.buffer.ByteBuffer
 import cengine.util.Endianness
+import cengine.util.buffer.Int8Buffer
+import cengine.util.integer.Int8
+import cengine.util.integer.UInt32
+import cengine.util.integer.UInt64
 
 data class ELF64_Shdr(
-    override var sh_name: Elf_Word = 0U,
+    override var sh_name: Elf_Word = UInt32.ZERO,
     override var sh_type: Elf_Word = SHT_NULL,
-    var sh_flags: Elf_Xword = 0U,
-    var sh_addr: Elf64_Addr = 0U,
-    var sh_offset: Elf64_Off = 0U,
-    var sh_size: Elf_Xword = 0U,
-    override var sh_link: Elf_Word = SHN_UNDEF.toUInt(),
-    override var sh_info: Elf_Word = 0U,
-    var sh_addralign: Elf_Xword = 0U,
-    var sh_entsize: Elf_Xword = 0U
+    var sh_flags: Elf_Xword = UInt64.ZERO,
+    var sh_addr: Elf64_Addr = UInt64.ZERO,
+    var sh_offset: Elf64_Off = UInt64.ZERO,
+    var sh_size: Elf_Xword = UInt64.ZERO,
+    override var sh_link: Elf_Word = SHN_UNDEF.toUInt32(),
+    override var sh_info: Elf_Word = UInt32.ZERO,
+    var sh_addralign: Elf_Xword = UInt64.ZERO,
+    var sh_entsize: Elf_Xword = UInt64.ZERO
 ) : Shdr() {
 
     companion object {
@@ -26,8 +29,8 @@ data class ELF64_Shdr(
         }
     }
 
-    override fun build(endianness: Endianness): Array<Byte> {
-        val b = ByteBuffer(endianness)
+    override fun build(endianness: Endianness): Array<Int8> {
+        val b = Int8Buffer(endianness)
 
         b.put(sh_name)
         b.put(sh_type)

@@ -1,17 +1,24 @@
-package cengine.util.newint
+package cengine.util.integer
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class UInt16(override val value: UShort) : IntNumber<UInt16> {
+class UInt16(override val value: UShort) : IntNumber<UInt16>, UnsignedExtension {
 
     constructor(value: UInt) : this(value.toUShort())
     constructor(value: ULong) : this(value.toUShort())
 
     companion object: IntNumberStatic<UInt16> {
+
+        override val BITS: Int = 16
+        override val BYTES: Int = 2
         override val ZERO = UInt16(0U)
         override val ONE = UInt16(1U)
 
+        fun Short.toUInt16() = UInt16(this.toUShort())
+        fun Int.toUInt16() = UInt16(this.toUShort())
+
         fun UShort.toUInt16() = UInt16(this)
+        fun UInt.toUInt16() = UInt16(this)
         fun fromUInt8(byte1: UInt8, byte0: UInt8): UInt16 = (byte1.toUInt16() shl 8) or byte0.toUInt16()
 
         override fun to(number: IntNumber<*>): UInt16 = number.toUInt16()
@@ -26,10 +33,13 @@ class UInt16(override val value: UShort) : IntNumber<UInt16> {
     }
 
     override val bitWidth: Int
-        get() = 16
+        get() = BITS
 
     override val byteCount: Int
-        get() = 2
+        get() = BYTES
+
+    override val type: IntNumberStatic<UInt16>
+        get() = UInt16
 
     override fun plus(other: UInt16): UInt16 = UInt16(value + other.value)
     override fun minus(other: UInt16): UInt16 = UInt16(value - other.value)
@@ -80,9 +90,14 @@ class UInt16(override val value: UShort) : IntNumber<UInt16> {
     override fun lowest(bitWidth: Int): UInt16 = this and createBitMask(bitWidth)
 
 
+    override fun compareTo(other: UInt): Int = value.compareTo(other)
+    override fun compareTo(other: ULong): Int = value.compareTo(other)
+
+    override fun compareTo(other: Int): Int = compareTo(other.toUInt())
+    override fun compareTo(other: Long): Int = compareTo(other.toULong())
+
     override fun compareTo(other: UInt16): Int = value.compareTo(other.value)
-    override fun compareTo(other: Long): Int = value.compareTo(other.toULong())
-    override fun compareTo(other: Int): Int = value.compareTo(other.toUInt())
+
     override fun equals(other: Any?): Boolean {
         if (other is IntNumber<*>) return value == other.value
         return value == other

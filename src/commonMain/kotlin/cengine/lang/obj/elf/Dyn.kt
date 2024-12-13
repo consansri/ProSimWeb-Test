@@ -1,5 +1,7 @@
 package cengine.lang.obj.elf
 
+import cengine.util.integer.Int64.Companion.toInt64
+
 /**
  * Data class representing the Elf32_Dyn structure in the ELF format.
  *
@@ -43,21 +45,21 @@ sealed class Dyn : BinaryProvider {
             var currIndex = offset
             when (eIdent.ei_class) {
                 E_IDENT.ELFCLASS32 -> {
-                    val d_tag = byteArray.loadInt(eIdent, currIndex)
+                    val d_tag = byteArray.loadInt32(eIdent, currIndex)
                     currIndex += 4
-                    val d_un = byteArray.loadUInt(eIdent, currIndex)
+                    val d_un = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val d_ptr = byteArray.loadUInt(eIdent, currIndex)
+                    val d_ptr = byteArray.loadUInt32(eIdent, currIndex)
 
                     return ELF32_Dyn(d_tag, d_un, d_ptr)
                 }
 
                 E_IDENT.ELFCLASS64 -> {
-                    val d_tag = byteArray.loadLong(eIdent, currIndex)
+                    val d_tag = byteArray.loadInt64(eIdent, currIndex)
                     currIndex += 8
-                    val d_un = byteArray.loadULong(eIdent, currIndex)
+                    val d_un = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val d_ptr = byteArray.loadULong(eIdent, currIndex)
+                    val d_ptr = byteArray.loadUInt64(eIdent, currIndex)
                     return ELF64_Dyn(d_tag, d_un, d_ptr)
                 }
 
@@ -69,142 +71,142 @@ sealed class Dyn : BinaryProvider {
         /**
          * Marks end of dynamic section.
          */
-        const val DT_NULL = 0L
+        val DT_NULL = 0L.toInt64()
 
         /**
          * String table offset to name of a needed library.
          */
-        const val DT_NEEDED = 1L
+        val DT_NEEDED = 1L.toInt64()
 
         /**
          * Size in bytes of PLT relocation entries.
          */
-        const val DT_PLTRELSZ = 2L
+        val DT_PLTRELSZ = 2L.toInt64()
 
         /**
          * Address of PLT and/or GOT.
          */
-        const val DT_PLTGOT = 3L
+        val DT_PLTGOT = 3L.toInt64()
 
         /**
          * Address of symbol hash table.
          */
-        const val DT_HASH = 4L
+        val DT_HASH = 4L.toInt64()
 
         /**
          * Address of string table.
          */
-        const val DT_STRTAB = 5L
+        val DT_STRTAB = 5L.toInt64()
 
         /**
          * Address of symbol table.
          */
-        const val DT_SYMTAB = 6L
+        val DT_SYMTAB = 6L.toInt64()
 
         /**
          * Address of Rela relocation table.
          */
-        const val DT_RELA = 7L
+        val DT_RELA = 7L.toInt64()
 
         /**
          * Size in bytes of the Rela relocation table.
          */
-        const val DT_RELASZ = 8L
+        val DT_RELASZ = 8L.toInt64()
 
         /**
          * Size in bytes of a Rela relocation table entry.
          */
-        const val DT_RELAENT = 9L
+        val DT_RELAENT = 9L.toInt64()
 
         /**
          * Size in bytes of string table.
          */
-        const val DT_STRSZ = 10L
+        val DT_STRSZ = 10L.toInt64()
 
         /**
          * Size in bytes of a symbol table entry.
          */
-        const val DT_SYMENT = 11L
+        val DT_SYMENT = 11L.toInt64()
 
         /**
          * Address of the initialization function.
          */
-        const val DT_INIT = 12L
+        val DT_INIT = 12L.toInt64()
 
         /**
          * Address of the termination function.
          */
-        const val DT_FINI = 13L
+        val DT_FINI = 13L.toInt64()
 
         /**
          * String table offset to name of shared object.
          */
-        const val DT_SONAME = 14L
+        val DT_SONAME = 14L.toInt64()
 
         /**
          * String table offset to search path for direct and indirect library dependencies.
          */
-        const val DT_RPATH = 15L
+        val DT_RPATH = 15L.toInt64()
 
         /**
          * Alert linker to search this shared object before the executable for symbols.
          */
-        const val DT_SYMBOLIC = 16L
+        val DT_SYMBOLIC = 16L.toInt64()
 
         /**
          * Address of Rel relocation table.
          */
-        const val DT_REL = 17L
+        val DT_REL = 17L.toInt64()
 
         /**
          * Size in bytes of Rel relocation table.
          */
-        const val DT_RELSZ = 18L
+        val DT_RELSZ = 18L.toInt64()
 
         /**
          * Size in bytes of a Rel table entry.
          */
-        const val DT_RELENT = 19L
+        val DT_RELENT = 19L.toInt64()
 
         /**
          * Type of relocation entry to which the PLT refers (Rela or Rel).
          */
-        const val DT_PLTREL = 20L
+        val DT_PLTREL = 20L.toInt64()
 
         /**
          * Undefined use for debugging.
          */
-        const val DT_DEBUG = 21L
+        val DT_DEBUG = 21L.toInt64()
 
         /**
          * Absence of this entry indicates that no relocation entries should apply to a nonwritable segment.
          */
-        const val DT_TEXTREL = 22L
+        val DT_TEXTREL = 22L.toInt64()
 
         /**
          * Address of relocation entries associated solely with the PLT.
          */
-        const val DT_JMPREL = 23L
+        val DT_JMPREL = 23L.toInt64()
 
         /**
          * Instruct dynamic linker to process all relocations before transferring control to the executable.
          */
-        const val DT_BIND_NOW = 24L
+        val DT_BIND_NOW = 24L.toInt64()
 
         /**
          * String table offset to search path for direct library dependencies.
          */
-        const val DT_RUNPATH = 25L
+        val DT_RUNPATH = 25L.toInt64()
 
         /**
          * Lower bound of processor-specific semantic values.
          */
-        const val DT_LOPROC = 0x70000000L
+        val DT_LOPROC = 0x70000000L.toInt64()
 
         /**
          * Upper bound of processor-specific semantic values.
          */
-        const val DT_HIPROC = 0x7fffffffL
+        val DT_HIPROC = 0x7fffffffL.toInt64()
     }
 
 }

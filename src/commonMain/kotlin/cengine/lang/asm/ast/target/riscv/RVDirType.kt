@@ -149,7 +149,7 @@ enum class RVDirType(override val isSection: Boolean = false, override val rule:
             DTPRELDWORD -> TODO()
             DWORD -> {
                 dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
-                    val evaluated = it.evaluate(builder).toLong()
+                    val evaluated = it.evaluate(builder).toInt64()
                     builder.currentSection.content.put(evaluated)
                 }
             }

@@ -1,7 +1,7 @@
 package emulator.kit.optional
 
 import Performance
-import cengine.util.newint.IntNumber
+import cengine.util.integer.IntNumber
 import emulator.kit.memory.Memory
 import emulator.kit.nativeError
 import kotlin.time.measureTime

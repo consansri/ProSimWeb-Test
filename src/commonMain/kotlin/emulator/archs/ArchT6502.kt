@@ -6,8 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import cengine.lang.asm.Disassembler
 import cengine.util.Endianness
-import cengine.util.newint.UInt16
-import cengine.util.newint.UInt8
+import cengine.util.integer.UInt16
+import cengine.util.integer.UInt8
 import emulator.archs.t6502.T6502BaseRegs
 import emulator.kit.ArchConfig
 import emulator.kit.MicroSetup

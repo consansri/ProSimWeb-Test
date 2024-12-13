@@ -1,6 +1,6 @@
 package cengine.lang.asm.ast.target.riscv
 
-import cengine.util.newint.UInt32
+import cengine.util.integer.UInt32
 
 data object RVConst {
     /**

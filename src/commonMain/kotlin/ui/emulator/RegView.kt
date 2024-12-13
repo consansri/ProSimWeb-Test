@@ -1,11 +1,13 @@
 package ui.emulator
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -15,7 +17,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.style.TextAlign
-import cengine.util.newint.Format
+import cengine.util.integer.Format
 import emulator.kit.Architecture
 import emulator.kit.MicroSetup
 import emulator.kit.register.FieldProvider
@@ -50,6 +52,7 @@ fun RegTable(regFile: RegFile<*>) {
     val theme = UIState.Theme.value
 
     var sortedBy: FieldProvider? by remember { mutableStateOf(null) }
+    val hScrollState = rememberScrollState()
 
     var numberFormat by remember { mutableStateOf(Format.HEX) }
 
@@ -63,9 +66,11 @@ fun RegTable(regFile: RegFile<*>) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
 
-            CToggle(onClick = {
-                showDescription = !showDescription
-            }, showDescription, modifier = Modifier.weight(0.1f), icon = UIState.Icon.value.info, iconType = IconType.SMALL)
+            Box(Modifier.weight(0.1f), contentAlignment = Alignment.Center){
+                CToggle(onClick = {
+                    showDescription = !showDescription
+                }, showDescription, icon = UIState.Icon.value.info, iconType = IconType.SMALL)
+            }
 
             Row(
                 Modifier.weight(0.2f),
@@ -147,7 +152,7 @@ fun RegTable(regFile: RegFile<*>) {
             } ?: indexedRegs
 
             items(sortedRegs, key = {
-                it.hashCode()
+                "${it.first}:${it.second}"
             }) { (id, reg) ->
                 // Display Reg
 
@@ -188,16 +193,17 @@ fun RegTable(regFile: RegFile<*>) {
                         }
                     }
 
-                    BasicTextField(
-                        modifier = Modifier.weight(0.3f),
-                        value = regValue,
-                        onValueChange = { regValue = it },
-                        textStyle = UIState.CodeStyle.current.copy(theme.COLOR_FG_0),
-                        visualTransformation = { annotatedString ->
-                            TransformedText(AnnotatedString(numberFormat.filter(annotatedString.text)), OffsetMapping.Identity)
-                        },
-                        interactionSource = interactionSource
-                    )
+                    Box(Modifier.weight(0.3f).horizontalScroll(hScrollState), contentAlignment = Alignment.Center) {
+                        BasicTextField(
+                            value = regValue,
+                            onValueChange = { regValue = it },
+                            textStyle = UIState.CodeStyle.current.copy(theme.COLOR_FG_0, textAlign = TextAlign.Center),
+                            visualTransformation = { annotatedString ->
+                                TransformedText(AnnotatedString(numberFormat.filter(annotatedString.text)), OffsetMapping.Identity)
+                            },
+                            interactionSource = interactionSource
+                        )
+                    }
 
                     if (showDescription) {
                         Row(Modifier.weight(0.4f)) {
@@ -216,7 +222,7 @@ fun RegTable(regFile: RegFile<*>) {
                     }
                 }
 
-                LaunchedEffect(numberFormat){
+                LaunchedEffect(numberFormat) {
                     regValue = numberFormat.format(regFile[id])
                 }
 

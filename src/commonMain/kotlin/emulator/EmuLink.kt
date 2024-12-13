@@ -10,17 +10,17 @@ import kotlin.reflect.KClass
  *  This enum-class contains every specific Architecture
  *  <NEEDS TO BE EXTENDED>
  */
-enum class EmuLink(private val arch: () -> Architecture<*,*>, val classType: KClass<*>) {
+enum class EmuLink(private val arch: () -> Architecture<*, *>, val classType: KClass<*>) {
     RV32I({ ArchRV32() }, ArchRV32::class),
     RV64I({ ArchRV64() }, ArchRV64::class),
     T6502({ ArchT6502() }, ArchT6502::class),
     IKRMINI({ ArchIKRMini() }, ArchIKRMini::class),
     IKRRISC2({ ArchIKRRisc2() }, ArchIKRRisc2::class);
 
-    fun load(): Architecture<*,*> {
-        nativeLog("KIT: Loading $name ...")
+    fun load(): Architecture<*, *> {
         val loaded = arch()
         loaded.resetMicroArch()
+        nativeLog("Architecture $name loaded!")
         return loaded
     }
 

@@ -9,7 +9,6 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.lang.obj.elf.Shdr
-import cengine.util.integer.Size.*
 
 enum class ASDirType(
     val contentStartsDirectly: Boolean = false,
@@ -804,14 +803,14 @@ enum class ASDirType(
             Specific(".section", ignoreCase = true),
             XOR(
                 Dir("DATA"), Dir("text"), Dir("RODATA"), Dir("BSS"), Seq(
-                InSpecific(AsmTokenType.SYMBOL),
-                Optional {
-                    Seq(
-                        Specific(","),
-                        SpecNode(ASNodeType.STRING_EXPR)
-                    )
-                }
-            ))
+                    InSpecific(AsmTokenType.SYMBOL),
+                    Optional {
+                        Seq(
+                            Specific(","),
+                            SpecNode(ASNodeType.STRING_EXPR)
+                        )
+                    }
+                ))
         )
     }),
     SET_ALT(contentStartsDirectly = true, rule = Rule {
@@ -1127,56 +1126,56 @@ enum class ASDirType(
             BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.fitsInSignedOrUnsigned(8)) {
-                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit8}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds 8 bits."))
                 }
             }
 
             HWORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.fitsInSignedOrUnsigned(16)) {
-                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit16}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds 16 bits."))
                 }
             }
 
             INT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.fitsInSignedOrUnsigned(32)) {
-                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit32}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds 32 bits."))
                 }
             }
 
             SHORT -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.fitsInSignedOrUnsigned(16)) {
-                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit16}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds 16 bits."))
                 }
             }
 
             WORD -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.fitsInSignedOrUnsigned(32)) {
-                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit32}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds 32 bits."))
                 }
             }
 
             _2BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.fitsInSignedOrUnsigned(16)) {
-                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit16}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds 16 bits."))
                 }
             }
 
             _4BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.fitsInSignedOrUnsigned(32)) {
-                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit32}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds 32 bits."))
                 }
             }
 
             _8BYTE -> dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>().forEach {
                 val value = it.evaluate(builder)
                 if (!value.fitsInSignedOrUnsigned(64)) {
-                    it.annotations.add(Annotation.error(it, "$value exceeds ${Bit64}."))
+                    it.annotations.add(Annotation.error(it, "$value exceeds 64 bits."))
                 }
             }
 
@@ -1206,21 +1205,22 @@ enum class ASDirType(
             BALIGN -> TODO()
             BALIGNL -> TODO()
             BALIGNW -> TODO()
-            BSS -> builder.getOrCreateSectionAndSetCurrent(".bss", Shdr.SHT_bss, Shdr.SHF_bss.toULong())
+            BSS -> builder.getOrCreateSectionAndSetCurrent(".bss", Shdr.SHT_bss, Shdr.SHF_bss.toUInt64())
             BYTE -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
-                    try {
-                        val byte = expr.evaluate(builder).toByte()
-                        builder.currentSection.content.put(byte)
-                    } catch (e: Exception) {
-                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
+                    val eval = expr.evaluate(builder)
+
+                    if (!eval.fitsInSignedOrUnsigned(8)) {
+                        expr.addError("$eval exceeds 8 bits")
                     }
+
+                    builder.currentSection.content.put(eval.toInt8())
                 }
             }
 
             COMM -> TODO()
-            DATA -> builder.getOrCreateSectionAndSetCurrent(".data", Shdr.SHT_data, Shdr.SHF_data.toULong())
+            DATA -> builder.getOrCreateSectionAndSetCurrent(".data", Shdr.SHT_data, Shdr.SHF_data.toUInt64())
             DEF -> TODO()
             DESC -> TODO()
             DIM -> TODO()
@@ -1300,7 +1300,19 @@ enum class ASDirType(
 
             GNU_ATTRIBUTE -> TODO()
             HIDDEN -> TODO()
-            HWORD -> TODO()
+            HWORD -> {
+                val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
+                for (expr in exprs) {
+                    val eval = expr.evaluate(builder)
+
+                    if (!eval.fitsInSignedOrUnsigned(16)) {
+                        expr.addError("$eval exceeds 16 bits")
+                    }
+
+                    builder.currentSection.content.put(eval.toInt16())
+                }
+            }
+
             IDENT -> TODO()
             INCBIN -> TODO()
             INCLUDE -> TODO()
@@ -1338,7 +1350,7 @@ enum class ASDirType(
             PURGEM -> TODO()
             PUSHSECTION -> TODO()
             QUAD -> TODO()
-            RODATA -> builder.getOrCreateSectionAndSetCurrent(".rodata", Shdr.SHT_rodata, Shdr.SHF_rodata.toULong())
+            RODATA -> builder.getOrCreateSectionAndSetCurrent(".rodata", Shdr.SHT_rodata, Shdr.SHF_rodata.toUInt64())
             RELOC -> TODO()
             REPT -> TODO()
             SBTTL -> TODO()
@@ -1349,12 +1361,13 @@ enum class ASDirType(
             SHORT -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
-                    try {
-                        val short = expr.evaluate(builder).toShort()
-                        builder.currentSection.content.put(short)
-                    } catch (e: Exception) {
-                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
+                    val eval = expr.evaluate(builder)
+
+                    if (!eval.fitsInSignedOrUnsigned(16)) {
+                        expr.addError("$eval exceeds 16 bits")
                     }
+
+                    builder.currentSection.content.put(eval.toInt16())
                 }
             }
 
@@ -1399,7 +1412,7 @@ enum class ASDirType(
             SUBSECTION -> TODO()
             SYMVER -> TODO()
             TAG -> TODO()
-            TEXT -> builder.getOrCreateSectionAndSetCurrent(".text", Shdr.SHT_text, Shdr.SHF_text.toULong())
+            TEXT -> builder.getOrCreateSectionAndSetCurrent(".text", Shdr.SHT_text, Shdr.SHF_text.toUInt64())
             TITLE -> TODO()
             TLS_COMMON -> TODO()
             TYPE -> TODO()
@@ -1414,12 +1427,13 @@ enum class ASDirType(
             WORD -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
-                    try {
-                        val uint32 = expr.evaluate(builder).toUInt()
-                        builder.currentSection.content.put(uint32)
-                    } catch (e: Exception) {
-                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
+                    val int32 = expr.evaluate(builder)
+
+                    if (!int32.fitsInSignedOrUnsigned(32)) {
+                        expr.addError("$int32 exceeds 32 bits")
                     }
+
+                    builder.currentSection.content.put(int32.toInt32())
                 }
             }
 
@@ -1427,36 +1441,39 @@ enum class ASDirType(
             _2BYTE -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
-                    try {
-                        val short = expr.evaluate(builder).toShort()
-                        builder.currentSection.content.put(short)
-                    } catch (e: Exception) {
-                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
+                    val eval = expr.evaluate(builder)
+
+                    if (!eval.fitsInSignedOrUnsigned(16)) {
+                        expr.addError("$eval exceeds 16 bits")
                     }
+
+                    builder.currentSection.content.put(eval.toUInt16())
                 }
             }
 
             _4BYTE -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
-                    try {
-                        val int = expr.evaluate(builder).toInt()
-                        builder.currentSection.content.put(int)
-                    } catch (e: Exception) {
-                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
+                    val eval = expr.evaluate(builder)
+
+                    if (!eval.fitsInSignedOrUnsigned(32)) {
+                        expr.addError("$eval exceeds 32 bits")
                     }
+
+                    builder.currentSection.content.put(eval.toUInt16())
                 }
             }
 
             _8BYTE -> {
                 val exprs = dir.additionalNodes.filterIsInstance<ASNode.NumericExpr>()
                 for (expr in exprs) {
-                    try {
-                        val long = expr.evaluate(builder).toLong()
-                        builder.currentSection.content.put(long)
-                    } catch (e: Exception) {
-                        expr.annotations.add(Annotation.error(expr, "Evaluation Error: " + e.message))
+                    val eval = expr.evaluate(builder)
+
+                    if (!eval.fitsInSignedOrUnsigned(64)) {
+                        expr.addError("$eval exceeds 64 bits")
                     }
+
+                    builder.currentSection.content.put(eval.toUInt16())
                 }
             }
 

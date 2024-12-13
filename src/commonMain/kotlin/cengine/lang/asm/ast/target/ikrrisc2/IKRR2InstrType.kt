@@ -5,8 +5,8 @@ import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.asm.ast.lexer.AsmTokenType
-import cengine.util.newint.UInt32
-import cengine.util.newint.UInt32.Companion.toUInt32
+import cengine.util.integer.UInt32
+import cengine.util.integer.UInt32.Companion.toUInt32
 import emulator.kit.nativeLog
 
 
@@ -93,14 +93,14 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
         get() = name
 
     override fun resolve(builder: AsmCodeGenerator<*>, instr: ASNode.Instruction) {
-        val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> IKRR2BaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) }?.ordinal?.toUInt() }
+        val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> IKRR2BaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) }?.ordinal?. toUInt32() }
         val exprs = instr.nodes.filterIsInstance<ASNode.NumericExpr>()
 
         when (paramType) {
             IKRR2ParamType.I_TYPE -> {
                 val expr = exprs[0]
-                val rc = regs[0].toUInt32()
-                val rb = regs[1].toUInt32()
+                val rc = regs[0]
+                val rb = regs[1]
 
                 val opc = when (this) {
                     ADDI -> IKRR2Const.I_OP6_ADDI
@@ -130,14 +130,14 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
 
                 val bundle = (opc shl 26) or (rc shl 21) or (rb shl 16) or imm16
                 nativeLog("IKRR2 I-Type: ${bundle.toString(16)}, imm: ${imm16.toString(16)}")
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             IKRR2ParamType.R2_TYPE -> {
                 val funct6 = IKRR2Const.FUNCT6_R2
-                val rc = regs[0].toUInt32()
-                val rb = regs[1].toUInt32()
-                val ra = regs[2].toUInt32()
+                val rc = regs[0]
+                val rb = regs[1]
+                val ra = regs[2]
                 val opc = when (this) {
                     ADD -> IKRR2Const.R2_OP6_ADD
                     ADDX -> IKRR2Const.R2_OP6_ADDX
@@ -154,14 +154,14 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                 }
                 val bundle = (funct6 shl 26) or (rc shl 21) or (rb shl 16) or (opc shl 10) or ra
 
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             IKRR2ParamType.R1_TYPE -> {
                 val funct6 = IKRR2Const.FUNCT6_R1
 
-                val rc = regs[0].toUInt32()
-                val rb = regs[1].toUInt32()
+                val rc = regs[0]
+                val rb = regs[1]
 
                 val const6 = when (this) {
                     LSL, LSR, ASL, ASR, ROL, ROR -> IKRR2Const.CONST6_SHIFT_ROTATE
@@ -186,13 +186,13 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
 
                 val bundle = (funct6 shl 26) or (rc shl 21) or (rb shl 16) or (opc shl 10) or const6
 
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             IKRR2ParamType.L_OFF_TYPE -> {
                 val expr = exprs[0]
-                val rc = regs[0].toUInt32()
-                val rb = regs[1].toUInt32()
+                val rc = regs[0]
+                val rb = regs[1]
 
                 val opc = when (this) {
                     LDD -> IKRR2Const.I_OP6_LDD
@@ -213,14 +213,14 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                 }
 
                 val bundle = (opc shl 26) or (rc shl 21) or (rb shl 16) or imm16
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             IKRR2ParamType.L_INDEX_TYPE -> {
                 val funct6 = IKRR2Const.FUNCT6_R2
-                val rc = regs[0].toUInt32()
-                val rb = regs[1].toUInt32()
-                val ra = regs[2].toUInt32()
+                val rc = regs[0]
+                val rb = regs[1]
+                val ra = regs[2]
                 val opc = when (this) {
                     ADD -> IKRR2Const.R2_OP6_ADD
                     ADDX -> IKRR2Const.R2_OP6_ADDX
@@ -237,14 +237,14 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                 }
                 val bundle = (funct6 shl 26) or (rc shl 21) or (rb shl 16) or (opc shl 10) or ra
 
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             IKRR2ParamType.S_OFF_TYPE -> {
                 val expr = exprs[0]
 
-                val rb = regs[0].toUInt32()
-                val rc = regs[1].toUInt32()
+                val rb = regs[0]
+                val rc = regs[1]
 
                 val opc = when (this) {
                     STD -> IKRR2Const.I_OP6_STD
@@ -265,21 +265,21 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
                 }
 
                 val bundle = (opc shl 26) or (rc shl 21) or (rb shl 16) or imm16
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             IKRR2ParamType.S_INDEX_TYPE -> {
                 val funct6 = IKRR2Const.FUNCT6_R2
-                val rb = regs[0].toUInt32()
-                val ra = regs[1].toUInt32()
-                val rc = regs[2].toUInt32()
+                val rb = regs[0]
+                val ra = regs[1]
+                val rc = regs[2]
                 val opc = when (this) {
                     STR -> IKRR2Const.R2_OP6_STR
                     else -> UInt32.ZERO
                 }
                 val bundle = (funct6 shl 26) or (rc shl 21) or (rb shl 16) or (opc shl 10) or ra
 
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             IKRR2ParamType.B_DISP18_TYPE -> {} // evaluate later
@@ -287,7 +287,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
             IKRR2ParamType.B_REG_TYPE -> {
                 val funct6 = IKRR2Const.FUNCT6_R1
 
-                val rb = regs[0].toUInt32()
+                val rb = regs[0]
 
                 val opc = when (this) {
                     JMP -> IKRR2Const.R1_OP6_JMP
@@ -297,7 +297,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
 
                 val bundle = (funct6 shl 26) or (rb shl 16) or (opc shl 10)
 
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
         }
 
@@ -307,7 +307,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
     }
 
     override fun lateEvaluation(builder: AsmCodeGenerator<*>, section: AsmCodeGenerator.Section, instr: ASNode.Instruction, index: Int) {
-        val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> IKRR2BaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) }?.ordinal?.toUInt() }
+        val regs = instr.tokens.filter { it.type == AsmTokenType.REGISTER }.mapNotNull { token -> IKRR2BaseRegs.entries.firstOrNull { it.recognizable.contains(token.value) }?.ordinal?. toUInt32() }
         val exprs = instr.nodes.filterIsInstance<ASNode.NumericExpr>()
 
         when (paramType) {
@@ -328,14 +328,14 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
 
                 val bundle = (opc shl 26) or imm26.lowest(26)
 
-                section.content[index] = bundle.toUInt()
+                section.content[index] = bundle
             }
 
             IKRR2ParamType.B_DISP18_TYPE -> {
                 val expr = exprs[0]
 
                 val opc = IKRR2Const.B_OP6_COND_BRA
-                val rc = regs[0].toUInt32()
+                val rc = regs[0]
 
                 val funct3 = when (this) {
                     BEQ -> IKRR2Const.B_FUNCT3_BEQ
@@ -355,7 +355,7 @@ enum class IKRR2InstrType(override val detectionName: String, val paramType: IKR
 
                 val bundle = (opc shl 26) or (rc shl 21) or (funct3 shl 18) or imm18.lowest(18)
 
-                section.content[index] = bundle.toUInt()
+                section.content[index] = bundle
             }
 
             else -> {}

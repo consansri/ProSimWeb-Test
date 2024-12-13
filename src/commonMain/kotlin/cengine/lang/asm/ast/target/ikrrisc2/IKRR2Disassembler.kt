@@ -2,11 +2,10 @@ package cengine.lang.asm.ast.target.ikrrisc2
 
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.ikrrisc2.IKRR2Disassembler.InstrType.*
-import cengine.util.newint.BigInt
-import cengine.util.newint.IntNumber
-import cengine.util.newint.UInt32
-import cengine.util.newint.UInt32.Companion.ONE
-import cengine.util.newint.UInt32.Companion.toUInt32
+import cengine.util.integer.BigInt
+import cengine.util.integer.IntNumber
+import cengine.util.integer.UInt32
+import cengine.util.integer.UInt32.Companion.toUInt32
 
 object IKRR2Disassembler : Disassembler() {
     override fun disassemble(startAddr: BigInt, buffer: List<IntNumber<*>>): List<Decoded> {
@@ -117,13 +116,13 @@ object IKRR2Disassembler : Disassembler() {
                 STD -> Decoded(offset, binary, "${type.lc5Name} ($rbReg, $hexPrefix${disp16.toString(16)}) := $rcReg")
                 STR -> Decoded(offset, binary, "${type.lc5Name} ($rbReg, $raReg) := $rcReg")
                 BEQ, BNE, BLT, BGT, BLE, BGE -> {
-                    val offset18 = disp18.signExtension(18, ONE)
+                    val offset18 = disp18.signExtend(18)
                     val target = segmentAddr.toUInt32() + offset.toUInt32() + offset18
                     Decoded(offset, binary, "${type.lc5Name} $hexPrefix${disp18.toString(16)}", target.toBigInt())
                 }
 
                 BRA, BSR -> {
-                    val offset26 = disp26.signExtension(26, ONE)
+                    val offset26 = disp26.signExtend(26)
                     val target = segmentAddr.toUInt32() + offset.toUInt32() + offset26
                     Decoded(offset, binary, "${type.lc5Name} $hexPrefix${disp26.toString(16)}", target.toBigInt())
                 }

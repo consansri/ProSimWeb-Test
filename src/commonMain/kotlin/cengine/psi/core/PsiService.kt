@@ -3,7 +3,7 @@ package cengine.psi.core
 import cengine.editor.annotation.Annotation
 import cengine.lang.asm.CodeStyle
 import cengine.psi.feature.Highlightable
-import cengine.util.newint.IntNumber.Companion.overlaps
+import cengine.util.integer.IntNumber.Companion.overlaps
 
 import cengine.vfs.VirtualFile
 

@@ -17,9 +17,9 @@ import cengine.lang.asm.ast.target.riscv.RVConst.mask32Hi20
 import cengine.lang.asm.ast.target.riscv.RVConst.mask32Lo12
 import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.obj.elf.ELFGenerator
-import cengine.util.newint.UInt32
-import cengine.util.newint.UInt32.Companion.toUInt32
-import cengine.util.newint.UInt64
+import cengine.util.integer.UInt32
+import cengine.util.integer.UInt32.Companion.toUInt32
+import cengine.util.integer.UInt64
 import debug.DebugTools
 import emulator.kit.nativeLog
 
@@ -165,7 +165,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                     val imm20 = imm.toUInt32().lowest(20)
 
                     val bundle = (imm20 shl 12) or (rd shl 7) or opcode
-                    builder.currentSection.content.put(bundle.toUInt())
+                    builder.currentSection.content.put(bundle)
                 }
             }
 
@@ -196,7 +196,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val rd = regs[0].ordinal.toUInt32()
                 val bundle = (imm12 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
 
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.RS2_Off12 -> {
@@ -223,7 +223,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val rs2 = regs[0].ordinal.toUInt32()
                 val bundle = (imm12.mask12Hi7() shl 25) or (rs2 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (imm12.mask12Lo5() shl 7) or opcode
 
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.RD_RS1_RS2 -> {
@@ -265,7 +265,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 }
 
                 val bundle = (funct7 shl 25) or (rs2 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.RD_RS1_I12 -> {
@@ -296,7 +296,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val rs1 = regs[1].ordinal.toUInt32()
 
                 val bundle = (imm12 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.RD_RS1_SHAMT6 -> {
@@ -323,7 +323,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val rd = regs[0].ordinal.toUInt32()
                 val rs1 = regs[1].ordinal.toUInt32()
                 val bundle = (funct7 shl 25) or (shamt shl 20) or (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.CSR_RD_OFF12_RS1 -> {
@@ -351,7 +351,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val rs1 = regs[1].ordinal.toUInt32()
 
                 val bundle = (csr shl 20) or (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.CSR_RD_OFF12_UIMM5 -> {
@@ -385,7 +385,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val zimm = imm.toInt().toUInt32().lowest(5)
 
                 val bundle = (csr shl 20) or (zimm shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.PS_RD_LI_I64 -> {
@@ -407,7 +407,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         val funct3 = RVConst.FUNCT3_OPERATION
 
                         val addiBundle = (imm12 shl 20) or (x0 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
-                        builder.currentSection.content.put(addiBundle.toUInt())
+                        builder.currentSection.content.put(addiBundle)
                     }
 
                     imm.fitsInSigned(32) -> {
@@ -424,12 +424,12 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         // Build LUI Bundle
                         val luiOPC = RVConst.OPC_LUI
                         val luiBundle = (imm20 shl 12) or (rd shl 7) or luiOPC
-                        builder.currentSection.content.put(luiBundle.toUInt())
+                        builder.currentSection.content.put(luiBundle)
 
                         // Build ADDI Bundle
                         val addiBundle = (imm12 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
                         if (imm12 != UInt32.ZERO) {
-                            builder.currentSection.content.put(addiBundle.toUInt())
+                            builder.currentSection.content.put(addiBundle)
                         }
                     }
 
@@ -450,22 +450,22 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
                         // Build LUI Bundle
                         val luiBundle = (l3 shl 12) or (rd shl 7) or RVConst.OPC_LUI
-                        builder.currentSection.content.put(luiBundle.toUInt())
+                        builder.currentSection.content.put(luiBundle)
 
                         // Build ADDIW Bundle
                         if (l2 != UInt32.ZERO) {
                             val addiwBundle = (l2 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM_WORD
-                            builder.currentSection.content.put(addiwBundle.toUInt())
+                            builder.currentSection.content.put(addiwBundle)
                         }
 
                         // Build SLLI Bundle
                         val slliBundle = (UInt32.ZERO shl 25) or (0xCU.toUInt32() shl 20) or (rd shl 15) or (RVConst.FUNCT3_SHIFT_LEFT shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
-                        builder.currentSection.content.put(slliBundle.toUInt())
+                        builder.currentSection.content.put(slliBundle)
 
                         if (l1 != UInt32.ZERO) {
                             // Build ADDI Bundle
                             val addiBundle = (l1 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
-                            builder.currentSection.content.put(addiBundle.toUInt())
+                            builder.currentSection.content.put(addiBundle)
                         }
                     }
 
@@ -489,31 +489,31 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
                         // Build LUI Bundle
                         val luiBundle = (l4 shl 12) or (rd shl 7) or RVConst.OPC_LUI
-                        builder.currentSection.content.put(luiBundle.toUInt())
+                        builder.currentSection.content.put(luiBundle)
 
                         if (l3 != UInt32.ZERO) {
                             // Build ADDIW Bundle
                             val addiwBundle = (l3 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM_WORD
-                            builder.currentSection.content.put(addiwBundle.toUInt())
+                            builder.currentSection.content.put(addiwBundle)
                         }
 
                         // Build SLLI Bundle
                         val slliBundle = (UInt32.ZERO shl 25) or (0xCU.toUInt32() shl 20) or (rd shl 15) or (RVConst.FUNCT3_SHIFT_LEFT shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
-                        builder.currentSection.content.put(slliBundle.toUInt())
+                        builder.currentSection.content.put(slliBundle)
 
                         if (l2 != UInt32.ZERO) {
                             // Build ADDI Bundle
                             val addiBundle1 = (l2 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
-                            builder.currentSection.content.put(addiBundle1.toUInt())
+                            builder.currentSection.content.put(addiBundle1)
                         }
 
                         // Build SLLI Bundle
-                        builder.currentSection.content.put(slliBundle.toUInt())
+                        builder.currentSection.content.put(slliBundle)
 
                         if (l1 != UInt32.ZERO) {
                             // Build ADDI Bundle
                             val addiBundle2 = (l1 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
-                            builder.currentSection.content.put(addiBundle2.toUInt())
+                            builder.currentSection.content.put(addiBundle2)
                         }
                     }
 
@@ -545,40 +545,40 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
                         // Build LUI Bundle
                         val luiBundle = (l5 shl 12) or (rd shl 7) or RVConst.OPC_LUI
-                        builder.currentSection.content.put(luiBundle.toUInt())
+                        builder.currentSection.content.put(luiBundle)
 
                         if (l4 != UInt32.ZERO) {
                             // Build ADDIW Bundle
                             val addiwBundle = (l4 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM_WORD
-                            builder.currentSection.content.put(addiwBundle.toUInt())
+                            builder.currentSection.content.put(addiwBundle)
                         }
 
                         // Build SLLI Bundle
                         val slliBundleC = (UInt32.ZERO shl 25) or (0xCU.toUInt32() shl 20) or (rd shl 15) or (RVConst.FUNCT3_SHIFT_LEFT shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
-                        builder.currentSection.content.put(slliBundleC.toUInt())
+                        builder.currentSection.content.put(slliBundleC)
 
                         if (l3 != UInt32.ZERO) {
                             // Build ADDI Bundle
                             val addiBundle1 = (l3 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
-                            builder.currentSection.content.put(addiBundle1.toUInt())
+                            builder.currentSection.content.put(addiBundle1)
                         }
 
                         // Build SLLI Bundle
-                        builder.currentSection.content.put(slliBundleC.toUInt())
+                        builder.currentSection.content.put(slliBundleC)
 
                         if (l2 != UInt32.ZERO) {
                             // Build ADDI Bundle
                             val addiBundle2 = (l2 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
-                            builder.currentSection.content.put(addiBundle2.toUInt())
+                            builder.currentSection.content.put(addiBundle2)
                         }
 
                         // Build SLLI Bundle
-                        builder.currentSection.content.put(slliBundleC.toUInt())
+                        builder.currentSection.content.put(slliBundleC)
 
                         if (l1 != UInt32.ZERO) {
                             // Build ADDI Bundle
                             val addiBundle3 = (l1 shl 20) or (rd shl 15) or (RVConst.FUNCT3_OPERATION shl 12) or (rd shl 7) or RVConst.OPC_ARITH_IMM
-                            builder.currentSection.content.put(addiBundle3.toUInt())
+                            builder.currentSection.content.put(addiBundle3)
                         }
                     }
                 }
@@ -592,7 +592,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         val rd = regs[0].ordinal.toUInt32()
                         val rs1 = regs[1].ordinal.toUInt32()
                         val bundle = (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     Not -> {
@@ -602,7 +602,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         val rd = regs[0].ordinal.toUInt32()
                         val rs1 = regs[1].ordinal.toUInt32()
                         val bundle = (imm12 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     Neg -> {
@@ -613,7 +613,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         val rs2 = regs[1].ordinal.toUInt32()
 
                         val bundle = (funct7 shl 25) or (rs2 shl 20) or (funct3 shl 12) or (rd shl 7) or opcode
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     Seqz -> {
@@ -623,7 +623,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         val rd = regs[0].ordinal.toUInt32()
                         val rs1 = regs[1].ordinal.toUInt32()
                         val bundle = (imm12 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     Snez -> {
@@ -632,7 +632,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         val rd = regs[0].ordinal.toUInt32()
                         val rs2 = regs[1].ordinal.toUInt32()
                         val bundle = (rs2 shl 20) or (funct3 shl 12) or (rd shl 7) or opcode
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     Sltz -> {
@@ -641,7 +641,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         val rd = regs[0].ordinal.toUInt32()
                         val rs1 = regs[1].ordinal.toUInt32()
                         val bundle = (rs1 shl 15) or (funct3 shl 12) or (rd shl 7) or opcode
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     Sgtz -> {
@@ -650,7 +650,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                         val rd = regs[0].ordinal.toUInt32()
                         val rs2 = regs[1].ordinal.toUInt32()
                         val bundle = (rs2 shl 20) or (funct3 shl 12) or (rd shl 7) or opcode
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     else -> {
@@ -667,7 +667,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                     else -> RVBaseRegs.ZERO.ordinal.toUInt32()
                 }
                 val bundle = (rs1 shl 15) or (rd shl 7) or opcode
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.PS_CSR_RS1 -> {
@@ -686,7 +686,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
                 val rs1 = regs[0].ordinal.toUInt32()
                 val bundle = (csr shl 20) or (rs1 shl 15) or (funct3 shl 12) or opcode
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.PS_RD_CSR -> {
@@ -705,7 +705,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
                 val rd = regs[0].ordinal.toUInt32()
                 val bundle = (csr shl 20) or (funct3 shl 12) or (rd shl 7) or opcode
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.NONE -> {
@@ -717,12 +717,12 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                             else -> UInt32.ZERO
                         }
                         val bundle = (imm12 shl 20) or opcode
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     FENCEI -> {
                         val bundle = (RVConst.FUNCT3_FENCE_I shl 12) or RVConst.OPC_FENCE
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     else -> {}
@@ -734,14 +734,14 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                     Nop -> {
                         val opcode = RVConst.OPC_ARITH_IMM
                         val bundle = opcode
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     Ret -> {
                         val opcode = RVConst.OPC_JALR
                         val rs1 = RVBaseRegs.RA.ordinal.toUInt32()
                         val bundle = (rs1 shl 15) or opcode
-                        builder.currentSection.content.put(bundle.toUInt())
+                        builder.currentSection.content.put(bundle)
                     }
 
                     else -> {
@@ -764,7 +764,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val pred = predUnchecked.toUInt32().lowest(4)
                 val succ = succUnchecked.toUInt32().lowest(4)
                 val bundle = (pred shl 24) or (succ shl 20) or RVConst.OPC_FENCE
-                builder.currentSection.content.put(bundle.toUInt())
+                builder.currentSection.content.put(bundle)
             }
 
             RV64ParamType.RS1_RS2_LBL -> {} // Will be evaluated later
@@ -809,7 +809,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val opcode = RVConst.OPC_JAL
 
                 val bundle = (imm20 shl 12) or (rd shl 7) or opcode
-                section.content[index] = bundle.toUInt()
+                section.content[index] = bundle
             }
 
             BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
@@ -843,7 +843,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val rs2 = regs[1].ordinal.toUInt32()
 
                 val bundle = (imm7 shl 25) or (rs2 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (imm5 shl 7) or opcode
-                section.content[index] = bundle.toUInt()
+                section.content[index] = bundle
             }
 
             La -> {
@@ -870,12 +870,12 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
 
                 val auipcOpCode = RVConst.OPC_AUIPC
                 val auipcBundle = (hi20 shl 12) or (rd shl 7) or auipcOpCode
-                section.content[index] = auipcBundle.toUInt()
+                section.content[index] = auipcBundle
 
                 val addiOpCode = RVConst.OPC_ARITH_IMM
                 val funct3 = RVConst.FUNCT3_OPERATION
                 val addiBundle = (lo12 shl 20) or (rd shl 15) or (funct3 shl 12) or (rd shl 7) or addiOpCode
-                section.content[index + 4] = addiBundle.toUInt()
+                section.content[index + 4] = addiBundle
             }
 
             Beqz, Bnez, Blez, Bgez, Bltz, Bgtz -> {
@@ -931,7 +931,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 }
 
                 val bundle = (imm7 shl 25) or (rs2 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (imm5 shl 7) or opcode
-                section.content[index] = bundle.toUInt()
+                section.content[index] = bundle
             }
 
             Bgt, Ble, Bgtu, Bleu -> {
@@ -967,7 +967,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val rs1 = regs[1].ordinal.toUInt32()
 
                 val bundle = (imm7 shl 25) or (rs2 shl 20) or (rs1 shl 15) or (funct3 shl 12) or (imm5 shl 7) or opcode
-                section.content[index] = bundle.toUInt()
+                section.content[index] = bundle
             }
 
             J -> {
@@ -992,7 +992,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val opcode = RVConst.OPC_JAL
 
                 val bundle = (imm20 shl 12) or (rd shl 7) or opcode
-                section.content[index] = bundle.toUInt()
+                section.content[index] = bundle
             }
 
             JAL1 -> {
@@ -1017,7 +1017,7 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val opcode = RVConst.OPC_JAL
 
                 val bundle = (imm20 shl 12) or (rd shl 7) or opcode
-                section.content[index] = bundle.toUInt()
+                section.content[index] = bundle
             }
 
             Call -> {
@@ -1053,8 +1053,8 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val auipcBundle = (hi20 shl 12) or (x6 shl 7) or auipcOpcode
                 val jalrBundle = (lo12 shl 20) or (x6 shl 15) or (x1 shl 7) or jalrOpcode
 
-                section.content[index] = auipcBundle.toUInt()
-                section.content[index + 4] = jalrBundle.toUInt()
+                section.content[index] = auipcBundle
+                section.content[index + 4] = jalrBundle
             }
 
             Tail -> {
@@ -1090,8 +1090,8 @@ enum class RV64InstrType(override val detectionName: String, val isPseudo: Boole
                 val auipcBundle = (hi20 shl 12) or (x6 shl 7) or auipcOpcode
                 val jalrBundle = (lo12 shl 20) or (x6 shl 15) or (x0 shl 7) or jalrOpcode
 
-                section.content[index] = auipcBundle.toUInt()
-                section.content[index + 4] = jalrBundle.toUInt()
+                section.content[index] = auipcBundle
+                section.content[index + 4] = jalrBundle
             }
 
             else -> {

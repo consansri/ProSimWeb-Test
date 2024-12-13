@@ -1,4 +1,4 @@
-package cengine.util.newint
+package cengine.util.integer
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import kotlin.experimental.and
@@ -13,10 +13,13 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
 
     companion object: IntNumberStatic<Int8> {
 
+        override val BITS: Int = 8
+        override val BYTES: Int = 1
         override val ZERO = Int8(0)
         override val ONE = Int8(1)
 
         fun Byte.toInt8() = Int8(this)
+        fun Int.toInt8() = Int8(this)
 
         override fun to(number: IntNumber<*>): Int8 = number.toInt8()
         override fun split(number: IntNumber<*>): List<Int8> = number.int8s()
@@ -30,10 +33,13 @@ class Int8(override val value: Byte) : IntNumber<Int8> {
     }
 
     override val bitWidth: Int
-        get() = 8
+        get() = BITS
 
     override val byteCount: Int
-        get() = 1
+        get() = BYTES
+
+    override val type: IntNumberStatic<Int8>
+        get() = Int8
 
     override fun plus(other: Int8): Int8 = Int8(value + other.value)
     override fun minus(other: Int8): Int8 = Int8(value - other.value)

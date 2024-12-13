@@ -1,7 +1,7 @@
 package cengine.lang.asm
 
-import cengine.util.newint.BigInt
-import cengine.util.newint.IntNumber
+import cengine.util.integer.BigInt
+import cengine.util.integer.IntNumber
 import emulator.kit.memory.Memory
 
 interface Initializer {

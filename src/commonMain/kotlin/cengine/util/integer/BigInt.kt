@@ -1,27 +1,25 @@
-package cengine.util.newint
+package cengine.util.integer
 
-import cengine.util.newint.Int8.Companion.toInt8
+import cengine.util.integer.Int8.Companion.toInt8
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.Sign
 import com.ionspin.kotlin.bignum.integer.toBigInteger
 
 data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
 
-    override val bitWidth: Int
-        get() = value.bitLength()
-
-    override val byteCount: Int
-        get() = value.toByteArray().size
-
-
     companion object : IntNumberStatic<BigInt> {
+
+        @Deprecated("This throws an error! BigInt has no fixed bit count!")
+        override val BITS: Int get() = throw Exception("No specific bit count defined for BigInt")
+
+        @Deprecated("This throws an error! BigInt has no fixed byte count!")
+        override val BYTES: Int get() = throw Exception("No specific byte count defined for BigInt")
         override val ZERO = BigInt(BigInteger.ZERO)
-
-
         override val ONE = BigInt(BigInteger.ONE)
 
         override fun to(number: IntNumber<*>): BigInt = number.toBigInt()
-        @Deprecated("This throws an error! You can't split into BigInt cause it has no fixed bytecount!", ReplaceWith("throw Exception(\"Can't split into BigInt cause it has no fixed bytecount!\")"))
+
+        @Deprecated("This throws an error! You can't split into BigInt cause it has no fixed byte count!", ReplaceWith("throw Exception(\"Can't split into BigInt cause it has no fixed bytecount!\")"))
         override fun split(number: IntNumber<*>): List<BigInt> = throw Exception("Can't split into BigInt cause it has no fixed bytecount!")
         override fun of(value: Int): BigInt = BigInt(value.toBigInteger())
         override fun parse(string: String, radix: Int): BigInt = BigInt(BigInteger.parseString(string, radix))
@@ -34,6 +32,15 @@ data class BigInt(override val value: BigInteger) : IntNumber<BigInt> {
         fun UInt.toBigInt(): BigInt = BigInt(this.toBigInteger())
         fun ULong.toBigInt(): BigInt = BigInt(this.toBigInteger())
     }
+
+    override val bitWidth: Int
+        get() = value.bitLength()
+
+    override val byteCount: Int
+        get() = value.toByteArray().size
+
+    override val type: IntNumberStatic<BigInt>
+        get() = BigInt
 
     override fun plus(other: BigInt): BigInt = BigInt(value + other.value)
     override fun minus(other: BigInt): BigInt = BigInt(value - other.value)

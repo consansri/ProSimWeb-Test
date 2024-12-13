@@ -1,10 +1,10 @@
-package cengine.util.newint
+package cengine.util.integer
 
 /**
  * Provides Integer Calculation Bases for different Sizes.
  *
  */
-sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, LogicOperationProvider<T, T> {
+sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, LogicOperationProvider<T, T>, Comparable<T> {
 
     companion object {
         fun IntRange.overlaps(other: IntRange): Boolean {
@@ -21,28 +21,32 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
 
         fun String.parse(radix: Int, type: IntNumberStatic<*>): IntNumber<*> = type.parse(this, radix)
 
+        fun nearestUType(byteCount: Int): IntNumberStatic<*> = when (byteCount) {
+            1 -> UInt8
+            2 -> UInt16
+            4 -> UInt32
+            8 -> UInt64
+            16 -> UInt128
+            else -> BigInt
+        }
+
+        fun nearestType(byteCount: Int): IntNumberStatic<*> = when (byteCount) {
+            1 -> Int8
+            2 -> Int16
+            4 -> Int32
+            8 -> Int64
+            16 -> Int128
+            else -> BigInt
+        }
+
         fun String.parseAnyUInt(radix: Int, byteCount: Int): IntNumber<*> {
             require(byteCount > 0) { "Illegal byteCount $byteCount to parse ${IntNumber::class} from!" }
-            return when (byteCount) {
-                1 -> parse(radix, UInt8)
-                2 -> parse(radix, UInt16)
-                4 -> parse(radix, UInt32)
-                8 -> parse(radix, UInt64)
-                16 -> parse(radix, UInt128)
-                else -> parse(radix, BigInt)
-            }
+            return parse(radix, nearestUType(byteCount))
         }
 
         fun String.parseAnyInt(radix: Int, byteCount: Int): IntNumber<*> {
             require(byteCount > 0) { "Illegal byteCount $byteCount to parse ${IntNumber::class} from!" }
-            return when (byteCount) {
-                1 -> parse(radix, Int8)
-                2 -> parse(radix, Int16)
-                4 -> parse(radix, Int32)
-                8 -> parse(radix, Int64)
-                16 -> parse(radix, Int128)
-                else -> parse(radix, BigInt)
-            }
+            return parse(radix, nearestType(byteCount))
         }
 
         fun <T : IntNumber<T>> Collection<UInt8>.mergeToIntNumbers(
@@ -61,8 +65,10 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
 
     // Arithmetic Operations
     val value: Any
-    override val bitWidth: Int
+
     val byteCount: Int
+    override val bitWidth: Int
+    val type: IntNumberStatic<T>
 
     /**
      * @param index 0 ..<[bitWidth]
@@ -95,36 +101,36 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
     /**
      * Extends the sign bit of a given subset of bits to the full bit width of the value.
      *
-     * @param subsetBitWidth The number of bits in the subset to sign-extend. Must be in 0..64!
+     * @param subsetBitWidth The number of bits in the subset to sign-extend. Must be in 0..[bitWidth]!
      * @return The sign-extended value.
      */
-    fun signExtension(subsetBitWidth: Int, one: T): T {
+    fun signExtend(subsetBitWidth: Int): T {
         require(subsetBitWidth in 1..bitWidth) {
             "subsetBitWidth must be in the range 1 to bitWidth ($bitWidth)."
         }
 
         // Create a mask for the subsetBitWidth
-        val mask = (one shl subsetBitWidth) - one // Mask to extract the relevant subset
+        val mask = (type.ONE shl subsetBitWidth) - type.ONE // Mask to extract the relevant subset
 
         // Extract the subset of bits
         val subset = this and mask
 
         // Check the sign bit of the subset
         val signBitPosition = subsetBitWidth - 1
-        val signBit = subset and (one shl signBitPosition)
+        val signBit = subset and (type.ONE shl signBitPosition)
 
         return if (signBit.toInt() == 0) {
             // If the sign bit is 0, the value is positive, so return the subset directly
             subset
         } else {
             // If the sign bit is 1, extend the sign to the full bit width
-            val extensionMask = ((one shl (bitWidth - subsetBitWidth)) - one) shl subsetBitWidth
+            val extensionMask = ((type.ONE shl (bitWidth - subsetBitWidth)) - type.ONE) shl subsetBitWidth
             subset or extensionMask
         }
     }
 
     // Comparison
-    operator fun compareTo(other: T): Int
+    override operator fun compareTo(other: T): Int
     operator fun compareTo(other: Long): Int
     operator fun compareTo(other: Int): Int
 
@@ -189,6 +195,7 @@ sealed interface IntNumber<T : IntNumber<T>> : ArithOperationProvider<T, T>, Log
             (acc shl 8) or (byte.toUInt64() and 0xFF)
         }
     }
+
     fun uInt128s(): List<UInt128> = int8s().toList().chunked(16) { bytes ->
         bytes.fold(UInt128.ZERO) { acc, byte ->
             (acc shl 8) or (byte.toUInt128() and 0xFF)

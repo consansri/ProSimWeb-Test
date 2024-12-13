@@ -3,7 +3,8 @@ package cengine.lang.obj.elf
 import cengine.lang.obj.elf.ELF64_Rel.Companion.R_SYM
 import cengine.lang.obj.elf.ELF64_Rel.Companion.R_TYPE
 import cengine.util.Endianness
-import cengine.util.buffer.ByteBuffer
+import cengine.util.buffer.Int8Buffer
+import cengine.util.integer.Int8
 
 
 /**
@@ -42,12 +43,12 @@ data class ELF64_Rel(
     companion object{
         const val SIZE = 16
         fun R_SYM(i: Elf_Xword) = i.shr(32)
-        fun R_TYPE(i: Elf_Xword) = i.and(0xffffffffUL)
-        fun R_INFO(s: Elf_Xword, t: Elf_Xword) = s.shl(32) + t.and(0xffffffffUL)
+        fun R_TYPE(i: Elf_Xword) = i.and(0xffffffffL)
+        fun R_INFO(s: Elf_Xword, t: Elf_Xword) = s.shl(32) + t.and(0xffffffffL)
     }
 
-    override fun build(endianness: Endianness): Array<Byte> {
-        val b = ByteBuffer(endianness)
+    override fun build(endianness: Endianness): Array<Int8> {
+        val b = Int8Buffer(endianness)
 
         b.put(r_offset)
         b.put(r_info)

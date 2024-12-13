@@ -7,8 +7,11 @@ import cengine.lang.asm.ast.TargetSpec
 import cengine.lang.asm.ast.impl.ASDirType
 import cengine.lang.asm.ast.lexer.AsmLexer
 import cengine.lang.obj.elf.*
-import cengine.util.integer.Size
-import cengine.util.newint.BigInt
+import cengine.util.integer.BigInt
+import cengine.util.integer.Int16
+import cengine.util.integer.UInt16
+import cengine.util.integer.UInt64
+import cengine.util.integer.UInt64.Companion.toUInt64
 import emulator.EmuLink
 
 object T6502Spec : TargetSpec<ELFGenerator> {
@@ -17,19 +20,19 @@ object T6502Spec : TargetSpec<ELFGenerator> {
     override val ei_class: Elf_Byte = E_IDENT.ELFCLASS32
     override val ei_data: Elf_Byte = E_IDENT.ELFDATA2LSB
     override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
-    override val ei_abiversion: Elf_Byte = Ehdr.EV_CURRENT.toUByte()
+    override val ei_abiversion: Elf_Byte = Ehdr.EV_CURRENT.toUInt8()
     override val e_machine: Elf_Half = Ehdr.EM_CUSTOM_T6502
 
     override val linkerScript: LinkerScript = object : LinkerScript {
         override val textStart: BigInt = BigInt.ZERO
         override val dataStart: BigInt? = null
         override val rodataStart: BigInt? = null
-        override val segmentAlign: UInt = 0x4000U
+        override val segmentAlign: UInt64 = 0x4000U.toUInt64()
     }
     override val emuLink: EmuLink = EmuLink.T6502
 
-    override val memAddrSize: Size = Size.Bit16
-    override val wordSize: Size = Size.Bit16
+    override val memAddrSize = UInt16
+    override val wordSize = Int16
     override val detectRegistersByName: Boolean = false
     override val prefices: AsmLexer.Prefices = object : AsmLexer.Prefices {
         override val hex: String = "$"

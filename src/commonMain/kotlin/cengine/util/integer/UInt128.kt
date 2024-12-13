@@ -1,4 +1,4 @@
-package cengine.util.newint
+package cengine.util.integer
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.Sign
@@ -15,8 +15,10 @@ class UInt128(value: BigInteger) : IntNumber<UInt128> {
     }
 
     companion object: IntNumberStatic<UInt128> {
-        override val ZERO = UInt128(BigInteger.ZERO)
 
+        override val BITS: Int = 128
+        override val BYTES: Int = 16
+        override val ZERO = UInt128(BigInteger.ZERO)
         override val ONE = UInt128(BigInteger.ONE)
         private val UMASK_128 = BigInteger.fromByteArray(ByteArray(16) { 0xFF.toByte() }, Sign.ZERO)  // 2^128 - 1
 
@@ -36,10 +38,13 @@ class UInt128(value: BigInteger) : IntNumber<UInt128> {
     }
 
     override val bitWidth: Int
-        get() = 128
+        get() = BITS
 
     override val byteCount: Int
-        get() = 16
+        get() = BYTES
+
+    override val type: IntNumberStatic<UInt128>
+        get() = UInt128
 
     override fun plus(other: UInt128): UInt128 = UInt128(value + other.value)
     override fun minus(other: UInt128): UInt128 = UInt128(value - other.value)

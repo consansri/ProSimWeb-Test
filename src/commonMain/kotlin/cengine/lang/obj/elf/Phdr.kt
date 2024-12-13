@@ -1,5 +1,9 @@
 package cengine.lang.obj.elf
 
+import cengine.util.integer.UInt16.Companion.toUInt16
+import cengine.util.integer.UInt32
+import cengine.util.integer.UInt32.Companion.toUInt32
+
 /**
  * ELF Program Header
  *
@@ -47,8 +51,8 @@ sealed class Phdr : BinaryProvider {
     companion object {
         fun size(ei_class: Elf_Byte): Elf_Half {
             return when(ei_class){
-                E_IDENT.ELFCLASS32 -> 32U
-                E_IDENT.ELFCLASS64 -> 56U
+                E_IDENT.ELFCLASS32 -> 32U.toUInt16()
+                E_IDENT.ELFCLASS64 -> 56U.toUInt16()
                 else -> throw ELFGenerator.InvalidElfClassException(ei_class)
             }
         }
@@ -69,52 +73,52 @@ sealed class Phdr : BinaryProvider {
 
         fun getProgramHeaderFlags(flags: Elf_Word): String {
             val flagsList = mutableListOf<String>()
-            if (flags and PF_X != 0U) flagsList.add("X")
-            if (flags and PF_W != 0U) flagsList.add("W")
-            if (flags and PF_R != 0U) flagsList.add("R")
-            if (flags and PF_MASKPROC != 0U) flagsList.add("PROC")
-            if (flags and PF_MASKOS != 0U) flagsList.add("OS")
+            if (flags and PF_X != UInt32.ZERO) flagsList.add("X")
+            if (flags and PF_W != UInt32.ZERO) flagsList.add("W")
+            if (flags and PF_R != UInt32.ZERO) flagsList.add("R")
+            if (flags and PF_MASKPROC != UInt32.ZERO) flagsList.add("PROC")
+            if (flags and PF_MASKOS != UInt32.ZERO) flagsList.add("OS")
             return flagsList.joinToString(" ")
         }
 
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Phdr {
             var currIndex = offset
-            val p_type = byteArray.loadUInt(eIdent, currIndex)
+            val p_type = byteArray.loadUInt32(eIdent, currIndex)
             currIndex += 4
 
             when (eIdent.ei_class) {
                 E_IDENT.ELFCLASS32 -> {
-                    val p_offset = byteArray.loadUInt(eIdent, currIndex)
+                    val p_offset = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val p_vaddr = byteArray.loadUInt(eIdent, currIndex)
+                    val p_vaddr = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val p_paddr = byteArray.loadUInt(eIdent, currIndex)
+                    val p_paddr = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val p_filesz = byteArray.loadUInt(eIdent, currIndex)
+                    val p_filesz = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val p_memsz = byteArray.loadUInt(eIdent, currIndex)
+                    val p_memsz = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val p_flags = byteArray.loadUInt(eIdent, currIndex)
+                    val p_flags = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val p_align = byteArray.loadUInt(eIdent, currIndex)
+                    val p_align = byteArray.loadUInt32(eIdent, currIndex)
 
                     return ELF32_Phdr(p_type, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz, p_flags, p_align)
                 }
 
                 E_IDENT.ELFCLASS64 -> {
-                    val p_flags = byteArray.loadUInt(eIdent, currIndex)
+                    val p_flags = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val p_offset = byteArray.loadULong(eIdent, currIndex)
+                    val p_offset = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val p_vaddr = byteArray.loadULong(eIdent, currIndex)
+                    val p_vaddr = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val p_paddr = byteArray.loadULong(eIdent, currIndex)
+                    val p_paddr = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val p_filesz = byteArray.loadULong(eIdent, currIndex)
+                    val p_filesz = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val p_memsz = byteArray.loadULong(eIdent, currIndex)
+                    val p_memsz = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val p_align = byteArray.loadULong(eIdent, currIndex)
+                    val p_align = byteArray.loadUInt64(eIdent, currIndex)
 
                     return ELF64_Phdr(p_type, p_flags, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz, p_align)
                 }
@@ -131,7 +135,7 @@ sealed class Phdr : BinaryProvider {
          * The array element is unused; other members' values are undefined. This type lets
          * the program header table have ignored entries.
          */
-        const val PT_NULL: Elf_Word = 0U
+        val PT_NULL: Elf_Word = 0U.toUInt32()
 
         /**
          * The array element specifies a loadable segment, described by [p_filesz] and
@@ -142,28 +146,28 @@ sealed class Phdr : BinaryProvider {
          * Loadable segment entries in the program header table appear in ascending order,
          * sorted on the [p_vaddr] member.
          */
-        const val PT_LOAD: Elf_Word = 1U
+        val PT_LOAD: Elf_Word = 1U.toUInt32()
 
         /**
          * The array element specifies dynamic linking information.
          */
-        const val PT_DYNAMIC: Elf_Word = 2U
+        val PT_DYNAMIC: Elf_Word = 2U.toUInt32()
 
         /**
          * The array element specifies the location and size of a null-terminated path name to
          * invoke as an interpreter.
          */
-        const val PT_INTERP: Elf_Word = 3U
+        val PT_INTERP: Elf_Word = 3U.toUInt32()
 
         /**
          * The array element specifies the location and size of auxiliary information.
          */
-        const val PT_NOTE: Elf_Word = 4U
+        val PT_NOTE: Elf_Word = 4U.toUInt32()
 
         /**
          * This segment type is reserved but has unspecified semantics.
          */
-        const val PT_SHLIB: Elf_Word = 5U
+        val PT_SHLIB: Elf_Word = 5U.toUInt32()
 
         /**
          * The array element, if present, specifies the location and size of the program header
@@ -173,32 +177,32 @@ sealed class Phdr : BinaryProvider {
          * it must precede any loadable segment entry. See "Program Interpreter" in the
          * appendix at the end of Book III for further information.
          */
-        const val PT_PHDR: Elf_Word = 6U
+        val PT_PHDR: Elf_Word = 6U.toUInt32()
 
         /**
          * The array element specifies the Thread-Local Storage template. Implementations need not support this program table entry.
          */
-        const val PT_TLS: Elf_Word = 7U
+        val PT_TLS: Elf_Word = 7U.toUInt32()
 
         /**
          * [PT_LOOS] .. [PT_HIOS] : Values in this inclusive range are reserved for operating system-specific semantics.
          */
-        const val PT_LOOS: Elf_Word = 0x60000000U
+        val PT_LOOS: Elf_Word = 0x60000000U.toUInt32()
 
         /**
          * [PT_LOOS] .. [PT_HIOS] : Values in this inclusive range are reserved for operating system-specific semantics.
          */
-        const val PT_HIOS: Elf_Word = 0x6fffffffU
+        val PT_HIOS: Elf_Word = 0x6fffffffU.toUInt32()
 
         /**
          * [PT_LOPROC] .. [PT_HIPROC] : Values in this inclusive range are reserved for processor-specific semantics.
          */
-        const val PT_LOPROC: Elf_Word = 0x70000000U
+        val PT_LOPROC: Elf_Word = 0x70000000U.toUInt32()
 
         /**
          * [PT_LOPROC] .. [PT_HIPROC] : Values in this inclusive range are reserved for processor-specific semantics.
          */
-        const val PT_HIPROC: Elf_Word = 0x7fffffffU
+        val PT_HIPROC: Elf_Word = 0x7fffffffU.toUInt32()
 
         /**
          * [p_flags]
@@ -207,27 +211,27 @@ sealed class Phdr : BinaryProvider {
         /**
          * Execute
          */
-        const val PF_X: Elf_Word = 0x1U
+        val PF_X: Elf_Word = 0x1U.toUInt32()
 
         /**
          * Write
          */
-        const val PF_W: Elf_Word = 0x2U
+        val PF_W: Elf_Word = 0x2U.toUInt32()
 
         /**
          * Read
          */
-        const val PF_R: Elf_Word = 0x4U
+        val PF_R: Elf_Word = 0x4U.toUInt32()
 
         /**
          * Unspecified
          */
-        const val PF_MASKOS: Elf_Word = 0x0ff00000U
+        val PF_MASKOS: Elf_Word = 0x0ff00000U.toUInt32()
 
         /**
          * Unspecified
          */
-        const val PF_MASKPROC: Elf_Word = 0xf0000000U
+        val PF_MASKPROC: Elf_Word = 0xf0000000U.toUInt32()
 
     }
 

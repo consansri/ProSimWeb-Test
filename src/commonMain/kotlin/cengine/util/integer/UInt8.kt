@@ -1,17 +1,21 @@
-package cengine.util.newint
+package cengine.util.integer
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class UInt8(override val value: UByte) : IntNumber<UInt8> {
+class UInt8(override val value: UByte) : IntNumber<UInt8>, UnsignedExtension {
 
     constructor(value: UInt) : this(value.toUByte())
     constructor(value: ULong) : this(value.toUByte())
 
     companion object: IntNumberStatic<UInt8> {
+
+        override val BITS: Int = 8
+        override val BYTES: Int = 1
         override val ZERO = UInt8(0U)
         override val ONE = UInt8(1U)
 
         fun UByte.toUInt8() = UInt8(this)
+        fun UInt.toUInt8() = UInt8(this)
 
         override fun to(number: IntNumber<*>): UInt8 = number.toUInt8()
         override fun split(number: IntNumber<*>): List<UInt8> = number.uInt8s()
@@ -25,10 +29,13 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     }
 
     override val bitWidth: Int
-        get() = 8
+        get() = BITS
 
     override val byteCount: Int
-        get() = 1
+        get() = BYTES
+
+    override val type: IntNumberStatic<UInt8>
+        get() = UInt8
 
     override fun plus(other: UInt8): UInt8 = UInt8(value + other.value)
     override fun minus(other: UInt8): UInt8 = UInt8(value - other.value)
@@ -79,9 +86,14 @@ class UInt8(override val value: UByte) : IntNumber<UInt8> {
     override fun lowest(bitWidth: Int): UInt8 = this and createBitMask(bitWidth)
 
 
+    override fun compareTo(other: UInt): Int = value.compareTo(other)
+    override fun compareTo(other: ULong): Int = value.compareTo(other)
+
+    override fun compareTo(other: Int): Int = compareTo(other.toUInt())
+    override fun compareTo(other: Long): Int = compareTo(other.toULong())
+
     override fun compareTo(other: UInt8): Int = value.compareTo(other.value)
-    override fun compareTo(other: Long): Int = value.compareTo(other.toULong())
-    override fun compareTo(other: Int): Int = value.compareTo(other.toUInt())
+
     override fun equals(other: Any?): Boolean {
         if (other is IntNumber<*>) return value == other.value
         return value == other

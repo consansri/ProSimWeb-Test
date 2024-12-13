@@ -1,12 +1,15 @@
-package cengine.util.newint
+package cengine.util.integer
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
-class UInt32(override val value: UInt) : IntNumber<UInt32> {
+class UInt32(override val value: UInt) : IntNumber<UInt32>, UnsignedExtension {
 
     constructor(value: ULong) : this(value.toUInt())
 
     companion object: IntNumberStatic<UInt32> {
+
+        override val BITS: Int = 32
+        override val BYTES: Int = 4
         override val ZERO = UInt32(0U)
         override val ONE = UInt32(1U)
 
@@ -27,10 +30,13 @@ class UInt32(override val value: UInt) : IntNumber<UInt32> {
     }
 
     override val bitWidth: Int
-        get() = 32
+        get() = BITS
 
     override val byteCount: Int
-        get() = 4
+        get() = BYTES
+
+    override val type: IntNumberStatic<UInt32>
+        get() = UInt32
 
     override fun plus(other: UInt32): UInt32 = UInt32(value + other.value)
     override fun minus(other: UInt32): UInt32 = UInt32(value - other.value)
@@ -82,9 +88,13 @@ class UInt32(override val value: UInt) : IntNumber<UInt32> {
     override fun lowest(bitWidth: Int): UInt32 = this and createBitMask(bitWidth)
 
 
+    override fun compareTo(other: UInt): Int = value.compareTo(other)
+    override fun compareTo(other: ULong): Int = value.compareTo(other)
+
+    override fun compareTo(other: Int): Int = compareTo(other.toUInt())
+    override fun compareTo(other: Long): Int = compareTo(other.toULong())
+
     override fun compareTo(other: UInt32): Int = value.compareTo(other.value)
-    override fun compareTo(other: Long): Int = value.compareTo(other.toULong())
-    override fun compareTo(other: Int): Int = value.compareTo(other.toUInt())
     override fun equals(other: Any?): Boolean {
         if (other is IntNumber<*>) return value == other.value
         return value == other

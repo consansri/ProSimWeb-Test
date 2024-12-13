@@ -2,8 +2,8 @@ package emulator.kit.memory
 
 import androidx.compose.runtime.mutableStateMapOf
 import cengine.util.Endianness
-import cengine.util.newint.IntNumber
-import cengine.util.newint.IntNumberStatic
+import cengine.util.integer.IntNumber
+import cengine.util.integer.IntNumberStatic
 
 /**
  * Represents the main memory of a system.

@@ -1,5 +1,8 @@
 package cengine.lang.obj.elf
 
+import cengine.util.integer.UInt16.Companion.toUInt16
+import cengine.util.integer.UInt32.Companion.toUInt32
+
 sealed class Shdr : BinaryProvider {
 
     abstract var sh_name: Elf_Word
@@ -9,21 +12,21 @@ sealed class Shdr : BinaryProvider {
 
     fun setAddr(addr: Elf_Xword) {
         when (this) {
-            is ELF32_Shdr -> this.sh_addr = addr.toUInt()
+            is ELF32_Shdr -> this.sh_addr = addr.toUInt32()
             is ELF64_Shdr -> this.sh_addr = addr
         }
     }
 
     fun setFlags(flags: Elf_Xword) {
         when (this) {
-            is ELF32_Shdr -> this.sh_flags = flags.toUInt()
+            is ELF32_Shdr -> this.sh_flags = flags.toUInt32()
             is ELF64_Shdr -> this.sh_flags = flags
         }
     }
 
     fun setEntSize(entsize: Elf_Xword){
         when(this){
-            is ELF32_Shdr -> this.sh_entsize = entsize.toUInt()
+            is ELF32_Shdr -> this.sh_entsize = entsize.toUInt32()
             is ELF64_Shdr -> this.sh_entsize = entsize
         }
     }
@@ -33,8 +36,8 @@ sealed class Shdr : BinaryProvider {
     companion object {
         fun size(ei_class: Elf_Byte): Elf_Half {
             return when (ei_class) {
-                E_IDENT.ELFCLASS32 -> 40U
-                E_IDENT.ELFCLASS64 -> 64U
+                E_IDENT.ELFCLASS32 -> 40U.toUInt16()
+                E_IDENT.ELFCLASS64 -> 64U.toUInt16()
                 else -> throw ELFGenerator.InvalidElfClassException(ei_class)
             }
         }
@@ -63,56 +66,56 @@ sealed class Shdr : BinaryProvider {
 
         fun getSectionFlags(flags: Elf_Xword): String {
             val flagsList = mutableListOf<String>()
-            if (flags and SHF_WRITE.toULong() != 0UL) flagsList.add("W")
-            if (flags and SHF_ALLOC.toULong() != 0UL) flagsList.add("A")
-            if (flags and SHF_EXECINSTR.toULong() != 0UL) flagsList.add("X")
+            if (flags and SHF_WRITE.toUInt64() != Elf_Xword.ZERO) flagsList.add("W")
+            if (flags and SHF_ALLOC.toUInt64() != Elf_Xword.ZERO) flagsList.add("A")
+            if (flags and SHF_EXECINSTR.toUInt64() != Elf_Xword.ZERO) flagsList.add("X")
             return flagsList.joinToString("")
         }
 
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Shdr {
             var currIndex = offset
-            val sh_name = byteArray.loadUInt(eIdent, currIndex)
+            val sh_name = byteArray.loadUInt32(eIdent, currIndex)
             currIndex += 4
-            val sh_type = byteArray.loadUInt(eIdent, currIndex)
+            val sh_type = byteArray.loadUInt32(eIdent, currIndex)
             currIndex += 4
 
             when (eIdent.ei_class) {
                 E_IDENT.ELFCLASS32 -> {
-                    val sh_flags = byteArray.loadUInt(eIdent, currIndex)
+                    val sh_flags = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val sh_addr = byteArray.loadUInt(eIdent, currIndex)
+                    val sh_addr = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val sh_offset = byteArray.loadUInt(eIdent, currIndex)
+                    val sh_offset = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val sh_size = byteArray.loadUInt(eIdent, currIndex)
+                    val sh_size = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val sh_link = byteArray.loadUInt(eIdent, currIndex)
+                    val sh_link = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val sh_info = byteArray.loadUInt(eIdent, currIndex)
+                    val sh_info = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val sh_addralign = byteArray.loadUInt(eIdent, currIndex)
+                    val sh_addralign = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val sh_entsize = byteArray.loadUInt(eIdent, currIndex)
+                    val sh_entsize = byteArray.loadUInt32(eIdent, currIndex)
 
                     return ELF32_Shdr(sh_name, sh_type, sh_flags, sh_addr, sh_offset, sh_size, sh_link, sh_info, sh_addralign, sh_entsize)
                 }
 
                 E_IDENT.ELFCLASS64 -> {
-                    val sh_flags = byteArray.loadULong(eIdent, currIndex)
+                    val sh_flags = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val sh_addr = byteArray.loadULong(eIdent, currIndex)
+                    val sh_addr = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val sh_offset = byteArray.loadULong(eIdent, currIndex)
+                    val sh_offset = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val sh_size = byteArray.loadULong(eIdent, currIndex)
+                    val sh_size = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val sh_link = byteArray.loadUInt(eIdent, currIndex)
+                    val sh_link = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val sh_info = byteArray.loadUInt(eIdent, currIndex)
+                    val sh_info = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val sh_addralign = byteArray.loadULong(eIdent, currIndex)
+                    val sh_addralign = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val sh_entsize = byteArray.loadULong(eIdent, currIndex)
+                    val sh_entsize = byteArray.loadUInt64(eIdent, currIndex)
 
                     return ELF64_Shdr(sh_name, sh_type, sh_flags, sh_addr, sh_offset, sh_size, sh_link, sh_info, sh_addralign, sh_entsize)
                 }
@@ -130,35 +133,35 @@ sealed class Shdr : BinaryProvider {
          * meaningless section reference. For example, a symbol "defined'' relative to
          * section number [SHN_UNDEF] is an undefined symbol.
          */
-        const val SHN_UNDEF: Elf_Half = 0U
+        val SHN_UNDEF: Elf_Half = 0U.toUInt16()
 
         /**
          * This value specifies the lower bound of the range of reserved indexes.
          */
-        const val SHN_LORESERVE: Elf_Half = 0xff00U
+        val SHN_LORESERVE: Elf_Half = 0xff00U.toUInt16()
 
         /**
          * [SHN_LOPROC] .. [SHN_HIPROC] Values in this inclusive range are reserved for processor-specific  semantics.
          */
-        const val SHN_LOPROC: Elf_Half = 0xff00U
+        val SHN_LOPROC: Elf_Half = 0xff00U.toUInt16()
 
         /**
          * [SHN_LOPROC] .. [SHN_HIPROC] Values in this inclusive range are reserved for processor-specific  semantics.
          */
-        const val SHN_HIPROC: Elf_Half = 0xff1fU
+        val SHN_HIPROC: Elf_Half = 0xff1fU.toUInt16()
 
         /**
          *  This value specifies absolute values for the corresponding reference. For
          * example, symbols defined relative to section number [SHN_ABS] have
          * absolute values and are not affected by relocation.
          */
-        const val SHN_ABS: Elf_Half = 0xfff1U
+        val SHN_ABS: Elf_Half = 0xfff1U.toUInt16()
 
         /**
          * Symbols defined relative to this section are common symbols, such as
          * FORTRAN COMMON or unallocated C external variables.
          */
-        const val SHN_COMMON: Elf_Half = 0xfff2U
+        val SHN_COMMON: Elf_Half = 0xfff2U.toUInt16()
 
         /**
          * This value specifies the upper bound of the range of reserved indexes. The
@@ -167,7 +170,7 @@ sealed class Shdr : BinaryProvider {
          * table. That is, the section header table does not contain entries for the
          * reserved indexes.
          */
-        const val SHN_HIRESERVE: Elf_Word = 0xffffU
+        val SHN_HIRESERVE: Elf_Word = 0xffffU.toUInt32()
 
         /**
          * [sh_type]
@@ -178,13 +181,13 @@ sealed class Shdr : BinaryProvider {
          * associated section. Other members of the section header have undefined
          * values.
          */
-        val SHT_NULL: Elf_Word = 0U
+        val SHT_NULL: Elf_Word = 0U.toUInt32()
 
         /**
          * The section holds information defined by the program, whose format and
          * meaning are determined solely by the program.
          */
-        val SHT_PROGBITS: Elf_Word = 1U
+        val SHT_PROGBITS: Elf_Word = 1U.toUInt32()
 
         /**
          * These sections hold a symbol table.
@@ -192,12 +195,12 @@ sealed class Shdr : BinaryProvider {
          * - [sh_link] : This information is operating system specific.
          * - [sh_info] : This information is operating system specific.
          */
-        val SHT_SYMTAB: Elf_Word = 2U
+        val SHT_SYMTAB: Elf_Word = 2U.toUInt32()
 
         /**
          * The section holds a string table.
          */
-        val SHT_STRTAB: Elf_Word = 3U
+        val SHT_STRTAB: Elf_Word = 3U.toUInt32()
 
         /**
          * The section holds relocation entries with explicit addends, such as type
@@ -211,7 +214,7 @@ sealed class Shdr : BinaryProvider {
          * of the section to which the
          * relocation applies.
          */
-        val SHT_RELA: Elf_Word = 4U
+        val SHT_RELA: Elf_Word = 4U.toUInt32()
 
         /**
          * The section holds a symbol hash table.
@@ -222,7 +225,7 @@ sealed class Shdr : BinaryProvider {
          * applies.
          * - [sh_info] : 0
          */
-        val SHT_HASH: Elf_Word = 5U
+        val SHT_HASH: Elf_Word = 5U.toUInt32()
 
         /**
          * The section holds information for dynamic linking.
@@ -232,19 +235,19 @@ sealed class Shdr : BinaryProvider {
          * entries in the section.
          * - [sh_info] : 0
          */
-        val SHT_DYNAMIC: Elf_Word = 6U
+        val SHT_DYNAMIC: Elf_Word = 6U.toUInt32()
 
         /**
          * This section holds information that marks the file in some way.
          */
-        val SHT_NOTE: Elf_Word = 7U
+        val SHT_NOTE: Elf_Word = 7U.toUInt32()
 
         /**
          * A section of this type occupies no space in the file but otherwise resembles
          * SHT_PROGBITS. Although this section contains no bytes, the
          * sh_offset member contains the conceptual file offset.
          */
-        val SHT_NOBITS: Elf_Word = 8U
+        val SHT_NOBITS: Elf_Word = 8U.toUInt32()
 
         /**
          * The section holds relocation entries without explicit addends, such as type
@@ -259,12 +262,12 @@ sealed class Shdr : BinaryProvider {
          * relocation applies.
          *
          */
-        val SHT_REL: Elf_Word = 9U
+        val SHT_REL: Elf_Word = 9U.toUInt32()
 
         /**
          * This section type is reserved but has unspecified semantics.
          */
-        val SHT_SHLIB: Elf_Word = 10U
+        val SHT_SHLIB: Elf_Word = 10U.toUInt32()
 
         /**
          * These sections hold a symbol table.
@@ -272,23 +275,23 @@ sealed class Shdr : BinaryProvider {
          * - [sh_link] : This information is operating system specific.
          * - [sh_info] : This information is operating system specific.
          */
-        val SHT_DYNSYM: Elf_Word = 11U
+        val SHT_DYNSYM: Elf_Word = 11U.toUInt32()
 
         /**
          * Values in this inclusive range are reserved for processor-specific semantics.
          */
-        val SHT_LOPROC: Elf_Word = 0x70000000U
+        val SHT_LOPROC: Elf_Word = 0x70000000U.toUInt32()
 
         /**
          * Values in this inclusive range are reserved for processor-specific semantics.
          */
-        val SHT_HIPROC: Elf_Word = 0x7fffffffU
+        val SHT_HIPROC: Elf_Word = 0x7fffffffU.toUInt32()
 
         /**
          * This value specifies the lower bound of the range of indexes reserved for
          * application programs.
          */
-        val SHT_LOUSER: Elf_Word = 0x80000000U
+        val SHT_LOUSER: Elf_Word = 0x80000000U.toUInt32()
 
         /**
          * This value specifies the upper bound of the range of indexes reserved for
@@ -296,7 +299,7 @@ sealed class Shdr : BinaryProvider {
          * SHT_HIUSER may be used by the application, without conflicting with
          * current or future system-defined section types.
          */
-        val SHT_HIUSER: Elf_Word = 0xFFFFFFFFU
+        val SHT_HIUSER: Elf_Word = 0xFFFFFFFFU.toUInt32()
 
         /**
          * [sh_flags]
@@ -305,24 +308,24 @@ sealed class Shdr : BinaryProvider {
         /**
          * The section contains data that should be writable during process execution.
          */
-        const val SHF_WRITE: Elf_Word = 0x1U
+        val SHF_WRITE: Elf_Word = 0x1U.toUInt32()
 
         /**
          * The section occupies memory during process execution. Some control
          * sections do not reside in the memory image of an object file; this attribute
          * is off for those sections.
          */
-        const val SHF_ALLOC: Elf_Word = 0x2U
+        val SHF_ALLOC: Elf_Word = 0x2U.toUInt32()
 
         /**
          * The section contains executable machine instructions.
          */
-        const val SHF_EXECINSTR: Elf_Word = 0x4U
+        val SHF_EXECINSTR: Elf_Word = 0x4U.toUInt32()
 
         /**
          * All bits included in this mask are reserved for processor-specific semantics.
          */
-        const val SHF_MASKPROC: Elf_Word = 0xf0000000U
+        val SHF_MASKPROC: Elf_Word = 0xf0000000U.toUInt32()
 
         /**
          * Special Sections

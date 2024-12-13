@@ -1,8 +1,8 @@
 package emulator.kit.register
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import cengine.util.newint.IntNumber
-import cengine.util.newint.UInt32
+import cengine.util.integer.IntNumber
+import cengine.util.integer.UInt32
 
 interface RegFile<T : IntNumber<*>> {
 

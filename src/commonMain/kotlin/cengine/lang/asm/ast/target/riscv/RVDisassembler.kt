@@ -2,11 +2,10 @@ package cengine.lang.asm.ast.target.riscv
 
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.riscv.RVDisassembler.InstrType.*
-import cengine.util.integer.signExtend
-import cengine.util.newint.BigInt
-import cengine.util.newint.IntNumber
-import cengine.util.newint.UInt32
-import cengine.util.newint.UInt32.Companion.toUInt32
+import cengine.util.integer.BigInt
+import cengine.util.integer.IntNumber
+import cengine.util.integer.UInt32
+import cengine.util.integer.UInt32.Companion.toUInt32
 
 class RVDisassembler(private val addrConstrained: BigInt.() -> BigInt) : Disassembler() {
     override fun disassemble(startAddr: BigInt, buffer: List<IntNumber<*>>): List<Decoded> {
@@ -42,14 +41,14 @@ class RVDisassembler(private val addrConstrained: BigInt.() -> BigInt) : Disasse
         val rs1 = (binary shr 15) lowest 5
         val rs2 = (binary shr 20) lowest 5
         val imm12iType = (binary shr 20) lowest 12
-        val iTypeImm get() = imm12iType.toLong().signExtend(12)
+        val iTypeImm get() = imm12iType.toUInt64().signExtend(12)
         private val imm12sType = ((binary shr 25) shl 5) or rd
-        val sTypeImm get() = imm12sType.toLong().signExtend(12)
+        val sTypeImm get() = imm12sType.toUInt64().signExtend(12)
         private val imm12bType = ((binary shr 31) shl 12) or (((binary shr 7) lowest 1) shl 11) or (((binary shr 25) lowest 6) shl 5) or (((binary shr 8) lowest 4) shl 1)
-        val bTypeOffset get() = imm12bType.toLong().signExtend(13)
+        val bTypeOffset get() = imm12bType.toUInt64().signExtend(13)
         val imm20uType = binary shr 12
         private val imm20jType = ((binary shr 31) shl 20) or (((binary shr 12) lowest 8) shl 12) or (((binary shr 20) lowest 1) shl 11) or (((binary shr 21) lowest 10) shl 1)
-        val jTypeOffset get() = imm20jType.toLong().signExtend(21)
+        val jTypeOffset get() = imm20jType.toUInt64().signExtend(21)
         val shamt = imm12iType lowest 6
         val pred = binary shr 24 lowest 4
         val succ = binary shr 20 lowest 4
@@ -229,28 +228,28 @@ class RVDisassembler(private val addrConstrained: BigInt.() -> BigInt) : Disasse
                 LUI -> Decoded(offset, binary, "lui    ${rdName()}, 0x${imm20uType.toString(16)}")
                 AUIPC -> Decoded(offset, binary, "auipc  ${rdName()}, 0x${imm20uType.toString(16)}")
                 JAL -> {
-                    val target = (segmentAddr + offset + jTypeOffset).addrConstrained()
-                    Decoded(offset, binary, "jal    ${rdName()}, $jTypeOffset", target)
+                    val target = (segmentAddr + offset + jTypeOffset.toLong()).addrConstrained()
+                    Decoded(offset, binary, "jal    ${rdName()}, ${jTypeOffset.toInt64()}", target)
                 }
 
-                JALR -> Decoded(offset, binary, "jalr   ${rdName()}, ${rs1Name()}, $iTypeImm")
+                JALR -> Decoded(offset, binary, "jalr   ${rdName()}, ${rs1Name()}, ${iTypeImm.toInt64()}")
                 ECALL -> Decoded(offset, binary, "ecall")
                 EBREAK -> Decoded(offset, binary, "ebreak")
                 BEQ, BNE, BLT, BGE, BLTU, BGEU -> {
-                    val target = (segmentAddr + offset.toLong() + bTypeOffset).addrConstrained()
-                    Decoded(offset, binary, "${type.lc6char} ${rs1Name()}, ${rs2Name()}, $jTypeOffset", target)
+                    val target = (segmentAddr + offset.toLong() + bTypeOffset.toLong()).addrConstrained()
+                    Decoded(offset, binary, "${type.lc6char} ${rs1Name()}, ${rs2Name()}, ${jTypeOffset.toInt64()}", target)
                 }
 
                 LB, LH, LW, LD, LBU, LHU, LWU -> {
-                    Decoded(offset, binary, "${type.lc6char} ${rdName()}, $iTypeImm(${rs1Name()})")
+                    Decoded(offset, binary, "${type.lc6char} ${rdName()}, ${iTypeImm.toInt64()}(${rs1Name()})")
                 }
 
                 SB, SH, SW, SD -> {
-                    Decoded(offset, binary, "${type.lc6char} ${rs2Name()}, $sTypeImm(${rs1Name()})")
+                    Decoded(offset, binary, "${type.lc6char} ${rs2Name()}, ${sTypeImm.toInt64()}(${rs1Name()})")
                 }
 
                 ADDI, ADDIW, SLTI, SLTIU, XORI, ORI, ANDI -> {
-                    Decoded(offset, binary, "${type.lc6char} ${rdName()}, ${rs1Name()}, $iTypeImm")
+                    Decoded(offset, binary, "${type.lc6char} ${rdName()}, ${rs1Name()}, ${iTypeImm.toInt64()}")
                 }
 
                 SLLI, SLLIW, SRLI, SRLIW, SRAI, SRAIW -> Decoded(offset, binary, "${type.lc6char} ${rdName()}, ${rs1Name()}, $shamt")

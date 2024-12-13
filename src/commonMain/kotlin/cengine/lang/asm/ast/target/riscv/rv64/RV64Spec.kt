@@ -10,8 +10,10 @@ import cengine.lang.asm.ast.target.riscv.RVBaseRegs
 import cengine.lang.asm.ast.target.riscv.RVCsr
 import cengine.lang.asm.ast.target.riscv.RVDirType
 import cengine.lang.obj.elf.*
-import cengine.util.integer.Size
-import cengine.util.newint.BigInt
+import cengine.util.integer.BigInt
+import cengine.util.integer.Int32
+import cengine.util.integer.UInt64
+import cengine.util.integer.UInt64.Companion.toUInt64
 import emulator.EmuLink
 
 data object RV64Spec : TargetSpec<ELFGenerator> {
@@ -26,12 +28,12 @@ data object RV64Spec : TargetSpec<ELFGenerator> {
         override val textStart: BigInt = BigInt.ZERO
         override val dataStart: BigInt? = null
         override val rodataStart: BigInt? = null
-        override val segmentAlign: UInt = 0x40000U
+        override val segmentAlign: UInt64 = 0x40000U.toUInt64()
     }
     override val emuLink: EmuLink = EmuLink.RV64I
 
-    override val memAddrSize: Size = Size.Bit64
-    override val wordSize: Size = Size.Bit32
+    override val memAddrSize = UInt64
+    override val wordSize = Int32
     override val detectRegistersByName: Boolean = true
     override val prefices: AsmLexer.Prefices = object : AsmLexer.Prefices {
         override val hex: String = "0x"

@@ -1,7 +1,7 @@
 package emulator.kit.memory
 
 import cengine.util.Endianness
-import cengine.util.newint.*
+import cengine.util.integer.*
 
 /**
  * Represents a Memory class that provides functionality for loading, storing, and managing memory instances.

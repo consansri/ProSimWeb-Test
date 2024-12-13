@@ -1,8 +1,8 @@
 package emulator.archs.ikrrisc2
 
 import androidx.compose.runtime.mutableStateListOf
-import cengine.util.newint.IntNumber
-import cengine.util.newint.UInt32
+import cengine.util.integer.IntNumber
+import cengine.util.integer.UInt32
 import emulator.kit.register.FieldProvider
 import emulator.kit.register.RegFile
 

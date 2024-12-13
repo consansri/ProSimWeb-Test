@@ -1,4 +1,4 @@
-package cengine.util.newint
+package cengine.util.integer
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import kotlin.experimental.and
@@ -12,12 +12,16 @@ class Int16(override val value: Short) : IntNumber<Int16> {
     constructor(value: Long) : this(value.toShort())
 
     companion object: IntNumberStatic<Int16> {
+
+        override val BITS: Int = 16
+        override val BYTES: Int = 2
         override val ZERO = Int16(0)
-
-
         override val ONE = Int16(1)
 
+        fun UShort.toInt16() = Int16(this.toShort())
+        fun UInt.toInt16() = Int16(this.toShort())
         fun Short.toInt16() = Int16(this)
+        fun Int.toInt16() = Int16(this)
         fun fromUInt8(byte1: UInt8, byte0: UInt8): Int16 = (byte1.toInt16() shl 8) or byte0.toInt16()
 
         override fun to(number: IntNumber<*>): Int16 = number.toInt16()
@@ -32,10 +36,13 @@ class Int16(override val value: Short) : IntNumber<Int16> {
     }
 
     override val bitWidth: Int
-        get() = 16
+        get() = BITS
 
     override val byteCount: Int
-        get() = 2
+        get() = BYTES
+
+    override val type: IntNumberStatic<Int16>
+        get() = Int16
 
     override fun plus(other: Int16): Int16 = Int16(value + other.value)
     override fun minus(other: Int16): Int16 = Int16(value - other.value)

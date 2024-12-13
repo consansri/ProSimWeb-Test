@@ -4,8 +4,10 @@ import cengine.lang.asm.ast.impl.ASNode
 import cengine.lang.obj.elf.LinkerScript
 import cengine.lang.obj.elf.Shdr
 import cengine.util.buffer.Buffer
-import cengine.util.newint.BigInt
-import cengine.util.newint.BigInt.Companion.toBigInt
+import cengine.util.integer.BigInt
+import cengine.util.integer.BigInt.Companion.toBigInt
+import cengine.util.integer.UInt32
+import cengine.util.integer.UInt64
 
 abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val linkerScript: LinkerScript) {
 
@@ -96,12 +98,12 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
         return symbols.add(Symbol.Abs(name, currentSection, value))
     }
 
-    fun getOrCreateSectionAndSetCurrent(name: String, type: UInt = Shdr.SHT_NULL, flags: ULong = 0U, link: T? = null, info: String? = null): T {
+    fun getOrCreateSectionAndSetCurrent(name: String, type: UInt32 = Shdr.SHT_NULL, flags: UInt64 = UInt64.ZERO, link: T? = null, info: String? = null): T {
         currentSection = getOrCreateSection(name, type, flags, link, info)
         return currentSection
     }
 
-    fun getOrCreateSection(name: String, type: UInt = Shdr.SHT_NULL, flags: ULong = 0U, link: T? = null, info: String? = null): T {
+    fun getOrCreateSection(name: String, type: UInt32 = Shdr.SHT_NULL, flags: UInt64 = UInt64.ZERO, link: T? = null, info: String? = null): T {
         val section = sections.firstOrNull { it.name == name }
         if (section != null) return section
         val created = createNewSection(name, type, flags, link, info)
@@ -109,12 +111,12 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
         return created
     }
 
-    abstract fun createNewSection(name: String, type: UInt = Shdr.SHT_NULL, flags: ULong = 0U, link: T? = null, info: String? = null): T
+    abstract fun createNewSection(name: String, type: UInt32 = Shdr.SHT_NULL, flags: UInt64 = UInt64.ZERO, link: T? = null, info: String? = null): T
 
     interface Section {
         val name: String
-        var type: UInt
-        var flags: ULong
+        var type: UInt32
+        var flags: UInt64
         var link: Section?
         var info: String?
         var address: BigInt
@@ -130,9 +132,9 @@ abstract class AsmCodeGenerator<T : AsmCodeGenerator.Section>(protected val link
         fun print(): String = "$name: size ${content.size}"
 
         fun isProg(): Boolean = type == Shdr.SHT_PROGBITS
-        fun isText(): Boolean = isProg() && (Shdr.SHF_EXECINSTR + Shdr.SHF_ALLOC).toULong() == flags
-        fun isData(): Boolean = isProg() && (Shdr.SHF_WRITE + Shdr.SHF_ALLOC).toULong() == flags
-        fun isRoData(): Boolean = isProg() && Shdr.SHF_ALLOC.toULong() == flags
+        fun isText(): Boolean = isProg() && (Shdr.SHF_EXECINSTR + Shdr.SHF_ALLOC).toUInt64() == flags
+        fun isData(): Boolean = isProg() && (Shdr.SHF_WRITE + Shdr.SHF_ALLOC).toUInt64() == flags
+        fun isRoData(): Boolean = isProg() && Shdr.SHF_ALLOC.toUInt64() == flags
     }
 
     sealed class Symbol<T : Section>(val name: String, val section: T, var binding: Binding = Binding.LOCAL) {

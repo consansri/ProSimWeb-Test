@@ -2,7 +2,9 @@ package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.*
 import cengine.util.Endianness
-import cengine.util.buffer.ByteBuffer
+import cengine.util.buffer.Int8Buffer
+import cengine.util.integer.Int8
+import cengine.util.integer.UInt64
 
 /**
  * ELF Program Header
@@ -46,15 +48,15 @@ import cengine.util.buffer.ByteBuffer
 data class ELF64_Phdr(
     override var p_type: Elf_Word,
     override var p_flags: Elf_Word,
-    var p_offset: Elf64_Off = 0U,
-    var p_vaddr: Elf64_Addr = 0U,
-    var p_paddr: Elf64_Addr = 0U,
-    var p_filesz: Elf_Xword = 0U,
-    var p_memsz: Elf_Xword = 0U,
+    var p_offset: Elf64_Off = UInt64.ZERO,
+    var p_vaddr: Elf64_Addr = UInt64.ZERO,
+    var p_paddr: Elf64_Addr = UInt64.ZERO,
+    var p_filesz: Elf_Xword = UInt64.ZERO,
+    var p_memsz: Elf_Xword = UInt64.ZERO,
     var p_align: Elf_Xword
 ) : Phdr() {
-    override fun build(endianness: Endianness): Array<Byte> {
-        val b = ByteBuffer(endianness)
+    override fun build(endianness: Endianness): Array<Int8> {
+        val b = Int8Buffer(endianness)
 
         b.put(p_type)
         b.put(p_flags)

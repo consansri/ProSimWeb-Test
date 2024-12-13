@@ -12,8 +12,8 @@ import cengine.lang.asm.ast.lexer.AsmTokenType
 import cengine.psi.core.*
 import cengine.psi.feature.Highlightable
 import cengine.psi.lexer.core.Token
-import cengine.util.newint.BigInt
-import cengine.util.newint.BigInt.Companion.toBigInt
+import cengine.util.integer.BigInt
+import cengine.util.integer.BigInt.Companion.toBigInt
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import debug.DebugTools
 import emulator.kit.nativeLog

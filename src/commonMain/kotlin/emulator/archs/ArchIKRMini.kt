@@ -8,9 +8,9 @@ import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.ikrmini.IKRMiniDisassembler
 import cengine.lang.asm.ast.target.ikrmini.IKRMiniDisassembler.InstrType.*
 import cengine.util.Endianness
-import cengine.util.newint.UInt16
-import cengine.util.newint.UInt16.Companion.toUInt16
-import cengine.util.newint.UInt32
+import cengine.util.integer.UInt16
+import cengine.util.integer.UInt16.Companion.toUInt16
+import cengine.util.integer.UInt32
 import emulator.archs.ikrmini.IKRMiniBaseRegs
 import emulator.kit.ArchConfig
 import emulator.kit.MicroSetup

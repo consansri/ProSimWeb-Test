@@ -1,13 +1,13 @@
 package cengine.util.buffer
 
 import cengine.util.Endianness
-import cengine.util.integer.Size
-import cengine.util.newint.IntNumber
+import cengine.util.integer.*
+import cengine.util.integer.Int8.Companion.toInt8
 
-abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<T>) : Collection<T> {
+abstract class Buffer<T : IntNumber<*>>(endianness: Endianness, val type: IntNumberStatic<T>) : Collection<T> {
 
-    protected val data: MutableList<T> = initial.toMutableList()
-    abstract val wordWidth: Size
+    protected val data: MutableList<T> = mutableListOf()
+
     var endianness: Endianness = endianness
         private set
 
@@ -19,9 +19,8 @@ abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<
 
     // -------------------------- CONVERSION
 
-    abstract fun toIntList(): List<IntNumber<*>>
-
     abstract fun toArray(): Array<T>
+    fun asList(): List<T> = data.toList()
 
     // -------------------------- GET
 
@@ -29,26 +28,26 @@ abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<
 
     // BYTE
 
-    fun getByte(index: Int): Byte = getUByte(index).toByte()
+    fun getInt8(index: Int): Int8 = getUInt8(index).toInt8()
 
-    abstract fun getUByte(index: Int): UByte
+    abstract fun getUInt8(index: Int): UInt8
 
     // SHORT
-    fun getShort(index: Int): Short = getUShort(index).toShort()
+    fun getInt16(index: Int): Int16 = getUInt16(index).toInt16()
 
-    abstract fun getUShort(index: Int): UShort
+    abstract fun getUInt16(index: Int): UInt16
 
     // INT
 
-    fun getInt(index: Int): Int = getUInt(index).toInt()
+    fun getInt32(index: Int): Int32 = getUInt32(index).toInt32()
 
-    abstract fun getUInt(index: Int): UInt
+    abstract fun getUInt32(index: Int): UInt32
 
     // LONG
 
-    fun getLong(index: Int): Long = getULong(index).toLong()
+    fun getInt64(index: Int): Int64 = getUInt64(index).toInt64()
 
-    abstract fun getULong(index: Int): ULong
+    abstract fun getUInt64(index: Int): UInt64
 
     // STRING
 
@@ -56,7 +55,7 @@ abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<
         val result = mutableListOf<T>()
         var currentIndex = index
 
-        while (currentIndex < size && this[currentIndex] != 0) {
+        while (currentIndex < size && this[currentIndex] != type.ZERO) {
             result.add(get(currentIndex))
             currentIndex++
         }
@@ -66,77 +65,87 @@ abstract class Buffer<T : Comparable<*>>(endianness: Endianness, initial: Array<
 
     // -------------------------- PUT
 
-    abstract fun pad(length: Int)
+    fun pad(length: Int) {
+        data.addAll(List(length) { type.ZERO })
+    }
 
     // BYTEARRAY
 
-    fun putAll(bytes: Array<T>) {
-        data.addAll(bytes.toList())
+    fun putBytes(bytes: ByteArray){
+        putInt8s(bytes.map { it.toInt8() }.toTypedArray())
     }
 
-    abstract fun putBytes(bytes: Array<Byte>)
+    fun putAll(values: Array<T>){
+        data.addAll(values)
+    }
 
-    fun putBytes(bytes: ByteArray) {
-        putBytes(bytes.toTypedArray())
+    fun putAll(values: Collection<T>) {
+        data.addAll(values)
+    }
+
+    abstract fun putUInt8s(bytes: Array<UInt8>)
+
+    fun putInt8s(bytes: Array<Int8>){
+        putUInt8s(bytes.map { it.toUInt8() }.toTypedArray())
     }
 
     // BYTE
 
-    fun put(value: Byte) {
-        put(value.toUByte())
+    fun put(value: Int8) {
+        put(value.toUInt8())
     }
 
-    abstract fun put(value: UByte)
+    abstract fun put(value: UInt8)
 
     // SHORT
 
-    fun put(value: Short) {
-        put(value.toUShort())
+    fun put(value: Int16) {
+        put(value.toUInt16())
     }
 
-    abstract fun put(value: UShort)
+    abstract fun put(value: UInt16)
 
     // INT
 
-    fun put(value: Int) {
-        put(value.toUInt())
+    fun put(value: Int32) {
+        put(value.toUInt32())
     }
 
-    abstract fun put(value: UInt)
+    abstract fun put(value: UInt32)
 
     // LONG
 
-    fun put(value: Long) {
-        put(value.toULong())
+    fun put(value: Int64) {
+        put(value.toUInt64())
     }
 
-    abstract fun put(value: ULong)
+    abstract fun put(value: UInt64)
 
     // -------------------------- SET
 
-    operator fun set(index: Int, value: Byte) {
-        this[index] = value.toUByte()
+    operator fun set(index: Int, value: Int8) {
+        this[index] = value.toUInt8()
     }
 
-    abstract operator fun set(index: Int, value: UByte)
+    abstract operator fun set(index: Int, value: UInt8)
 
-    operator fun set(index: Int, value: Short) {
-        this[index] = value.toUShort()
+    operator fun set(index: Int, value: Int16) {
+        this[index] = value.toUInt16()
     }
 
-    abstract operator fun set(index: Int, value: UShort)
+    abstract operator fun set(index: Int, value: UInt16)
 
-    operator fun set(index: Int, value: Int) {
-        this[index] = value.toUInt()
+    operator fun set(index: Int, value: Int32) {
+        this[index] = value.toUInt32()
     }
 
-    abstract operator fun set(index: Int, value: UInt)
+    abstract operator fun set(index: Int, value: UInt32)
 
-    operator fun set(index: Int, value: Long) {
-        this[index] = value.toULong()
+    operator fun set(index: Int, value: Int64) {
+        this[index] = value.toUInt64()
     }
 
-    abstract operator fun set(index: Int, value: ULong)
+    abstract operator fun set(index: Int, value: UInt64)
 
     abstract fun dataAsString(index: Int, radix: Int): String
 

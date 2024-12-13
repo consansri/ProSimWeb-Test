@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
-import cengine.util.newint.Format
+import cengine.util.integer.Format
 import ui.uilib.UIState
 import ui.uilib.text.CTextField
 

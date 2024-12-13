@@ -1,4 +1,4 @@
-package cengine.util.newint
+package cengine.util.integer
 
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
@@ -6,6 +6,8 @@ class Int64(override val value: Long) : IntNumber<Int64> {
 
     companion object: IntNumberStatic<Int64> {
 
+        override val BITS: Int = 64
+        override val BYTES: Int = 8
         override val ZERO = Int64(0)
         override val ONE = Int64(1)
 
@@ -24,10 +26,13 @@ class Int64(override val value: Long) : IntNumber<Int64> {
     }
 
     override val bitWidth: Int
-        get() = 64
+        get() = BITS
 
     override val byteCount: Int
-        get() = 8
+        get() = BYTES
+
+    override val type: IntNumberStatic<Int64>
+        get() = Int64
 
     override fun plus(other: Int64): Int64 = Int64(value + other.value)
     override fun minus(other: Int64): Int64 = Int64(value - other.value)

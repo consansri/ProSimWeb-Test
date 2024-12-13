@@ -1,7 +1,8 @@
 package cengine.lang.obj.elf
 
 import cengine.util.Endianness
-import cengine.util.buffer.ByteBuffer
+import cengine.util.buffer.Int8Buffer
+import cengine.util.integer.Int8
 
 /**
  * Note Information
@@ -38,27 +39,27 @@ import cengine.util.buffer.ByteBuffer
  * what descriptors mean.
  */
 data class Nhdr(
-    var n_namesz: cengine.lang.obj.elf.Elf_Word,
-    var n_descsz: cengine.lang.obj.elf.Elf_Word,
-    var n_type: cengine.lang.obj.elf.Elf_Word
+    var n_namesz: Elf_Word,
+    var n_descsz: Elf_Word,
+    var n_type: Elf_Word
 ): BinaryProvider {
 
     companion object{
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT, offset: Int): Nhdr {
             var currIndex = offset
-            val n_namesz = byteArray.loadUInt(eIdent, currIndex)
+            val n_namesz = byteArray.loadUInt32(eIdent, currIndex)
             currIndex += 4
-            val n_descsz = byteArray.loadUInt(eIdent, currIndex)
+            val n_descsz = byteArray.loadUInt32(eIdent, currIndex)
             currIndex += 4
-            val n_type = byteArray.loadUInt(eIdent, currIndex)
+            val n_type = byteArray.loadUInt32(eIdent, currIndex)
             return Nhdr(n_namesz, n_descsz, n_type)
         }
     }
 
     override fun byteSize(): Int = 12
 
-    override fun build(endianness: Endianness): Array<Byte> {
-        val b = ByteBuffer(endianness)
+    override fun build(endianness: Endianness): Array<Int8> {
+        val b = Int8Buffer(endianness)
 
         b.put(n_namesz)
         b.put(n_descsz)

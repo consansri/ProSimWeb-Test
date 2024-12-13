@@ -666,7 +666,7 @@ fun ELFSectionInfos(elfReader: ELFFile, fileContent: ByteArray, codeStyle: TextS
                     val type = Shdr.getSectionType(section.sh_type)
                     val flags = Shdr.getSectionFlags(
                         when (section) {
-                            is ELF32_Shdr -> section.sh_flags.toULong()
+                            is ELF32_Shdr -> section.sh_flags.toUInt64()
                             is ELF64_Shdr -> section.sh_flags
                         }
                     )
@@ -819,7 +819,7 @@ fun ELFSectionInfos(elfReader: ELFFile, fileContent: ByteArray, codeStyle: TextS
                                 val type = Shdr.getSectionType(section.sh_type)
                                 val flags = Shdr.getSectionFlags(
                                     when (section) {
-                                        is ELF32_Shdr -> section.sh_flags.toULong()
+                                        is ELF32_Shdr -> section.sh_flags.toUInt64()
                                         is ELF64_Shdr -> section.sh_flags
                                     }
                                 )

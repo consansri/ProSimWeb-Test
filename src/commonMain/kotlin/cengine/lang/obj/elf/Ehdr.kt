@@ -1,5 +1,8 @@
 package cengine.lang.obj.elf
 
+import cengine.util.integer.UInt16.Companion.toUInt16
+import cengine.util.integer.UInt32.Companion.toUInt32
+
 /**
  * ELF Header
  *
@@ -72,73 +75,73 @@ sealed class Ehdr : BinaryProvider {
 
         fun extractFrom(byteArray: ByteArray, eIdent: E_IDENT): Ehdr {
             var currIndex = E_IDENT.EI_NIDENT.toInt()
-            val e_type = byteArray.loadUShort(eIdent, currIndex)
+            val e_type = byteArray.loadUInt16(eIdent, currIndex)
             currIndex += 2
-            val e_machine = byteArray.loadUShort(eIdent, currIndex)
+            val e_machine = byteArray.loadUInt16(eIdent, currIndex)
             currIndex += 2
-            val e_version = byteArray.loadUInt(eIdent, currIndex)
+            val e_version = byteArray.loadUInt32(eIdent, currIndex)
             currIndex += 4
 
             when (eIdent.ei_class) {
                 E_IDENT.ELFCLASS32 -> {
-                    val e_entry = byteArray.loadUInt(eIdent, currIndex)
+                    val e_entry = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val e_phoff = byteArray.loadUInt(eIdent, currIndex)
+                    val e_phoff = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
-                    val e_shoff = byteArray.loadUInt(eIdent, currIndex)
-                    currIndex += 4
-
-                    val e_flags = byteArray.loadUInt(eIdent, currIndex)
+                    val e_shoff = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
 
-                    val e_ehsize = byteArray.loadUShort(eIdent, currIndex)
+                    val e_flags = byteArray.loadUInt32(eIdent, currIndex)
+                    currIndex += 4
+
+                    val e_ehsize = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
-                    val e_phentsize = byteArray.loadUShort(eIdent, currIndex)
+                    val e_phentsize = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
-                    val e_phnum = byteArray.loadUShort(eIdent, currIndex)
+                    val e_phnum = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
-                    val e_shentsize = byteArray.loadUShort(eIdent, currIndex)
+                    val e_shentsize = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
-                    val e_shnum = byteArray.loadUShort(eIdent, currIndex)
+                    val e_shnum = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
-                    val e_shstrndx = byteArray.loadUShort(eIdent, currIndex)
+                    val e_shstrndx = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
                     return ELF32_Ehdr(eIdent, e_type, e_machine, e_version, e_entry, e_phoff, e_shoff, e_flags, e_ehsize, e_phentsize, e_phnum, e_shentsize, e_shnum, e_shstrndx)
                 }
 
                 E_IDENT.ELFCLASS64 -> {
-                    val e_entry = byteArray.loadULong(eIdent, currIndex)
+                    val e_entry = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val e_phoff = byteArray.loadULong(eIdent, currIndex)
+                    val e_phoff = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
-                    val e_shoff = byteArray.loadULong(eIdent, currIndex)
+                    val e_shoff = byteArray.loadUInt64(eIdent, currIndex)
                     currIndex += 8
 
-                    val e_flags = byteArray.loadUInt(eIdent, currIndex)
+                    val e_flags = byteArray.loadUInt32(eIdent, currIndex)
                     currIndex += 4
 
-                    val e_ehsize = byteArray.loadUShort(eIdent, currIndex)
+                    val e_ehsize = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
-                    val e_phentsize = byteArray.loadUShort(eIdent, currIndex)
+                    val e_phentsize = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
-                    val e_phnum = byteArray.loadUShort(eIdent, currIndex)
+                    val e_phnum = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
-                    val e_shentsize = byteArray.loadUShort(eIdent, currIndex)
+                    val e_shentsize = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
-                    val e_shnum = byteArray.loadUShort(eIdent, currIndex)
+                    val e_shnum = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
-                    val e_shstrndx = byteArray.loadUShort(eIdent, currIndex)
+                    val e_shstrndx = byteArray.loadUInt16(eIdent, currIndex)
                     currIndex += 2
 
                     return ELF64_Ehdr(eIdent, e_type, e_machine, e_version, e_entry, e_phoff, e_shoff, e_flags, e_ehsize, e_phentsize, e_phnum, e_shentsize, e_shnum, e_shstrndx)
@@ -156,37 +159,37 @@ sealed class Ehdr : BinaryProvider {
         /**
          * No file type
          */
-        const val ET_NONE: Elf_Half = 0U
+        val ET_NONE: Elf_Half = 0U.toUInt16()
 
         /**
          * Relocatable file
          */
-        const val ET_REL: Elf_Half = 1U
+        val ET_REL: Elf_Half = 1U.toUInt16()
 
         /**
          * Executable file
          */
-        const val ET_EXEC: Elf_Half = 2U
+        val ET_EXEC: Elf_Half = 2U.toUInt16()
 
         /**
          * Shared Object file
          */
-        const val ET_DYN: Elf_Half = 3U
+        val ET_DYN: Elf_Half = 3U.toUInt16()
 
         /**
          * Core file
          */
-        const val ET_CORE: Elf_Half = 4U
+        val ET_CORE: Elf_Half = 4U.toUInt16()
 
         /**
          * Processor-specific
          */
-        const val ET_LOPROC: Elf_Half = 0xFF00U
+        val ET_LOPROC: Elf_Half = 0xFF00U.toUInt16()
 
         /**
          * Processor-specific
          */
-        const val ET_HIPROC: Elf_Half = 0xFFFFU
+        val ET_HIPROC: Elf_Half = 0xFFFFU.toUInt16()
 
         /**
          * [e_machine]
@@ -195,83 +198,83 @@ sealed class Ehdr : BinaryProvider {
         /**
          * AT&T WE 32100
          */
-        const val EM_M32: Elf_Half = 1U
+        val EM_M32: Elf_Half = 1U.toUInt16()
 
         /**
          * SPARC
          */
-        const val EM_SPARC: Elf_Half = 2U // SPARC
+        val EM_SPARC: Elf_Half = 2U.toUInt16() // SPARC
 
         /**
          * Intel Architecture
          */
-        const val EM_386: Elf_Half = 3U // Intel Architecture
+        val EM_386: Elf_Half = 3U.toUInt16() // Intel Architecture
 
         /**
          * Motorola 68000
          */
-        const val EM_68K: Elf_Half = 4U // Motorola 68000
+        val EM_68K: Elf_Half = 4U.toUInt16() // Motorola 68000
 
         /**
          * Motorola 88000
          */
-        const val EM_88K: Elf_Half = 5U // Motorola 88000
+        val EM_88K: Elf_Half = 5U.toUInt16() // Motorola 88000
 
         /**
          * Intel 80860
          */
-        const val EM_860: Elf_Half = 7U
+        val EM_860: Elf_Half = 7U.toUInt16()
 
         /**
          * MIPS RS3000 Big-Endian
          */
-        const val EM_MIPS: Elf_Half = 8U
+        val EM_MIPS: Elf_Half = 8U.toUInt16()
 
         /**
          * MIPS RS4000 Big-Endian
          */
-        const val EM_MIPS_RS4_BE: Elf_Half = 10U
+        val EM_MIPS_RS4_BE: Elf_Half = 10U.toUInt16()
 
         /**
          * Fujitsu VPP500
          */
-        const val EM_VPP500: Elf_Half = 17U
+        val EM_VPP500: Elf_Half = 17U.toUInt16()
 
         /**
          * ARM
          */
-        const val EM_ARM: Elf_Half = 40U
+        val EM_ARM: Elf_Half = 40U.toUInt16()
 
         /**
          * X86 64Bit
          */
-        const val EM_X86_64: Elf_Half = 62U
+        val EM_X86_64: Elf_Half = 62U.toUInt16()
 
         /**
          * RISC-V
          */
-        const val EM_RISCV: Elf_Half = 243U
+        val EM_RISCV: Elf_Half = 243U.toUInt16()
 
         // ...
 
         // FREE TO USE MACHINE TYPES 0xFF00 - 0xFFFF
 
-        const val EM_CUSTOM_IKRRISC2: Elf_Half = 0xFF00U
+        val EM_CUSTOM_IKRRISC2: Elf_Half = 0xFF00U.toUInt16()
 
-        const val EM_CUSTOM_IKRMINI: Elf_Half = 0xFF01U
+        val EM_CUSTOM_IKRMINI: Elf_Half = 0xFF01U.toUInt16()
 
-        const val EM_CUSTOM_T6502: Elf_Half = 0xFF02U
+        val EM_CUSTOM_T6502: Elf_Half = 0xFF02U.toUInt16()
 
 
         /**
          * Invalid version
          */
-        const val EV_NONE: Elf_Word = 0U
+        val EV_NONE: Elf_Word = 0U.toUInt32()
 
         /**
          * Current version
          */
-        const val EV_CURRENT: Elf_Word = 1U
+        val EV_CURRENT: Elf_Word = 1U.toUInt32()
     }
 
     abstract override fun toString(): String

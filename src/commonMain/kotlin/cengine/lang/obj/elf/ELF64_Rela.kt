@@ -2,7 +2,8 @@ package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.*
 import cengine.util.Endianness
-import cengine.util.buffer.ByteBuffer
+import cengine.util.buffer.Int8Buffer
+import cengine.util.integer.Int8
 
 /**
  * ELF Relocation Entry (with addend)
@@ -43,8 +44,8 @@ data class ELF64_Rela(
     companion object{
         const val SIZE = 24
     }
-    override fun build(endianness: Endianness): Array<Byte> {
-        val b = ByteBuffer(endianness)
+    override fun build(endianness: Endianness): Array<Int8> {
+        val b = Int8Buffer(endianness)
 
         b.put(r_offset)
         b.put(r_info)

@@ -2,11 +2,11 @@ package cengine.lang.obj.elf
 
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.Initializer
-import cengine.util.newint.BigInt
-import cengine.util.newint.BigInt.Companion.toBigInt
-import cengine.util.newint.Int8.Companion.toInt8
-import cengine.util.newint.IntNumber
-import cengine.util.newint.UInt8.Companion.toUInt8
+import cengine.util.integer.BigInt
+import cengine.util.integer.Int16.Companion.toInt16
+import cengine.util.integer.Int8.Companion.toInt8
+import cengine.util.integer.IntNumber
+import cengine.util.integer.UInt8.Companion.toUInt8
 import emulator.kit.memory.Memory
 
 sealed class ELFFile(val name: String, val content: ByteArray) : Initializer {
@@ -72,17 +72,17 @@ sealed class ELFFile(val name: String, val content: ByteArray) : Initializer {
         for (group in segmentToSectionGroup.filterIsInstance<Segment>()) {
             val phdr = group.phdr
             val segmentOffset = when (phdr) {
-                is ELF32_Phdr -> phdr.p_offset.toULong()
+                is ELF32_Phdr -> phdr.p_offset.toUInt64()
                 is ELF64_Phdr -> phdr.p_offset
             }
 
             val labels = group.sections.flatMap { shdr: Shdr ->
                 val sectionIndex = sectionHeaders.indexOf(shdr)
                 val symbols = symbolTable?.filter {
-                    it.st_shndx == sectionIndex.toUShort()
+                    it.st_shndx == sectionIndex.toInt16().toUInt16()
                 } ?: return@flatMap emptyList<Disassembler.Label>()
                 val sectionOffset = when (shdr) {
-                    is ELF32_Shdr -> shdr.sh_offset.toULong()
+                    is ELF32_Shdr -> shdr.sh_offset.toUInt64()
                     is ELF64_Shdr -> shdr.sh_offset
                 }
 
@@ -90,7 +90,7 @@ sealed class ELFFile(val name: String, val content: ByteArray) : Initializer {
                     Sym.ELF_ST_TYPE(it.st_info) == Sym.STT_NOTYPE
                 }.mapNotNull { sym ->
                     val symValue = when (sym) {
-                        is ELF32_Sym -> sym.st_value.toULong()
+                        is ELF32_Sym -> sym.st_value.toUInt64()
                         is ELF64_Sym -> sym.st_value
                     }
 
@@ -283,20 +283,20 @@ sealed class ELFFile(val name: String, val content: ByteArray) : Initializer {
     private fun groupSectionsBySegment(): List<Group> {
         val segments = programHeaders.map { phdr ->
             val start = when (phdr) {
-                is ELF32_Phdr -> phdr.p_offset.toULong()
+                is ELF32_Phdr -> phdr.p_offset.toUInt64()
                 is ELF64_Phdr -> phdr.p_offset
             }
             val size = when (phdr) {
-                is ELF32_Phdr -> phdr.p_filesz.toULong()
+                is ELF32_Phdr -> phdr.p_filesz.toUInt64()
                 is ELF64_Phdr -> phdr.p_filesz
             }
 
-            val fileIndexRange = start..<(start + size)
+            val fileIndexRange = start.toLong()..<(start + size).toLong()
 
             val sections = sectionHeaders.filter { shdr ->
                 when (shdr) {
-                    is ELF32_Shdr -> shdr.sh_offset in fileIndexRange
-                    is ELF64_Shdr -> shdr.sh_offset in fileIndexRange
+                    is ELF32_Shdr -> shdr.sh_offset.toLong() in fileIndexRange
+                    is ELF64_Shdr -> shdr.sh_offset.toLong() in fileIndexRange
                 }
 
             }

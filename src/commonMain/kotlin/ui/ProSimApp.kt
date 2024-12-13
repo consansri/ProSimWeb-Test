@@ -82,9 +82,11 @@ object ProSimApp {
                 }
             }
 
-            is Screen.ProjectView -> ProjectViewScreen(screen.state) {
-                ProjectStateManager.appState = ProjectStateManager.appState.copy(currentlyOpened = null)
-                currentScreen = Screen.ProjectSelection
+            is Screen.ProjectView -> {
+                ProjectViewScreen(screen.state) {
+                    ProjectStateManager.appState = ProjectStateManager.appState.copy(currentlyOpened = null)
+                    currentScreen = Screen.ProjectSelection
+                }
             }
 
             is Screen.CreateNewProject -> CreateNewProjectScreen(

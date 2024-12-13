@@ -4,11 +4,14 @@ import cengine.lang.asm.ast.AsmCodeGenerator
 import cengine.lang.asm.ast.AsmCodeGenerator.*
 import cengine.lang.obj.elf.Shdr.Companion.SHF_ALLOC
 import cengine.util.Endianness
-import cengine.util.buffer.ByteBuffer
-import cengine.util.buffer.ByteBuffer.Companion.toASCIIByteArray
-import cengine.util.buffer.ByteBuffer.Companion.toASCIIString
-import cengine.util.newint.BigInt
-import cengine.util.newint.BigInt.Companion.toBigInt
+import cengine.util.buffer.Int8Buffer
+import cengine.util.buffer.Int8Buffer.Companion.toASCIIByteArray
+import cengine.util.buffer.Int8Buffer.Companion.toASCIIString
+import cengine.util.integer.*
+import cengine.util.integer.Int8.Companion.toInt8
+import cengine.util.integer.UInt16.Companion.toUInt16
+import cengine.util.integer.UInt32.Companion.toUInt32
+import cengine.util.integer.UInt64.Companion.toUInt64
 import com.ionspin.kotlin.bignum.integer.BigInteger
 
 abstract class ELFGenerator(
@@ -38,7 +41,7 @@ abstract class ELFGenerator(
      */
     protected val e_ident: E_IDENT = E_IDENT(ei_class = ei_class, ei_data = ei_data, ei_osabi = ei_osabi, ei_abiversion = ei_abiversion)
 
-    protected var entryPoint: Elf_Xword = 0U
+    protected var entryPoint: Elf_Xword = UInt64.ZERO
 
     protected val segments: MutableList<Segment> = mutableListOf()
 
@@ -61,7 +64,7 @@ abstract class ELFGenerator(
     val strTab = StrTab()
 
     private val nullSec = getOrCreateSection("")
-    private val text = getOrCreateSection(".text", Shdr.SHT_text, Shdr.SHF_text.toULong())
+    private val text = getOrCreateSection(".text", Shdr.SHT_text, Shdr.SHF_text.toUInt64())
 
     override var currentSection: ELFSection = text
 
@@ -70,7 +73,7 @@ abstract class ELFGenerator(
     }
 
     override fun writeFile(): ByteArray {
-        val buffer = ByteBuffer(endianness)
+        val buffer = Int8Buffer(endianness)
 
         sections.add(SymTab(strTab))
         sections.add(strTab)
@@ -83,9 +86,9 @@ abstract class ELFGenerator(
 
         val ehdr = createELFHeader()
 
-        val totalEhdrBytes = ehdr.byteSize().toULong()
-        val totalPhdrBytes = phdrSize * phdrCount
-        val totalSectionBytes = sections.sumOf { it.content.size.toULong() }
+        val totalEhdrBytes = ehdr.byteSize().toUInt64()
+        val totalPhdrBytes = (phdrSize * phdrCount).toUInt64()
+        val totalSectionBytes = sections.sumOf { it.content.size.toULong() }.toUInt64()
         val phoff = totalEhdrBytes
         val shoff = totalEhdrBytes + totalPhdrBytes + totalSectionBytes
 
@@ -94,19 +97,19 @@ abstract class ELFGenerator(
         buffer.writeSections(shdrs)
         buffer.writeSHDRs(shdrs.map { it.second })
 
-        return buffer.toArray().toByteArray()
+        return buffer.toByteArray()
     }
 
     private fun calculateShdrs(): List<Pair<ELFSection, Shdr>> {
         return sections.map {
             it to when (val shdr = it.createHeader()) {
                 is ELF32_Shdr -> {
-                    shdr.sh_size = it.content.size.toUInt()
+                    shdr.sh_size = it.content.size.toUInt32()
                     shdr
                 }
 
                 is ELF64_Shdr -> {
-                    shdr.sh_size = it.content.size.toULong()
+                    shdr.sh_size = it.content.size.toUInt64()
                     shdr
                 }
             }
@@ -120,15 +123,15 @@ abstract class ELFGenerator(
                 e_type = e_type,
                 e_machine = e_machine,
                 e_flags = e_flags,
-                e_ehsize = 0U, // assign later
+                e_ehsize = UInt16.ZERO, // assign later
                 e_phentsize = Phdr.size(ei_class),
-                e_phnum = segments.size.toUShort(),
+                e_phnum = segments.size.toUInt16(),
                 e_shentsize = Shdr.size(ei_class),
-                e_shnum = sections.size.toUShort(),
-                e_shstrndx = sections.indexOf(shStrTab).toUShort(),
-                e_entry = entryPoint.toUInt(),
-                e_phoff = 0U, // assign laterc
-                e_shoff = 0U // assign later
+                e_shnum = sections.size.toUInt16(),
+                e_shstrndx = sections.indexOf(shStrTab).toUInt16(),
+                e_entry = entryPoint.toUInt32(),
+                e_phoff = UInt32.ZERO, // assign laterc
+                e_shoff = UInt32.ZERO // assign later
             )
 
             E_IDENT.ELFCLASS64 -> ELF64_Ehdr(
@@ -136,28 +139,28 @@ abstract class ELFGenerator(
                 e_type = e_type,
                 e_machine = e_machine,
                 e_flags = e_flags,
-                e_ehsize = 0U, // assign later
+                e_ehsize = UInt16.ZERO, // assign later
                 e_phentsize = Phdr.size(ei_class),
-                e_phnum = segments.size.toUShort(),
+                e_phnum = segments.size.toUInt16(),
                 e_shentsize = Shdr.size(ei_class),
-                e_shnum = sections.size.toUShort(),
-                e_shstrndx = sections.indexOf(shStrTab).toUShort(),
+                e_shnum = sections.size.toUInt16(),
+                e_shstrndx = sections.indexOf(shStrTab).toUInt16(),
                 e_entry = entryPoint,
-                e_phoff = 0U, // assign later
-                e_shoff = 0U // assign later
+                e_phoff = UInt64.ZERO, // assign later
+                e_shoff = UInt64.ZERO // assign later
             )
 
             else -> throw InvalidElfClassException(e_ident.ei_class)
         }
-        ehdr.e_ehsize = ehdr.byteSize().toUShort()
+        ehdr.e_ehsize = ehdr.byteSize().toUInt16()
         return ehdr
     }
 
-    private fun ByteBuffer.writeELFHeader(ehdr: Ehdr, phoff: ULong, shoff: ULong) {
+    private fun Int8Buffer.writeELFHeader(ehdr: Ehdr, phoff: UInt64, shoff: UInt64) {
         when (ehdr) {
             is ELF32_Ehdr -> {
-                if (segments.isNotEmpty()) ehdr.e_phoff = phoff.toUInt()
-                if (sections.isNotEmpty()) ehdr.e_shoff = shoff.toUInt()
+                if (segments.isNotEmpty()) ehdr.e_phoff = phoff.toUInt32()
+                if (sections.isNotEmpty()) ehdr.e_shoff = shoff.toUInt32()
             }
 
             is ELF64_Ehdr -> {
@@ -169,48 +172,48 @@ abstract class ELFGenerator(
         putAll(ehdr.build(endianness))
     }
 
-    private fun ByteBuffer.writePHDRs(fileIndexOfDataStart: ULong) {
+    private fun Int8Buffer.writePHDRs(fileIndexOfDataStart: UInt64) {
         // Serialize the program header (Phdr) into the byte buffer
         segments.forEach { segment ->
             // Set FileOffset of Segment Start
             val firstSection = segment.sections.firstOrNull()
             segment.p_offset = if (firstSection != null) {
-                fileIndexOfDataStart + sections.takeWhile { it != firstSection }.sumOf { it.content.size.toULong() }
+                fileIndexOfDataStart + sections.takeWhile { it != firstSection }.sumOf { it.content.size.toULong() }.toUInt64()
             } else fileIndexOfDataStart
 
             putAll(segment.phdr.build(endianness))
         }
     }
 
-    private fun ByteBuffer.writeSections(shdr: List<Pair<ELFSection, Shdr>>) {
+    private fun Int8Buffer.writeSections(shdr: List<Pair<ELFSection, Shdr>>) {
         shdr.forEach { (section, header) ->
             val start = size
             putAll(section.content.toArray())
             when (header) {
                 is ELF32_Shdr -> {
-                    header.sh_offset = start.toUInt()
+                    header.sh_offset = start.toUInt32()
                 }
 
                 is ELF64_Shdr -> {
-                    header.sh_offset = start.toULong()
+                    header.sh_offset = start.toUInt64()
                 }
             }
         }
     }
 
-    private fun ByteBuffer.writeSHDRs(shdrs: List<Shdr>) {
+    private fun Int8Buffer.writeSHDRs(shdrs: List<Shdr>) {
         shdrs.forEachIndexed { index, shdr ->
             putAll(shdr.build(endianness))
         }
     }
 
-    protected fun createAndAddSegment(p_type: Elf_Word, p_flags: Elf_Word, p_align: ULong = 1U): Segment {
+    protected fun createAndAddSegment(p_type: Elf_Word, p_flags: Elf_Word, p_align: UInt64 = UInt64.ONE): Segment {
         val phdr = when (ei_class) {
             E_IDENT.ELFCLASS32 -> {
                 ELF32_Phdr(
                     p_type = p_type,
                     p_flags = p_flags,
-                    p_align = p_align.toUInt()
+                    p_align = p_align.toUInt32()
                 )
             }
 
@@ -229,7 +232,7 @@ abstract class ELFGenerator(
         }
     }
 
-    final override fun createNewSection(name: String, type: UInt, flags: ULong, link: ELFSection?, info: String?): ELFSection = ELFSection(name, type, flags, link, info)
+    final override fun createNewSection(name: String, type: UInt32, flags: UInt64, link: ELFSection?, info: String?): ELFSection = ELFSection(name, type, flags, link, info)
 
     fun Symbol<ELFSection>.toSym(): Sym {
         val binding = when (this.binding) {
@@ -240,14 +243,14 @@ abstract class ELFGenerator(
         val sym =
             when (this) {
                 is Symbol.Abs -> {
-                    Sym.createEmpty(ei_class, strTab.addString(this.name), sections.indexOf(section).toUShort(), type = Sym.STT_NUM, binding = binding).apply {
-                        setValue(value.value.ulongValue())
+                    Sym.createEmpty(ei_class, strTab.addString(this.name), sections.indexOf(section).toUInt16(), type = Sym.STT_NUM, binding = binding).apply {
+                        setValue(value.value.ulongValue().toUInt64())
                     }
                 }
 
                 is Symbol.Label -> {
-                    Sym.createEmpty(ei_class, strTab.addString(this.name), sections.indexOf(section).toUShort(), type = Sym.STT_NOTYPE, binding = binding).apply {
-                        setValue(address().value.ulongValue())
+                    Sym.createEmpty(ei_class, strTab.addString(this.name), sections.indexOf(section).toUInt16(), type = Sym.STT_NOTYPE, binding = binding).apply {
+                        setValue(address().value.ulongValue().toUInt64())
                     }
                 }
             }
@@ -267,12 +270,12 @@ abstract class ELFGenerator(
         ".symtab",
         Shdr.SHT_SYMTAB,
         link = strTab,
-        entSize = Sym.size(ei_class).toULong()
+        entSize = Sym.size(ei_class).toUInt64()
     ) {
         override val name = ".symtab"
-        override val content: ByteBuffer = ByteBuffer(endianness).apply {
+        override val content: Int8Buffer = Int8Buffer(endianness).apply {
             symbols.forEach {
-                putBytes(it.toSym().build(endianness))
+                putAll(it.toSym().build(endianness))
             }
         }
         override val reservations: MutableList<InstrReservation> = mutableListOf()
@@ -286,19 +289,19 @@ abstract class ELFGenerator(
         Shdr.SHT_STRTAB
     ) {
         override val name = ".shstrtab"
-        override val content: ByteBuffer = ByteBuffer(endianness)
+        override val content: Int8Buffer = Int8Buffer(endianness)
         override val reservations: MutableList<InstrReservation> = mutableListOf()
-        private val stringIndexMap = mutableMapOf<String, UInt>()
+        private val stringIndexMap = mutableMapOf<String, UInt32>()
 
-        fun addString(str: String): UInt {
+        fun addString(str: String): UInt32 {
             return stringIndexMap.getOrPut(str) {
                 val currentOffset = content.size
-                content.putAll(str.toASCIIByteArray() + (0).toByte())
-                currentOffset.toUInt()
+                content.putAll(str.toASCIIByteArray() + (0).toInt8())
+                currentOffset.toUInt32()
             }
         }
 
-        operator fun get(string: String): UInt? = stringIndexMap[string]
+        operator fun get(string: String): UInt32? = stringIndexMap[string]
 
         fun getStringAt(index: UInt): String = content.getZeroTerminated(index.toInt()).toASCIIString()
     }
@@ -315,43 +318,43 @@ abstract class ELFGenerator(
     ) {
 
         override val name = ".strtab"
-        override val content: ByteBuffer = ByteBuffer(endianness)
+        override val content: Int8Buffer = Int8Buffer(endianness)
         override val reservations: MutableList<InstrReservation> = mutableListOf()
-        private val stringIndexMap = mutableMapOf<String, UInt>()
+        private val stringIndexMap = mutableMapOf<String, UInt32>()
 
-        fun addString(str: String): UInt {
+        fun addString(str: String): UInt32 {
             return stringIndexMap.getOrPut(str) {
                 val currentOffset = content.size
-                content.putAll(str.toASCIIByteArray() + (0).toByte())
-                currentOffset.toUInt()
+                content.putAll(str.toASCIIByteArray() + 0.toInt8())
+                currentOffset.toUInt32()
             }
         }
 
-        operator fun get(string: String): UInt? = stringIndexMap[string]
+        operator fun get(string: String): UInt32? = stringIndexMap[string]
 
         fun getStringAt(index: UInt): String = content.getZeroTerminated(index.toInt()).toASCIIString()
     }
 
     open inner class ELFSection(
         override val name: String,
-        override var type: UInt,
-        override var flags: ULong = 0U,
+        override var type: UInt32,
+        override var flags: UInt64 = UInt64.ZERO,
         override var link: Section? = null,
         override var info: String? = null,
-        private val entSize: ULong? = null,
+        private val entSize: UInt64? = null,
     ) : Section {
-        override var address: BigInt = BigInt(BigInteger.ZERO)
+        override var address: BigInt = BigInt.ZERO
 
         fun createHeader(): Shdr = Shdr.create(ei_class).apply {
             sh_name = shStrTab[name] ?: shStrTab.addString(name)
             sh_type = type
 
-            setAddr(address.value.ulongValue())
+            setAddr(address.value.ulongValue().toUInt64())
             setFlags(flags)
 
             val currLink = link
             if (currLink != null) {
-                sh_link = sections.indexOf(currLink).toUInt()
+                sh_link = sections.indexOf(currLink).toUInt32()
             }
             val currInfo = info
             if (currInfo != null) {
@@ -362,7 +365,7 @@ abstract class ELFGenerator(
             }
         }
 
-        override val content: ByteBuffer = ByteBuffer(endianness)
+        override val content: Int8Buffer = Int8Buffer(endianness)
         override val reservations: MutableList<InstrReservation> = mutableListOf()
 
         override fun toString(): String = print()
@@ -377,67 +380,67 @@ abstract class ELFGenerator(
         var p_offset: Elf_Xword
             set(value) {
                 when (phdr) {
-                    is ELF32_Phdr -> phdr.p_offset = value.toUInt()
+                    is ELF32_Phdr -> phdr.p_offset = value.toUInt32()
                     is ELF64_Phdr -> phdr.p_offset = value
                 }
             }
             get() = when (phdr) {
-                is ELF32_Phdr -> phdr.p_offset.toULong()
+                is ELF32_Phdr -> phdr.p_offset.toUInt64()
                 is ELF64_Phdr -> phdr.p_offset
             }
 
         var p_vaddr: Elf_Xword
             set(value) {
                 when (phdr) {
-                    is ELF32_Phdr -> phdr.p_vaddr = value.toUInt()
+                    is ELF32_Phdr -> phdr.p_vaddr = value.toUInt32()
                     is ELF64_Phdr -> phdr.p_vaddr = value
                 }
                 calculateSectionAddresses()
             }
             get() = when (phdr) {
-                is ELF32_Phdr -> phdr.p_vaddr.toULong()
+                is ELF32_Phdr -> phdr.p_vaddr.toUInt64()
                 is ELF64_Phdr -> phdr.p_vaddr
             }
 
         var p_paddr: Elf_Xword
             set(value) {
                 when (phdr) {
-                    is ELF32_Phdr -> phdr.p_paddr = value.toUInt()
+                    is ELF32_Phdr -> phdr.p_paddr = value.toUInt32()
                     is ELF64_Phdr -> phdr.p_paddr = value
                 }
             }
             get() = when (phdr) {
-                is ELF32_Phdr -> phdr.p_paddr.toULong()
+                is ELF32_Phdr -> phdr.p_paddr.toUInt64()
                 is ELF64_Phdr -> phdr.p_paddr
             }
 
         val p_align: Elf_Xword
             get() = when (phdr) {
-                is ELF32_Phdr -> phdr.p_align.toULong()
+                is ELF32_Phdr -> phdr.p_align.toUInt64()
                 is ELF64_Phdr -> phdr.p_align
             }
 
         var p_filesz: Elf_Xword
             set(value) {
                 when (phdr) {
-                    is ELF32_Phdr -> phdr.p_filesz = value.toUInt()
+                    is ELF32_Phdr -> phdr.p_filesz = value.toUInt32()
                     is ELF64_Phdr -> phdr.p_filesz = value
                 }
             }
             get() = when (phdr) {
-                is ELF32_Phdr -> phdr.p_filesz.toULong()
+                is ELF32_Phdr -> phdr.p_filesz.toUInt64()
                 is ELF64_Phdr -> phdr.p_filesz
             }
 
         var p_memsz: Elf_Xword
             set(value) {
                 when (phdr) {
-                    is ELF32_Phdr -> phdr.p_memsz = value.toUInt()
+                    is ELF32_Phdr -> phdr.p_memsz = value.toUInt32()
                     is ELF64_Phdr -> phdr.p_memsz = value
                 }
             }
             get() = when (phdr) {
-                is ELF32_Phdr -> phdr.p_memsz.toULong()
+                is ELF32_Phdr -> phdr.p_memsz.toUInt64()
                 is ELF64_Phdr -> phdr.p_memsz
             }
 
@@ -450,7 +453,7 @@ abstract class ELFGenerator(
 
         // Calculates the size of the segment based on the sections added
         private fun calculateSegmentSize() {
-            val size = sections.sumOf { it.content.size.toULong() }
+            val size = sections.sumOf { it.content.size.toULong() }.toUInt64()
             p_filesz = size
             p_memsz = size
         }
@@ -460,7 +463,7 @@ abstract class ELFGenerator(
             var currentAddress = p_vaddr
             sections.forEach { section ->
                 section.address = currentAddress.toBigInt()
-                currentAddress += section.content.size.toULong()
+                currentAddress += section.content.size.toUInt64()
             }
         }
 

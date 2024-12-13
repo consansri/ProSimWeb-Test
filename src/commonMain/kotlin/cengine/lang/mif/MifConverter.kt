@@ -1,25 +1,21 @@
 package cengine.lang.mif
 
 import cengine.lang.mif.MifGenerator.Radix
-import cengine.lang.mif.ast.MifNode
-import cengine.lang.mif.ast.MifPsiFile
 import cengine.lang.obj.elf.*
-import cengine.util.integer.Size
-import cengine.util.newint.BigInt
-import cengine.util.newint.BigInt.Companion.toBigInt
-import cengine.util.newint.Int8.Companion.toInt8
-import cengine.util.newint.IntNumber
+import cengine.util.integer.*
+import cengine.util.integer.BigInt.Companion.toBigInt
+import cengine.util.integer.Int8.Companion.toInt8
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import emulator.kit.memory.Memory
 import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-class MifConverter(val depth: Double, val wordSize: Size) {
+class MifConverter(val depth: Double, val wordSize: IntNumberStatic<*>) {
 
-    constructor(wordSize: Size, addrSize: Size, id: String) : this(2.0.pow(addrSize.bitWidth), wordSize)
+    constructor(wordSize: IntNumberStatic<*>, addrSize: IntNumberStatic<*>, id: String) : this(2.0.pow(addrSize.BITS), wordSize)
 
-    val addrSize: Size = Size.nearestSize(log2(depth).roundToInt())
+    val addrSize: IntNumberStatic<*> = IntNumber.nearestUType(log2(depth).roundToInt() / 8)
     var addrRDX: Radix = Radix.HEX
     var dataRDX: Radix = Radix.HEX
 
@@ -28,13 +24,13 @@ class MifConverter(val depth: Double, val wordSize: Size) {
 
     init {
         // Initially, all addresses are filled with 0
-        ranges.add(Range(0.toBigInt(), BigInt(BigInteger.parseString("1".repeat(addrSize.bitWidth), 2)), listOf(BigInt.ZERO)))
+        ranges.add(Range(0.toBigInt(), BigInt(BigInteger.parseString("1".repeat(addrSize.BITS), 2)), listOf(BigInt.ZERO)))
     }
 
     fun build(): String {
         val builder = StringBuilder()
         builder.append("DEPTH = ${depth.toString().takeWhile { it != '.' }}; -- The size of memory in words\n")
-        builder.append("WIDTH = ${wordSize.bitWidth}; -- The size of data in bits\n")
+        builder.append("WIDTH = ${wordSize.BITS}; -- The size of data in bits\n")
         builder.append("ADDRESS_RADIX = ${addrRDX.name}; -- The radix for address values\n")
         builder.append("DATA_RADIX = ${dataRDX.name}; -- The radix for data values\n")
         builder.append("CONTENT BEGIN\n")
@@ -49,7 +45,7 @@ class MifConverter(val depth: Double, val wordSize: Size) {
     }
 
     fun addContent(startAddr: String, endAddr: String, data: List<String>): MifConverter {
-        return addContent(BigInt.parse(startAddr, addrRDX.radix), BigInt.parse(endAddr, addrRDX.radix), data.map { BigInt.parse(it,dataRDX.radix) })
+        return addContent(BigInt.parse(startAddr, addrRDX.radix), BigInt.parse(endAddr, addrRDX.radix), data.map { BigInt.parse(it, dataRDX.radix) })
     }
 
     fun addContent(startAddr: BigInt, endAddr: BigInt, data: List<BigInt>): MifConverter {
@@ -213,63 +209,6 @@ class MifConverter(val depth: Double, val wordSize: Size) {
     }
 
     companion object {
-
-        fun parseMif(file: MifPsiFile): MifConverter {
-            var currWordSize: Size? = null
-            var currDepth: Double? = null
-            var dataRDX = Radix.HEX
-            var addrRDX = Radix.HEX
-
-            file.program.headers.forEach {
-                when (it.identifier.value) {
-                    "WIDTH" -> {
-                        currWordSize = Size.nearestSize(it.value.value.toInt())
-                    }
-
-                    "DEPTH" -> {
-                        currDepth = it.value.value.toDouble()
-                    }
-
-                    "ADDRESS_RADIX" -> {
-                        addrRDX = Radix.getRadix(it.value.value)
-                    }
-
-                    "DATA_RADIX" -> {
-                        dataRDX = Radix.getRadix(it.value.value)
-                    }
-                }
-            }
-
-            val wordSize = currWordSize
-            val depth = currDepth
-
-            if (wordSize == null) throw Exception("Invalid or missing WIDTH!")
-            if (depth == null) throw Exception("Invalid or missing DEPTH!")
-
-            val mifConverter = MifConverter(depth, wordSize)
-
-            mifConverter.setDataRadix(dataRDX)
-            mifConverter.setAddrRadix(addrRDX)
-
-            file.program.content?.assignments?.forEach {
-                when (it) {
-                    is MifNode.Assignment.Direct -> {
-                        mifConverter.addContent(it.addr.value, listOf(it.data.value))
-                    }
-
-                    is MifNode.Assignment.ListOfValues -> {
-                        mifConverter.addContent(it.addr.value, it.data.map { token -> token.value })
-                    }
-
-                    is MifNode.Assignment.RepeatingValueRange -> {
-                        mifConverter.addContent(it.valueRange.first.value, it.valueRange.last.value, it.data.map { token -> token.value })
-                    }
-                }
-            }
-
-            return mifConverter
-        }
-
         fun parseElf(file: ELFFile): MifConverter {
             return when (file) {
                 is ELF32File -> parseElf32(file)
@@ -278,7 +217,7 @@ class MifConverter(val depth: Double, val wordSize: Size) {
         }
 
         private fun parseElf32(file: ELF32File): MifConverter {
-            val builder = MifConverter(Size.Bit8, Size.Bit32, file.name)
+            val builder = MifConverter(UInt8, UInt32, file.name)
             val bytes = file.content
 
             file.programHeaders.forEach {
@@ -295,7 +234,7 @@ class MifConverter(val depth: Double, val wordSize: Size) {
         }
 
         private fun parseElf64(file: ELF64File): MifConverter {
-            val builder = MifConverter(Size.Bit8, Size.Bit64, file.name)
+            val builder = MifConverter(UInt8, UInt64, file.name)
             val bytes = file.content
 
             file.programHeaders.forEach {

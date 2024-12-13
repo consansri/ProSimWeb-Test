@@ -19,7 +19,7 @@ import androidx.compose.ui.text.TextStyle
 import cengine.editor.highlighting.HighlightProvider
 import cengine.editor.highlighting.HighlightProvider.Companion.spanStyles
 import cengine.lang.asm.Disassembler
-import cengine.util.newint.BigInt
+import cengine.util.integer.BigInt
 import emulator.kit.Architecture
 import ui.uilib.UIState
 import ui.uilib.label.CLabel
@@ -94,7 +94,7 @@ fun ExecutionView(architecture: Architecture<*,*>?, highlighter: HighlightProvid
                     /**
                      * @throws Exception (WebAssembly.Exception) if key isn't unique!
                      */
-                    it.first.addr.toString() + it.second.offset
+                    "${it.first.addr.toString(16)}:${it.second.offset.toString(16)}"
                 }) { (segment, decoded) ->
                     val address = segment.addr + decoded.offset
                     val destOf = targetLinks.firstOrNull { it.first == decoded }

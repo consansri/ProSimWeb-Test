@@ -1,9 +1,8 @@
 package emulator.kit.memory
 
 import cengine.util.Endianness
-import cengine.util.integer.*
-import cengine.util.newint.Int32.Companion.toInt32
-import cengine.util.newint.IntNumber
+import cengine.util.integer.Int32.Companion.toInt32
+import cengine.util.integer.IntNumber
 import debug.DebugTools
 import emulator.core.*
 import emulator.kit.common.IConsole

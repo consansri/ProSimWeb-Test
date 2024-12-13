@@ -2,7 +2,9 @@ package cengine.lang.obj.elf
 
 import cengine.lang.obj.elf.Shdr.Companion.SHN_UNDEF
 import cengine.util.Endianness
-import cengine.util.buffer.ByteBuffer
+import cengine.util.buffer.Int8Buffer
+import cengine.util.integer.Int8
+import cengine.util.integer.UInt32
 
 /**
  * ELF Section Header
@@ -33,7 +35,7 @@ import cengine.util.buffer.ByteBuffer
  * depends on the section type. If not defined/used then its default value is [SHN_UNDEF].
  *
  * @param sh_info This member holds extra information, whose interpretation depends on the
- * section type. If not defined/used then its default value is [0U].
+ * section type. If not defined/used then its default value is [UInt32.ZERO].
  *
  * @param sh_addralign Some sections have address alignment constraints. For example, if a section
  * holds a doubleword, the system must ensure doubleword alignment for the
@@ -48,16 +50,16 @@ import cengine.util.buffer.ByteBuffer
  *
  */
 data class ELF32_Shdr(
-    override var sh_name: Elf_Word = 0U,
+    override var sh_name: Elf_Word = UInt32.ZERO,
     override var sh_type: Elf_Word = SHT_NULL,
-    var sh_flags: Elf_Word = 0U,
-    var sh_addr: Elf32_Addr = 0U,
-    var sh_offset: Elf32_Off = 0U,
-    var sh_size: Elf_Word = 0U,
-    override var sh_link: Elf_Word = SHN_UNDEF.toUInt(),
-    override var sh_info: Elf_Word = 0U,
-    var sh_addralign: Elf_Word = 0U,
-    var sh_entsize: Elf_Word = 0U
+    var sh_flags: Elf_Word = UInt32.ZERO,
+    var sh_addr: Elf32_Addr = UInt32.ZERO,
+    var sh_offset: Elf32_Off = UInt32.ZERO,
+    var sh_size: Elf_Word = UInt32.ZERO,
+    override var sh_link: Elf_Word = SHN_UNDEF.toUInt32(),
+    override var sh_info: Elf_Word = UInt32.ZERO,
+    var sh_addralign: Elf_Word = UInt32.ZERO,
+    var sh_entsize: Elf_Word = UInt32.ZERO
 ) : Shdr() {
 
     companion object {
@@ -70,8 +72,8 @@ data class ELF32_Shdr(
         }
     }
 
-    override fun build(endianness: Endianness): Array<Byte> {
-        val b = ByteBuffer(endianness)
+    override fun build(endianness: Endianness): Array<Int8> {
+        val b = Int8Buffer(endianness)
 
         b.put(sh_name)
         b.put(sh_type)
@@ -88,8 +90,8 @@ data class ELF32_Shdr(
     }
 
     override fun byteSize(): Int = 40
-    override fun getEntSize(): Elf_Xword = sh_entsize.toULong()
+    override fun getEntSize(): Elf_Xword = sh_entsize.toUInt64()
 
-    override fun toString(): String = "$sh_name-${getSectionType(sh_type)}-${getSectionFlags(sh_flags.toULong())}"
+    override fun toString(): String = "$sh_name-${getSectionType(sh_type)}-${getSectionFlags(sh_flags.toUInt64())}"
 
 }

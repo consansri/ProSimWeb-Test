@@ -1,4 +1,4 @@
-package cengine.util.newint
+package cengine.util.integer
 
 interface ArithOperationProvider<in T: IntNumber<*>, out U: IntNumber<*>> {
 

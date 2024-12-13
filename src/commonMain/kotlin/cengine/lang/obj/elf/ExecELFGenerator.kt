@@ -2,6 +2,8 @@ package cengine.lang.obj.elf
 
 import cengine.lang.asm.ast.TargetSpec
 import cengine.psi.core.*
+import cengine.util.integer.UInt64
+import cengine.util.integer.UInt64.Companion.toUInt64
 import kotlin.experimental.*
 
 /**
@@ -22,9 +24,9 @@ class ExecELFGenerator(
     linkerScript: LinkerScript
 ) : ELFGenerator(Ehdr.ET_EXEC, ei_class, ei_data, ei_osabi, ei_abiversion, e_machine, e_flags, linkerScript) {
 
-    constructor(spec: TargetSpec<*>, e_flags: Elf_Word = 0U) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, spec.e_machine, e_flags, spec.linkerScript)
+    constructor(spec: TargetSpec<*>, e_flags: Elf_Word = Elf_Word.ZERO) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, spec.e_machine, e_flags, spec.linkerScript)
 
-    private val segAlign get() = linkerScript.segmentAlign.toULong()
+    private val segAlign get() = linkerScript.segmentAlign
 
     private val phdrSegment = createAndAddSegment(p_type = Phdr.PT_PHDR, p_flags = Phdr.PF_R, p_align = segAlign)
 
@@ -44,11 +46,11 @@ class ExecELFGenerator(
         segments.forEach {
             sections.removeAll(it.sections.toSet())
         }
-        var currentMemoryAddress = 0UL
+        var currentMemoryAddress = UInt64.ZERO
         segments.forEach { segment ->
             sections.addAll(segment.sections)
             // apply padding
-            if (currentMemoryAddress % segment.p_align != 0UL) {
+            if (currentMemoryAddress % segment.p_align != UInt64.ZERO) {
                 val padding = segment.p_align - (currentMemoryAddress % segment.p_align)
                 currentMemoryAddress += padding
             }
@@ -60,15 +62,15 @@ class ExecELFGenerator(
         }
 
         linkerScript.textStart?.let {
-            textSegment.p_vaddr = it.value.ulongValue()
+            textSegment.p_vaddr = it.value.ulongValue().toUInt64()
         }
 
         linkerScript.dataStart?.let {
-            dataSegment.p_vaddr = it.value.ulongValue()
+            dataSegment.p_vaddr = it.value.ulongValue().toUInt64()
         }
 
         linkerScript.rodataStart?.let {
-            rodataSegment.p_vaddr = it.value.ulongValue()
+            rodataSegment.p_vaddr = it.value.ulongValue().toUInt64()
         }
 
         // Set Entry Point

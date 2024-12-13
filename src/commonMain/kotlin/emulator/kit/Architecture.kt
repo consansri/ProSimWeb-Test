@@ -2,9 +2,7 @@ package emulator.kit
 
 import androidx.compose.runtime.MutableState
 import cengine.lang.asm.Initializer
-import cengine.util.integer.*
-import cengine.util.integer.Size.*
-import cengine.util.newint.IntNumber
+import cengine.util.integer.IntNumber
 import emulator.core.*
 import emulator.kit.common.*
 import emulator.kit.memory.MainMemory

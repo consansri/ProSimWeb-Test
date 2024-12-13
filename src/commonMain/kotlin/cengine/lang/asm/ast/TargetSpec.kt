@@ -7,7 +7,7 @@ import cengine.lang.asm.ast.target.riscv.rv32.RV32Spec
 import cengine.lang.asm.ast.target.riscv.rv64.RV64Spec
 import cengine.lang.asm.ast.target.t6502.T6502Spec
 import cengine.lang.obj.elf.LinkerScript
-import cengine.util.integer.Size
+import cengine.util.integer.IntNumberStatic
 import emulator.EmuLink
 
 /**
@@ -33,10 +33,10 @@ interface TargetSpec<T : AsmCodeGenerator<*>> {
     val linkerScript: LinkerScript
 
     /** The size of memory addresses. */
-    val memAddrSize: Size
+    val memAddrSize: IntNumberStatic<*>
 
     /** The size of words. */
-    val wordSize: Size
+    val wordSize: IntNumberStatic<*>
 
     /** Determines if registers are detected by name. */
     val detectRegistersByName: Boolean

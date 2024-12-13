@@ -1,7 +1,10 @@
 package cengine.lang.obj.elf
 
 import cengine.util.Endianness
-import cengine.util.buffer.ByteBuffer
+import cengine.util.buffer.Int8Buffer
+import cengine.util.integer.Int8
+import cengine.util.integer.UInt64
+import cengine.util.integer.UInt8
 
 /**
  * Symbol Table
@@ -35,13 +38,13 @@ import cengine.util.buffer.ByteBuffer
 data class ELF64_Sym(
     override var st_name: Elf_Word,
     override var st_info: Elf_Byte,
-    override var st_other: Elf_Byte = 0U,
+    override var st_other: Elf_Byte = UInt8.ZERO,
     override var st_shndx: Elf_Half,
-    var st_value: Elf_Xword = 0U,
-    var st_size: Elf_Xword = 0U,
+    var st_value: Elf_Xword = UInt64.ZERO,
+    var st_size: Elf_Xword = UInt64.ZERO,
 ): Sym() {
-    override fun build(endianness: Endianness): Array<Byte> {
-        val b = ByteBuffer(endianness)
+    override fun build(endianness: Endianness): Array<Int8> {
+        val b = Int8Buffer(endianness)
 
         b.put(st_name)
         b.put(st_info)

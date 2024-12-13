@@ -1,9 +1,9 @@
 package emulator.archs.ikrmini
 
 import androidx.compose.runtime.mutableStateListOf
-import cengine.util.newint.IntNumber
-import cengine.util.newint.UInt16
-import cengine.util.newint.UInt16.Companion.toUInt16
+import cengine.util.integer.IntNumber
+import cengine.util.integer.UInt16
+import cengine.util.integer.UInt16.Companion.toUInt16
 import emulator.kit.register.FieldProvider
 import emulator.kit.register.RegFile
 

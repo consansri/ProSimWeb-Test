@@ -4,7 +4,7 @@ import cengine.lang.asm.ast.AsmCodeGenerator
 import cengine.lang.asm.ast.InstrTypeInterface
 import cengine.lang.asm.ast.Rule
 import cengine.lang.asm.ast.impl.ASNode
-import cengine.util.newint.UInt16
+import cengine.util.integer.UInt16
 
 enum class IKRMiniInstrType(override val detectionName: String, private val opCode: UInt16, private val paramType: IKRMiniParamType, val description: String) : InstrTypeInterface {
     // Data Transport
@@ -139,7 +139,7 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
                     return
                 }
 
-                builder.currentSection.content.put(opCode.toUShort())
+                builder.currentSection.content.put(opCode)
 
                 val evaluated = expr.evaluate(builder)
 
@@ -148,10 +148,10 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
                 }
 
                 val imm = try {
-                    evaluated.toShort().toUShort()
+                    evaluated.toInt8().toUInt8()
                 } catch (e: Exception) {
                     expr.addInfo("Unsigned Interpretation!")
-                    evaluated.toUShort()
+                    evaluated.toUInt8()
                 }
 
                 builder.currentSection.content.put(imm)
@@ -166,7 +166,7 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
                     return
                 }
 
-                builder.currentSection.content.put(opCode.toUShort())
+                builder.currentSection.content.put(opCode)
 
                 val evaluated = expr.evaluate(builder)
 
@@ -175,10 +175,10 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
                 }
 
                 val imm = try {
-                    evaluated.toShort().toUShort()
+                    evaluated.toInt16().toUInt16()
                 } catch (e: Exception) {
                     expr.addInfo("Unsigned Interpretation!")
-                    evaluated.toUShort()
+                    evaluated.toUInt16()
                 }
 
                 builder.currentSection.content.put(imm)
@@ -193,7 +193,7 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
                     return
                 }
 
-                builder.currentSection.content.put(opCode.toUShort())
+                builder.currentSection.content.put(opCode)
 
                 val evaluated = expr.evaluate(builder)
 
@@ -202,10 +202,10 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
                 }
 
                 val imm = try {
-                    evaluated.toShort().toUShort()
+                    evaluated.toInt16().toUInt16()
                 } catch (e: Exception) {
                     expr.addInfo("Unsigned Interpretation!")
-                    evaluated.toUShort()
+                    evaluated.toUInt16()
                 }
 
                 builder.currentSection.content.put(imm)
@@ -221,7 +221,7 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
                     return
                 }
 
-                builder.currentSection.content.put(opCode.toUShort())
+                builder.currentSection.content.put(opCode)
 
                 val addressExpr = exprs[1]
                 val addressEval = addressExpr.evaluate(builder)
@@ -231,10 +231,10 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
                 }
 
                 val address = try {
-                    addressEval.toShort().toUShort()
+                    addressEval.toInt16().toUInt16()
                 } catch (e: Exception) {
                     addressExpr.addInfo("Unsigned Interpretation!")
-                    addressEval.toUShort()
+                    addressEval.toUInt16()
                 }
 
                 builder.currentSection.content.put(address)
@@ -247,10 +247,10 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
                 }
 
                 val offset = try {
-                    offsetEval.toShort().toUShort()
+                    offsetEval.toInt16().toUInt16()
                 } catch (e: Exception) {
                     offsetExpr.addInfo("Unsigned Interpretation!")
-                    offsetEval.toUShort()
+                    offsetEval.toUInt16()
                 }
 
                 builder.currentSection.content.put(offset)
@@ -258,7 +258,7 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
             }
 
             LOADI, LSL, LSR, ROL, ROR, ASL, ASR, RCL, RCR, NOT, CLR, INC, DEC, JMP,
-                -> builder.currentSection.content.put(opCode.toUShort())
+                -> builder.currentSection.content.put(opCode)
 
             BSR, BRA, BHI, BLS, BCC, BCS, BNE, BEQ, BVC, BVS, BPL, BMI, BGE, BLT, BGT, BLE -> {
                 builder.currentSection.queueLateInit(instr, 2)
@@ -278,8 +278,8 @@ enum class IKRMiniInstrType(override val detectionName: String, private val opCo
                 val targetEval = targetExpr.evaluate(builder).toUInt16()
 
                 val pcEval = (section.address.toUInt16() + index)
-                val relative = (targetEval - pcEval).toShort()
-                section.content[index] = opCode.toUShort()
+                val relative = (targetEval - pcEval)
+                section.content[index] = opCode
                 section.content[index + 1] = relative
             }
 

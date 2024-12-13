@@ -2,10 +2,10 @@ package cengine.lang.asm.ast.target.ikrmini
 
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.ikrmini.IKRMiniDisassembler.InstrType.*
-import cengine.util.newint.BigInt
-import cengine.util.newint.IntNumber
-import cengine.util.newint.UInt16
-import cengine.util.newint.UInt16.Companion.toUInt16
+import cengine.util.integer.BigInt
+import cengine.util.integer.IntNumber
+import cengine.util.integer.UInt16
+import cengine.util.integer.UInt16.Companion.toUInt16
 
 object IKRMiniDisassembler : Disassembler() {
 

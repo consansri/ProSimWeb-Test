@@ -8,12 +8,11 @@ import androidx.compose.runtime.setValue
 import cengine.lang.asm.Disassembler
 import cengine.lang.asm.ast.target.riscv.RVDisassembler
 import cengine.util.Endianness
-import cengine.util.integer.signExtend
-import cengine.util.newint.Int32.Companion.toInt32
-import cengine.util.newint.UInt16
-import cengine.util.newint.UInt32
-import cengine.util.newint.UInt32.Companion.toUInt32
-import cengine.util.newint.UInt8
+import cengine.util.integer.Int32.Companion.toInt32
+import cengine.util.integer.UInt16
+import cengine.util.integer.UInt32
+import cengine.util.integer.UInt32.Companion.toUInt32
+import cengine.util.integer.UInt8
 import emulator.archs.riscv.riscv32.RV32BaseRegs
 import emulator.archs.riscv.riscv32.RV32CSRRegs
 import emulator.kit.ArchConfig
@@ -88,7 +87,7 @@ class ArchRV32 : BasicArchImpl<UInt32, UInt8>() {
 
             RVDisassembler.InstrType.JALR -> {
                 baseRegs[decoded.rd] = pc + 4
-                pc = baseRegs[decoded.rs1] + decoded.imm12iType.toInt().signExtend(12) and (-1 shl 1)
+                pc = baseRegs[decoded.rs1] + decoded.imm12iType.signExtend(12) and (-1 shl 1)
             }
 
             RVDisassembler.InstrType.ECALL -> {
