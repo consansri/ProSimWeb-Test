@@ -28,10 +28,10 @@ import kotlin.math.roundToInt
  */
 sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
     protected val backingMemory: Memory<ADDR, INSTANCE>,
-    val indexBits: Int,
+    val rowIndexBits: Int,
     val blockCount: Int,
     val offsetBits: Int,
-    val replaceAlgo: ReplaceAlgo
+    val replaceAlgo: ReplaceAlgo,
 ) : Memory<ADDR, INSTANCE>(
     backingMemory.addrType,
     backingMemory.instanceType
@@ -46,7 +46,7 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
 
     val model = Model()
 
-    private val addrBits: Int = addrType.ZERO.bitWidth
+    private val addrBits: Int = addrType.BITS
 
     override fun globalEndianess(): Endianness = backingMemory.globalEndianess()
     override fun clear() {
@@ -57,9 +57,9 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
         model.wbAll()
     }
 
-    fun buildAddr(tag: ADDR, index: ADDR, offset: ADDR): ADDR = ((((tag shl indexBits) or index.toInt32().value) shl offsetBits) or offset.toInt32().value).addr()
+    fun buildAddr(tag: ADDR, rowIndex: ADDR, offset: ADDR): ADDR = ((((tag shl rowIndexBits) or rowIndex.toInt32().value) shl offsetBits) or offset.toInt32().value).addr()
 
-    fun addrFor(rowIndex: IntNumber<*>, tag: IntNumber<*>?, offset: Int): ADDR?{
+    fun addrFor(rowIndex: IntNumber<*>, tag: IntNumber<*>?, offset: Int): ADDR? {
         val addrTag = tag?.addr() ?: return null
         return buildAddr(addrTag, rowIndex.addr(), offset.toInt32().addr())
     }
@@ -70,6 +70,8 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
         val offsetIndex = address.offset()
 
         val searchResult = model.search(address)
+
+        nativeLog("load search: ${address.toString(16)} -> ${searchResult?.first?.rowIndex?.toString(16)}, ${searchResult?.second?.toString(16)}")
 
         if (searchResult != null) {
             // HIT
@@ -83,6 +85,8 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
         }
 
         val fetchedResult = model.fetch(address)
+
+        nativeLog("load fetch: ${address.toString(16)} -> ${fetchedResult.first.rowIndex.toString(16)}, ${fetchedResult.second.toString(16)}")
 
         // MISS
         tracker.misses++
@@ -123,13 +127,13 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
 
     inner class Model {
 
-        private val tagBits = addrBits - indexBits - offsetBits
+        private val tagBits = addrBits - rowIndexBits - offsetBits
 
-        private val indexCount = 2.0.pow(indexBits).roundToInt()
+        private val rowCount = 2.0.pow(rowIndexBits).roundToInt()
         val offsetCount = 2.0.pow(offsetBits).roundToInt()
 
-        val rows = Array(indexCount) {
-            CacheRow(it.toInt32().addr().index())
+        val rows = Array(rowCount) {
+            CacheRow(it.toInt32().addr())
         }
 
         fun clear() {
@@ -138,16 +142,17 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
             }
         }
 
-        private fun ADDR.tag(): ADDR = (shr(indexBits + offsetBits) and IntNumber.bitMask(tagBits)).addr()
+        private fun ADDR.tag(): ADDR = (shr(rowIndexBits + offsetBits) and IntNumber.bitMask(tagBits)).addr()
 
-        private fun ADDR.index(): ADDR = (shr(offsetBits) and IntNumber.bitMask(indexBits)).addr()
+        private fun ADDR.rowIndex(): ADDR = (shr(offsetBits) and IntNumber.bitMask(rowIndexBits)).addr()
 
         fun search(address: ADDR): Pair<CacheRow, Int>? {
             val tag = address.tag()
-            val index = address.index()
+            val rowIndex = address.rowIndex()
+
             rows.forEach {
-                val offset = it.compare(tag, index)
-                if (offset != null) return it to offset
+                val blockIndex = it.compare(tag, rowIndex)
+                if (blockIndex != null) return it to blockIndex
             }
             return null
         }
@@ -157,11 +162,14 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
          */
         fun fetch(address: ADDR): Triple<CacheRow, Int, Boolean> {
             val tag = address.tag()
-            val index = address.index()
+            val rowIndex = address.rowIndex()
 
             val row = rows.firstOrNull {
-                it.rowIndex == index
-            } ?: throw MemoryException("Invalid row index: ${index}.")
+                it.rowIndex == rowIndex
+            } ?: throw MemoryException("Invalid row rowIndex: ${rowIndex}.")
+
+            //nativeLog("Selected ${row.index.toString(16)} for ${index.toString(16)}")
+
             val (blockIndex, wroteBack) = row.fetchBlock(tag)
             return Triple(row, blockIndex, wroteBack)
         }
@@ -180,7 +188,7 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
                 - instanceSize:   ${init.bitWidth}
                 - addrSize:       $addrBits
                 - tagBits:        $tagBits
-                - indexBits:      $indexBits
+                - indexBits:      $rowIndexBits
                 - offsetBits:     $offsetBits
                 - blockCount:     $blockCount
                 - replaceAlgo:    $replaceAlgo
@@ -202,8 +210,9 @@ sealed class Cache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
             /**
              * @return block index on (Hit) and null on (Miss)
              */
-            fun compare(tag: ADDR, index: ADDR): Int? {
-                if (this.rowIndex != index) return null
+            fun compare(tag: ADDR, rowIndex: ADDR): Int? {
+                if (this.rowIndex != rowIndex) return null
+                //nativeLog("Compare Row ${this.index.toString(16)} ?= ${index.toString(16)} -> ${this.index == index}")
                 blocks.forEachIndexed { blockIndex, cacheBlock ->
                     if (cacheBlock.compare(tag)) return blockIndex
                 }

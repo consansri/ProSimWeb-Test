@@ -1,7 +1,7 @@
 package emulator.kit.memory
 
 import cengine.util.integer.IntNumber
-import kotlin.math.log
+import kotlin.math.log2
 import kotlin.math.roundToInt
 
 /**
@@ -33,8 +33,8 @@ class DMCache<ADDR : IntNumber<*>, INSTANCE : IntNumber<*>>(
 ) {
     constructor(backingMemory: Memory<ADDR, INSTANCE>, cacheSize: CacheSize, name: String = "Cache") : this(
         backingMemory,
-        log((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toDouble(), 2.0).roundToInt(),
-        log((CacheSize.BYTECOUNT_IN_ROW / backingMemory.init.byteCount).toDouble(), 2.0).roundToInt(),
+        log2((cacheSize.bytes / CacheSize.BYTECOUNT_IN_ROW).toDouble()).roundToInt(),
+        log2((CacheSize.BYTECOUNT_IN_ROW / backingMemory.init.byteCount).toDouble()).roundToInt(),
         "$name($cacheSize DM)"
     )
 }
