@@ -1,4 +1,4 @@
 
-rootProject.name = "ProSimWeb-Test"
+rootProject.name = "ProSimWeb"
 
 
