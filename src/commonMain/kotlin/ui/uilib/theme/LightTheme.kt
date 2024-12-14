@@ -4,9 +4,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import cengine.lang.asm.CodeStyle
 import org.jetbrains.compose.resources.FontResource
-import prosim.prosimweb_test.generated.resources.JetBrainsMono_Regular
-import prosim.prosimweb_test.generated.resources.Poppins_Regular
-import prosim.prosimweb_test.generated.resources.Res
+import prosim.prosimweb.generated.resources.JetBrainsMono_Regular
+import prosim.prosimweb.generated.resources.Poppins_Regular
+import prosim.prosimweb.generated.resources.Res
 import ui.uilib.UIState
 
 data object LightTheme : Theme() {
