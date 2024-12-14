@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-07-22T14:18:26.898Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.6.4 Chrome/124.0.6367.207 Electron/30.0.6 Safari/537.36" etag="3SBcVUk33dnSwTqRCfys" version="24.6.4" type="device">
+<mxfile host="drawio-plugin" modified="2024-12-14T15:37:10.002Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" etag="tes8xRQTiQVX5zU9GRop" version="22.1.22" type="embed">
   <diagram name="Seite-1" id="8udzMbejJx4fgqFfNixB">
-    <mxGraphModel dx="1434" dy="836" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="608" dy="769" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -38,7 +38,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="gYpO4lGmnNWJcSIkt6j5-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="_CDpRcxAlrdLWrJK8iBY-1" source="_CDpRcxAlrdLWrJK8iBY-19" target="gYpO4lGmnNWJcSIkt6j5-1">
+        <mxCell id="gYpO4lGmnNWJcSIkt6j5-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="_CDpRcxAlrdLWrJK8iBY-1" source="_CDpRcxAlrdLWrJK8iBY-19" target="gYpO4lGmnNWJcSIkt6j5-1" edge="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="100" y="300" />
@@ -49,7 +49,7 @@
         <mxCell id="_CDpRcxAlrdLWrJK8iBY-19" value="&lt;div&gt;Project&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="_CDpRcxAlrdLWrJK8iBY-1" vertex="1">
           <mxGeometry x="40" y="320" width="600" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="gYpO4lGmnNWJcSIkt6j5-1" value="File Tree" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="_CDpRcxAlrdLWrJK8iBY-1">
+        <mxCell id="gYpO4lGmnNWJcSIkt6j5-1" value="File Tree" style="rounded=0;whiteSpace=wrap;html=1;" parent="_CDpRcxAlrdLWrJK8iBY-1" vertex="1">
           <mxGeometry x="40" y="80" width="120" height="80" as="geometry" />
         </mxCell>
         <mxCell id="_CDpRcxAlrdLWrJK8iBY-9" value="Consoles" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="Bn2o-F2bhLCTl_N0Lpy1-5" vertex="1">
@@ -122,9 +122,6 @@
         <mxCell id="Bn2o-F2bhLCTl_N0Lpy1-11" value="IDE (Project)" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="40" y="640" width="841.05" height="440" as="geometry" />
         </mxCell>
-        <mxCell id="Bn2o-F2bhLCTl_N0Lpy1-1" value="VFS (Virtual File System)" style="rounded=0;whiteSpace=wrap;html=1;" parent="Bn2o-F2bhLCTl_N0Lpy1-11" vertex="1">
-          <mxGeometry x="480" y="360" width="320" height="40" as="geometry" />
-        </mxCell>
         <mxCell id="Bn2o-F2bhLCTl_N0Lpy1-31" value="CENGINE (IDE Package)" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="Bn2o-F2bhLCTl_N0Lpy1-11" vertex="1">
           <mxGeometry x="40" y="210" width="240" height="210" as="geometry" />
         </mxCell>
@@ -172,11 +169,14 @@
         <mxCell id="Bn2o-F2bhLCTl_N0Lpy1-40" value="EMULATOR PACKAGE" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="Bn2o-F2bhLCTl_N0Lpy1-18" vertex="1">
           <mxGeometry x="81.04999999999995" y="40" width="240" height="60" as="geometry" />
         </mxCell>
+        <mxCell id="Bn2o-F2bhLCTl_N0Lpy1-1" value="VFS (Virtual File System)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="820" y="1000" width="320" height="40" as="geometry" />
+        </mxCell>
         <mxCell id="5P8qWCs-wOGuorY2N32P-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="5P8qWCs-wOGuorY2N32P-1" target="Bn2o-F2bhLCTl_N0Lpy1-1" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="5P8qWCs-wOGuorY2N32P-1" value="AFS (Actual File System)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="520" y="1120" width="320" height="40" as="geometry" />
+          <mxGeometry x="820" y="1120" width="320" height="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

@@ -18,16 +18,15 @@ Window &rarr; Show View &rarr; Other &rarr; Gradle &rarr; Gradle Tasks
 
 ## Development ##
 
-Gradle Tasks &rarr; `[Project Name]` &rarr; kotlin browser &rarr; jsBrowserDevelopmentRun
+Gradle Tasks &rarr; `[Project Name]` &rarr; kotlin browser &rarr; composeWebBrowserDevelopmentRun
 
 **Disclaimer:**\
-Automatic recompilation seems not to work in every eclipse setup! (works in IntelliJ)\
-To get better Syntax Highlighting use IntelliJ IDEA!
+Automatic recompilation seems not to work in every eclipse setup! (works in IntelliJ)
 
 ## Distribution ##
 
-1. Gradle Tasks &rarr; [Project Name] &rarr; kotlin browser &rarr; jsBrowserDistribution
+1. Gradle Tasks &rarr; [Project Name] &rarr; kotlin browser &rarr; composeWebBrowserDistribution
 2. The Distributed Web Files (HTML, CSS, JavaScript, ICONS, ...) can be found at\
-```[Project Dir]/build/dist/js/productionExecutable``` 
+```[Project Dir]/build/dist/composeWeb/productionExecutable``` 
 
 
