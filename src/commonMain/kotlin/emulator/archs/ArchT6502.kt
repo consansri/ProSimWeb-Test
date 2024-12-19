@@ -43,6 +43,8 @@ class ArchT6502 : BasicArchImpl<UInt16, UInt8>() {
     override fun executeNext(tracker: Memory.AccessTracker): ExecutionResult {
         val threeBytes = instrMemory.loadArray(pc, 3, tracker)
 
+
+
         TODO()
     }
 

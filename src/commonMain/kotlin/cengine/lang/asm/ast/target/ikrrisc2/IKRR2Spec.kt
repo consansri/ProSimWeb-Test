@@ -19,22 +19,8 @@ import emulator.EmuLink
 
 data object IKRR2Spec: TargetSpec<MifGenerator<Int32Buffer>> {
     override val name: String = "IKR RISC-II"
-    override val ei_class: Elf_Byte = E_IDENT.ELFCLASS64
-    override val ei_data: Elf_Byte = E_IDENT.ELFDATA2MSB
-    override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
-    override val ei_abiversion: Elf_Byte = Ehdr.EV_CURRENT.toUInt8()
-    override val e_machine: Elf_Half = Ehdr.EM_CUSTOM_IKRRISC2
     override val emuLink: EmuLink = EmuLink.IKRRISC2
 
-    override val linkerScript: LinkerScript = object : LinkerScript {
-        override val textStart: BigInt = BigInt.ZERO
-        override val dataStart: BigInt? = null
-        override val rodataStart: BigInt? = null
-        override val segmentAlign: UInt64 = 0x10000U.toUInt64()
-    }
-
-    override val memAddrSize: IntNumberStatic<*> = Int32
-    override val wordSize: IntNumberStatic<*> = Int32
     override val detectRegistersByName: Boolean = true
     override val prefices: AsmLexer.Prefices = object : AsmLexer.Prefices {
         override val hex: String = "$"
@@ -48,7 +34,12 @@ data object IKRR2Spec: TargetSpec<MifGenerator<Int32Buffer>> {
     override val allInstrs: List<InstrTypeInterface> = IKRR2InstrType.entries
     override val allDirs: List<DirTypeInterface> = ASDirType.entries
 
-    override fun createGenerator(): MifGenerator<Int32Buffer> = MifGenerator(linkerScript, memAddrSize) {
+    override fun createGenerator(): MifGenerator<Int32Buffer> = MifGenerator(object : LinkerScript {
+        override val textStart: BigInt = BigInt.ZERO
+        override val dataStart: BigInt? = null
+        override val rodataStart: BigInt? = null
+        override val segmentAlign: UInt64 = 0x10000U.toUInt64()
+    }, Int32) {
         Int32Buffer(Endianness.BIG)
     }
 

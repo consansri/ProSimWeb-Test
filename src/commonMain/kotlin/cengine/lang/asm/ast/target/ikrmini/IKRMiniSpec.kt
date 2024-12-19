@@ -21,22 +21,8 @@ import emulator.EmuLink
 
 data object IKRMiniSpec : TargetSpec<MifGenerator<Int16Buffer>> {
     override val name: String = "IKR Mini"
-    override val ei_class: cengine.lang.obj.elf.Elf_Byte = E_IDENT.ELFCLASS32
-    override val ei_data: cengine.lang.obj.elf.Elf_Byte = E_IDENT.ELFDATA2LSB
-    override val ei_osabi: cengine.lang.obj.elf.Elf_Byte = E_IDENT.ELFOSABI_SYSV
-    override val ei_abiversion: cengine.lang.obj.elf.Elf_Byte = Ehdr.EV_CURRENT.toUInt8()
-    override val e_machine: cengine.lang.obj.elf.Elf_Half = Ehdr.EM_CUSTOM_IKRMINI
     override val emuLink: EmuLink = EmuLink.IKRMINI
 
-    override val linkerScript: LinkerScript = object : LinkerScript {
-        override val textStart: BigInt = BigInt.ZERO
-        override val dataStart: BigInt? = null
-        override val rodataStart: BigInt? = null
-        override val segmentAlign: UInt64 = 0x4000U.toUInt64()
-    }
-
-    override val memAddrSize: IntNumberStatic<*> = Int16
-    override val wordSize: IntNumberStatic<*> = Int16
     override val detectRegistersByName: Boolean = false
     override val prefices: AsmLexer.Prefices = object : AsmLexer.Prefices {
         override val hex: String = "$"
@@ -50,7 +36,12 @@ data object IKRMiniSpec : TargetSpec<MifGenerator<Int16Buffer>> {
     override val allInstrs: List<InstrTypeInterface> = IKRMiniInstrType.entries
     override val allDirs: List<DirTypeInterface> = ASDirType.entries
 
-    override fun createGenerator(): MifGenerator<Int16Buffer> = MifGenerator(linkerScript, memAddrSize) {
+    override fun createGenerator(): MifGenerator<Int16Buffer> = MifGenerator(object : LinkerScript {
+        override val textStart: BigInt = BigInt.ZERO
+        override val dataStart: BigInt? = null
+        override val rodataStart: BigInt? = null
+        override val segmentAlign: UInt64 = 0x4000U.toUInt64()
+    }, Int16) {
         Int16Buffer(Endianness.LITTLE)
     }
 

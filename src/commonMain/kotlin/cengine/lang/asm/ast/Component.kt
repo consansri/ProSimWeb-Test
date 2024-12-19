@@ -200,12 +200,12 @@ sealed class Component {
         override fun print(prefix: String): String = "$prefix${type.name}"
     }
 
-    class SpecNode(private val type: ASNodeType) : Component() {
+    class SpecNode(private val type: ASNodeType, val condition: (node: ASNode) -> Boolean = { true }) : Component() {
         override fun matchStart(lexer: AsmLexer, targetSpec: TargetSpec<*>): Rule.MatchResult {
             val initialPosition = lexer.position
 
             val node = ASNode.buildNode(type, lexer, targetSpec)
-            if (node == null) {
+            if (node == null || !condition(node)) {
                 if (DebugTools.KIT_showRuleChecks) nativeLog("Mismatch: SpecNode ${type.name}")
                 lexer.position = initialPosition
                 return Rule.MatchResult(false, listOf(), listOf())

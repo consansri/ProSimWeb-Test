@@ -128,11 +128,7 @@ sealed class ASNode(override var range: IntRange, vararg children: PsiElement) :
                     val annotations = mutableListOf<Annotation>()
 
                     while (lexer.hasMoreTokens()) {
-                        val node = buildNode(ASNodeType.STATEMENT, lexer, targetSpec)
-
-                        if (node == null) {
-                            break
-                        }
+                        val node = buildNode(ASNodeType.STATEMENT, lexer, targetSpec) ?: break
 
                         if (node is SyntaxError) {
                             syntaxErrors.add(node)

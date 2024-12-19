@@ -15,28 +15,11 @@ import emulator.EmuLink
  */
 interface TargetSpec<T : AsmCodeGenerator<*>> {
     companion object {
-        val specs = setOf(RV32Spec, RV64Spec, IKRR2Spec, IKRMiniSpec, T6502Spec)
+        val specs = setOf(RV32Spec, RV64Spec, IKRR2Spec, IKRMiniSpec)
     }
 
     val name: String
     val emuLink: EmuLink?
-
-    /**
-     * ELF Information
-     */
-
-    val ei_class: cengine.lang.obj.elf.Elf_Byte
-    val ei_data: cengine.lang.obj.elf.Elf_Byte
-    val ei_osabi: cengine.lang.obj.elf.Elf_Byte
-    val ei_abiversion: cengine.lang.obj.elf.Elf_Byte
-    val e_machine: cengine.lang.obj.elf.Elf_Half
-    val linkerScript: LinkerScript
-
-    /** The size of memory addresses. */
-    val memAddrSize: IntNumberStatic<*>
-
-    /** The size of words. */
-    val wordSize: IntNumberStatic<*>
 
     /** Determines if registers are detected by name. */
     val detectRegistersByName: Boolean

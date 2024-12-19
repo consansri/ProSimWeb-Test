@@ -16,23 +16,8 @@ import emulator.EmuLink
 
 object T6502Spec : TargetSpec<ELFGenerator> {
     override val name: String = "6502 MOS"
+    override val emuLink: EmuLink = TODO() // EmuLink.T6502
 
-    override val ei_class: Elf_Byte = E_IDENT.ELFCLASS32
-    override val ei_data: Elf_Byte = E_IDENT.ELFDATA2LSB
-    override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
-    override val ei_abiversion: Elf_Byte = Ehdr.EV_CURRENT.toUInt8()
-    override val e_machine: Elf_Half = Ehdr.EM_CUSTOM_T6502
-
-    override val linkerScript: LinkerScript = object : LinkerScript {
-        override val textStart: BigInt = BigInt.ZERO
-        override val dataStart: BigInt? = null
-        override val rodataStart: BigInt? = null
-        override val segmentAlign: UInt64 = 0x4000U.toUInt64()
-    }
-    override val emuLink: EmuLink = EmuLink.T6502
-
-    override val memAddrSize = UInt16
-    override val wordSize = Int16
     override val detectRegistersByName: Boolean = false
     override val prefices: AsmLexer.Prefices = object : AsmLexer.Prefices {
         override val hex: String = "$"
@@ -42,10 +27,24 @@ object T6502Spec : TargetSpec<ELFGenerator> {
         override val oct: String = "0"
         override val symbol: Regex = Regex("""[a-zA-Z._][a-zA-Z0-9$._]*""")
     }
+
     override val allRegs: List<RegTypeInterface> = emptyList()
     override val allInstrs: List<InstrTypeInterface> = T6502InstrType.entries
     override val allDirs: List<DirTypeInterface> = ASDirType.entries
-    override fun createGenerator(): ELFGenerator = ExecELFGenerator(this)
+    override fun createGenerator(): ELFGenerator = ExecELFGenerator(
+        ei_class = E_IDENT.ELFCLASS32,
+        ei_data = E_IDENT.ELFDATA2LSB,
+        ei_osabi = E_IDENT.ELFOSABI_SYSV,
+        ei_abiversion = Ehdr.EV_CURRENT.toUInt8(),
+        e_machine = Ehdr.EM_CUSTOM_T6502,
+        e_flags = Elf_Word.ZERO,
+        linkerScript = object : LinkerScript {
+            override val textStart: BigInt = BigInt.ZERO
+            override val dataStart: BigInt? = null
+            override val rodataStart: BigInt? = null
+            override val segmentAlign: UInt64 = 0x4000U.toUInt64()
+        },
+    )
 
     override fun toString(): String = name
 }

@@ -20,21 +20,8 @@ import emulator.EmuLink
 data object RV32Spec : TargetSpec<ELFGenerator> {
     override val name: String = "RISC-V 32 Bit"
 
-    override val ei_class: Elf_Byte = E_IDENT.ELFCLASS32
-    override val ei_data: Elf_Byte = E_IDENT.ELFDATA2LSB
-    override val ei_osabi: Elf_Byte = E_IDENT.ELFOSABI_SYSV
-    override val ei_abiversion: Elf_Byte = E_IDENT.ZERO
-    override val e_machine: Elf_Half = Ehdr.EM_RISCV
-    override val linkerScript: LinkerScript = object : LinkerScript {
-        override val textStart: BigInt = BigInt.ZERO
-        override val dataStart: BigInt? = null
-        override val rodataStart: BigInt? = null
-        override val segmentAlign: UInt64 = 0x40000U.toUInt64()
-    }
     override val emuLink: EmuLink = EmuLink.RV32I
 
-    override val memAddrSize = UInt32
-    override val wordSize = Int32
     override val detectRegistersByName: Boolean = true
     override val prefices: AsmLexer.Prefices = object : AsmLexer.Prefices {
         override val hex: String = "0x"
@@ -48,7 +35,20 @@ data object RV32Spec : TargetSpec<ELFGenerator> {
     override val allRegs: List<RegTypeInterface> = RVBaseRegs.entries + RVCsr.regs + RVCsr32Only.entries
     override val allInstrs: List<InstrTypeInterface> = RV32InstrType.entries
     override val allDirs: List<DirTypeInterface> = RVDirType.entries + ASDirType.entries
-    override fun createGenerator(): ELFGenerator = ExecELFGenerator(this)
+    override fun createGenerator(): ELFGenerator = ExecELFGenerator(
+        ei_class = E_IDENT.ELFCLASS32,
+        ei_data = E_IDENT.ELFDATA2LSB,
+        ei_osabi = E_IDENT.ELFOSABI_SYSV,
+        ei_abiversion = E_IDENT.ZERO,
+        e_machine = Ehdr.EM_RISCV,
+        e_flags = Elf_Word.ZERO,
+        linkerScript = object : LinkerScript {
+            override val textStart: BigInt = BigInt.ZERO
+            override val dataStart: BigInt? = null
+            override val rodataStart: BigInt? = null
+            override val segmentAlign: UInt64 = 0x40000U.toUInt64()
+        }
+    )
 
     override fun toString(): String = name
 }

@@ -13,7 +13,7 @@ import kotlin.reflect.KClass
 enum class EmuLink(private val arch: () -> Architecture<*, *>, val classType: KClass<*>) {
     RV32I({ ArchRV32() }, ArchRV32::class),
     RV64I({ ArchRV64() }, ArchRV64::class),
-    T6502({ ArchT6502() }, ArchT6502::class),
+    //T6502({ ArchT6502() }, ArchT6502::class),
     IKRMINI({ ArchIKRMini() }, ArchIKRMini::class),
     IKRRISC2({ ArchIKRRisc2() }, ArchIKRRisc2::class);
 

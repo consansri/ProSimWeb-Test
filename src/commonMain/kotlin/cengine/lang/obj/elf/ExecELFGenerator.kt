@@ -20,11 +20,9 @@ class ExecELFGenerator(
     ei_osabi: Elf_Byte,
     ei_abiversion: Elf_Byte,
     e_machine: Elf_Half,
-    e_flags: Elf_Word,
+    e_flags: Elf_Word = Elf_Word.ZERO,
     linkerScript: LinkerScript
 ) : ELFGenerator(Ehdr.ET_EXEC, ei_class, ei_data, ei_osabi, ei_abiversion, e_machine, e_flags, linkerScript) {
-
-    constructor(spec: TargetSpec<*>, e_flags: Elf_Word = Elf_Word.ZERO) : this(spec.ei_class, spec.ei_data, spec.ei_osabi, spec.ei_abiversion, spec.e_machine, e_flags, spec.linkerScript)
 
     private val segAlign get() = linkerScript.segmentAlign
 
