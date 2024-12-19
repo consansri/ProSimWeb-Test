@@ -12,17 +12,7 @@ import cengine.lang.asm.ast.lexer.AsmTokenType
  */
 enum class T6502ParamType(val rule: Rule?, val byteAmount: Int, val exampleString: String, val description: String) {
 
-    ZP_X(Rule { Seq(SpecNode(ASNodeType.INT_EXPR){node ->
-        if(node !is cengine.lang.asm.ast.impl.ASNode.NumericExpr) return@SpecNode false
-        if(node !is cengine.lang.asm.ast.impl.ASNode.NumericExpr.Operand.Number) return@SpecNode false
-
-        (node.number.type == AsmTokenType.INT_HEX && node.number.asNumber.length == 2)
-                || node.number.type == AsmTokenType.INT_BIN && node.number.asNumber.length == 8
-
-
-        true
-
-    }, Specific(","), Specific("X")) }, 2, exampleString = "$00, X", description = "zeropage, X-indexed"), // Zero Page Indexed with X: zp,x
+    ZP_X(Rule { Seq(SpecNode(ASNodeType.INT_EXPR), Specific(","), Specific("X")) }, 2, exampleString = "$00, X", description = "zeropage, X-indexed"), // Zero Page Indexed with X: zp,x
     ZP_Y(Rule { Seq(SpecNode(ASNodeType.INT_EXPR), Specific(","), Specific("Y")) }, 2, exampleString = "$00, Y", description = "zeropage, Y-indexed"), // Zero Page Indexed with Y: zp,y
 
     ABS_X(Rule { Seq(SpecNode(ASNodeType.INT_EXPR), Specific(","), Specific("X")) }, 3, exampleString = "$0000, X", description = "absolute, X-indexed"), // Absolute Indexed with X: a,x
