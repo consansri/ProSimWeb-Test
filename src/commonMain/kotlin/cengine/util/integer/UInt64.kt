@@ -95,7 +95,7 @@ class UInt64(override val value: ULong) : IntNumber<UInt64>, UnsignedExtension {
     override fun compareTo(other: Int): Int = compareTo(other.toUInt())
     override fun compareTo(other: Long): Int = compareTo(other.toULong())
 
-    override operator fun equals(other: Any?): Boolean {
+    override fun equals(other: Any?): Boolean {
         if (other is IntNumber<*>) return value == other.value
         return value == other
     }

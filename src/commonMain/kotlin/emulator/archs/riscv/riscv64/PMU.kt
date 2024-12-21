@@ -1,5 +1,8 @@
 package emulator.archs.riscv.riscv64
 
+import cengine.util.integer.UInt64
+import cengine.util.integer.UInt64.Companion.toUInt64
+
 /**
  * All internal regs will be mapped to CSR Addresses, which should be chosen wisely.
  *
@@ -65,10 +68,10 @@ class PMU {
      *
      */
     data class Counter(
-        var configReg1: UInt = 0U,
-        var configReg2: UInt = 0U,
-        var value1: UInt = 0U,
-        var value2: UInt = 0U,
+        var configReg1: UInt64 = 0U.toUInt64(),
+        var configReg2: UInt64 = 0U.toUInt64(),
+        var value1: UInt64 = 0U.toUInt64(),
+        var value2: UInt64 = 0U.toUInt64(),
     )
 
 
